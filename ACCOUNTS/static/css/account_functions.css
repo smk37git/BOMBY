@@ -1,17 +1,20 @@
-/* Container styles */
-.auth-container {
-    max-width: 500px;
-    margin: 170px auto 130px;
-    padding: 30px;
-    background-color: #0a0a0a;
-    border-radius: 10px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    color: #fff;
-    text-align: center;
+.login-links {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
 }
 
-/* Header styles */
+.auth-container {
+    max-width: 450px;
+    margin: 80px auto;
+    padding: 40px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
 .auth-header {
     text-align: center;
     margin-bottom: 30px;
@@ -19,7 +22,8 @@
 
 .auth-title {
     font-size: 2.2rem;
-    margin: 0 0 10px 0;
+    margin: 0;
+    margin-bottom: 10px;
 }
 
 .auth-subtitle {
@@ -28,13 +32,6 @@
     margin: 0;
 }
 
-.auth-icon {
-    font-size: 4rem;
-    color: #55ff55;
-    margin-bottom: 20px;
-}
-
-/* Form styles */
 .auth-form label {
     display: block;
     margin-bottom: 8px;
@@ -60,8 +57,7 @@
     box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
 }
 
-/* Button styles */
-.auth-button, .auth-button-link {
+.auth-button {
     width: 100%;
     padding: 12px;
     background: linear-gradient(45deg, #9e33e6, #505ed7);
@@ -78,17 +74,11 @@
     box-sizing: border-box;
 }
 
-.auth-button-link {
-    margin-top: 20px;
-}
-
-.auth-button:hover, .auth-button-link:hover {
-    background-color: #1b1b1b;
+.auth-button:hover {
     transform: translateY(-3px);
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
 }
 
-/* Links styles */
 .auth-links {
     margin-top: 25px;
     text-align: center;
@@ -96,56 +86,16 @@
 }
 
 .auth-links a {
-    color: #2b8ef1;
+    color: rgba(160, 74, 226, 0.8);
     text-decoration: none;
+    transition: color 0.3s;
 }
 
 .auth-links a:hover {
+    color: #9e33e6;
     text-decoration: underline;
 }
 
-/* Message styles */
-.auth-message {
-    line-height: 1.6;
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.auth-message p {
-    line-height: 1.6;
-    text-align: center;
-    margin-bottom: -50px;
-}
-
-.help-text {
-    text-align: left;
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.5);
-    margin: 10px 0 30px 0;
-}
-
-/* Form section */
-.contactpageform-group label {
-    display: block;
-    margin-bottom: 5px;
-    color: #ffffff;
-    font-size: 1em;
-    padding-left: 0;
-}
-
-.contactpageform-group input,
-.contactpageform-group textarea {
-    width: 100%;
-    padding: 10px;
-    box-sizing: border-box;
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px;
-    color: white;
-    font-size: 1em;
-}
-
-.contactpageform-group textarea {
-    height: 200px;
-    resize: vertical;
+.create-account-section {
+    margin-top: 40px;
 }
