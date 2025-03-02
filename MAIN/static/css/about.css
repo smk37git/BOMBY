@@ -5,6 +5,7 @@
     overflow-x: hidden;
     z-index: 2;
     min-height: 100vh;
+    margin-top: -140px;
 }
 
 .about-header h1 {
