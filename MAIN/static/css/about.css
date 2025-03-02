@@ -7,17 +7,6 @@
     min-height: 100vh;
 }
 
-/* Create a background overlay to prevent content from showing behind the footer */
-.about-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 50px; /* Adjust based on footer height */
-    background-color: #0a0a0a; 
-    z-index: 3;
-}
-
 .about-header h1 {
     text-align: center;
     font-size: 3.5em;
@@ -40,16 +29,6 @@
     gap: 40px;
     position: relative;
     z-index: 4; /* Increased z-index */
-}
-
-.base-footer {
-    background-color:#0a0a0a !important; /* Force a solid background */
-    color: white;
-    padding: 10px 0;
-    text-align: center;
-    width: 100%;
-    position: relative; /* Ensure it's not affected by absolute positioning */
-    z-index: 5; /* Higher than .contactpage-section */
 }
 
 .about-image {
@@ -154,34 +133,34 @@
     transition: transform 0.3s ease;
 }
 
-.contact-separator {
-    height: 4px;
-    background: linear-gradient(to top, rgb(159, 159, 159) 0%, rgba(255, 255, 255, 0) 100%);
-    width: 100%;
+.section-separator {
     position: relative;
-    z-index: 4; /* Increased z-index */
+    width: 100%;
+    height: 1px;
+    margin-bottom: -1px; /* Negative margin to overlap properly */
+    background: transparent;
+    z-index: 3;
 }
 
-.about-contact-footer {
-    height: 4px;
-    background: linear-gradient(to top, rgb(159, 159, 159) 0%, rgba(255, 255, 255, 0) 100%);
+.section-separator::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
-    position: relative;
-    z-index: 4; /* Increased z-index */
+    height: 1px;
+    background: linear-gradient(to bottom, rgb(159, 159, 159), rgba(255, 255, 255, 0));
 }
 
 .contact-section {
     position: relative;
     text-align: center;
-    padding: 40px;
+    padding: 20px;
+    padding-top: 30px; /* Reduced top padding */
     background-color: #0a0a0a;
     opacity: 1 !important;
-    z-index: 5; /* Even higher z-index for contact section */
-}
-
-.contact-section::before,
-.contact-section::after {
-    content: none !important;
+    border-top: none; /* Remove any border */
+    z-index: 2; /* Lower z-index so separator appears on top */
 }
 
 .contact-link {
@@ -193,8 +172,12 @@
     font-size: 1.1em;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     z-index: 5;
+}
+
+.contact-section h2 {
+    margin-top: 0;
 }
 
 .contact-links {
@@ -205,6 +188,7 @@
     margin-top: 20px;
     position: relative;
     z-index: 5; /* Increased z-index */
+    margin-bottom: 0;
 }
 
 .contact-links a {
@@ -228,17 +212,6 @@
 .contact-links a:hover {
     transform: translateY(-3px);
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
-}
-
-/* Add a footer background to ensure full coverage */
-.footer-background {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 200px; /* Adjust based on your footer height */
-    background-color: #0a0a0a;
-    z-index: 2;
 }
 
 /* Mobile Responsive Styles */
