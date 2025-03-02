@@ -107,7 +107,9 @@
                     <label for="{{ form.youtube_link.id_for_label }}">
                         <i class="fab fa-youtube"></i> YouTube Link
                     </label>
-                    {{ form.youtube_link }}
+                    <div class="form-input">
+                        {{ form.youtube_link }}
+                    </div>
                     <div class="validation-popup" id="youtube-validation-popup"></div>
                     {% if form.youtube_link.errors %}
                         <div class="messages">
