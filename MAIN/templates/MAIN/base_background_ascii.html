@@ -1,80 +1,161 @@
-<!-- base_background_ascii.html -->
-<style>
-    
-    /* Contact Page Styling with Binary Background and Fixed Dimensions */
-    .contactpage-section {
-        padding: 20px 0 50px 0;
-        background: #0a0a0a;
-        position: relative;
-        overflow-x: hidden;
-        z-index: 2;
-        min-height: 100vh;
-    }
-
-    .contactpage-section::before,
-    .contactpage-section::after {
-        content:"01001 >_ ./ {} </> *** >>> ### === ||| [][]  01001 >_ ./ {} </> *** >>> ### === ||| [][]  01001 >_ ./ {} </> *** >>> ### === ||| [][]\A"
-                "10110 ### ^_^ {} </> *** <<< >_ === ||| [][]  10110 ### ^_^ {} </> *** <<< >_ === ||| [][]  10110 ### ^_^ {} </> *** <<< >_ === ||| [][]\A"
-                "01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++\A"
-                "10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++\A"
-                "11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++\A"
-                "00110 >_> |=| [-] %%% <<< ### @@@ ||| +++  00110 >_> |=| [-] %%% <<< ### @@@ ||| +++  00110 >_> |=| [-] %%% <<< ### @@@ ||| +++\A"
-                "10101 ___ {+} [/] === >_> ### %%% ||| +++  10101 ___ {+} [/] === >_> ### %%% ||| +++  10101 ___ {+} [/] === >_> ### %%% ||| +++\A"
-                "01011 @@@ <=> [!] *** >>> ### === ||| +++  01011 @@@ <=> [!] *** >>> ### === ||| +++  01011 @@@ <=> [!] *** >>> ### === ||| +++\A"
-                "10100 %%% ^_^ [$] </> <<< ### ___ ||| +++  10100 %%% ^_^ [$] </> <<< ### ___ ||| +++  10100 %%% ^_^ [$] </> <<< ### ___ ||| +++\A"
-                "01010 === |>| [%] @@@ >_> ### %%% ||| +++  01010 === |>| [%] @@@ >_> ### %%% ||| +++  01010 === |>| [%] @@@ >_> ### %%% ||| +++\A"
-                "11100 >>> {=} [@] *** === ### ___ ||| +++  11100 >>> {=} [@] *** === ### ___ ||| +++  11100 >>> {=} [@] *** === ### ___ ||| +++\A"
-                "00011 <<< <|> [#] %%% >>> ### @@@ ||| +++  00011 <<< <|> [#] %%% >>> ### @@@ ||| +++  00011 <<< <|> [#] %%% >>> ### @@@ ||| +++\A"
-                "10111 ___ |=| [$] === <<< ### %%% ||| +++  10111 ___ |=| [$] === <<< ### %%% ||| +++  10111 ___ |=| [$] === <<< ### %%% ||| +++\A"
-                "01110 @@@ {+} [%] *** >_> ### === ||| +++  01110 @@@ {+} [%] *** >_> ### === ||| +++  01110 @@@ {+} [%] *** >_> ### === ||| +++\A"
-                "10001 %%% <=> [&] </> === ### ___ ||| +++  10001 %%% <=> [&] </> === ### ___ ||| +++  10001 %%% <=> [&] </> === ### ___ ||| +++\A"
-                "01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++\A"
-                "11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++\A"
-                "01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++\A"
-                "10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++\A"
-                "11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++\A"
-                "01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++\A"
-                "11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++\A"
-                "01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++\A"
-                "10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++\A"
-                "11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++\A"
-                "01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++\A"
-                "01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++\A";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block extra_css %}{% endblock %}
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #0a0a0a;
+            color: white;
+            min-height: 100vh;
+            width: 100%;
+            overflow-x: hidden;
+        }
         
-        position: fixed;
-        width: 100%;
-        left: 0;
-        white-space: pre;
-        font-family: monospace;
-        font-size: 16px;
-        line-height: 1.8;
-        color: rgba(255, 255, 255, 0.1);
-        pointer-events: none;
-        overflow: hidden;
-        z-index: 1;
-    }
+        .binary-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+            background-color: #0a0a0a;
+            overflow: hidden;
+        }
 
-    /* Animation for background text */
-    .contactpage-section::before {
-        top: 0;
-        height: 100vh;
-        animation: moveUp1 40s linear infinite;
-    }
+        .console-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            animation: scrollConsole 150s linear infinite;
+        }
 
-    .contactpage-section::after {
-        top: 100vh;
-        height: 100vh;
-        animation: moveUp2 40s linear infinite;
-    }
+        .console-line {
+            color: rgba(255, 255, 255, 0.1);
+            font-family: monospace;
+            font-size: 2em;
+            line-height: 1.2;
+            white-space: nowrap;
+            position: absolute;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+        }
 
-    @keyframes moveUp1 {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(-100%); }
-    }
-
-    @keyframes moveUp2 {
-        0% { transform: translateY(0); }
-        100% { transform: translateY(-100%); }
-    }
-</style>
-<div class="gradient-background"></div>
+        @keyframes scrollConsole {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+    </style>
+</head>
+<body>
+    <div class="binary-background" id="binaryBackground"></div>
+    
+    {% block content %}{% endblock %}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const background = document.getElementById('binaryBackground');
+            createConsoleBackground();
+            window.addEventListener('resize', createConsoleBackground);
+            
+            function createConsoleBackground() {
+                background.innerHTML = '';
+                
+                const consoleContainer = document.createElement('div');
+                consoleContainer.className = 'console-container';
+                background.appendChild(consoleContainer);
+                
+                // Generate patterns with more variations
+                const baseSymbols = ["0", "1", ">", "_", ".", "/", "{", "}", "<", "*", "#", "=", "|", "[", "]", "^", "&", "@", "+", "%", "$", "!"];
+                const operators = [">>>", "<<<", "===", "!==", ">_>", "<_<", "{_}", "[*]", "<=>", "|||"];
+                
+                // Generate patterns programmatically for greater variety
+                function generateUniquePattern() {
+                    const components = [];
+                    
+                    // Binary number (4-5 digits)
+                    const binaryLength = Math.floor(Math.random() * 2) + 4;
+                    let binary = "";
+                    for (let i = 0; i < binaryLength; i++) {
+                        binary += Math.floor(Math.random() * 2);
+                    }
+                    components.push(binary);
+                    
+                    // 2-3 operators/symbol groups
+                    const operatorCount = Math.floor(Math.random() * 2) + 2;
+                    for (let i = 0; i < operatorCount; i++) {
+                        components.push(operators[Math.floor(Math.random() * operators.length)]);
+                    }
+                    
+                    // Add some symbols
+                    const symbolCount = Math.floor(Math.random() * 3) + 2;
+                    for (let i = 0; i < symbolCount; i++) {
+                        const symbolGroup = baseSymbols[Math.floor(Math.random() * baseSymbols.length)] + 
+                                          baseSymbols[Math.floor(Math.random() * baseSymbols.length)] +
+                                          baseSymbols[Math.floor(Math.random() * baseSymbols.length)];
+                        components.push(symbolGroup);
+                    }
+                    
+                    // Shuffle components
+                    for (let i = components.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [components[i], components[j]] = [components[j], components[i]];
+                    }
+                    
+                    return components.join(" ");
+                }
+                
+                // Calculate line height based on font size and line height
+                const fontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+                const lineHeight = fontSize * 2 * 1.2;
+                
+                const viewportHeight = window.innerHeight;
+                const totalHeight = viewportHeight * 2;
+                
+                const linesNeeded = Math.ceil(totalHeight / lineHeight) + 1;
+                
+                // Calculate pattern counts needed to fill width
+                const viewportWidth = window.innerWidth;
+                const avgCharWidth = fontSize * 2 * 0.6;
+                const avgPatternLength = 30;
+                const patternsPerLine = Math.ceil(viewportWidth / (avgCharWidth * avgPatternLength)) + 1;
+                
+                // Keep track of full line contents to ensure uniqueness
+                const lineContents = new Set();
+                
+                // Create lines for console
+                for (let i = 0; i < linesNeeded; i++) {
+                    const line = document.createElement('div');
+                    line.className = 'console-line';
+                    line.style.top = `${i * lineHeight}px`;
+                    
+                    // Build a unique line content
+                    let lineContent;
+                    do {
+                        // Generate new content
+                        let contentParts = [];
+                        for (let j = 0; j < patternsPerLine; j++) {
+                            contentParts.push(generateUniquePattern());
+                        }
+                        lineContent = contentParts.join("  ");
+                    } while (lineContents.has(lineContent));
+                    
+                    // Store this line content to avoid duplicates
+                    lineContents.add(lineContent);
+                    
+                    line.textContent = lineContent;
+                    consoleContainer.appendChild(line);
+                }
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
