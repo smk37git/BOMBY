@@ -33,6 +33,7 @@
     margin: 40px auto;
     padding: 12px 30px;
     background-color: #1a1a1a;
+    border: 1px solid white;
     border-radius: 8px;
     width: fit-content;
     position: relative;
@@ -135,7 +136,7 @@
 }
 
 .user-card:hover .profile-picture {
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: rgb(255, 255, 255);
     transform: scale(1.05);
 }
 

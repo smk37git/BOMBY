@@ -12,15 +12,6 @@
 {% block content %}
 <div class="auth-container">
 
-    <div class="auth-header create-account-section">
-        <h1 class="auth-title">Create Account</h1>
-        <p class="auth-subtitle">Gain access to all features and the store!</p>
-
-        <div class="button-container">
-            <a href="{% url 'ACCOUNTS:signup' %}" class="auth-button create-account">Create Account</a>
-        </div>
-    </div>
-
     <div class="auth-header">
         <h1 class="auth-title">Login</h1>
         <p class="auth-subtitle">Enter your credentials to access your account</p>
@@ -46,8 +37,16 @@
         <div class="auth-links">
             <p>Forgot your password? <a href="{% url 'ACCOUNTS:password_reset' %}">Reset it here</a></p>
         </div>
-
     </form>
+
+    <div class="auth-header create-account-section">
+        <h1 class="auth-title">Create Account</h1>
+        <p class="auth-subtitle">Gain access to all features and the store!</p>
+
+        <div class="button-container">
+            <a href="{% url 'ACCOUNTS:signup' %}" class="auth-button create-account">Create Account</a>
+        </div>
+    </div>
 
 </div>
 {% endblock %}
