@@ -25,9 +25,10 @@
 .profile-picture {
     width: 100px;
     height: 100px;
+    margin: 15px auto;
     border-radius: 50%;
     object-fit: cover;
-    border: 3px solid #bd23ff;
+    border: 3px solid #ffffff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -39,7 +40,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 3px solid #bd23ff;
+    border: 3px solid #ffffff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     margin-bottom: 15px;
 }
@@ -217,7 +218,6 @@
 .bio-section {
     margin-top: 25px;
     padding-top: 15px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .bio-section h3 {
@@ -228,6 +228,7 @@
 .bio-content {
     background-color: rgb(36, 36, 36);
     padding: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.6);
     border-radius: 10px;
     color: white;
     max-height: 200px;
