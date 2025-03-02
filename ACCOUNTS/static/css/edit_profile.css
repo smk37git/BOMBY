@@ -302,6 +302,10 @@ input[type="file"] {
     color: white;
 }
 
+.help-text {
+    margin-top: 20px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 992px) and (min-width: 769px) {
     .edit_profile-container {

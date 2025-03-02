@@ -2,41 +2,36 @@
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/edit_profile.css' %}">
+    <link rel="stylesheet" href="{% static 'css/reset_password.css' %}">
 {% endblock %}
 
 {% block background %}
-    {% include 'MAIN/base_background.html' %}
+    {% include 'MAIN/base_background_starry.html' %}
 {% endblock %}
 
 {% block content %}
-<div class="profile-container">
-    <div class="profile-header">
-        <h1 class="profile-title">Change Username</h1>
+<div class="auth-container">
+    <div class="auth-header">
+        <h1 class="auth-title">Change Username</h1>
     </div>
     
-    <div class="profile-content">
-        <div class="profile-section">
-            <form method="post" class="edit-profile-form">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label for="{{ form.username.id_for_label }}">Username</label>
-                    {{ form.username }}
-                    {% if form.username.errors %}
-                    <div class="error message" style="margin-top: 10px;">
-                        {{ form.username.errors }}
-                    </div>
-                    {% endif %}
-                    <div class="help-text">{{ form.username.help_text }}</div>
-                </div>
-                
-                <div class="action-buttons">
-                    <button type="submit" class="action-button">Save Changes</button>
-                    <a href="{% url 'ACCOUNTS:account' %}" class="action-button">Back to Account</a>
-                </div>
-            </form>
+    <form method="post" class="auth-form">
+        {% csrf_token %}
+        
+        <label for="{{ form.username.id_for_label }}">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}
+        <div class="error message" style="margin-top: -15px; margin-bottom: 15px; color: #ff5555; text-align: left;">
+            {{ form.username.errors }}
         </div>
+        {% endif %}
+        <div class="help-text">{{ form.username.help_text }}</div>
+        
+        <button type="submit" class="auth-button">Save Changes</button>
+    </form>
+    
+    <div class="auth-form" style="margin-top: 20px;">
+        <a class="auth-button" href="{% url 'ACCOUNTS:account' %}">Back to Account</a>
     </div>
 </div>
 {% endblock %}
