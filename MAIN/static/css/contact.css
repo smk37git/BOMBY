@@ -1,9 +1,9 @@
-/* Enhanced Contact Page Styling - Fixed Binary Background */
+/* Contact Page Styling with Binary Background and Fixed Dimensions */
 .contactpage-section {
-    padding: 20px 50px 50px 50px;
+    padding: 20px 0 50px 0;
     background: #0a0a0a;
     position: relative;
-    overflow-x: hidden; /* Prevent horizontal scrolling */
+    overflow-x: hidden;
     z-index: 2;
     min-height: 100vh;
 }
@@ -43,15 +43,15 @@
     left: 0;
     white-space: pre;
     font-family: monospace;
-    font-size: 18px;
-    line-height: 2;
+    font-size: 16px;
+    line-height: 1.8;
     color: rgba(255, 255, 255, 0.1);
     pointer-events: none;
     overflow: hidden;
     z-index: 1;
 }
 
-/* DESKTOP: Simple two-part animation */
+/* Animation for background text */
 .contactpage-section::before {
     top: 0;
     height: 100vh;
@@ -59,7 +59,7 @@
 }
 
 .contactpage-section::after {
-    top: 100vh; /* Positioned exactly at the bottom of the first element */
+    top: 100vh;
     height: 100vh;
     animation: moveUp2 40s linear infinite;
 }
@@ -79,169 +79,184 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 50px; /* Adjust based on footer height */
+    height: 50px;
     background-color: #0a0a0a; 
     z-index: 3;
 }
 
+/* Main header */
 .contactpage-header h1 {
     text-align: center;
-    font-size: 3.5em;
-    padding: 20px 40px;
-    margin: 100px auto 30px;
+    font-size: 2.8em;
+    padding: 15px 30px;
+    margin: 90px auto 25px;
     background-color: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
     width: fit-content;
     color: white;
     position: relative;
-    z-index: 4; /* Increased z-index */
+    z-index: 4;
 }
 
+/* Main container */
 .contactpage-container {
+    max-width: 1100px;
+    margin: 0 auto;
     display: flex;
     justify-content: space-between;
-    gap: 40px;
+    gap: 30px;
     position: relative;
-    z-index: 4; /* Increased z-index */
+    z-index: 4;
 }
 
+/* Form section */
 .contactpage-form-section {
     flex: 1;
     background-color: #0a0a0a;
-    padding: 30px;
+    padding: 25px;
     border-radius: 15px;
     border: 2px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(5px);
-    max-height: 785px; /* Adjust this value to match where the red line appears */
-    overflow: auto; /* Add scroll if content exceeds the height */
-    z-index: 4; /* Increased z-index */
+    max-height: 680px;
+    overflow: auto;
+    z-index: 4;
 }
 
 .contactpage-form-section h2 {
-    font-size: 2em;
+    font-size: 1.8em;
     color: #ffffff;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .contactpageform-group {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
+    padding: 0;
+    width: 100%;
 }
 
 .contactpageform-group label {
     display: block;
     margin-bottom: 5px;
     color: #ffffff;
-    font-size: 1.1em;
+    font-size: 1em;
+    padding-left: 0;
 }
 
 .contactpageform-group input,
 .contactpageform-group textarea {
     width: 100%;
-    padding: 12px;
+    padding: 10px;
+    box-sizing: border-box;
     background: rgba(255, 255, 255, 0.1);
     border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 8px;
     color: white;
-    font-size: 1.1em;
+    font-size: 1em;
 }
 
 .contactpageform-group textarea {
-    height: 275px;
+    height: 200px;
     resize: vertical;
 }
 
 .submit-btn {
-    padding: 12px 25px;
+    padding: 10px 20px;
     background: linear-gradient(45deg, #9e33e6, #505ed7);
     color: white;
     border: none;
     border-radius: 8px;
-    font-size: 1.1em;
+    font-size: 1em;
     cursor: pointer;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .submit-btn:hover {
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
     transform: translateY(-3px);
 }
 
+/* Info section */
 .contactpage-info-section {
-    width: 40%;
+    flex: 1;
     background-color: #0a0a0a;
-    padding: 30px;
+    padding: 25px;
     border-radius: 15px;
     border: 2px solid rgba(255, 255, 255, 0.3);
-    z-index: 4; /* Increased z-index */
+    z-index: 4;
 }
 
 .contactpage-info-section h2 {
-    font-size: 2em;
+    font-size: 1.8em;
     color: #ffffff;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
-/* Styling for the horizontal line */
+/* Divider */
 .contactpage-divider {
     height: 2px;
-    background: white;
-    width: 100%;  /* Full width looks good in your screenshot */
-    margin-top: -15px;
+    background: rgba(255, 255, 255, 0.452);
+    width: 100%;
+    margin-top: -10px;
     margin-bottom: 10px;
     border: none;
     display: block;
 }
 
-.contactmessage-divider {
+.contact-message-divider {
+    width: 44%;
     height: 2px;
     background: white;
-    width: 100%;  /* Full width looks good in your screenshot */
-    margin-top: -15px;
-    margin-bottom: 25px;
+    margin-top: -10px;
+    margin-bottom: 20px;
     border: none;
     display: block;
 }
 
-
+/* Contact methods */
 .contactpage-method {
-    margin-bottom: 30px;
+    background-color: rgb(24, 24, 24); 
+    border-radius: 10px; 
+    padding: 15px 20px;
+    margin-bottom: 20px;
 }
 
 .contactpage-method h3 {
     color: #ffffff;
-    font-size: 1.3em;
-    margin-bottom: 10px;
+    font-size: 1.2em;
+    margin: 0 0 12px 0;
 }
 
 .contactpage-method p {
     color: #ffffff;
-    font-size: 1.1em;
-    margin-bottom: 10px;
+    font-size: 1em;
+    margin: 5px 0;
 }
 
+/* Social links */
 .social-links {
+    width: 100%;
     display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
+    gap: 10px;
+    flex-wrap: nowrap;
+    justify-content: space-between;
 }
 
 .social-link {
-    padding: 8px 20px;
+    padding: 8px 15px;
     background: linear-gradient(45deg, #9e33e6, #505ed7);
     color: white;
     text-decoration: none;
     border-radius: 8px;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     display: inline-block;
+    min-width: 100px;
+    text-align: center;
+    font-size: 0.9em;
 }
 
 .social-link:hover {
     transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
-}
-
-.contactpage-method .social-link:hover {
-    transform: translateY(-3px) !important;
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
 }
 
@@ -251,7 +266,7 @@
     width: 100%;
 }
 
-/* Message Sent Alerts */
+/* Popup modal */
 .popup-modal {
     position: fixed;
     top: 0;
@@ -263,77 +278,6 @@
     justify-content: center;
     align-items: center;
     z-index: 1000;
-}
-
-.popup-content {
-    background-color: rgb(53, 103, 50);
-    padding: 20px;
-    border-radius: 15px;
-    width: 60%;
-    max-width: 500px;
-    text-align: center;
-    position: relative;
-    animation: fadeIn 0.5s ease;
-}
-
-.close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    font-size: 30px;
-    cursor: pointer;
-    color: white;
-}
-
-.contact-video-container {
-    width: 100%;
-    border-radius: 10px;
-    overflow: hidden;
-    position: relative;
-    margin-left: -75px;
-    margin-bottom: 15px;
-    margin-top: 50px;
-}
-
-.contact-video-container video {
-    width: 150%;
-    height: auto;
-    display: block;
-    border-radius: 10px;
-    filter: brightness(1.5) contrast(1.1); /* Optional - enhance video appearance */
-}
-
-/* Refined Fade-in and Fade-out Animation */
-@keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
-}
-
-@keyframes fadeOut {
-    0% {
-        opacity: 1;
-    }
-    100% {
-        opacity: 0;
-    }
-}
-
-.base-footer {
-    background-color:#0a0a0a !important; /* Force a solid background */
-    color: white;
-    padding: 10px 0;
-    text-align: center;
-    width: 100%;
-    position: relative; /* Ensure it's not affected by absolute positioning */
-    z-index: 5; /* Higher than .contactpage-section */
-}
-
-/* Apply fade-in and fade-out transitions smoothly */
-.popup-modal {
     animation: fadeIn 0.5s forwards;
     transition: opacity 0.5s ease-in-out;
 }
@@ -342,34 +286,107 @@
     animation: fadeOut 0.5s forwards;
 }
 
+.popup-content {
+    background-color: rgb(53, 103, 50);
+    padding: 20px;
+    border-radius: 15px;
+    width: 60%;
+    max-width: 450px;
+    text-align: center;
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    color: white;
+}
+
+/* Video container */
+.contact-video-container {
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    margin: 30px auto 10px;
+}
+
+.contact-video-container video {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 10px;
+    filter: brightness(1.3) contrast(1.1);
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Footer */
+.base-footer {
+    background-color: #0a0a0a !important;
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+    width: 100%;
+    position: relative;
+    z-index: 5;
+}
+
+/* Large desktop screens */
+@media (min-width: 1440px) {
+    .contactpage-container {
+        max-width: 1000px;
+    }
+}
+
+/* Medium screens */
+@media (max-width: 992px) and (min-width: 769px) {
+    .contactpage-container {
+        max-width: 90%;
+    }
+    
+    .contactpage-form-section,
+    .contactpage-info-section {
+        padding: 20px;
+    }
+}
+
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
     .contactpage-section {
         min-height: 100vh;
-        overflow: hidden;
+        padding: 20px 25px 50px 25px;
     }
 
     .contactpage-section::before,
     .contactpage-section::after {
         font-size: 14px;
         line-height: 1.8;
-        animation-duration: 30s; /* Faster on mobile */
-    }
-    
-    .contact-video-container {
-        margin-bottom: 10px;
+        animation-duration: 30s;
     }
     
     .contactpage-header h1 {
-        font-size: 2.4em;
+        font-size: 2.2em;
         padding: 15px 25px;
         margin: 50px auto 25px;
-        margin-top: 100px;
     }
     
     .contactpage-container {
         flex-direction: column;
         gap: 25px;
+        max-width: 100%;
     }
     
     .contactpage-form-section, 
@@ -380,22 +397,12 @@
     
     .contactpage-form-section h2,
     .contactpage-info-section h2 {
-        font-size: 1.8em;
+        font-size: 1.6em;
         margin-bottom: 15px;
     }
     
-    .contactpageform-group {
-        margin-bottom: 15px;
-    }
-    
-    .contactpageform-group input,
     .contactpageform-group textarea {
-        padding: 10px;
-        font-size: 1em;
-    }
-    
-    .contactpageform-group textarea {
-        height: 120px;
+        height: 150px;
     }
     
     .submit-btn {
@@ -403,38 +410,19 @@
         padding: 12px 0;
     }
     
-    .contactpage-method {
-        margin-bottom: 20px;
-    }
-    
-    .contactpage-method h3 {
-        font-size: 1.2em;
-    }
-    
-    .contactpage-method p {
-        font-size: 1em;
-    }
-
-    .contactvideo-container {
-        margin-bottom: 15px;
-    }
-    
-    .contactvideo-placeholder {
-        padding-top: 65%;
-    }
-    
     .social-links {
         display: flex;
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
         gap: 10px;
     }
     
     .social-link {
         text-align: center;
-        padding: 10px 0;
-        width: 100%;
-        display: block;
+        padding: 10px 15px;
+        flex: 1;
+        min-width: 100px;
     }
     
     .popup-content {
@@ -442,30 +430,28 @@
         padding: 15px;
     }
     
-    /* Adjust divider for mobile */
     .contactpage-divider {
         width: 100%;
         margin: -5px 0 15px 0;
     }
 
-    .contactmessage-divider {
-        width: 100%;
-        margin: -5px 0 15px 0;
+    .contact-message-divider {
+        width: 60%;
+        margin: -5px auto 15px;
     }
 }
 
 /* Extra Small Devices */
 @media (max-width: 480px) {
     .contactpage-section {
-        min-height: 100vh;
-        overflow: hidden;
+        padding: 20px 15px 50px 15px;
     }
 
     .contactpage-section::before,
     .contactpage-section::after {
         font-size: 12px;
-        line-height: 1.7;
-        animation-duration: 25s; /* Even faster on smallest devices */
+        line-height: 1.6;
+        animation-duration: 25s;
     }
     
     .contactpage-header h1 {
@@ -474,21 +460,25 @@
         margin: 40px auto 20px;
     }
     
-    .contactpage-form-section h2,
-    .contactpage-info-section h2 {
-        font-size: 1.6em;
+    .contactpage-form-section, 
+    .contactpage-info-section {
+        padding: 15px;
     }
     
     .contactpageform-group label {
-        font-size: 1em;
+        font-size: 0.95em;
     }
     
     .submit-btn {
-        font-size: 1em;
+        font-size: 0.95em;
     }
     
     .popup-content {
         width: 90%;
         padding: 12px;
+    }
+    
+    .social-link {
+        width: 100%;
     }
 }

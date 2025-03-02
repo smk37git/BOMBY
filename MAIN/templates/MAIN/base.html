@@ -6,15 +6,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet"href="https://unpkg.com/aos@2.3.1/dist/aos.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
     <!-- Custom css files for other pages -->
     {% block extra_css %}{% endblock %}
+    
+    <title>{% block title %}BOMBY{% endblock %}</title>
 </head>
 <body>
     {% block background %}{% endblock %}
+    
     <!-- Navigation bar with blur effect -->
     <nav class="custom-navbar">
         <div class="nav-brand">BOMBY</div>
@@ -24,10 +27,10 @@
         <div class="nav-menu" id="nav-menu">
             <a href="{% url 'home' %}" class="nav-link">Home</a>
             <div class="dropdown">
-                <a class="nav-link dropdown-toggle">Store<span class="dropdown-arrow">▾</span></a>
+                <a class="nav-link dropdown-toggle">Store <span class="dropdown-arrow">▾</span></a>
                 <div class="dropdown-content">
-                    <a>Services</a>
-                    <a>Orders</a>
+                    <a href="#">Services</a>
+                    <a href="#">Orders</a>
                     {% if user.is_authenticated %}
                         <a href="{% url 'ACCOUNTS:account' %}">Account</a>
                     {% else %}
@@ -46,6 +49,20 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+
+    <!-- Message notifications container -->
+    <div class="message-container">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}">
+                        {{ message }}
+                        <button class="message-close">&times;</button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
 
     <footer class="base-footer">
         <div class="contact-separator" style="margin-bottom: 15px;"></div>

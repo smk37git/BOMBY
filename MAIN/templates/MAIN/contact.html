@@ -18,8 +18,10 @@
 
         <div class="contactpage-container">
             <div class="contactpage-form-section">
-                <h2>Send a Message</h2>
-                <hr class="contactmessage-divider" style="width: 44%;">
+                <div style="display: inline-block;">
+                    <h2>Send Me A Message</h2>
+                    <hr class="contactpage-divider">
+                </div>
                 <form class="contactpage-form" method="POST">
                     {% csrf_token %}
                     <div class="contactpageform-group">
@@ -45,18 +47,16 @@
             <div class="contactpage-info-section">
                 <div style="display: inline-block;">
                     <h2>Connect With Me</h2>
-                    <hr class="contactpage-divider" style="width: 100%;">
+                    <hr class="contactpage-divider">
                 </div>
                 <div class="contactpage-methods">
                     <div class="contactpage-method">
-                        <div style="word-wrap: break-word; overflow-wrap: break-word; margin-top: 15px; background-color: rgb(24, 24, 24); color: white; padding: 10px 15px; border-radius: 10px;">
-                            <h3 style="font-size: 25px;">Email:</h3>
-                            <p style="font-size: 20px;">REMOVED_EMAIL</p>
-                            <p style="font-size: 15px; margin-top: 20px;">I'll try to reach back out to you within 24 hours!</p>
-                        </div>
+                        <h3>Email:</h3>
+                        <p>REMOVED_EMAIL</p>
+                        <p>I'll try to reach back out to you within 24 hours!</p>
                     </div>
                     <div class="contactpage-method">
-                        <h3 style="margin-bottom: 15px;">Discord Server</h3>
+                        <h3>Discord Server</h3>
                         <a href="https://discord.com/invite/bdqAXc4" class="social-link">Discord</a>
                     </div>
                     <div class="contactpage-method">
@@ -66,15 +66,15 @@
                             <a href="https://github.com/smk37git" class="social-link">GitHub</a>
                             <a href="https://www.linkedin.com/in/sebastian-main-6a4799224/" class="social-link">LinkedIn</a>
                         </div>
-                        
-                        <div class="contact-video-container">
-                            <video autoplay loop muted playsinline>
-                                <source src="{% static 'videos/mail-animation.webm' %}" type="video/webm">
-                                Your browser does not support the video tag.
-                            </video>
-                        </div>
-
                     </div>
+
+                    <div class="contact-video-container">
+                        <video autoplay loop muted playsinline>
+                            <source src="{% static 'videos/mail-animation.webm' %}" type="video/webm">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+
                 </div>
             </div>
         </div>

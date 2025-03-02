@@ -1,17 +1,9 @@
 body {
     font-family: Arial, sans-serif;
     color: white;
-}
-
-.base-footer {
-    background-color: black !important;
-    color: white;
-    text-align: center;
-    padding-top: 1px;
-    padding-bottom: 10px;
-    position: relative;
-    z-index: 10;
-    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
 }
 
 /* Navigation bar styles */
@@ -19,40 +11,41 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 3rem; /* Increased padding for larger navbar */
+    padding: 1.5rem 3rem;
     width: 100%;
-    position: relative !important;
-    top: 0 !important;
+    position: absolute;
+    top: 0;
     left: 0;
-    margin-bottom: -90px; /* Adjusted to account for larger size */
     z-index: 1000;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    backdrop-filter: blur(10px); /* Creates the blur effect */
-    -webkit-backdrop-filter: blur(10px); /* For Safari support */
-    border-bottom: 2px solid rgba(255, 255, 255, 0.568);
-    box-sizing: border-box; /* Ensure padding is included in width calculation */
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 1px 5px rgba(255, 255, 255, 0.2);
+    box-sizing: border-box;
 }
 
 .nav-brand {
-    font-size: 2rem; /* Increased font size */
+    font-size: 2rem;
     font-weight: bold;
     color: white;
     text-decoration: none;
-    letter-spacing: 1px; /* Added letter spacing for emphasis */
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
 }
 
 .nav-menu {
     display: flex;
-    gap: 2rem; /* Increased gap between menu items */
+    gap: 2rem;
 }
 
-.nav-link {
+.custom-navbar .nav-link {
     color: white;
     text-decoration: none;
-    font-size: 1.2rem; /* Increased font size */
+    font-size: 1.5rem !important;
     position: relative;
     transition: all 0.3s ease;
-    padding: 0.5rem 0.5rem; /* Added padding around links */
+    padding: 0.5rem 0.5rem;
 }
 
 .nav-link:hover {
@@ -95,12 +88,12 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.dropdown-content a {
+.custom-navbar .dropdown-content a {
     color: white;
     padding: 12px 16px;
     text-decoration: none;
     display: block;
-    font-size: 1rem;
+    font-size: 1.2rem !important;
     transition: all 0.2s ease;
 }
 
@@ -161,10 +154,42 @@ body {
     color: white;
 }
 
+/* Main content area with proper spacing for navbar */
+main {
+    padding-top: 80px;
+    min-height: calc(100vh - 150px);
+}
+
+/* Footer styles */
+.base-footer {
+    background-color: black;
+    color: white;
+    text-align: center;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Admin link in footer */
+.admin-link {
+    display: inline-block;
+    margin-left: 15px;
+    color: #ff5555;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.admin-link:hover {
+    text-decoration: underline;
+}
+
 /* Message notifications */
 .message-container {
     position: fixed;
-    top: 70px;
+    top: 90px;
     right: 20px;
     z-index: 1000;
     width: 300px;
@@ -184,7 +209,6 @@ body {
     position: relative;
     opacity: 1;
     transition: opacity 0.5s ease;
-    padding: 10px 15px;
 }
 
 .message.success {
@@ -226,20 +250,7 @@ body {
     opacity: 1;
 }
 
-/* Admin link in footer */
-.admin-link {
-    display: inline-block;
-    margin-left: 15px;
-    color: #ff5555;
-    text-decoration: none;
-    font-size: 0.8em;
-}
-
-.admin-link:hover {
-    text-decoration: underline;
-}
-
-/* Mobile navigation toggle button (to be added to HTML) */
+/* Mobile navigation toggle button */
 .mobile-toggle {
     display: none;
     background: none;
@@ -252,24 +263,17 @@ body {
 /* Responsive navigation for mobile devices */
 @media (max-width: 768px) {
     body {
-        overflow-x: hidden; /* Prevent horizontal scrolling */
+        overflow-x: hidden;
     }
     
     .custom-navbar {
         padding: 1rem;
-        flex-wrap: wrap;
     }
     
-    .nav-brand {
-        margin-bottom: 0;
-    }
-    
-    /* Mobile toggle button display */
     .mobile-toggle {
         display: block;
     }
     
-    /* Hide menu by default on mobile */
     .nav-menu {
         flex-direction: column;
         width: 100%;
@@ -280,12 +284,15 @@ body {
         transition: max-height 0.5s ease;
         padding: 0;
         margin: 0;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.9);
     }
     
-    /* When menu is open (add this class with JavaScript) */
     .nav-menu.active {
         max-height: 500px;
-        padding-top: 1rem;
+        padding: 1rem 0;
     }
     
     .nav-link {
@@ -294,7 +301,6 @@ body {
         padding: 0.8rem 0;
     }
     
-    /* Style dropdown on mobile */
     .dropdown {
         width: 100%;
         text-align: center;
@@ -313,7 +319,6 @@ body {
         padding: 0;
     }
     
-    /* When dropdown is open */
     .dropdown:hover .dropdown-content,
     .dropdown:focus .dropdown-content,
     .dropdown:active .dropdown-content,
@@ -328,6 +333,6 @@ body {
     
     .message-container {
         width: calc(100% - 40px);
-        top: 60px;
+        top: 80px;
     }
 }
