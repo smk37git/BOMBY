@@ -1,91 +1,6 @@
-/* Base styles and reset */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* Navbar styles */
-.navbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 1000;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(10px);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.nav-brand {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #fff;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    transition: text-shadow 0.3s ease;
-}
-
-.nav-brand:hover {
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-}
-
-.nav-menu {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-}
-
-.nav-link {
-    color: #fff;
-    text-decoration: none;
-    font-size: 1rem;
-    position: relative;
-    padding: 0.5rem;
-    transition: all 0.3s ease;
-}
-
-.nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: #fff;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-    transition: width 0.3s ease;
-}
-
-.nav-link:hover::after {
-    width: 100%;
-}
-
-.nav-social {
-    display: flex;
-    gap: 1rem;
-    padding-left: 1rem;
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.social-icon img {
-    width: 24px;
-    height: 24px;
-    opacity: 0.8;
-    transition: all 0.3s ease;
-}
-
-.social-icon:hover img {
-    opacity: 1;
-    transform: translateY(-2px);
-}
-
 /* Hero section */
 .hero {
-    padding: 8rem 2rem 4rem;
+    padding: 0rem 2rem 4rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -108,7 +23,7 @@
 
 .subtitle {
     font-size: clamp(1rem, 3vw, 1.5rem);
-    margin-top: 1rem;
+    margin-top: -60px;
     opacity: 0.9;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
