@@ -92,8 +92,8 @@ body {
 }
 
 .help-text {
+    text-align: left;
     font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.5);
-    margin-top: -15px;
-    margin-bottom: 15px;
+    margin: 10px 0 30px 0;
 }
