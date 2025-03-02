@@ -2,7 +2,8 @@
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/promotional-wall.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/promotional_wall.css' %}">
 {% endblock %}
 
 {% block background %}
@@ -10,334 +11,318 @@
 {% endblock %}
 
 {% block content %}
-
-<div class="promotional_wall-container promotional-wall">
-    <div class="profile-header">
-        <h1 class="promotional_wall-title">PROMOTIONAL WALL
-            <p style="margin-top: 10px; font-size: 15px;">Click on their profile to view more info!</p>
-            <p style="margin-top: 10px; font-size: 15px;">Total Users: {{ admin_users.count|add:client_users.count|add:supporter_users.count|add:member_users.count }}</p>
-        </h1>
-    </div>
-    
-    {% if admin_users %}
-    <div class="user-category">
-        <h2 class="category-title">Creator</h2>
-        <div class="user-cards">
-            {% for user in admin_users %}
-            <div class="user-card">
-                <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
-                    <div class="card-header">
-                        <div class="user-avatar">
-                            {% if user.profile_picture %}
-                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
-                            {% else %}
-                                <div class="profile-picture-placeholder">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="user-info">
-                            <h3 class="promotion-username-cell">{{ user.username }}</h3>
-                            <span class="account-type {% if user.is_admin_user %}admin{% elif user.is_client %}client{% elif user.is_supporter %}supporter{% else %}member{% endif %}">
-                                {% if user.is_admin_user %}Administrator{% elif user.is_client %}Client{% elif user.is_supporter %}Supporter{% else %}Member{% endif %}
-                            </span>
-                        </div>
-                    </div>
-                </a>
-                <div class="card-content">
-                    <div class="user-socials">
-                        {% if user.promo_links %}
-                            {% for link_type in user.promo_links %}
-                                {% if link_type == 'youtube' and user.youtube_link %}
-                                    <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                        <i class="fab fa-youtube"></i> YouTube
-                                    </a>
-                                {% elif link_type == 'twitch' and user.twitch_link %}
-                                    <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                        <i class="fab fa-twitch"></i> Twitch
-                                    </a>
-                                {% elif link_type == 'github' and user.github_link %}
-                                    <a href="{{ user.github_link }}" target="_blank" class="social-link github">
-                                        <i class="fab fa-github"></i> GitHub
-                                    </a>
-                                {% elif link_type == 'twitter' and user.twitter_link %}
-                                    <a href="{{ user.twitter_link }}" target="_blank" class="social-link twitter">
-                                        <i class="fa-brands fa-x-twitter"></i> Twitter
-                                    </a>
-                                {% elif link_type == 'kick' and user.kick_link %}
-                                    <a href="{{ user.kick_link }}" target="_blank" class="social-link kick">
-                                        <i class="fas fa-gamepad"></i> Kick
-                                    </a>
-                                {% elif link_type == 'instagram' and user.instagram_link %}
-                                    <a href="{{ user.instagram_link }}" target="_blank" class="social-link instagram">
-                                        <i class="fab fa-instagram"></i> Instagram
-                                    </a>
-                                {% endif %}
-                            {% endfor %}
-                        {% elif user.youtube_link or user.twitch_link %}
-                            <!-- Fallback to original behavior if no promo_links are set -->
-                            {% if user.youtube_link %}
-                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                    <i class="fab fa-youtube"></i> YouTube
-                                </a>
-                            {% endif %}
-                            {% if user.twitch_link %}
-                                <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                    <i class="fab fa-twitch"></i> Twitch
-                                </a>
-                            {% endif %}
-                        {% else %}
-                            <p class="no-socials">No social links</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-    
-    {% if client_users %}
-    <div class="user-category">
-        <h2 class="category-title" style="position: relative;">Clients
-            <span style="position: absolute; top: 50%; right: 100%; margin-right: 15px; height: 2px; width: 40vw; background: linear-gradient(to right, transparent, white); transform: translateY(-50%);"></span>
-            <span style="position: absolute; top: 50%; left: 100%; margin-left: 15px; height: 2px; width: 40vw; background: linear-gradient(to left, transparent, white); transform: translateY(-50%);"></span>
-        </h2>
-        <div class="user-cards">
-            {% for user in client_users %}
-            <div class="user-card">
-                <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
-                    <div class="card-header">
-                        <div class="user-avatar">
-                            {% if user.profile_picture %}
-                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
-                            {% else %}
-                                <div class="profile-picture-placeholder">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="user-info">
-                            <h3 class="promotion-username-cell">{{ user.username }}</h3>
-                            <span class="account-type {% if user.is_admin_user %}admin{% elif user.is_client %}client{% elif user.is_supporter %}supporter{% else %}member{% endif %}">
-                                {% if user.is_admin_user %}Administrator{% elif user.is_client %}Client{% elif user.is_supporter %}Supporter{% else %}Member{% endif %}
-                            </span>
-                        </div>
-                    </div>
-                </a>
-                <div class="card-content">
-                    <div class="user-socials">
-                        {% if user.promo_links %}
-                            {% for link_type in user.promo_links %}
-                                {% if link_type == 'youtube' and user.youtube_link %}
-                                    <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                        <i class="fab fa-youtube"></i> YouTube
-                                    </a>
-                                {% elif link_type == 'twitch' and user.twitch_link %}
-                                    <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                        <i class="fab fa-twitch"></i> Twitch
-                                    </a>
-                                {% elif link_type == 'github' and user.github_link %}
-                                    <a href="{{ user.github_link }}" target="_blank" class="social-link github">
-                                        <i class="fab fa-github"></i> GitHub
-                                    </a>
-                                {% elif link_type == 'twitter' and user.twitter_link %}
-                                    <a href="{{ user.twitter_link }}" target="_blank" class="social-link twitter">
-                                        <i class="fa-brands fa-x-twitter"></i> Twitter
-                                    </a>
-                                {% elif link_type == 'kick' and user.kick_link %}
-                                    <a href="{{ user.kick_link }}" target="_blank" class="social-link kick">
-                                        <i class="fas fa-gamepad"></i> Kick
-                                    </a>
-                                {% elif link_type == 'instagram' and user.instagram_link %}
-                                    <a href="{{ user.instagram_link }}" target="_blank" class="social-link instagram">
-                                        <i class="fab fa-instagram"></i> Instagram
-                                    </a>
-                                {% endif %}
-                            {% endfor %}
-                        {% elif user.youtube_link or user.twitch_link %}
-                            <!-- Fallback to original behavior if no promo_links are set -->
-                            {% if user.youtube_link %}
-                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                    <i class="fab fa-youtube"></i> YouTube
-                                </a>
-                            {% endif %}
-                            {% if user.twitch_link %}
-                                <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                    <i class="fab fa-twitch"></i> Twitch
-                                </a>
-                            {% endif %}
-                        {% else %}
-                            <p class="no-socials">No social links</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-
-    {% if supporter_users %}
-    <div class="user-category">
-        <h2 class="category-title" style="position: relative;">Supporters
-            <span style="position: absolute; top: 50%; right: 100%; margin-right: 15px; height: 2px; width: 40vw; background: linear-gradient(to right, transparent, white); transform: translateY(-50%);"></span>
-            <span style="position: absolute; top: 50%; left: 100%; margin-left: 15px; height: 2px; width: 40vw; background: linear-gradient(to left, transparent, white); transform: translateY(-50%);"></span>
-        </h2>
-        <div class="user-cards">
-            {% for user in supporter_users %}
-            <div class="user-card">
-                <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
-                    <div class="card-header">
-                        <div class="user-avatar">
-                            {% if user.profile_picture %}
-                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
-                            {% else %}
-                                <div class="profile-picture-placeholder">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="user-info">
-                            <h3 class="promotion-username-cell">{{ user.username }}</h3>
-                            <span class="account-type {% if user.is_admin_user %}admin{% elif user.is_client %}client{% elif user.is_supporter %}supporter{% else %}member{% endif %}">
-                                {% if user.is_admin_user %}Administrator{% elif user.is_client %}Client{% elif user.is_supporter %}Supporter{% else %}Member{% endif %}
-                            </span>
-                        </div>
-                    </div>
-                </a>
-                <div class="card-content">
-                    <div class="user-socials">
-                        {% if user.promo_links %}
-                            {% for link_type in user.promo_links %}
-                                {% if link_type == 'youtube' and user.youtube_link %}
-                                    <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                        <i class="fab fa-youtube"></i> YouTube
-                                    </a>
-                                {% elif link_type == 'twitch' and user.twitch_link %}
-                                    <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                        <i class="fab fa-twitch"></i> Twitch
-                                    </a>
-                                {% elif link_type == 'github' and user.github_link %}
-                                    <a href="{{ user.github_link }}" target="_blank" class="social-link github">
-                                        <i class="fab fa-github"></i> GitHub
-                                    </a>
-                                {% elif link_type == 'twitter' and user.twitter_link %}
-                                    <a href="{{ user.twitter_link }}" target="_blank" class="social-link twitter">
-                                        <i class="fa-brands fa-x-twitter"></i> Twitter
-                                    </a>
-                                {% elif link_type == 'kick' and user.kick_link %}
-                                    <a href="{{ user.kick_link }}" target="_blank" class="social-link kick">
-                                        <i class="fas fa-gamepad"></i> Kick
-                                    </a>
-                                {% elif link_type == 'instagram' and user.instagram_link %}
-                                    <a href="{{ user.instagram_link }}" target="_blank" class="social-link instagram">
-                                        <i class="fab fa-instagram"></i> Instagram
-                                    </a>
-                                {% endif %}
-                            {% endfor %}
-                        {% elif user.youtube_link or user.twitch_link %}
-                            <!-- Fallback to original behavior if no promo_links are set -->
-                            {% if user.youtube_link %}
-                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                    <i class="fab fa-youtube"></i> YouTube
-                                </a>
-                            {% endif %}
-                            {% if user.twitch_link %}
-                                <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                    <i class="fab fa-twitch"></i> Twitch
-                                </a>
-                            {% endif %}
-                        {% else %}
-                            <p class="no-socials">No social links</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-    
-    {% if member_users %}
-    <div class="user-category">
-        <h2 class="category-title" style="position: relative;">Members
-            <span style="position: absolute; top: 50%; right: 100%; margin-right: 15px; height: 2px; width: 40vw; background: linear-gradient(to right, transparent, white); transform: translateY(-50%);"></span>
-            <span style="position: absolute; top: 50%; left: 100%; margin-left: 15px; height: 2px; width: 40vw; background: linear-gradient(to left, transparent, white); transform: translateY(-50%);"></span>
-        </h2>
-        <div class="user-cards">
-            {% for user in member_users %}
-            <div class="user-card">
-                <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
-                    <div class="card-header">
-                        <div class="user-avatar">
-                            {% if user.profile_picture %}
-                                <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
-                            {% else %}
-                                <div class="profile-picture-placeholder">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                            {% endif %}
-                        </div>
-                        <div class="user-info">
-                            <h3 class="promotion-username-cell">{{ user.username }}</h3>
-                            <span class="account-type {% if user.is_admin_user %}admin{% elif user.is_client %}client{% elif user.is_supporter %}supporter{% else %}member{% endif %}">
-                                {% if user.is_admin_user %}Administrator{% elif user.is_client %}Client{% elif user.is_supporter %}Supporter{% else %}Member{% endif %}
-                            </span>
-                        </div>
-                    </div>
-                </a>
-                <div class="card-content">
-                    <div class="user-socials">
-                        {% if user.promo_links %}
-                            {% for link_type in user.promo_links %}
-                                {% if link_type == 'youtube' and user.youtube_link %}
-                                    <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                        <i class="fab fa-youtube"></i> YouTube
-                                    </a>
-                                {% elif link_type == 'twitch' and user.twitch_link %}
-                                    <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                        <i class="fab fa-twitch"></i> Twitch
-                                    </a>
-                                {% elif link_type == 'github' and user.github_link %}
-                                    <a href="{{ user.github_link }}" target="_blank" class="social-link github">
-                                        <i class="fab fa-github"></i> GitHub
-                                    </a>
-                                {% elif link_type == 'twitter' and user.twitter_link %}
-                                    <a href="{{ user.twitter_link }}" target="_blank" class="social-link twitter">
-                                        <i class="fa-brands fa-x-twitter"></i> Twitter
-                                    </a>
-                                {% elif link_type == 'kick' and user.kick_link %}
-                                    <a href="{{ user.kick_link }}" target="_blank" class="social-link kick">
-                                        <i class="fas fa-gamepad"></i> Kick
-                                    </a>
-                                {% elif link_type == 'instagram' and user.instagram_link %}
-                                    <a href="{{ user.instagram_link }}" target="_blank" class="social-link instagram">
-                                        <i class="fab fa-instagram"></i> Instagram
-                                    </a>
-                                {% endif %}
-                            {% endfor %}
-                        {% elif user.youtube_link or user.twitch_link %}
-                            <!-- Fallback to original behavior if no promo_links are set -->
-                            {% if user.youtube_link %}
-                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                    <i class="fab fa-youtube"></i> YouTube
-                                </a>
-                            {% endif %}
-                            {% if user.twitch_link %}
-                                <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                    <i class="fab fa-twitch"></i> Twitch
-                                </a>
-                            {% endif %}
-                        {% else %}
-                            <p class="no-socials">No social links</p>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
+<div class="profile-header">
+    <h1 class="promotional_wall-title">PROMOTIONAL WALL
+        <p>Click on profiles to view more info!</p>
+        <p>Total Users: {{ admin_users.count|add:client_users.count|add:supporter_users.count|add:member_users.count }}</p>
+    </h1>
 </div>
+
+{% if admin_users %}
+<div class="user-category">
+    <h2 class="category-title">CREATOR</h2>
+    <div class="user-cards">
+        {% for user in admin_users %}
+        <div class="user-card">
+            <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
+                <div class="card-header">
+                    <div class="user-avatar">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
+                        {% else %}
+                            <div class="profile-picture-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        <h3 class="promotion-username-cell">{{ user.username }}</h3>
+                        <span class="account-type {% if user.is_admin_user %}admin{% elif user.is_client %}client{% elif user.is_supporter %}supporter{% else %}member{% endif %}">
+                            {% if user.is_admin_user %}Administrator{% elif user.is_client %}Client{% elif user.is_supporter %}Supporter{% else %}Member{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </a>
+            <div class="card-content">
+                <div class="user-socials">
+                    {% if user.promo_links %}
+                        {% for link_type in user.promo_links %}
+                            {% if link_type == 'youtube' and user.youtube_link %}
+                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
+                                    <i class="fab fa-youtube"></i> YouTube
+                                </a>
+                            {% elif link_type == 'twitch' and user.twitch_link %}
+                                <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
+                                    <i class="fab fa-twitch"></i> Twitch
+                                </a>
+                            {% elif link_type == 'github' and user.github_link %}
+                                <a href="{{ user.github_link }}" target="_blank" class="social-link github">
+                                    <i class="fab fa-github"></i> GitHub
+                                </a>
+                            {% elif link_type == 'twitter' and user.twitter_link %}
+                                <a href="{{ user.twitter_link }}" target="_blank" class="social-link twitter">
+                                    <i class="fa-brands fa-x-twitter"></i> Twitter
+                                </a>
+                            {% elif link_type == 'kick' and user.kick_link %}
+                                <a href="{{ user.kick_link }}" target="_blank" class="social-link kick">
+                                    <i class="fas fa-gamepad"></i> Kick
+                                </a>
+                            {% elif link_type == 'instagram' and user.instagram_link %}
+                                <a href="{{ user.instagram_link }}" target="_blank" class="social-link instagram">
+                                    <i class="fab fa-instagram"></i> Instagram
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    {% elif user.youtube_link or user.twitch_link %}
+                        {% if user.youtube_link %}
+                            <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
+                                <i class="fab fa-youtube"></i> YouTube
+                            </a>
+                        {% endif %}
+                        {% if user.twitch_link %}
+                            <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
+                                <i class="fab fa-twitch"></i> Twitch
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <p class="no-socials">No social links</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if client_users %}
+<div class="user-category">
+    <h2 class="category-title">CLIENTS</h2>
+    <div class="user-cards">
+        {% for user in client_users %}
+        <div class="user-card">
+            <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
+                <div class="card-header">
+                    <div class="user-avatar">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
+                        {% else %}
+                            <div class="profile-picture-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        <h3 class="promotion-username-cell">{{ user.username }}</h3>
+                        <span class="account-type {% if user.is_admin_user %}admin{% elif user.is_client %}client{% elif user.is_supporter %}supporter{% else %}member{% endif %}">
+                            {% if user.is_admin_user %}Administrator{% elif user.is_client %}Client{% elif user.is_supporter %}Supporter{% else %}Member{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </a>
+            <div class="card-content">
+                <div class="user-socials">
+                    {% if user.promo_links %}
+                        {% for link_type in user.promo_links %}
+                            {% if link_type == 'youtube' and user.youtube_link %}
+                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
+                                    <i class="fab fa-youtube"></i> YouTube
+                                </a>
+                            {% elif link_type == 'twitch' and user.twitch_link %}
+                                <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
+                                    <i class="fab fa-twitch"></i> Twitch
+                                </a>
+                            {% elif link_type == 'github' and user.github_link %}
+                                <a href="{{ user.github_link }}" target="_blank" class="social-link github">
+                                    <i class="fab fa-github"></i> GitHub
+                                </a>
+                            {% elif link_type == 'twitter' and user.twitter_link %}
+                                <a href="{{ user.twitter_link }}" target="_blank" class="social-link twitter">
+                                    <i class="fa-brands fa-x-twitter"></i> Twitter
+                                </a>
+                            {% elif link_type == 'kick' and user.kick_link %}
+                                <a href="{{ user.kick_link }}" target="_blank" class="social-link kick">
+                                    <i class="fas fa-gamepad"></i> Kick
+                                </a>
+                            {% elif link_type == 'instagram' and user.instagram_link %}
+                                <a href="{{ user.instagram_link }}" target="_blank" class="social-link instagram">
+                                    <i class="fab fa-instagram"></i> Instagram
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    {% elif user.youtube_link or user.twitch_link %}
+                        {% if user.youtube_link %}
+                            <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
+                                <i class="fab fa-youtube"></i> YouTube
+                            </a>
+                        {% endif %}
+                        {% if user.twitch_link %}
+                            <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
+                                <i class="fab fa-twitch"></i> Twitch
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <p class="no-socials">No social links</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if supporter_users %}
+<div class="user-category">
+    <h2 class="category-title">SUPPORTERS</h2>
+    <div class="user-cards">
+        {% for user in supporter_users %}
+        <div class="user-card">
+            <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
+                <div class="card-header">
+                    <div class="user-avatar">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
+                        {% else %}
+                            <div class="profile-picture-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        <h3 class="promotion-username-cell">{{ user.username }}</h3>
+                        <span class="account-type {% if user.is_admin_user %}admin{% elif user.is_client %}client{% elif user.is_supporter %}supporter{% else %}member{% endif %}">
+                            {% if user.is_admin_user %}Administrator{% elif user.is_client %}Client{% elif user.is_supporter %}Supporter{% else %}Member{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </a>
+            <div class="card-content">
+                <div class="user-socials">
+                    {% if user.promo_links %}
+                        {% for link_type in user.promo_links %}
+                            {% if link_type == 'youtube' and user.youtube_link %}
+                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
+                                    <i class="fab fa-youtube"></i> YouTube
+                                </a>
+                            {% elif link_type == 'twitch' and user.twitch_link %}
+                                <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
+                                    <i class="fab fa-twitch"></i> Twitch
+                                </a>
+                            {% elif link_type == 'github' and user.github_link %}
+                                <a href="{{ user.github_link }}" target="_blank" class="social-link github">
+                                    <i class="fab fa-github"></i> GitHub
+                                </a>
+                            {% elif link_type == 'twitter' and user.twitter_link %}
+                                <a href="{{ user.twitter_link }}" target="_blank" class="social-link twitter">
+                                    <i class="fa-brands fa-x-twitter"></i> Twitter
+                                </a>
+                            {% elif link_type == 'kick' and user.kick_link %}
+                                <a href="{{ user.kick_link }}" target="_blank" class="social-link kick">
+                                    <i class="fas fa-gamepad"></i> Kick
+                                </a>
+                            {% elif link_type == 'instagram' and user.instagram_link %}
+                                <a href="{{ user.instagram_link }}" target="_blank" class="social-link instagram">
+                                    <i class="fab fa-instagram"></i> Instagram
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    {% elif user.youtube_link or user.twitch_link %}
+                        {% if user.youtube_link %}
+                            <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
+                                <i class="fab fa-youtube"></i> YouTube
+                            </a>
+                        {% endif %}
+                        {% if user.twitch_link %}
+                            <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
+                                <i class="fab fa-twitch"></i> Twitch
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <p class="no-socials">No social links</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if member_users %}
+<div class="user-category">
+    <h2 class="category-title">MEMBERS</h2>
+    <div class="user-cards">
+        {% for user in member_users %}
+        <div class="user-card">
+            <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
+                <div class="card-header">
+                    <div class="user-avatar">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
+                        {% else %}
+                            <div class="profile-picture-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        <h3 class="promotion-username-cell">{{ user.username }}</h3>
+                        <span class="account-type {% if user.is_admin_user %}admin{% elif user.is_client %}client{% elif user.is_supporter %}supporter{% else %}member{% endif %}">
+                            {% if user.is_admin_user %}Administrator{% elif user.is_client %}Client{% elif user.is_supporter %}Supporter{% else %}Member{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </a>
+            <div class="card-content">
+                <div class="user-socials">
+                    {% if user.promo_links %}
+                        {% for link_type in user.promo_links %}
+                            {% if link_type == 'youtube' and user.youtube_link %}
+                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
+                                    <i class="fab fa-youtube"></i> YouTube
+                                </a>
+                            {% elif link_type == 'twitch' and user.twitch_link %}
+                                <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
+                                    <i class="fab fa-twitch"></i> Twitch
+                                </a>
+                            {% elif link_type == 'github' and user.github_link %}
+                                <a href="{{ user.github_link }}" target="_blank" class="social-link github">
+                                    <i class="fab fa-github"></i> GitHub
+                                </a>
+                            {% elif link_type == 'twitter' and user.twitter_link %}
+                                <a href="{{ user.twitter_link }}" target="_blank" class="social-link twitter">
+                                    <i class="fa-brands fa-x-twitter"></i> Twitter
+                                </a>
+                            {% elif link_type == 'kick' and user.kick_link %}
+                                <a href="{{ user.kick_link }}" target="_blank" class="social-link kick">
+                                    <i class="fas fa-gamepad"></i> Kick
+                                </a>
+                            {% elif link_type == 'instagram' and user.instagram_link %}
+                                <a href="{{ user.instagram_link }}" target="_blank" class="social-link instagram">
+                                    <i class="fab fa-instagram"></i> Instagram
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    {% elif user.youtube_link or user.twitch_link %}
+                        {% if user.youtube_link %}
+                            <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
+                                <i class="fab fa-youtube"></i> YouTube
+                            </a>
+                        {% endif %}
+                        {% if user.twitch_link %}
+                            <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
+                                <i class="fab fa-twitch"></i> Twitch
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <p class="no-socials">No social links</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
 {% endblock %}

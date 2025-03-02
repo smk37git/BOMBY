@@ -12,6 +12,26 @@
     z-index: 4; /* Increased z-index */
 }
 
+/* Profile container styles */
+.profile-container {
+    max-width: 1200px;
+    margin: 150px auto 30px;
+    padding: 30px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+}
+
 .search-container {
     display: flex;
     align-items: center;
@@ -60,17 +80,33 @@
     top: 20px;
 }
 
+/* Profile Section Styles */
+.profile-section {
+    margin-top: 20px;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.profile-section h2 {
+    margin-top: 0;
+    padding-bottom: 10px;
+}
+
 /* Users Table Styles */
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.select-actions {
-    display: flex;
-    gap: 10px;
+.section-header h3 {
+    margin: 0;
+    padding: 0;
+    border-bottom: none;
 }
 
 .users-table-container {
@@ -151,6 +187,33 @@
     color: rgba(255, 255, 255, 0.7);
 }
 
+/* Button Styles */
+.action-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.action-button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-block;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.action-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
 .panel-action-button {
     display: inline-block;
     width: 100%;
@@ -186,7 +249,6 @@
 .panel-action-button.disabled {
     background-color: rgba(255, 255, 255, 0.2);
     color: rgba(255, 255, 255, 0.4);
-
 }
 
 /* Type selector */
@@ -254,6 +316,51 @@
     margin-top: 15px;
 }
 
+/* Messages Styles */
+.messages {
+    margin-bottom: 20px;
+}
+
+.message {
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    position: relative;
+}
+
+/* Account Type Badge Styles */
+.account-type {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 5px;
+}
+
+.account-type.member {
+    background: linear-gradient(45deg, #87e633, #505ed7);
+    color: #fff;
+}
+
+.account-type.supporter {
+    background: linear-gradient(45deg, #3342e6, #c350d7);
+    color: #fff;
+}
+
+.account-type.client {
+    background: linear-gradient(45deg, #c833e6, #d75050);
+    color: #fff;
+}
+
+.account-type.admin {
+    background: linear-gradient(45deg, #8d33e6, #d75050);
+    color: #fff;
+}
+
 /* Mobile responsive styles */
 @media (max-width: 992px) {
     .dashboard-layout {
@@ -281,7 +388,6 @@
 }
 
 @media (max-width: 768px) {
-
     .dashboard-layout {
         flex-direction: column;
         width: 100%;
@@ -331,17 +437,12 @@
         align-items: flex-start;
     }
     
-    .select-actions {
-        margin-top: 10px;
-    }
-    
     .modal-content {
         width: 90%;
     }
 }
 
 @media (max-width: 480px) {
-
     .dashboard-layout {
         flex-direction: column;
         width: 100%;

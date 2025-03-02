@@ -7,7 +7,6 @@
     border-radius: 10px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     color: #fff;
-
 }
 
 .profile-header {
@@ -30,13 +29,6 @@
     object-fit: cover;
     border: 3px solid #bd23ff;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.profile-picture-container {
-    width: 120px;
-    height: 120px;
-    margin: 0 auto 15px;
-    position: relative;
 }
 
 .profile-picture-placeholder {
@@ -182,6 +174,27 @@
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
 }
 
+.signin-button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-block;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.signin-button:hover {
+    background-color: #1b1b1b;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
 .editprofile-button {
     padding: 8px 15px;
     border: none;
@@ -225,26 +238,6 @@
 .empty-bio {
     color: rgba(255, 255, 255, 0.5);
     font-style: italic;
-}
-
-.logout-button {
-    padding: 8px 15px;
-    border: none;
-    border-radius: 5px;
-    background: linear-gradient(45deg, #e63333, #d75050);
-    color: white;
-    cursor: pointer;
-    text-decoration: none;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.logout-button:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(226, 74, 74, 0.3);
 }
 
 .account-settings {
@@ -329,12 +322,6 @@
     box-shadow: 0 5px 15px rgba(255, 0, 200, 0.3);
 }
 
-.admin-tools {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
 .admin-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -362,63 +349,6 @@
     margin-bottom: 10px;
     color: #ff5555;
 }
-
-/* Edit profile form styles */
-.edit-profile-form .form-group {
-    margin-bottom: 20px;
-}
-
-.edit-profile-form label {
-    display: block;
-    font-weight: bold;
-    margin-bottom: 8px;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.edit-profile-form input[type="text"],
-.edit-profile-form input[type="url"],
-.edit-profile-form input[type="file"] {
-    width: 100%;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 10px;
-    background-color: rgb(36, 36, 36);
-    color: white;
-}
-
-.edit-profile-form input[type="file"] {
-    background-color: transparent;
-    padding: 8px 0;
-}
-
-.edit-profile-form textarea {
-    width: 100%;
-    padding: 8px 15px;
-    border: none;
-    border-radius: 10px;
-    background-color: rgb(36, 36, 36);
-    color: white;
-    resize: vertical;
-    min-height: 120px;
-}
-
-.form-text {
-    display: block;
-    margin-top: 5px;
-    font-size: 0.85rem;
-    color: rgba(255, 255, 255, 0.6) !important;
-}
-
-.current-profile-picture {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #505ed7;
-    margin-bottom: 15px;
-}
-
-/* Add these styles to your profile.css file */
 
 .promo-instructions {
     color: rgba(255, 255, 255, 0.7);

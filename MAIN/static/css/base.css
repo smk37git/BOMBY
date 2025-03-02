@@ -37,15 +37,18 @@ body {
 .nav-menu {
     display: flex;
     gap: 2rem;
+    align-items: center; /* Add this to vertically align all nav items */
 }
 
-.custom-navbar .nav-link {
+.nav-link {
     color: white;
     text-decoration: none;
     font-size: 1.5rem !important;
     position: relative;
     transition: all 0.3s ease;
     padding: 0.5rem 0.5rem;
+    display: inline-block; /* Ensure consistent display */
+    vertical-align: middle; /* Align items vertically */
 }
 
 .nav-link:hover {
@@ -72,6 +75,22 @@ body {
 .dropdown {
     position: relative;
     display: inline-block;
+    vertical-align: middle;
+}
+
+.dropdown::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 15px; /* Height of the gap */
+    bottom: -15px;
+    left: 0;
+    z-index: 2;
+}
+
+.dropdown-toggle {
+    display: inline-flex; /* Change to inline-flex */
+    align-items: center; /* Center items vertically */
 }
 
 .dropdown-content {
@@ -86,6 +105,17 @@ body {
     border-radius: 4px;
     margin-top: 10px;
     border: 1px solid rgba(255, 255, 255, 0.3);
+    left: 0;
+    top: 100%;
+}
+
+.dropdown-content::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 10px;
+    top: -10px;
+    left: 0;
 }
 
 .custom-navbar .dropdown-content a {
@@ -101,7 +131,8 @@ body {
     background-color: rgba(255, 255, 255, 0.1);
 }
 
-.dropdown:hover .dropdown-content {
+.dropdown:hover .dropdown-content,
+.dropdown-content:hover {
     display: block;
 }
 
@@ -113,45 +144,11 @@ body {
     transition: transform 0.3s ease;
     color: white;
     vertical-align: middle;
+    transform: translateY(-1px); /* Slight adjustment for alignment */
 }
 
 .dropdown:hover .dropdown-arrow {
-    transform: rotate(180deg);
-}
-
-/* Account links in navbar */
-.account-links {
-    display: flex;
-    align-items: center;
-    margin-left: 15px;
-}
-
-.account-links .nav-link {
-    padding: 5px 10px;
-    margin-left: 5px;
-}
-
-/* User badges for different account types */
-.user-badge {
-    font-size: 0.7em;
-    padding: 2px 6px;
-    border-radius: 10px;
-    margin-left: 5px;
-}
-
-.user-badge.admin {
-    background-color: #ff5555;
-    color: white;
-}
-
-.user-badge.client {
-    background-color: #55aaff;
-    color: white;
-}
-
-.user-badge.member {
-    background-color: #55ff55;
-    color: white;
+    transform: rotate(180deg) translateY(1px); /* Adjust rotation center */
 }
 
 /* Main content area with proper spacing for navbar */
@@ -325,10 +322,6 @@ main {
     .dropdown-content.show {
         max-height: 500px;
         display: block;
-    }
-
-    .desktop-only {
-        display: none;
     }
     
     .message-container {
