@@ -29,7 +29,7 @@
 .auth-subtitle {
     color: rgba(255, 255, 255, 0.6);
     font-size: 1rem;
-    margin: 0;
+    margin-bottom: 10px;
 }
 
 .auth-form label {
@@ -97,5 +97,5 @@
 }
 
 .create-account-section {
-    margin-top: 40px;
+    margin-bottom: 50px;
 }
