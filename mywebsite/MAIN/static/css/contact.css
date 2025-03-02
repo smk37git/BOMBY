@@ -1,0 +1,494 @@
+/* Enhanced Contact Page Styling - Fixed Binary Background */
+.contactpage-section {
+    padding: 20px 50px 50px 50px;
+    background: #0a0a0a;
+    position: relative;
+    overflow-x: hidden; /* Prevent horizontal scrolling */
+    z-index: 2;
+    min-height: 100vh;
+}
+
+.contactpage-section::before,
+.contactpage-section::after {
+    content:"01001 >_ ./ {} </> *** >>> ### === ||| [][]  01001 >_ ./ {} </> *** >>> ### === ||| [][]  01001 >_ ./ {} </> *** >>> ### === ||| [][]\A"
+            "10110 ### ^_^ {} </> *** <<< >_ === ||| [][]  10110 ### ^_^ {} </> *** <<< >_ === ||| [][]  10110 ### ^_^ {} </> *** <<< >_ === ||| [][]\A"
+            "01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++\A"
+            "10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++\A"
+            "11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++\A"
+            "00110 >_> |=| [-] %%% <<< ### @@@ ||| +++  00110 >_> |=| [-] %%% <<< ### @@@ ||| +++  00110 >_> |=| [-] %%% <<< ### @@@ ||| +++\A"
+            "10101 ___ {+} [/] === >_> ### %%% ||| +++  10101 ___ {+} [/] === >_> ### %%% ||| +++  10101 ___ {+} [/] === >_> ### %%% ||| +++\A"
+            "01011 @@@ <=> [!] *** >>> ### === ||| +++  01011 @@@ <=> [!] *** >>> ### === ||| +++  01011 @@@ <=> [!] *** >>> ### === ||| +++\A"
+            "10100 %%% ^_^ [$] </> <<< ### ___ ||| +++  10100 %%% ^_^ [$] </> <<< ### ___ ||| +++  10100 %%% ^_^ [$] </> <<< ### ___ ||| +++\A"
+            "01010 === |>| [%] @@@ >_> ### %%% ||| +++  01010 === |>| [%] @@@ >_> ### %%% ||| +++  01010 === |>| [%] @@@ >_> ### %%% ||| +++\A"
+            "11100 >>> {=} [@] *** === ### ___ ||| +++  11100 >>> {=} [@] *** === ### ___ ||| +++  11100 >>> {=} [@] *** === ### ___ ||| +++\A"
+            "00011 <<< <|> [#] %%% >>> ### @@@ ||| +++  00011 <<< <|> [#] %%% >>> ### @@@ ||| +++  00011 <<< <|> [#] %%% >>> ### @@@ ||| +++\A"
+            "10111 ___ |=| [$] === <<< ### %%% ||| +++  10111 ___ |=| [$] === <<< ### %%% ||| +++  10111 ___ |=| [$] === <<< ### %%% ||| +++\A"
+            "01110 @@@ {+} [%] *** >_> ### === ||| +++  01110 @@@ {+} [%] *** >_> ### === ||| +++  01110 @@@ {+} [%] *** >_> ### === ||| +++\A"
+            "10001 %%% <=> [&] </> === ### ___ ||| +++  10001 %%% <=> [&] </> === ### ___ ||| +++  10001 %%% <=> [&] </> === ### ___ ||| +++\A"
+            "01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++\A"
+            "11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++\A"
+            "01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++\A"
+            "10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++\A"
+            "11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++\A"
+            "01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++\A"
+            "11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++\A"
+            "01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++\A"
+            "10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++\A"
+            "11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++\A"
+            "01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++\A"
+            "01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++\A";
+    
+    position: fixed;
+    width: 100%;
+    left: 0;
+    white-space: pre;
+    font-family: monospace;
+    font-size: 18px;
+    line-height: 2;
+    color: rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* DESKTOP: Simple two-part animation */
+.contactpage-section::before {
+    top: 0;
+    height: 100vh;
+    animation: moveUp1 40s linear infinite;
+}
+
+.contactpage-section::after {
+    top: 100vh; /* Positioned exactly at the bottom of the first element */
+    height: 100vh;
+    animation: moveUp2 40s linear infinite;
+}
+
+@keyframes moveUp1 {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-100%); }
+}
+
+@keyframes moveUp2 {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-100%); }
+}
+
+.footer-overlay {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50px; /* Adjust based on footer height */
+    background-color: #0a0a0a; 
+    z-index: 3;
+}
+
+.contactpage-header h1 {
+    text-align: center;
+    font-size: 3.5em;
+    padding: 20px 40px;
+    margin: 100px auto 30px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    width: fit-content;
+    color: white;
+    position: relative;
+    z-index: 4; /* Increased z-index */
+}
+
+.contactpage-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    position: relative;
+    z-index: 4; /* Increased z-index */
+}
+
+.contactpage-form-section {
+    flex: 1;
+    background-color: #0a0a0a;
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+    max-height: 785px; /* Adjust this value to match where the red line appears */
+    overflow: auto; /* Add scroll if content exceeds the height */
+    z-index: 4; /* Increased z-index */
+}
+
+.contactpage-form-section h2 {
+    font-size: 2em;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+.contactpageform-group {
+    margin-bottom: 20px;
+}
+
+.contactpageform-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #ffffff;
+    font-size: 1.1em;
+}
+
+.contactpageform-group input,
+.contactpageform-group textarea {
+    width: 100%;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 1.1em;
+}
+
+.contactpageform-group textarea {
+    height: 275px;
+    resize: vertical;
+}
+
+.submit-btn {
+    padding: 12px 25px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.submit-btn:hover {
+    transform: translateY(-3px);
+}
+
+.contactpage-info-section {
+    width: 40%;
+    background-color: #0a0a0a;
+    padding: 30px;
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    z-index: 4; /* Increased z-index */
+}
+
+.contactpage-info-section h2 {
+    font-size: 2em;
+    color: #ffffff;
+    margin-bottom: 20px;
+}
+
+/* Styling for the horizontal line */
+.contactpage-divider {
+    height: 2px;
+    background: white;
+    width: 100%;  /* Full width looks good in your screenshot */
+    margin-top: -15px;
+    margin-bottom: 10px;
+    border: none;
+    display: block;
+}
+
+.contactmessage-divider {
+    height: 2px;
+    background: white;
+    width: 100%;  /* Full width looks good in your screenshot */
+    margin-top: -15px;
+    margin-bottom: 25px;
+    border: none;
+    display: block;
+}
+
+
+.contactpage-method {
+    margin-bottom: 30px;
+}
+
+.contactpage-method h3 {
+    color: #ffffff;
+    font-size: 1.3em;
+    margin-bottom: 10px;
+}
+
+.contactpage-method p {
+    color: #ffffff;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+}
+
+.social-links {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.social-link {
+    padding: 8px 20px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.social-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+.contactpage-method .social-link:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+.contactpage-separator {
+    height: 4px;
+    background: linear-gradient(to top, rgb(159, 159, 159) 0%, rgba(255, 255, 255, 0) 100%);
+    width: 100%;
+}
+
+/* Message Sent Alerts */
+.popup-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.popup-content {
+    background-color: rgb(53, 103, 50);
+    padding: 20px;
+    border-radius: 15px;
+    width: 60%;
+    max-width: 500px;
+    text-align: center;
+    position: relative;
+    animation: fadeIn 0.5s ease;
+}
+
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 30px;
+    cursor: pointer;
+    color: white;
+}
+
+.contact-video-container {
+    width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    margin-left: -75px;
+    margin-bottom: 15px;
+    margin-top: 50px;
+}
+
+.contact-video-container video {
+    width: 150%;
+    height: auto;
+    display: block;
+    border-radius: 10px;
+    filter: brightness(1.5) contrast(1.1); /* Optional - enhance video appearance */
+}
+
+/* Refined Fade-in and Fade-out Animation */
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.base-footer {
+    background-color:#0a0a0a !important; /* Force a solid background */
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+    width: 100%;
+    position: relative; /* Ensure it's not affected by absolute positioning */
+    z-index: 5; /* Higher than .contactpage-section */
+}
+
+/* Apply fade-in and fade-out transitions smoothly */
+.popup-modal {
+    animation: fadeIn 0.5s forwards;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.popup-modal.fade-out {
+    animation: fadeOut 0.5s forwards;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .contactpage-section {
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    .contactpage-section::before,
+    .contactpage-section::after {
+        font-size: 14px;
+        line-height: 1.8;
+        animation-duration: 30s; /* Faster on mobile */
+    }
+    
+    .contact-video-container {
+        margin-bottom: 10px;
+    }
+    
+    .contactpage-header h1 {
+        font-size: 2.4em;
+        padding: 15px 25px;
+        margin: 50px auto 25px;
+        margin-top: 100px;
+    }
+    
+    .contactpage-container {
+        flex-direction: column;
+        gap: 25px;
+    }
+    
+    .contactpage-form-section, 
+    .contactpage-info-section {
+        width: 100%;
+        padding: 20px;
+    }
+    
+    .contactpage-form-section h2,
+    .contactpage-info-section h2 {
+        font-size: 1.8em;
+        margin-bottom: 15px;
+    }
+    
+    .contactpageform-group {
+        margin-bottom: 15px;
+    }
+    
+    .contactpageform-group input,
+    .contactpageform-group textarea {
+        padding: 10px;
+        font-size: 1em;
+    }
+    
+    .contactpageform-group textarea {
+        height: 120px;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        padding: 12px 0;
+    }
+    
+    .contactpage-method {
+        margin-bottom: 20px;
+    }
+    
+    .contactpage-method h3 {
+        font-size: 1.2em;
+    }
+    
+    .contactpage-method p {
+        font-size: 1em;
+    }
+
+    .contactvideo-container {
+        margin-bottom: 15px;
+    }
+    
+    .contactvideo-placeholder {
+        padding-top: 65%;
+    }
+    
+    .social-links {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .social-link {
+        text-align: center;
+        padding: 10px 0;
+        width: 100%;
+        display: block;
+    }
+    
+    .popup-content {
+        width: 85%;
+        padding: 15px;
+    }
+    
+    /* Adjust divider for mobile */
+    .contactpage-divider {
+        width: 100%;
+        margin: -5px 0 15px 0;
+    }
+
+    .contactmessage-divider {
+        width: 100%;
+        margin: -5px 0 15px 0;
+    }
+}
+
+/* Extra Small Devices */
+@media (max-width: 480px) {
+    .contactpage-section {
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    .contactpage-section::before,
+    .contactpage-section::after {
+        font-size: 12px;
+        line-height: 1.7;
+        animation-duration: 25s; /* Even faster on smallest devices */
+    }
+    
+    .contactpage-header h1 {
+        font-size: 2em;
+        padding: 12px 20px;
+        margin: 40px auto 20px;
+    }
+    
+    .contactpage-form-section h2,
+    .contactpage-info-section h2 {
+        font-size: 1.6em;
+    }
+    
+    .contactpageform-group label {
+        font-size: 1em;
+    }
+    
+    .submit-btn {
+        font-size: 1em;
+    }
+    
+    .popup-content {
+        width: 90%;
+        padding: 12px;
+    }
+}

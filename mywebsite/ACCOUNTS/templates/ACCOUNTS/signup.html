@@ -1,0 +1,100 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/signup.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+
+<!-- Add this script to generate ASCII stars -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const body = document.body;
+        const windowWidth = window.innerWidth;
+        const windowHeight = Math.max(window.innerHeight, document.body.scrollHeight);
+        
+        // Calculate total number of stars for the entire page
+        const totalStars = 200;
+        
+        // Generate random positions for stars
+        for (let i = 0; i < totalStars; i++) {
+            const star = document.createElement('span');
+            star.textContent = '*';
+            star.className = 'star';
+            
+            // Random position - ensuring better edge coverage
+            // Using percentage values with buffer zones
+            // Left: 0-99% (allow full left edge coverage)
+            // Right: 0-98% (prevent right edge cutoff)
+            const posX = Math.random() * 99; // 0-99% of width
+            const posY = Math.random() * 98 + 1; // 1-99% of height
+            
+            // Apply position
+            star.style.left = posX + 'vw';
+            star.style.top = posY + 'vh';
+            
+            // Vary the size for visual interest
+            const baseSize = Math.random() * 10 + 20; // 20-30px
+            star.style.fontSize = baseSize + 'px';
+            
+            // Random animation delay and duration
+            star.style.animationDelay = Math.random() * 5 + 's';
+            star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            
+            // Add to body
+            body.appendChild(star);
+        }
+    });
+</script>
+
+<body class="star_body">
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1 class="auth-title">Sign Up</h1>
+            <p class="auth-subtitle">Create your account</p>
+        </div>
+        
+        {% if form.errors %}
+        <div class="message-error">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <p>{{ field.label }}: {{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <p>{{ error }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            
+            <label for="id_username">Username</label>
+            {{ form.username }}
+            <div class="help-text">{{ form.username.help_text }}</div>
+            
+            <label for="id_email">Email</label>
+            {{ form.email }}
+            
+            <label for="id_password1">Password</label>
+            {{ form.password1 }}
+            <div class="help-text">{{ form.password1.help_text }}</div>
+            
+            <label for="id_password2">Confirm Password</label>
+            {{ form.password2 }}
+            
+            <button type="submit" class="auth-button">Create Account</button>
+        </form>
+        
+        <div class="auth-links">
+            <p>Already have an account? <a href="{% url 'ACCOUNTS:login' %}">Log in</a></p>
+        </div>
+    </div>
+</body>
+{% endblock %}

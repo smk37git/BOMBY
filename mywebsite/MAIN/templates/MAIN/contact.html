@@ -1,0 +1,131 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/contact.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<main>
+    <section class="contactpage-section">
+        <div class="contactpage-header">
+            <h1>Contact Me</h1>
+        </div>
+
+        <div class="contactpage-container">
+            <div class="contactpage-form-section">
+                <h2>Send a Message</h2>
+                <hr class="contactmessage-divider" style="width: 44%;">
+                <form class="contactpage-form" method="POST">
+                    {% csrf_token %}
+                    <div class="contactpageform-group">
+                        <label for="name">Name</label>
+                        <input type="text" id="name" name="name" placeholder="Your Name" required>
+                    </div>
+                    <div class="contactpageform-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" placeholder="Your Email" required>
+                    </div>
+                    <div class="contactpageform-group">
+                        <label for="subject">Subject</label>
+                        <input type="text" id="subject" name="subject" placeholder="Subject" required>
+                    </div>
+                    <div class="contactpageform-group">
+                        <label for="message">Message</label>
+                        <textarea id="message" name="message" placeholder="Your Message" required></textarea>
+                    </div>
+                    <button type="submit" class="submit-btn">Send Message</button>
+                </form>
+            </div>
+
+            <div class="contactpage-info-section">
+                <div style="display: inline-block;">
+                    <h2>Connect With Me</h2>
+                    <hr class="contactpage-divider" style="width: 100%;">
+                </div>
+                <div class="contactpage-methods">
+                    <div class="contactpage-method">
+                        <div style="word-wrap: break-word; overflow-wrap: break-word; margin-top: 15px; background-color: rgb(24, 24, 24); color: white; padding: 10px 15px; border-radius: 10px;">
+                            <h3 style="font-size: 25px;">Email:</h3>
+                            <p style="font-size: 20px;">REMOVED_EMAIL</p>
+                            <p style="font-size: 15px; margin-top: 20px;">I'll try to reach back out to you within 24 hours!</p>
+                        </div>
+                    </div>
+                    <div class="contactpage-method">
+                        <h3 style="margin-bottom: 15px;">Discord Server</h3>
+                        <a href="https://discord.com/invite/bdqAXc4" class="social-link">Discord</a>
+                    </div>
+                    <div class="contactpage-method">
+                        <h3>Social Media</h3>
+                        <div class="social-links">
+                            <a href="https://www.twitch.tv/sebe_tv/about" class="social-link">Twitch</a>
+                            <a href="https://github.com/smk37git" class="social-link">GitHub</a>
+                            <a href="https://www.linkedin.com/in/sebastian-main-6a4799224/" class="social-link">LinkedIn</a>
+                        </div>
+                        
+                        <div class="contact-video-container">
+                            <video autoplay loop muted playsinline>
+                                <source src="{% static 'videos/mail-animation.webm' %}" type="video/webm">
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Popup Modal -->
+    {% if messages %}
+    <div id="popup-modal" class="popup-modal">
+        <div class="popup-content">
+            <span id="close-modal" class="close-btn">&times;</span>
+            {% for message in messages %}
+                <div class="popup-message popup-{{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+</main>
+
+{% block extra_js %}
+<script>
+    // Wait until the DOM is fully loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        var modal = document.getElementById('popup-modal');
+        var closeModalButton = document.getElementById('close-modal');
+    
+        // Function to trigger fade-out with proper timing
+        function fadeOutModal() {
+            modal.classList.add('fade-out');
+            modal.style.opacity = '0';
+            setTimeout(function() {
+                modal.style.display = 'none';
+                modal.classList.remove('fade-out'); // Reset for future triggers
+                modal.style.opacity = '1';
+            }, 500); // Match fadeOut duration
+        }
+    
+        // Show the popup modal ONLY if it exists (i.e., after submission)
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.style.opacity = '1';
+    
+            // Close modal when the close button is clicked
+            closeModalButton.addEventListener('click', fadeOutModal);
+    
+            // Auto-hide modal after 5 seconds with fade-out effect
+            setTimeout(fadeOutModal, 5000);
+        }
+    });
+    </script>  
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,315 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% load tz %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
+            {% else %}
+                <div class="profile-picture-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+        </div>
+        <h1 class="profile-title">My Account</h1>
+    </div>
+    
+    <div class="profile-content">
+        <div class="profile-section">
+            <div class="section-header">
+                <h2>Account Information</h2>
+                {% if user.is_admin_user %}
+                    <span class="account-type admin">Administrator</span>
+                {% elif user.is_client %}
+                    <span class="account-type client">Client</span>
+                {% elif user.is_supporter %}
+                    <span class="account-type supporter">Supporter</span>
+                {% else %}
+                    <span class="account-type member">Member</span>
+                {% endif %}
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Username:</div>
+                <div class="info-value">{{ user.username }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Email:</div>
+                <div class="info-value">{{ user.email }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Joined:</div>
+                <div class="info-value">{{ user.date_joined|date:"F j, Y" }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Last Login:</div>
+                <div class="info-value" data-utc="{{ user.last_login|date:'c' }}">
+                    {{ user.last_login|timezone:"America/Chicago"|date:"M d, Y, g:i a" }}
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <div>
+                    <a href="{% url 'ACCOUNTS:edit_username' %}" class="action-button">Change Username</a>
+                </div>
+
+                <div>
+                    <a href="{% url 'ACCOUNTS:password_reset' %}" class="action-button">Change Password</a>
+                </div>
+                
+                <div>
+                    <form method="post" action="{% url 'ACCOUNTS:logout' %}">
+                      {% csrf_token %}
+                      <button type="submit" class="signin-button">Logout</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="bio-section">
+                <h3>Bio</h3>
+                <div class="bio-content">
+                    {% if user.bio %}
+                        {{ user.bio|linebreaks }}
+                    {% else %}
+                        <p class="empty-bio">No bio added yet. Edit your profile to add one.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="profile-section">
+            <div class="section-header">
+                <h2>Account Settings</h2>
+            </div>
+            <div class="account-settings"></div>
+            <a href="{% url 'ACCOUNTS:edit_profile' %}" class="editprofile-button">Edit Profile</a>
+            <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="editprofile-button" style="margin-left: 10px;">View Public Profile</a>
+        
+            <div class="profile-section">
+                <h3>Social Links</h3>
+                <div class="social-links">
+                    {% if user.youtube_link or user.twitch_link or user.github_link or user.twitter_link or user.kick_link or user.instagram_link %}
+                        {% if user.youtube_link %}
+                            <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
+                                <i class="fab fa-youtube"></i> YouTube
+                            </a>
+                        {% endif %}
+                        {% if user.twitch_link %}
+                            <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
+                                <i class="fab fa-twitch"></i> Twitch
+                            </a>
+                        {% endif %}
+                        {% if user.github_link %}
+                            <a href="{{ user.github_link }}" target="_blank" class="social-link github">
+                                <i class="fab fa-github"></i> GitHub
+                            </a>
+                        {% endif %}
+                        {% if user.twitter_link %}
+                            <a href="{{ user.twitter_link }}" target="_blank" class="social-link twitter">
+                                <i class="fa-brands fa-x-twitter"></i> Twitter
+                            </a>
+                        {% endif %}
+                        {% if user.kick_link %}
+                            <a href="{{ user.kick_link }}" target="_blank" class="social-link kick">
+                                <i class="fas fa-gamepad"></i> Kick
+                            </a>
+                        {% endif %}
+                        {% if user.instagram_link %}
+                            <a href="{{ user.instagram_link }}" target="_blank" class="social-link instagram">
+                                <i class="fab fa-instagram"></i> Instagram
+                            </a>
+                        {% endif %}
+                    {% else %}
+                        <p>No social links added yet. Edit your profile!</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="profile-section">
+                <h3>Promotional Wall Links</h3>
+                <p class="promo-instructions" style="margin-top: 10px; color: white;">Select up to 2 social links to display on the promotional wall.</p>
+                <p class="promo-instructions" style="margin-top: 10px; color: white;">Don't worry, your other social links will still show on your profile!</p>
+                
+                <form method="post" action="{% url 'ACCOUNTS:update_promo_links' %}" id="promo-links-form">
+                    {% csrf_token %}
+                    <div class="promo-links-selection">
+                        {% if user.youtube_link %}
+                        <div class="promo-option">
+                            <input type="checkbox" id="promo_youtube" name="promo_links" value="youtube" 
+                                   {% if 'youtube' in user.promo_links %}checked{% endif %}>
+                            <label for="promo_youtube">YouTube</label>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.twitch_link %}
+                        <div class="promo-option">
+                            <input type="checkbox" id="promo_twitch" name="promo_links" value="twitch"
+                                   {% if 'twitch' in user.promo_links %}checked{% endif %}>
+                            <label for="promo_twitch">Twitch</label>
+                        </div>
+                        {% endif %}
+
+                        {% if user.github_link %}
+                        <div class="promo-option">
+                            <input type="checkbox" id="promo_github" name="promo_links" value="github"
+                                   {% if 'github' in user.promo_links %}checked{% endif %}>
+                            <label for="promo_github">GitHub</label>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.twitter_link %}
+                        <div class="promo-option">
+                            <input type="checkbox" id="promo_twitter" name="promo_links" value="twitter"
+                                   {% if 'twitter' in user.promo_links %}checked{% endif %}>
+                            <label for="promo_twitter">Twitter</label>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.kick_link %}
+                        <div class="promo-option">
+                            <input type="checkbox" id="promo_kick" name="promo_links" value="kick"
+                                   {% if 'kick' in user.promo_links %}checked{% endif %}>
+                            <label for="promo_kick">Kick</label>
+                        </div>
+                        {% endif %}
+                        
+                        {% if user.instagram_link %}
+                        <div class="promo-option">
+                            <input type="checkbox" id="promo_instagram" name="promo_links" value="instagram"
+                                   {% if 'instagram' in user.promo_links %}checked{% endif %}>
+                            <label for="promo_instagram">Instagram</label>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div id="promo-warning" class="messages" style="display: none;">
+                        Please select exactly 2 social links for the promotional wall.
+                    </div>
+                    
+                    <button type="submit" class="action-button">Save Promotional Links</button>
+                </form>
+            </div>
+            
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const checkboxes = document.querySelectorAll('input[name="promo_links"]');
+                    const warningElement = document.getElementById('promo-warning');
+                    const form = document.getElementById('promo-links-form');
+                    
+                    // Update warning message and styling
+                    function updateWarning() {
+                        const checkedCount = document.querySelectorAll('input[name="promo_links"]:checked').length;
+                       
+                        if (checkedCount > 0) {
+                            warningElement.textContent = `Selected social links: ${checkedCount}`;
+                            warningElement.style.padding = '10px 15px';
+                            warningElement.style.marginBottom = '10px';
+                            warningElement.style.borderRadius = '8px';
+                            warningElement.style.borderLeft = '4px solid #28a745';
+                            warningElement.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                            warningElement.style.backgroundColor = '#00671851';
+                            warningElement.style.color = 'ffffff';
+                            warningElement.style.position = 'relative';
+                            warningElement.style.opacity = '1';
+                            warningElement.style.transition = 'opacity 0.5s ease';
+                            warningElement.style.display = 'block';
+
+                        } else {
+                            warningElement.textContent = `No social links selected!`;
+                            warningElement.style.padding = '10px 15px';
+                            warningElement.style.marginBottom = '10px';
+                            warningElement.style.borderRadius = '8px';
+                            warningElement.style.borderLeft = '4px solid #dc3545';
+                            warningElement.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                            warningElement.style.backgroundColor = '#37000556';
+                            warningElement.style.color = 'ffffff';
+                            warningElement.style.position = 'relative';
+                            warningElement.style.opacity = '1';
+                            warningElement.style.transition = 'opacity 0.5s ease';
+                            warningElement.style.display = 'block';
+                        }
+                    }
+                    
+                    // Add event listeners to checkboxes
+                    checkboxes.forEach(checkbox => {
+                        checkbox.addEventListener('change', function() {
+                            const checkedCount = document.querySelectorAll('input[name="promo_links"]:checked').length;
+                            
+                            // Limit selection to 2
+                            if (checkedCount > 2) {
+                                this.checked = false;
+                            }
+                            
+                            updateWarning();
+                        });
+                    });
+                    
+                    // Initial warning update
+                    updateWarning();
+                });
+            </script>
+            
+            {% if user.is_member %}
+                <h3 style="margin-top: 30px;">Purchase History</h3>
+                <div class="purchase-history">
+                    <p>Your purchase history will appear here once you've made purchases.</p>
+                </div>
+            {% elif user.is_supporter %}
+                <h3 style="margin-top: 30px;">Purchase History</h3>
+                <div class="purchase-history">
+                    <p>Your purchase history will appear here once you've made purchases.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    {% if user.is_admin_user %}
+    <div class="admin-cards">
+        <a href="/admin/" class="admin-card">
+            <i class="fas fa-cog"></i>
+            <div>Django Admin</div>
+        </a>
+        <a href="{% url 'ACCOUNTS:user_management' %}" class="admin-card">
+            <i class="fas fa-users"></i>
+            <div>User Management</div>
+        </a>
+        <a href="#" class="admin-card">
+            <i class="fas fa-shopping-cart"></i>
+            <div>Orders</div>
+        </a>
+    </div>
+
+    <!-- Time Conversrion Script -->
+     <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-utc]').forEach(function(el) {
+          const utcTime = new Date(el.getAttribute('data-utc'));
+          if (!isNaN(utcTime)) {
+            el.textContent = utcTime.toLocaleString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+          }
+        });
+      });
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

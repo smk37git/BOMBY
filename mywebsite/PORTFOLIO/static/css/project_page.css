@@ -1,0 +1,439 @@
+/* Project Page Styles */
+
+/* Main container layout */
+.project-container {
+    display: flex;
+    min-height: 100vh;
+    margin-top: 0; /* Remove margin that was causing the gap */
+    padding-top: 90px; /* Use padding instead to account for navbar */
+    background-color: #0c0c0c;
+    position: relative;
+}
+
+/* Left sidebar with border line */
+.project-sidebar {
+    width: 250px;
+    background-color: #0c0c0c;
+    padding: 2rem;
+    position: fixed;
+    top: 0; /* Start from very top */
+    left: 0;
+    bottom: 0;
+    height: 100vh; /* Full viewport height */
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: calc(90px + 2rem); /* Adjusted padding to account for navbar */
+    border-right: 2px solid #3c3c3c; 
+}
+
+.project-main-title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    line-height: 1.1;
+    color: #fff;
+    margin-bottom: 1rem;
+}
+
+.project-author {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1rem;
+    margin-top: 0.5rem;
+}
+
+/* Main content area */
+.project-content {
+    flex: 1;
+    margin-left: 250px;
+    padding: 2rem 2rem 2rem 3rem;
+    background-color: #0c0c0c;
+    min-height: calc(100vh - 90px); /* Ensure it fills the remaining height */
+}
+
+/* Adjusted project featured image styles to remove any potential gaps */
+.project-featured-image {
+    width: 100%;
+    max-width: 1920px;
+    margin: 0 auto 1.5rem;
+    border-radius: 10px;
+    border: 4px solid #ffffff;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    background-color: #131520;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    position: relative;
+}
+
+.featured-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Gallery thumbnails */
+.gallery-thumbnails {
+    display: flex;
+    gap: 0.8rem;
+    margin-bottom: 3rem;
+}
+
+.thumbnail {
+    width: calc(20% - 0.65rem);
+    aspect-ratio: 16/9;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid #ffffff;
+    opacity: 0.8;
+    background-color: #131520;
+}
+
+.thumbnail:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    opacity: 0.95;
+}
+
+.thumbnail.active {
+    border: 2px solid #ffffff;
+    opacity: 1;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+
+.thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Project overview section */
+.project-overview {
+    padding: 4rem 0;
+}
+
+.section-header {
+    text-align: left;
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: #fff;
+    margin-bottom: 1rem;
+}
+
+.project-overview-container {
+    display: flex;
+    gap: 3rem;
+    margin: 0 auto;
+}
+
+.project-overview-content {
+    flex: 2;
+}
+
+.project-overview-title {
+    font-size: 1.8rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+}
+
+.project-overview-text {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.project-overview-info {
+    flex: 1;
+    background: rgba(20, 20, 30, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1.5rem;
+    height: fit-content;
+}
+
+.info-title {
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.info-list {
+    list-style: none;
+    padding: 0;
+}
+
+.info-list li {
+    margin-bottom: 1rem;
+}
+
+.info-label {
+    display: block;
+    color: #00ff41;
+    margin-bottom: 0.2rem;
+    font-family: 'Courier New', monospace;
+}
+
+.client-info-value {
+    padding-top: 100px;
+    color: #fff;
+}
+
+.project-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.project-link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: rgba(0, 255, 65, 0.1);
+    color: #00ff41;
+    text-decoration: none;
+    border: 1px solid #00ff41;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.project-link:hover {
+    background-color: rgba(0, 255, 65, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.2);
+}
+
+/* Project details section */
+.project-details {
+    padding: 4rem 0;
+}
+
+.details-container {
+    margin: 0 auto;
+}
+
+.details-content {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+}
+
+.details-content h3 {
+    color: #fff;
+    font-size: 1.8rem;
+    margin: 2rem 0 1rem;
+}
+
+.details-content p {
+    margin-bottom: 1.5rem;
+}
+
+.details-content ul, .details-content ol {
+    margin-bottom: 1.5rem;
+    padding-left: 2rem;
+}
+
+.details-content li {
+    margin-bottom: 0.5rem;
+}
+
+.details-content pre {
+    background: rgba(20, 20, 30, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 1rem;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+    font-family: 'Courier New', monospace;
+    color: #00ff41;
+}
+
+.details-content code {
+    font-family: 'Courier New', monospace;
+    color: #00ff41;
+    background: rgba(0, 255, 65, 0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+}
+
+/* Testimonial section */
+.testimonial {
+    background-color: rgba(20, 20, 30, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 2rem;
+    margin: 3rem 0;
+}
+
+.testimonial-content {
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding: 0 1.5rem;
+}
+
+.testimonial-content::before,
+.testimonial-content::after {
+    content: '"';
+    position: absolute;
+    font-size: 3rem;
+    color: rgba(0, 255, 65, 0.3);
+    line-height: 1;
+}
+
+.testimonial-content::before {
+    top: -0.5rem;
+    left: -0.5rem;
+}
+
+.testimonial-content::after {
+    bottom: -2rem;
+    right: -0.5rem;
+}
+
+.testimonial-author {
+    display: flex;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.author-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 1rem;
+    object-fit: cover;
+}
+
+.author-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.author-name {
+    color: #fff;
+    font-weight: bold;
+}
+
+.author-title {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+}
+
+/* Contact CTA section */
+.contact-cta {
+    padding: 4rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    text-align: center;
+}
+
+.cta-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.cta-content h2 {
+    font-size: 2.5rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+}
+
+.cta-content p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 2rem;
+    font-size: 1.2rem;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background-color: transparent;
+    color: #00ff41;
+    text-decoration: none;
+    border: 2px solid #00ff41;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+    background-color: #00ff41;
+    color: #121212;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+    .project-overview-container {
+        flex-direction: column;
+    }
+    
+    .section-separator {
+        width: 150px;
+    }
+}
+
+@media (max-width: 768px) {
+    .project-container {
+        flex-direction: column;
+        padding-top: 90px;
+    }
+    
+    .project-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        top: 0;
+        padding: 2rem;
+        text-align: center;
+        border-right: none;
+        border-bottom: 1px solid #1a1a1a;
+    }
+    
+    .project-sidebar::after {
+        display: none; /* Hide the pseudo-element on mobile */
+    }
+    
+    .project-content {
+        margin-left: 0;
+        padding-top: 2rem;
+        min-height: auto;
+    }
+    
+    .project-featured-image {
+        height: 50vh;
+    }
+    
+    .gallery-thumbnails {
+        flex-wrap: wrap;
+    }
+    
+    .thumbnail {
+        width: calc(50% - 0.5rem);
+    }
+}
+
+@media (max-width: 480px) {
+    .project-links {
+        flex-direction: column;
+    }
+    
+    .thumbnail {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .section-separator {
+        width: 100px;
+    }
+}

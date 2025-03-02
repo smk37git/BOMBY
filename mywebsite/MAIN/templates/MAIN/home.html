@@ -1,0 +1,199 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+    <header class="hero">
+        <div class="hero-content">
+            <h1 class="main-title">SEBASTIAN<br>MAIN</h1>
+            <p class="subtitle">PORTFOLIO AND FREELANCE SERVICE</p>
+        </div>
+        <div class="hero-image-container">
+            <div class="binary-background" data-binary=""></div>
+            <div class="profile-image-wrapper">
+                <img src="{% static 'images/sebastian-main-headshot.jpg' %}" alt="Sebastian Main" class="profile-image">
+            </div>
+        </div>
+    </header>
+
+    <section class="gallery-section">
+        <div class="gallery-header">
+            <h2 class="gallery-title">QUICK LINKS</h2>
+            <div class="gallery-separator"></div>
+        </div>
+        
+        <div class="gallery-grid">
+            <!-- Portfolio Item -->
+            <div class="gallery-item" data-aos="fade-up">
+                <div class="window">
+                    <div class="window-header">
+                        <div class="window-controls">
+                            <div class="control red"></div>
+                            <div class="control yellow"></div>
+                            <div class="control green"></div>
+                        </div>
+                        <div class="window-title">portfolio.exe</div>
+                    </div>
+                    <div class="window-content">
+                        <img src="{% static 'images/example.jpg' %}" alt="Portfolio">
+                    </div>
+                    <div class="window-footer"></div>
+                </div>
+                <h3 class="window-smalltitle">PORTFOLIO</h3>
+            </div>
+
+            <!-- Stream Setup Item -->
+            <div class="gallery-item" data-aos="fade-up" data-aos-delay="100">
+                <div class="window">
+                    <div class="window-header">
+                        <div class="window-controls">
+                            <div class="control red"></div>
+                            <div class="control yellow"></div>
+                            <div class="control green"></div>
+                        </div>
+                        <div class="window-title">stream-setup.exe</div>
+                    </div>
+                    <div class="window-content">
+                        <img src="{% static 'images/stream-setup.jpg' %}" alt="Stream Setup">
+                    </div>
+                    <div class="window-footer"></div>
+                </div>
+                <h3 class="window-smalltitle">STREAM SETUP</h3>
+            </div>
+
+            <!-- About Me Item -->
+            <div class="gallery-item" data-aos="fade-up" data-aos-delay="200">
+                <div class="window">
+                    <div class="window-header">
+                        <div class="window-controls">
+                            <div class="control red"></div>
+                            <div class="control yellow"></div>
+                            <div class="control green"></div>
+                        </div>
+                        <div class="window-title">about-me.exe</div>
+                    </div>
+                    <div class="window-content">
+                        <img src="{% static 'images/sebastian-main-headshot.jpg' %}" alt="ABOUT ME">
+                    </div>
+                    <div class="window-footer"></div>
+                </div>
+                <h3 class="window-smalltitle">ABOUT ME</h3>
+            </div>
+        </div>
+    </section>
+
+    <!-- AOS Section -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800, // Optional: controls the animation speed
+            offset: 100, // Optional: adjusts when the animation is triggered
+            once: true // Optional: ensures animation happens only once
+        });
+    </script>
+
+    <!-- Binary Background -->
+    <script>
+        function createBinaryBackground() {
+            const binaryElement = document.querySelector('.binary-background');
+            let previousBinary = '';
+            let frameCount = 0;
+            const FRAMES_PER_SHIFT = 24;
+
+            function generateBinary() {
+                const width = Math.floor(binaryElement.offsetWidth / 8);
+                const height = Math.floor(binaryElement.offsetHeight / 8);
+                let binary = '';
+
+                function getFormattedChar() {
+                    if (Math.random() > 0.25) {
+                        const digit = Math.random() > 0.5 ? '1' : '0';
+                        return digit.padEnd(4, ' ');  // Increased padding
+                    }
+                    return ' ';  // Matching space padding
+                }
+
+                function generateLine() {
+                    let line = '';
+                    for (let j = 0; j < Math.floor(width / 2); j++) {
+                        line += getFormattedChar();
+                    }
+                    return line;
+                }
+
+                if (!previousBinary) {
+                    for (let i = 0; i < height; i++) {
+                        binary += generateLine() + '\n';
+                    }
+                } else {
+                    const lines = previousBinary.split('\n');
+                    if (frameCount >= FRAMES_PER_SHIFT) {
+                        lines.shift();
+                        lines.push(generateLine());
+                        frameCount = 0;
+                    }
+                    binary = lines.join('\n');
+                }
+
+                previousBinary = binary;
+                return binary;
+            }
+
+            function update() {
+                binaryElement.setAttribute('data-binary', generateBinary());
+                const offset = (frameCount / FRAMES_PER_SHIFT) * -1; // Keep original offset
+                binaryElement.style.transform = `translateY(${offset}px)`;
+                frameCount++;
+                requestAnimationFrame(update);
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        document.addEventListener('DOMContentLoaded', createBinaryBackground);
+    </script>
+
+    <!-- Eye Animation Section -->
+    <div class="video-separator"></div>
+    <section id="video-section" class="video-container">
+        <div class="video-wrapper">
+            <video id="eye-animation-video" autoplay loop muted playsinline>
+                <source src="{% static 'videos/eye-animation.webm' %}" type="video/webm">
+                Your browser does not support the video tag.
+            </video>
+            <h3 class="eye-animation-title">WANT TO SEE WHAT I DO?</h3>
+        </div>
+        
+        <!-- Text area for future content -->
+        <div class="text-wrapper">
+            <h2 class="text-title">WELCOME TO MY WEBSITE!</h2>
+            <p class="text-content1">
+                I'm an Information Technology student who is currently in college! This
+                website will host my portfolio and stream setup service. As you can see, I am very passionate about
+                technology and the design of such systems.
+            </p>
+            <p class="text-content2">
+                You may be asking yourself, "What can I do?". Take a good look at my portfolio and Stream Setup service
+                to get a good idea of what I offer. From coding expertise to software deployment and even media creation,
+                I cover a lot of bases with my skillset.
+            </p>
+        </div>
+    </section>
+
+    <script>
+        // Get the video element
+        const video = document.getElementById('eye-animation-video');
+        
+        // Set the playback rate to slow down the video (e.g., 0.5 for half speed)
+        video.playbackRate = 0.5;
+    </script>
+
+    
+{% endblock %}

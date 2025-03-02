@@ -1,0 +1,200 @@
+/* Background and container styles */
+.promotional_wall-container {
+    max-width: 1200px;
+    margin: 150px auto 30px;
+    padding: 30px;
+    color: #fff;
+    position: relative;
+    z-index: 2;
+}
+
+.promotional_wall-title {
+    text-align: center;
+    font-size: 3.5em;
+    padding: 20px 40px;
+    margin: 0 auto;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    width: fit-content;
+    color: white;
+    position: relative;
+    z-index: 4; /* Increased z-index */
+}
+
+.promotional-wall {
+    max-width: 1200px;
+    margin: 150px auto 30px;
+}
+
+.user-category {
+    margin-bottom: 40px;
+    text-align: center;
+}
+
+.category-title {
+    margin: 30px auto;
+    padding: 10px 25px;
+    font-size: 1.8rem;
+    color: #fff;
+    background-color: rgb(19, 19, 19);
+    border-radius: 8px;
+    width: fit-content;
+    border-left: 4px solid rgba(255, 255, 255, 0.3);
+    border-right: 4px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.user-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, 340px);
+    gap: 25px;
+    justify-content: center;
+}
+
+.user-card {
+    background-color: rgb(19, 19, 19);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    width: 275px;
+    margin: 0 auto;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.user-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.card-header {
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+/* User Cards */
+.promotion-username-cell {
+    margin: 0 0 5px 0;
+    font-size: 1.2rem;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-profile-link h3.username {
+    color: white !important;
+}
+
+.user-profile-link:visited h3.username {
+    color: white !important;
+}
+
+.user-profile-link,
+.user-profile-link:visited,
+.user-profile-link:hover,
+.user-profile-link:active {
+    text-decoration: none;
+    color: inherit;
+}
+
+.card-content {
+    padding: 20px;
+}
+
+.user-socials {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.no-socials {
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    margin:.33em;
+}
+
+/* Social links styling */
+.social-link {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.2s ease;
+}
+
+.social-link i {
+    margin-right: 8px;
+}
+
+.youtube {
+    background-color: rgba(255, 0, 0, 0.7);
+}
+
+.youtube:hover {
+    background-color: rgba(255, 0, 0, 0.9);
+}
+
+.twitch {
+    background-color: rgba(100, 65, 165, 0.7);
+}
+
+.twitch:hover {
+    background-color: rgba(100, 65, 165, 0.9);
+}
+
+.account-type {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.admin {
+    background-color: rgba(255, 69, 0, 0.7);
+}
+
+.client {
+    background-color: rgba(65, 105, 225, 0.7);
+}
+
+.member {
+    background-color: rgba(46, 139, 87, 0.7);
+}
+
+@media (max-width: 768px) {
+    .user-cards {
+        grid-template-columns: repeat(auto-fit, 180px);
+    }
+    
+    .user-card {
+        max-width: 180px;
+    }
+}
+
+@media (max-width: 480px) {
+    .user-cards {
+        grid-template-columns: repeat(auto-fit, 150px);
+    }
+    
+    .user-card {
+        max-width: 150px;
+    }
+    
+    .card-header {
+        padding: 10px;
+    }
+    
+    .user-avatar {
+        width: 60px;
+        height: 60px;
+    }
+}

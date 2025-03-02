@@ -1,0 +1,266 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/user_management.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% load tz %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1 class="user_management-title" >User Management</h1>
+    </div>
+    
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="dashboard-layout">
+        <!-- Users Table Section -->
+        <div class="profile-section user-table-section">
+            <div class="section-header">
+                <h2>Users</h2>
+                <div class="action-buttons">
+                    <form method="get" action="{% url 'ACCOUNTS:user_management' %}">
+                        <div class="search-container">
+                            <input type="text" name="search" placeholder="Search by username or email" value="{{ search_query }}" class="search-input">
+                            <button type="submit" class="action-button">Search</button>
+                            {% if search_query %}
+                                <a href="{% url 'ACCOUNTS:user_management' %}" class="clear-search">Clear</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+                <!-- Select/Deselect All buttons removed -->
+            </div>
+            
+            <div class="users-table-container">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="select-all-checkbox"></th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Joined</th>
+                            <th>Last Login</th>
+                            <th>User Type</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr data-user-id="{{ user.id }}">
+                            <td><input type="checkbox" class="user-select-checkbox" data-user-id="{{ user.id }}"></td>
+                            <td class="username-cell">{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td style="white-space: nowrap;">{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td style="white-space: nowrap; font-size: 10px;">{{ user.last_login|timezone:"America/Chicago"|date:"M d, Y, g:i a" }}</td>
+                            <td>
+                                {% if user.is_admin_user %}
+                                    <span class="account-type admin">Administrator</span>
+                                {% elif user.is_client %}
+                                    <span class="account-type client">Client</span>
+                                {% elif user.is_supporter %}
+                                    <span class="account-type supporter">Supporter</span>
+                                {% else %}
+                                    <span class="account-type member">Member</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">No users found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- User Action Panel -->
+        <div class="user-action-panel" style="margin-top: 20px;">
+            <div class="panel-header">
+                <h3>Actions</h3>
+                <span class="selected-count">0 users selected</span>
+            </div>
+            
+            <div class="action-section">
+                <h4>Edit User</h4>
+                <a id="btn-edit-username" href="{% url 'ACCOUNTS:edit_username_admin' user.id %}" class="panel-action-button disabled">Edit Username</a>
+            </div>
+            
+            <div class="action-section">
+                <h4>Change User Type</h4>
+                <form id="bulk-type-change-form" method="post" action="{% url 'ACCOUNTS:bulk_change_user_type' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="selected-users-type" name="selected_users" value="">
+                    <select name="user_type" class="user-type-select" disabled>
+                        <option value="MEMBER">Member</option>
+                        <option value="SUPPORTER">Supporter</option>
+                        <option value="CLIENT">Client</option>
+                        <option value="ADMIN">Admin</option>
+                    </select>
+                    <button id="btn-change-type" type="submit" class="panel-action-button" disabled>Update</button>
+                </form>
+            </div>
+            
+            <div class="action-section">
+                <h4>Delete Users</h4>
+                <button id="btn-delete-users" class="panel-action-button danger" disabled>Delete Selected</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal for delete confirmation -->
+    <div id="delete-confirmation-modal" class="modal">
+        <div class="modal-content" style="background-color: rgb(36, 36, 36);">
+            <span class="close">&times;</span>
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to delete the selected user(s)? This action cannot be undone.</p>
+            <form id="delete-users-form" method="post" action="{% url 'ACCOUNTS:bulk_delete_users' %}">
+                {% csrf_token %}
+                <input type="hidden" id="selected-users-delete" name="selected_users" value="">
+                <div class="form-actions">
+                    <button type="submit" class="action-button danger">Delete</button>
+                    <button type="button" class="action-button cancel" id="cancel-delete">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        const userCheckboxes = document.querySelectorAll('.user-select-checkbox');
+        const selectedCountDisplay = document.querySelector('.selected-count');
+        
+        // Action panel buttons
+        const editUsernameBtn = document.getElementById('btn-edit-username');
+        const userTypeSelect = document.querySelector('.user-type-select');
+        const changeTypeBtn = document.getElementById('btn-change-type');
+        const deleteUsersBtn = document.getElementById('btn-delete-users');
+        
+        // Modal elements
+        const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
+        
+        // Close buttons
+        const closeButtons = document.querySelectorAll('.close');
+        const cancelDeleteBtn = document.getElementById('cancel-delete');
+        
+        // Update action panel button states based on selection
+        function updateButtonStates() {
+            const selectedUsers = getSelectedUsers();
+            const hasSelection = selectedUsers.length > 0;
+            
+            // Update selected count display
+            selectedCountDisplay.textContent = `${selectedUsers.length} user${selectedUsers.length !== 1 ? 's' : ''} selected`;
+            
+            // Enable/disable buttons based on selection
+            userTypeSelect.disabled = !hasSelection;
+            changeTypeBtn.disabled = !hasSelection;
+            deleteUsersBtn.disabled = !hasSelection;
+            
+            // Handle the Edit Username button
+            if (selectedUsers.length === 1) {
+                const userId = selectedUsers[0];
+                editUsernameBtn.href = `{% url 'ACCOUNTS:edit_username_admin' 0 %}`.replace('0', userId);
+                editUsernameBtn.classList.remove('disabled');
+            } else {
+                editUsernameBtn.href = '#';
+                editUsernameBtn.classList.add('disabled');
+            }
+        }
+        
+        // Get IDs of selected users
+        function getSelectedUsers() {
+            return Array.from(userCheckboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.dataset.userId);
+        }
+        
+        // Select/Deselect all checkboxes
+        selectAllCheckbox.addEventListener('change', function() {
+            userCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateButtonStates();
+        });
+        
+        // Update select all checkbox when individual checkboxes change
+        userCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const allChecked = Array.from(userCheckboxes).every(cb => cb.checked);
+                const someChecked = Array.from(userCheckboxes).some(cb => cb.checked);
+                
+                selectAllCheckbox.checked = allChecked;
+                // Use indeterminate state when some but not all are checked
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+                
+                updateButtonStates();
+            });
+        });
+        
+        // Handler for Edit Username button
+        editUsernameBtn.addEventListener('click', function(e) {
+            if (this.classList.contains('disabled')) {
+                e.preventDefault();
+            }
+        });
+        
+        // Handler for Change Type form submit
+        document.getElementById('bulk-type-change-form').addEventListener('submit', function(e) {
+            if (changeTypeBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+            
+            document.getElementById('selected-users-type').value = getSelectedUsers().join(',');
+        });
+        
+        // Handler for Delete button
+        deleteUsersBtn.addEventListener('click', function() {
+            if (this.disabled) return;
+            
+            document.getElementById('selected-users-delete').value = getSelectedUsers().join(',');
+            deleteConfirmationModal.style.display = 'block';
+        });
+        
+        // Close modals
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                deleteConfirmationModal.style.display = 'none';
+            });
+        });
+        
+        cancelDeleteBtn.addEventListener('click', function() {
+            deleteConfirmationModal.style.display = 'none';
+        });
+        
+        // Close modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target === deleteConfirmationModal) {
+                deleteConfirmationModal.style.display = 'none';
+            }
+        });
+        
+        // Initialize button states
+        updateButtonStates();
+    });
+</script>
+{% endblock %}

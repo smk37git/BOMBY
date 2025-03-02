@@ -1,0 +1,206 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/bomby_project.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="project-container">
+        <!-- Left sidebar with project title -->
+        <div class="project-sidebar">
+            <h1 class="project-main-title">WEBSITE<br>PROJECT</h1>
+            <p class="project-author">By Sebastian Main</p>
+        </div>
+        
+        <!-- Main content area with large image -->
+        <div class="project-content">
+            <div class="project-featured-image">
+                <img src="{% static 'images/1.jpg' %}" alt="Project Name" class="featured-image">
+            </div>
+            
+            <!-- Gallery thumbnails -->
+            <div class="gallery-thumbnails">
+                <div class="thumbnail active" data-image="{% static 'images/1.jpg' %}">
+                    <img src="{% static 'images/1.jpg' %}" alt="Main Project Image">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/2.jpg' %}">
+                    <img src="{% static 'images/2.jpg' %}" alt="Gallery Image 1">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/3.jpg' %}">
+                    <img src="{% static 'images/3.jpg' %}" alt="Gallery Image 2">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/4.jpg' %}">
+                    <img src="{% static 'images/4.jpg' %}" alt="Gallery Image 3">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/5.jpg' %}">
+                    <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 4">
+                </div>
+            </div>
+            
+            <!-- Project details sections -->
+            <section class="project-overview">
+                <div class="section-header">
+                    <h2 class="section-title">OVERVIEW</h2>
+                    <div class="section-separator"></div>
+                </div>
+                
+                <div class="project-overview-container">
+                    <div class="project-overview-content">
+                        <h3 class="project-overview-title">THE CHALLENGE</h3>
+                        <p class="project-overview-text">
+                            Describe the challenge or problem that this project aimed to solve. Provide context about the client, 
+                            their needs, and the specific goals they wanted to achieve through this project. This section should 
+                            give visitors a clear understanding of why this project was important and what motivated you to take it on.
+                        </p>
+                        
+                        <h3 class="project-overview-title">THE SOLUTION</h3>
+                        <p class="project-overview-text">
+                            Explain the solution you developed to address the challenge. Highlight your approach, the technologies 
+                            you chose to use, and why they were appropriate for this particular project. Describe your process 
+                            and methodology, focusing on how your solution meets the client's needs and objectives.
+                        </p>
+                        
+                        <div class="project-links">
+                            <a href="#" class="project-link">VIEW LIVE</a>
+                            <a href="#" class="project-link">GITHUB REPO</a>
+                        </div>
+                    </div>
+                    
+                    <div class="project-overview-info">
+                        <h3 class="info-title">PROJECT INFO</h3>
+                        <ul class="info-list">
+                            <li>
+                                <span class="info-label">CLIENT</span>
+                                <span class="client-info-value">Katie Jauss</span>
+                            </li>
+                            <li>
+                                <span class="info-label">DATE</span>
+                                <span class="client-info-value">Febuary 23 2025</span>
+                            </li>
+                            <li>
+                                <span class="info-label">CATEGORY</span>
+                                <span class="client-info-value">Web Development</span>
+                            </li>
+                            <li>
+                                <span class="info-label">TECH STACK</span>
+                                <span class="client-info-value">Django, React, PostgreSQL</span>
+                            </li>
+                            <li>
+                                <span class="info-label">ROLE</span>
+                                <span class="client-info-value">Full Stack Developer</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="project-details">
+                <div class="section-header">
+                    <h2 class="section-title">TECHNICAL DETAILS</h2>
+                    <div class="section-separator"></div>
+                </div>
+                
+                <div class="details-container">
+                    <div class="details-content">
+                        <h3>Development Process</h3>
+                        <p>
+                            Explain your development process for this project. Discuss the methodology you followed, 
+                            how you broke down the project into manageable tasks, and how you approached problem-solving. 
+                            This section gives insight into your working style and technical decision-making.
+                        </p>
+                        
+                        <h3>Technical Challenges</h3>
+                        <p>
+                            Detail the specific technical challenges you encountered during the project and how you overcame them. 
+                            This demonstrates your problem-solving abilities and resilience. Include code snippets where relevant 
+                            to illustrate complex solutions.
+                        </p>
+                        
+                        <pre>
+// Example code snippet
+function handleAuthentication(user) {
+  const token = generateToken(user);
+  storeUserSession(token);
+  return {
+    success: true,
+    message: 'Authentication successful',
+    token: token
+  };
+}</pre>
+                        
+                        <h3>Key Features</h3>
+                        <ul>
+                            <li>Feature one with brief description</li>
+                            <li>Feature two with brief description</li>
+                            <li>Feature three with brief description</li>
+                            <li>Feature four with brief description</li>
+                        </ul>
+                        
+                        <h3>Lessons Learned</h3>
+                        <p>
+                            Share what you learned from working on this project. Discuss any new technologies or techniques 
+                            you mastered, insights you gained about the problem domain, or how you would approach similar 
+                            projects differently in the future.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Client Testimonial (if applicable) -->
+            <div class="testimonial" data-aos="fade-up">
+                <p class="testimonial-content">
+                    Sebastian delivered an exceptional solution that exceeded our expectations. His technical expertise, 
+                    attention to detail, and proactive communication made the development process smooth and enjoyable. 
+                    The final product has significantly improved our workflow and received positive feedback from our users.
+                </p>
+                <div class="testimonial-author">
+                    <img src="{% static 'images/client-avatar.jpg' %}" alt="Client Name" class="author-image">
+                    <div class="author-info">
+                        <span class="author-name">Client Name</span>
+                        <span class="author-title">Position, Company</span>
+                    </div>
+                </div>
+            </div>
+
+            <section class="contact-cta">
+                <div class="cta-content">
+                    <h2>NEED A SIMILAR PROJECT?</h2>
+                    <p>I'm available for freelance projects and would love to discuss how I can help bring your ideas to life.</p>
+                    <a href="{% url 'contact' %}" class="cta-button">GET IN TOUCH</a>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- AOS and Gallery Script -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            offset: 100,
+            once: true
+        });
+        
+        // Gallery functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const featuredImage = document.querySelector('.featured-image');
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    // Update main image
+                    featuredImage.src = this.getAttribute('data-image');
+                    
+                    // Update active state
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+{% endblock %}

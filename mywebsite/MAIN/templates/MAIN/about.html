@@ -1,0 +1,62 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/about.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<main>
+    <section class="about-section">
+        <div class="about-header">
+            <h1>About Me</h1>
+        </div>
+
+        <div class="about-content">
+            <div class="about-image">
+                <img src="{% static 'images/sebastian-main-headshot.jpg' %}" alt="Sebastian Main" class="profile-image">
+                <h1 class="image-title">Sebastian Main</h1>
+                <p class="image-email">REMOVED_EMAIL</p>
+            </div>
+
+            <div class="about-details">
+                <h2>Who Am I?</h2>
+                <p>Hi, I'm Sebastian Main! I am an Information Technology student, passionate about technology, software development, and stream setups. I love exploring new tools and techniques to improve my skills, and I'm always up for a new challenge!</p>
+                <p>I have a strong background in web development, coding, and design, and I specialize in creating personalized tech setups for streamers and developers. Whether it's setting up the perfect coding environment or helping someone get their stream running smoothly, I am your go-to tech guy!</p>
+
+                <h2>My Journey</h2>
+                <p>Since I was young, I've been interested in computers, coding, and gaming. What started as a hobby soon turned into a passion for building websites, applications, and systems. I started learning programming on my own, exploring languages like HTML, CSS, JavaScript, and Python. Over time, my skills grew, and I found myself working on personal projects and helping friends with their tech needs.</p>
+
+                <h2>Skills and Expertise</h2>
+                <ul>
+                    <li style="background: rgb(53, 53, 53); border-left: 3px solid rgb(184, 75, 194); padding: 10px; border-radius: 8px; margin: 5px 0;">Web Development (HTML, CSS, JavaScript, Django)</li>
+                    <li style="background: rgb(53, 53, 53); border-left: 3px solid rgb(184, 75, 194); padding: 10px; border-radius: 8px; margin: 5px 0;">Stream Setup and Configuration (OBS Studio, Streamlabs, Twitch Integration)</li>
+                    <li style="background: rgb(53, 53, 53); border-left: 3px solid rgb(184, 75, 194); padding: 10px; border-radius: 8px; margin: 5px 0;">Software Deployment and Configuration</li>
+                    <li style="background: rgb(53, 53, 53); border-left: 3px solid rgb(184, 75, 194); padding: 10px; border-radius: 8px; margin: 5px 0;">Problem-Solving and Debugging</li>
+                    <li style="background: rgb(53, 53, 53); border-left: 3px solid rgb(184, 75, 194); padding: 10px; border-radius: 8px; margin: 5px 0;">Media Creation and Editing</li>
+                    <li style="background: rgb(53, 53, 53); border-left: 3px solid rgb(184, 75, 194); padding: 10px; border-radius: 8px; margin: 5px 0;">System Administration and Virtualization</li>
+                </ul>
+
+                <h2>Why I Do What I Do</h2>
+                <p>Tech has always been a source of inspiration for me. I love how it allows me to create and connect with others. Whether I'm building a website, helping someone set up a streaming environment, or learning a new programming language, I'm excited to be part of this ever-evolving world of technology. I'm always looking for ways to improve myself, and I hope to inspire others to do the same!</p>
+            </div>
+        </div>
+    </section>
+
+    <div class="contact-separator"></div>
+    <section class="contact-section">
+        <h2 style="margin-top: -20px;">Get in Touch</h2>
+        <p>If you'd like to connect or discuss any potential projects, feel free to reach out on my Contact Page!</p>
+        <div style="margin-bottom: -25px;" class="contact-links">
+            <a href="https://discord.com/invite/bdqAXc4" class="contact-link">Discord</a>
+            <a href="https://www.twitch.tv/sebe_tv/about" class="contact-link">Twitch</a>
+            <a href="https://github.com/smk37git" class="contact-link">GitHub</a>
+            <a href="https://www.linkedin.com/in/sebastian-main-6a4799224/" class="contact-link">LinkedIn</a>
+        </div>
+    </section>
+</main>
+{% endblock %}

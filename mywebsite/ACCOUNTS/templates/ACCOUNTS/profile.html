@@ -1,0 +1,138 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% load tz %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            {% if profile_user.profile_picture %}
+            <img src="{{ profile_user.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
+            {% else %}
+                <div class="profile-picture-placeholder">
+                    <i class="fas fa-user"></i>
+                </div>
+            {% endif %}
+        </div>
+        <h1 class="profile-title">{{ profile_user.username }}'s Profile</h1>
+    </div>
+    
+    <div class="profile-content">
+        <div class="profile-section">
+            <div class="section-header">
+                <h2>Profile Information</h2>
+                {% if profile_user.is_admin_user %}
+                    <span class="account-type admin">Administrator</span>
+                {% elif profile_user.is_client %}
+                    <span class="account-type client">Client</span>
+                {% elif profile_user.is_supporter %}
+                    <span class="account-type supporter">Supporter</span>
+                {% else %}
+                    <span class="account-type member">Member</span>
+                {% endif %}
+            </div>
+            
+            <div class="info-row">
+                <div class="info-label">Username:</div>
+                <div class="info-value">{{ profile_user.username }}</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label">Joined:</div>
+                <div class="info-value">{{ profile_user.date_joined|date:"F j, Y" }}</div>
+            </div>
+            
+            <!-- Bio section -->
+            <div class="bio-section">
+                <h3>Bio</h3>
+                <div class="bio-content">
+                    {% if profile_user.bio %}
+                        {{ profile_user.bio|linebreaks }}
+                    {% else %}
+                        <p class="empty-bio">No bio added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Return to Account Here -->
+            {% if user.id == profile_user.id %}
+            <div class="return-account-section">
+                <a href="{% url 'ACCOUNTS:account' %}" class="action-button" style="margin-top: 15px;">
+                    <i class="fas fa-arrow-left"></i> Return to Account
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+        
+        <div class="profile-section">
+            <div class="section-header">
+                <h2>Social Links</h2>
+            </div>
+            <div class="social-links">
+                {% if profile_user.youtube_link or profile_user.twitch_link or profile_user.github_link or profile_user.twitter_link or profile_user.kick_link or profile_user.instagram_link %}
+                    {% if profile_user.youtube_link %}
+                        <a href="{{ profile_user.youtube_link }}" target="_blank" class="social-link youtube">
+                            <i class="fab fa-youtube"></i> YouTube
+                        </a>
+                    {% endif %}
+                    {% if profile_user.twitch_link %}
+                        <a href="{{ profile_user.twitch_link }}" target="_blank" class="social-link twitch">
+                            <i class="fab fa-twitch"></i> Twitch
+                        </a>
+                    {% endif %}
+                    {% if profile_user.github_link %}
+                        <a href="{{ profile_user.github_link }}" target="_blank" class="social-link github">
+                            <i class="fab fa-github"></i> GitHub
+                        </a>
+                    {% endif %}
+                    {% if profile_user.twitter_link %}
+                        <a href="{{ profile_user.twitter_link }}" target="_blank" class="social-link twitter">
+                            <i class="fa-brands fa-x-twitter"></i> Twitter
+                        </a>
+                    {% endif %}
+                    {% if profile_user.kick_link %}
+                        <a href="{{ profile_user.kick_link }}" target="_blank" class="social-link kick">
+                            <i class="fas fa-gamepad"></i> Kick
+                        </a>
+                    {% endif %}
+                    {% if profile_user.instagram_link %}
+                        <a href="{{ profile_user.instagram_link }}" target="_blank" class="social-link instagram">
+                            <i class="fab fa-instagram"></i> Instagram
+                        </a>
+                    {% endif %}
+                {% else %}
+                    <p>No social links added yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Time Conversion Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('[data-utc]').forEach(function(el) {
+          const utcTime = new Date(el.getAttribute('data-utc'));
+          if (!isNaN(utcTime)) {
+            el.textContent = utcTime.toLocaleString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: 'numeric',
+              minute: '2-digit',
+              hour12: true
+            });
+          }
+        });
+      });
+    </script>
+</div>
+{% endblock %}

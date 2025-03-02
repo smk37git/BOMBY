@@ -1,0 +1,397 @@
+/* Enhanced About Page Styling - Fixed Binary Background */
+.about-section {
+    padding: 20px 50px 50px 50px;
+    background: #0a0a0a;
+    position: relative;
+    overflow-x: hidden;
+    z-index: 2;
+    min-height: 100vh;
+}
+
+.about-section::before,
+.about-section::after {
+    content:"01001 >_ ./ {} </> *** >>> ### === ||| [][]  01001 >_ ./ {} </> *** >>> ### === ||| [][]  01001 >_ ./ {} </> *** >>> ### === ||| [][]\A"
+            "10110 ### ^_^ {} </> *** <<< >_ === ||| [][]  10110 ### ^_^ {} </> *** <<< >_ === ||| [][]  10110 ### ^_^ {} </> *** <<< >_ === ||| [][]\A"
+            "01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++\A"
+            "10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++\A"
+            "11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++\A"
+            "00110 >_> |=| [-] %%% <<< ### @@@ ||| +++  00110 >_> |=| [-] %%% <<< ### @@@ ||| +++  00110 >_> |=| [-] %%% <<< ### @@@ ||| +++\A"
+            "10101 ___ {+} [/] === >_> ### %%% ||| +++  10101 ___ {+} [/] === >_> ### %%% ||| +++  10101 ___ {+} [/] === >_> ### %%% ||| +++\A"
+            "01011 EASTER EGG <=> [!] *** >>> ### === ||| +++  01011 @@@ <=> [!] *** >>> ### === ||| +++  01011 @@@ <=> [!] *** >>> ### === ||| +++\A"
+            "10100 %%% ^_^ [$] </> <<< ### ___ ||| +++  10100 %%% ^_^ [$] </> <<< ### ___ ||| +++  10100 %%% ^_^ [$] </> <<< ### ___ ||| +++\A"
+            "01010 === |>| [%] @@@ >_> ### %%% ||| +++  01010 === |>| [%] @@@ >_> ### %%% ||| +++  01010 === |>| [%] @@@ >_> ### %%% ||| +++\A"
+            "11100 >>> {=} [@] *** === ### ___ ||| +++  11100 >>> {=} [@] *** === ### ___ ||| +++  11100 >>> {=} [@] *** === ### ___ ||| +++\A"
+            "00011 <<< <|> [#] %%% >>> ### @@@ ||| +++  00011 <<< <|> [#] %%% >>> ### @@@ ||| +++  00011 <<< <|> [#] %%% >>> ### @@@ ||| +++\A"
+            "10111 ___ |=| [$] === <<< ### %%% ||| +++  10111 ___ |=| [$] === <<< ### %%% ||| +++  10111 ___ |=| [$] === <<< ### %%% ||| +++\A"
+            "01110 @@@ {+} [%] *** >_> ### === ||| +++  01110 @@@ {+} [%] *** >_> ### === ||| +++  01110 @@@ {+} [%] *** >_> ### === ||| +++\A"
+            "10001 %%% <=> [&] </> === ### ___ ||| +++  10001 %%% <=> [&] </> === ### ___ ||| +++  10001 %%% <=> [&] </> === ### ___ ||| +++\A"
+            "01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++\A"
+            "11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++\A"
+            "01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++\A"
+            "10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++\A"
+            "11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++\A"
+            "01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++  01101 === ^_^ [*] @@@ >>> ### %%% ||| +++\A"
+            "11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++  11010 >>> |>| [!] *** <<< ### === ||| +++\A"
+            "01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++  01100 >>> {_} [*] <=> &&& ### @@@ ||| +++\A"
+            "10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++  10011 <<< ^_^ [#] *** === >_> %%% ||| +++\A"
+            "11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++  11001 === <|> [&] @@@ >>> ### ___ ||| +++\A";
+    
+    position: fixed;
+    width: 100%;
+    left: 0;
+    white-space: pre;
+    font-family: monospace;
+    font-size: 18px;
+    line-height: 2;
+    color: rgba(255, 255, 255, 0.1);
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+}
+
+/* DESKTOP: Simple two-part animation */
+.about-section::before {
+    top: 0;
+    height: 100vh;
+    animation: moveUp1 40s linear infinite;
+}
+
+.about-section::after {
+    top: 100vh; /* Positioned exactly at the bottom of the first element */
+    height: 100vh;
+    animation: moveUp2 40s linear infinite;
+}
+
+@keyframes moveUp1 {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-100%); }
+}
+
+@keyframes moveUp2 {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-100%); }
+}
+
+/* Create a background overlay to prevent content from showing behind the footer */
+.about-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 50px; /* Adjust based on footer height */
+    background-color: #0a0a0a; 
+    z-index: 3;
+}
+
+.about-header h1 {
+    text-align: center;
+    font-size: 3.5em;
+    padding: 20px 40px;
+    margin: 100px auto 30px;
+    margin-left: 550px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    width: fit-content;
+    color: white;
+    position: relative;
+    z-index: 4; /* Increased z-index */
+}
+
+.about-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+    position: relative;
+    z-index: 4; /* Increased z-index */
+}
+
+.base-footer {
+    background-color:#0a0a0a !important; /* Force a solid background */
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+    width: 100%;
+    position: relative; /* Ensure it's not affected by absolute positioning */
+    z-index: 5; /* Higher than .contactpage-section */
+}
+
+.about-image {
+    position: relative;
+    width: 300px;
+    height: auto; /* Changed from fixed height to auto */
+    z-index: 4; /* Increased z-index */
+    margin-bottom: 30px; /* Add margin to separate from content below */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.about-image::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: rotate 10s linear infinite;
+    z-index: 1;
+    height: 300px; /* Match the width of the image */
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.about-image img {
+    width: 100%;
+    max-width: 300px; /* Ensure image doesn't exceed container */
+    height: 300px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #ffffff;
+    box-shadow: 0 0 20px rgb(255, 255, 255);
+    position: relative;
+    z-index: 2;
+}
+
+.image-title {
+    padding-top: 10px;
+    font-size: 1.5em;
+    color: #ffffff;
+    text-align: center;
+    margin-top: 10px;
+    z-index: 4; /* Increased z-index */
+    position: relative; /* Add position relative */
+    background: transparent; /* Ensure no background is interfering */
+}
+
+.image-email {
+    font-size: 1em;
+    color: #ffffff;
+    text-align: center;
+    margin-top: 5px;
+    margin-bottom: 15px; /* Added space below email */
+    z-index: 4; /* Increased z-index */
+    position: relative; /* Add position relative */
+    background: transparent; /* Ensure no background is interfering */
+}
+
+.about-details {
+    flex: 1;
+    background-color: #0a0a0a;
+    padding: 10px 30px 30px 30px;
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+    z-index: 4; /* Increased z-index */
+}
+
+.about-details h2 {
+    font-size: 2em;
+    margin-top: 20px;
+    color: #ffffff;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 5px;
+}
+
+.about-details p {
+    font-size: 1.1em;
+    margin-top: 10px;
+    color: #ffffff;
+    padding-bottom: 5px;
+}
+
+.about-details ul {
+    list-style-type: none;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.about-details ul li:hover {
+    transform: translateX(10px);
+    transition: transform 0.3s ease;
+}
+
+.contact-separator {
+    height: 4px;
+    background: linear-gradient(to top, rgb(159, 159, 159) 0%, rgba(255, 255, 255, 0) 100%);
+    width: 100%;
+    position: relative;
+    z-index: 4; /* Increased z-index */
+}
+
+.about-contact-footer {
+    height: 4px;
+    background: linear-gradient(to top, rgb(159, 159, 159) 0%, rgba(255, 255, 255, 0) 100%);
+    width: 100%;
+    position: relative;
+    z-index: 4; /* Increased z-index */
+}
+
+.contact-section {
+    position: relative;
+    text-align: center;
+    padding: 40px;
+    background-color: #0a0a0a;
+    opacity: 1 !important;
+    z-index: 5; /* Even higher z-index for contact section */
+}
+
+.contact-section::before,
+.contact-section::after {
+    content: none !important;
+}
+
+.contact-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    position: relative;
+    z-index: 5; /* Increased z-index */
+}
+
+.contact-links a {
+    padding: 12px 25px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    margin-bottom: 10px;
+    z-index: 5; /* Increased z-index */
+}
+
+.contact-links a:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+/* Add a footer background to ensure full coverage */
+.footer-background {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 200px; /* Adjust based on your footer height */
+    background-color: #0a0a0a;
+    z-index: 2;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .about-section {
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    .about-section::before,
+    .about-section::after {
+        font-size: 14px;
+        line-height: 1.8;
+        animation-duration: 30s; /* Faster on mobile */
+    }
+    
+    .about-header h1 {
+        font-size: 2.4em;
+        padding: 15px 25px;
+        margin-top: 100px;
+        margin-left: 140px;
+    }
+    
+    .about-content {
+        flex-direction: column;
+        align-items: center;
+        gap: 60px; /* Increased gap for mobile view */
+    }
+    
+    .about-image {
+        margin-bottom: -60px; /* Increased bottom margin */
+        width: 220px; /* Slightly smaller for mobile */
+    }
+    
+    .about-image img {
+        height: 220px; /* Match the width */
+        width: 220px;
+    }
+    
+    .about-image::before {
+        height: 220px; /* Match the new image size */
+    }
+    
+    .image-title {
+        margin-top: 20px; /* More space above the title */
+        font-size: 1.4em; /* Slightly smaller font */
+    }
+    
+    .image-email {
+        margin-top: 10px;
+        margin-bottom: 20px; /* Extra space below email */
+        font-size: 0.9em; /* Slightly smaller font */
+    }
+    
+    .about-details {
+        width: 100%;
+        margin-top: 10px; /* Additional space between image section and details box */
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .about-section {
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    .about-section::before,
+    .about-section::after {
+        font-size: 12px;
+        line-height: 1.7;
+        animation-duration: 25s; /* Even faster on smallest devices */
+    }
+    
+    .about-header h1 {
+        font-size: 2em;
+        padding: 12px 20px;
+        margin: 40px auto 20px;
+        margin-top: 20px;
+    }
+    
+    .about-content {
+        gap: 50px; /* Adjust gap for very small screens */
+    }
+    
+    .about-image {
+        width: 180px; /* Even smaller for very small screens */
+    }
+    
+    .about-image img {
+        height: 180px; /* Match the width */
+        width: 180px;
+    }
+    
+    .about-image::before {
+        height: 180px; /* Match the new image size */
+    }
+    
+    .image-title {
+        margin-top: 15px;
+        font-size: 1.3em;
+    }
+    
+    .image-email {
+        font-size: 0.85em;
+        margin-bottom: 15px;
+        word-break: break-all; /* Handle long email addresses */
+    }
+}

@@ -1,0 +1,79 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+
+<!-- Add this script to generate ASCII stars -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const body = document.body;
+        const totalStars = 200;
+        
+        for (let i = 0; i < totalStars; i++) {
+            const star = document.createElement('span');
+            star.textContent = '*';
+            star.className = 'star';
+            
+            const posX = Math.random() * 99;
+            const posY = Math.random() * 98 + 1;
+            
+            star.style.left = posX + 'vw';
+            star.style.top = posY + 'vh';
+            
+            const baseSize = Math.random() * 10 + 20;
+            star.style.fontSize = baseSize + 'px';
+            
+            star.style.animationDelay = Math.random() * 5 + 's';
+            star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            
+            body.appendChild(star);
+        }
+    });
+</script>
+
+<div class="auth-container">
+    <div class="auth-header">
+        <h1 class="auth-title">Login</h1>
+        <p class="auth-subtitle">Enter your credentials to access your account</p>
+    </div>
+    
+    <form method="post" action="{% url 'ACCOUNTS:login' %}" class="auth-form">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+            <div class="messages">
+                <p class="message error"> Your username or password was incorrect. Please try again.</p>
+            </div>
+        {% endif %}
+        
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required autofocus>
+        
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+        
+        <button type="submit" class="auth-button">Sign In</button>
+
+        <div class="auth-links">
+            <p>Forgot your password? <a href="{% url 'ACCOUNTS:password_reset' %}">Reset it here</a></p>
+        </div>
+        
+        <div class="auth-header">
+            <h1 class="auth-title" style="margin-top: 30px;">Create Account</h1>
+            <p class="auth-subtitle">Gain access to all features and the store!</p>
+           
+        </div>
+        <div>
+            <a href="{% url 'ACCOUNTS:signup' %}" class="auth-button">Create Account</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

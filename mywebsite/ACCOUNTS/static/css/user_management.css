@@ -1,0 +1,372 @@
+.user_management-title {
+    text-align: center;
+    font-size: 3.5em;
+    padding: 20px 40px;
+    margin: 0 auto;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    width: fit-content;
+    color: white;
+    position: relative;
+    z-index: 4; /* Increased z-index */
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-input {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 10px;
+    background-color: rgb(36, 36, 36);
+    color: white;
+    width: 300px;
+}
+
+.clear-search {
+    color: #ff5555;
+    text-decoration: none;
+}
+
+/* Dashboard Layout Styles */
+.dashboard-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.user-table-section {
+    flex: 1;
+    width: auto;
+}
+
+.username-cell {
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-action-panel {
+    width: 280px;
+    background-color: rgb(26, 26, 26);
+    border-radius: 8px;
+    padding: 15px;
+    position: sticky;
+    top: 20px;
+}
+
+/* Users Table Styles */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.select-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.users-table-container {
+    overflow-x: auto;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.users-table th,
+.users-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.users-table th {
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.users-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Checkbox Styles */
+.users-table th:first-child,
+.users-table td:first-child {
+    width: 40px;
+    text-align: center;
+}
+
+.user-select-checkbox,
+#select-all-checkbox {
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+/* Action Panel Styles */
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.panel-header h3 {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.selected-count {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.action-section {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.336);
+}
+
+.action-section:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.action-section h4 {
+    margin: 0 0 10px 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.panel-action-button {
+    display: inline-block;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: none;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: rgb(255, 255, 255);
+    cursor: pointer;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    box-sizing: border-box;
+    transition: background-color 0.2s;
+}
+
+.panel-action-button:hover:not([disabled]):not(.disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+.panel-action-button.danger {
+    background-color: #ff5555;
+}
+
+.panel-action-button.danger:hover:not([disabled]) {
+    background-color: #ff3333;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+.panel-action-button[disabled],
+.panel-action-button.disabled {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.4);
+
+}
+
+/* Type selector */
+#bulk-type-change-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.user-type-select {
+    padding: 8px 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: rgb(52, 52, 52);
+    color: white;
+    width: 100%;
+}
+
+.user-type-select[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+    background-color: #282a36;
+    margin: 15% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    position: relative;
+    color: white;
+}
+
+.close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.close:hover {
+    color: white;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 992px) {
+    .dashboard-layout {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .user-table-section {
+        width: 100%;
+    }
+    
+    .user-action-panel {
+        width: 100%;
+        position: static;
+    }
+    
+    .users-table-container {
+        overflow-x: auto;
+        width: 100%;
+    }
+    
+    .users-table {
+        min-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+
+    .dashboard-layout {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .user-table-section {
+        width: 100%;
+    }
+    
+    .user-action-panel {
+        width: 100%;
+        position: static;
+    }
+    
+    .users-table-container {
+        overflow-x: auto;
+        width: 100%;
+    }
+    
+    .users-table {
+        min-width: 100%;
+    }
+
+    .profile-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .action-buttons {
+        margin-top: 15px;
+        width: 100%;
+    }
+    
+    .search-container {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+    }
+    
+    .search-input {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .select-actions {
+        margin-top: 10px;
+    }
+    
+    .modal-content {
+        width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+
+    .dashboard-layout {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .user-table-section {
+        width: 100%;
+    }
+    
+    .user-action-panel {
+        width: 100%;
+        position: static;
+    }
+    
+    .users-table-container {
+        overflow-x: auto;
+        width: 100%;
+    }
+    
+    .users-table {
+        min-width: 100%;
+    }
+
+    .profile-container {
+        padding: 20px 15px;
+        margin-top: 100px;
+    }
+}

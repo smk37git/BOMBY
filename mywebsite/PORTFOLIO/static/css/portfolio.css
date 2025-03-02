@@ -1,0 +1,434 @@
+/* Portfolio Page Styles */
+
+/* Hero section */
+.portfolio-hero {
+    padding: 8rem 2rem 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 85vh;
+    position: relative;
+    overflow: hidden;
+}
+
+.code-animation-container {
+    position: relative;
+    width: 400px;
+    height: 350px;
+    margin-right: 2rem;
+    transform-style: preserve-3d;
+    perspective: 1000px;
+}
+
+.code-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(20, 20, 30, 0.8);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.code-display {
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: #00ff41;
+    margin: 0;
+    white-space: pre-wrap;
+    height: 100%;
+    overflow: hidden;
+    text-align: left;
+}
+
+/* Ensure console text and elements are well-positioned */
+.code-display pre {
+    font-family: 'Courier New', monospace;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    white-space: pre;
+    color: #00ff41;
+}
+
+.code-display div {
+    text-align: center;
+}
+
+/* Skills section */
+.portfolio-intro {
+    padding: 4rem 2rem;
+    background-color: rgba(15, 15, 20, 0.9);
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-title {
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: #fff;
+    margin-bottom: 1rem;
+}
+
+.section-separator-right {
+    height: 4px;
+    background: linear-gradient(to right,
+        rgba(255, 255, 255, 0.8) 0%,
+        rgba(255, 255, 255, 0.8) 30%,
+        rgba(255, 255, 255, 0.5) 70%,
+        transparent 100%
+    );
+    width: 100%;
+    margin: -20px auto 0 25px;
+}
+
+.skills-grid {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.skill-category {
+    background: rgba(20, 20, 30, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1.5rem;
+    width: 300px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.skill-category:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.category-title {
+    color: #fff;
+    font-size: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.skill-list {
+    list-style: none;
+    padding: 0;
+}
+
+.skill-list li {
+    padding: 0.5rem 0;
+    color: #fff;
+    text-align: center;
+    transition: color 0.3s ease;
+}
+
+.skill-list li:hover {
+    color: #00ff41;
+}
+
+/* Projects section */
+.projects-section {
+    padding: 4rem 2rem;
+}
+
+.project-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 4rem;
+    max-width: 1200px;
+    margin: 2rem auto 0;
+}
+
+.project-item {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+}
+
+.project-item:nth-child(even) {
+    flex-direction: row-reverse;
+}
+
+.project-item .window {
+    width: 400px;
+    flex-shrink: 0;
+}
+
+.project-details {
+    flex: 1;
+}
+
+.project-title {
+    font-size: 1.8rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+}
+
+.project-tech {
+    color: #00ff41;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    font-family: 'Courier New', monospace;
+}
+
+.project-description {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1.5rem;
+    line-height: 1.6;
+}
+
+.project-links {
+    display: flex;
+    gap: 1rem;
+}
+
+.project-link {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background-color: rgba(0, 255, 65, 0.1);
+    color: #00ff41;
+    text-decoration: none;
+    border: 1px solid #00ff41;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.project-link:hover {
+    background-color: rgba(0, 255, 65, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.2);
+}
+
+/* Resume section */
+.resume-section {
+    padding: 4rem 2rem;
+    background-color: rgba(15, 15, 20, 0.9);
+}
+
+.resume-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+    gap: 3rem;
+}
+
+.resume-content {
+    flex: 1;
+}
+
+.resume-content h3 {
+    font-size: 1.8rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+}
+
+.resume-content p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.resume-download {
+    width: 400px;
+    flex-shrink: 0;
+}
+
+.resume-window {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: radial-gradient(circle, rgba(30, 30, 40, 0.9), rgba(20, 20, 30, 0.9));
+}
+
+.resume-preview {
+    text-align: center;
+}
+
+.resume-preview h3 {
+    color: #fff;
+    margin-bottom: 1rem;
+}
+
+.resume-preview p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1.5rem;
+}
+
+.download-button {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background-color: #00ff41;
+    color: #121212;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.download-button:hover {
+    background-color: #00cc33;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
+}
+
+/* Contact CTA section */
+.contact-cta {
+    padding: 6rem 2rem;
+    background: linear-gradient(45deg, rgba(20, 20, 30, 0.9), rgba(10, 10, 15, 0.9));
+    text-align: center;
+}
+
+.cta-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.cta-content h2 {
+    font-size: 2.5rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+}
+
+.cta-content p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 2rem;
+    font-size: 1.2rem;
+}
+
+.cta-button {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background-color: transparent;
+    color: #00ff41;
+    text-decoration: none;
+    border: 2px solid #00ff41;
+    border-radius: 4px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.cta-button:hover {
+    background-color: #00ff41;
+    color: #121212;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 255, 65, 0.3);
+}
+
+/* Responsive styles */
+@media (max-width: 1024px) {
+    .resume-container {
+        flex-direction: column;
+    }
+    
+    .resume-content, .resume-download {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .portfolio-hero {
+        flex-direction: column;
+        text-align: center;
+        padding: 6rem 1rem 2rem;
+    }
+    
+    .code-animation-container {
+        width: 100%;
+        max-width: 350px;
+        height: 350px;
+        margin: 2rem auto 0;
+    }
+    
+    .code-wrapper {
+        padding: 10px;
+    }
+    
+    .code-display {
+        font-size: 0.8rem;
+    }
+    
+    /* Ensure console content is centered */
+    .code-display pre {
+        font-size: 0.4rem !important;
+        text-align: center !important;
+        margin: 0 auto !important;
+        width: auto !important;
+        display: inline-block !important;
+    }
+    
+    .code-display div {
+        text-align: center !important;
+        width: 100% !important;
+    }
+    
+    /* Fix to ensure "PORTFOLIO READY" text is visible */
+    .code-display div[class="portfolio-ready"] {
+        font-size: 1rem !important;
+        margin-top: 10px !important;
+    }
+    
+    .project-item, .project-item:nth-child(even) {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .project-item .window {
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .project-details {
+        text-align: center;
+    }
+    
+    .project-links {
+        justify-content: center;
+    }
+    
+    .section-separator {
+        width: 90%;
+        max-width: 350px;
+    }
+}
+
+@media (max-width: 480px) {
+    .skills-grid {
+        gap: 1rem;
+    }
+    
+    .skill-category {
+        width: 100%;
+    }
+    
+    .code-animation-container {
+        height: 300px;
+        max-width: 300px;
+    }
+    
+    .code-display {
+        font-size: 0.7rem;
+    }
+    
+    .code-display pre {
+        font-size: 0.35rem !important;
+    }
+}
