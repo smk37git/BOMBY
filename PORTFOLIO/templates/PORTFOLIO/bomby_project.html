@@ -18,7 +18,9 @@
             <div class="hero-content-side">
                 <h1 class="project-title">BOMBY WEBSITE PROJECT</h1>
                 <p class="project-author">By Sebastian Main</p>
-                <p class="project-brief">A modern web development project showcasing frontend and backend skills with a focus on user experience and performance optimization.</p>
+                <p class="project-brief">A modern web development project showcasing frontend and backend skills with a focus on user experience and performance optimization.
+                    Includes a full E-Commerce platform with user authentication, product listings, and checkout functionality.
+                </p>
                 
                 <div class="hero-cta">
                     <a href="{% url 'home' %}" class="hero-button primary">View Live</a>
@@ -81,9 +83,13 @@
                     <div class="info-card">
                         <h3 class="info-card-title">The Project</h3>
                         <div class="info-card-content">
-                            <p>Describe what inspired you to create this project and what you aimed to accomplish. 
-                            Explain the vision behind the work and what problems or needs you identified that led 
-                            to its development. This section gives context about your creative process and goals.</p>
+                            <p>
+                                I decided to create BOMBY due to the increasingly frustrating experience of being a
+                                freelancer on other popular websites like Fiverr or UpWork to name a few. I wanted to make a platform
+                                that was more user-friendly, and more focused on the user experiences of both the client
+                                and the seller. I also thoguht it would be a good idea to blend that platform with my portfolio.
+                                That way potential clients could see my work and gain that trust all in one place.
+                            </p>
                             
                             <div class="info-stats">
                                 <div class="info-stat">
@@ -105,14 +111,18 @@
                     <div class="info-card">
                         <h3 class="info-card-title">My Approach</h3>
                         <div class="info-card-content">
-                            <p>Explain the approach you took to develop this project. Highlight the technologies 
-                            you chose to use and why they were appropriate for this particular work. Describe your process 
-                            and methodology, focusing on how your solution addresses the challenges you identified.</p>
+                            <p>
+                                I began this project by first building the foundation using Django. At first it was just the home
+                                page and soon expanded to more as my outlined my ideas and drummed up exactly how I wanted it to
+                                look. My focus on projects like this is centered around the idea of "How can I make it look amazing
+                                and function perfectly". I've learned what works and what doesn't with clients so I had to create
+                                a great first impression with this project.
+                            </p>
                             
                             <div class="info-stats">
                                 <div class="info-stat">
                                     <div class="stat-label">Tech Stack</div>
-                                    <div class="stat-value">Django, React, PostgreSQL</div>
+                                    <div class="stat-value">Django, React, SQL</div>
                                 </div>
                                 <div class="info-stat">
                                     <div class="stat-label">Timeline</div>
@@ -120,7 +130,7 @@
                                 </div>
                                 <div class="info-stat">
                                     <div class="stat-label">Purpose</div>
-                                    <div class="stat-value">Personal Portfolio</div>
+                                    <div class="stat-value">Personal Portfolio and E-Commerce Platform</div>
                                 </div>
                             </div>
                         </div>
@@ -138,9 +148,21 @@
                 <div class="tech-details">
                     <h3>Development Process</h3>
                     <p>
-                        Explain your development process for this project. Discuss the methodology you followed, 
-                        how you broke down the project into manageable tasks, and how you approached problem-solving. 
-                        This section gives insight into your working style and technical decision-making.
+                        I began by creating my 'MAIN' django app which hosts the home page, contact page, and about me page. I wwanted this
+                        app to be the foundation of the project, this is what users would most likely see when they first connect, so I had to make
+                        a strong first impression. Secondly, I moved onto my 'ACCOUNTS' app. This was the first building block of the E-Commerce
+                        side of my website. I needed it to include secure account functionality along with a user-friendly interface. I made many secure
+                        additions by employing an admin user-management panel ultilizing CRUD operations. I also included a custom
+                        profanity filter to censor any inappropiate language and also including AWS Image Recognition Software to stop any harmful
+                        images from being uploaded and displayed on the promotional wall page. A part of my site entirely dedicated to users and offering them
+                        the ability to showcase their own social medias and projects. Next, I created my 'PORTFOLIO' app, this is where all my work would
+                        be hosted and designed in a way to appeal to potential employers and clients alike. It showcases step-by-step my hardwork and offers a chance
+                        for everyone to view my work. Lastly, I started on my 'STORE' app, I saved this for last as I needed the 'ACCOUNTS' app 
+                        due to user's needed an account to purchase and track their orders. This app was the most complex as it needed to be able to handle
+                        multiple users at once, and a large influx of orders which all display each unique user's order and information. Not only that, but
+                        offer a secure checkout process that was user-friendly and instilled trust within clients. Furthermore, on the admin side,
+                        I can track orders through an analytics panel that gives me every order detail, click-rates, finincial information, and more.
+                        All in all, I broke my website down into four corners and built each one up to be a strong foundation accounting for all possiblities.
                     </p>
                     
                     <h3>Technical Challenges</h3>
