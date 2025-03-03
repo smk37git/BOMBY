@@ -16,12 +16,12 @@
         <section class="hero-split">
             <!-- Left Side - Hero Content -->
             <div class="hero-content-side">
-                <h1 class="project-title">Website Project</h1>
+                <h1 class="project-title">BOMBY WEBSITE PROJECT</h1>
                 <p class="project-author">By Sebastian Main</p>
                 <p class="project-brief">A modern web development project showcasing frontend and backend skills with a focus on user experience and performance optimization.</p>
                 
                 <div class="hero-cta">
-                    <a href="#" class="hero-button primary">View Live</a>
+                    <a href="{% url 'home' %}" class="hero-button primary">View Live</a>
                     <a href="#" class="hero-button">GitHub Repo</a>
                 </div>
             </div>
@@ -246,7 +246,7 @@ function handleAuthentication(user) {
         });
 
         function fetchLatestCommit(username, repo) {
-            const apiUrl = `/api/github-commit/${username}/${repo}/`;
+            const apiUrl = `/portfolio/api/github-commit/${username}/${repo}/`;
     
         fetch(apiUrl)
             .then(response => response.json())
@@ -283,6 +283,10 @@ function handleAuthentication(user) {
             const authorName = commit.commit.author.name;
             const authorAvatar = commit.author ? commit.author.avatar_url : 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png';
             
+            // Get stats if available
+            const additions = commit.stats ? commit.stats.additions : 0;
+            const deletions = commit.stats ? commit.stats.deletions : 0;
+            
             // Update the DOM with the latest commit info
             const container = document.querySelector('.github-commit-container');
             
@@ -316,6 +320,14 @@ function handleAuthentication(user) {
                             <div class="commit-stat">
                                 <i class="far fa-clock"></i>
                                 <span>${timeAgo}</span>
+                            </div>
+                            <div class="commit-stat">
+                                <i class="fas fa-plus-circle" style="color: #2cbe4e;"></i>
+                                <span>${additions}</span>
+                            </div>
+                            <div class="commit-stat">
+                                <i class="fas fa-minus-circle" style="color: #cb2431;"></i>
+                                <span>${deletions}</span>
                             </div>
                         </div>
                     </div>
