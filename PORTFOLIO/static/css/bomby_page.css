@@ -3,7 +3,7 @@
     min-height: 100vh;
     background-color: #0c0c0c;
     position: relative;
-    padding-top: 60px; /* Space for navbar */
+    padding-top: 1px; /* Space for navbar */
 }
 
 /* Split hero section */
@@ -377,7 +377,7 @@
 /* GitHub Commit Display */
 .github-commit-container {
     max-width: 900px;
-    margin: 3rem auto 5rem;
+    margin: 1rem auto -90px;
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.15);

@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'REMOVED_SECRET_KEY')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
@@ -138,12 +138,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 ## EMAIL SETTINGS
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
 EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
 EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'REMOVED_EMAIL')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'REMOVED_PASSWORD')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
 ## LOGIN SETTINGS
 AUTH_USER_MODEL = 'ACCOUNTS.User'
@@ -159,4 +158,4 @@ AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 
 # Image content moderation settings
 ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION', 'False') == 'True'
-IMAGE_MODERATION_CONFIDENCE_THRESHOLD = float(os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD', 70.0))
+IMAGE_MODERATION_CONFIDENCE_THRESHOLD = float(os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD', 85.0))
