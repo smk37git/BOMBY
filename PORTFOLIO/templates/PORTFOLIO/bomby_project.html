@@ -3,6 +3,7 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/bomby_page.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 {% endblock %}
 
 {% block background %}
@@ -11,117 +12,145 @@
 
 {% block content %}
     <div class="project-container">
-        <!-- Left sidebar with project title -->
-        <div class="project-sidebar">
-            <h1 class="project-main-title">WEBSITE<br>PROJECT</h1>
-            <p class="project-author">By Sebastian Main</p>
-        </div>
-        
-        <!-- Main content area with large image -->
-        <div class="project-content">
-            <div class="project-featured-image">
-                <img src="{% static 'images/1.jpg' %}" alt="Project Name" class="featured-image">
-            </div>
-            
-            <!-- Gallery thumbnails -->
-            <div class="gallery-thumbnails">
-                <div class="thumbnail active" data-image="{% static 'images/1.jpg' %}">
-                    <img src="{% static 'images/1.jpg' %}" alt="Main Project Image">
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/2.jpg' %}">
-                    <img src="{% static 'images/2.jpg' %}" alt="Gallery Image 1">
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/3.jpg' %}">
-                    <img src="{% static 'images/3.jpg' %}" alt="Gallery Image 2">
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/4.jpg' %}">
-                    <img src="{% static 'images/4.jpg' %}" alt="Gallery Image 3">
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/5.jpg' %}">
-                    <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 4">
+        <!-- Horizontal Split Hero Section -->
+        <section class="hero-split">
+            <!-- Left Side - Hero Content -->
+            <div class="hero-content-side">
+                <h1 class="project-title">Website Project</h1>
+                <p class="project-author">By Sebastian Main</p>
+                <p class="project-brief">A modern web development project showcasing frontend and backend skills with a focus on user experience and performance optimization.</p>
+                
+                <div class="hero-cta">
+                    <a href="#" class="hero-button primary">View Live</a>
+                    <a href="#" class="hero-button">GitHub Repo</a>
                 </div>
             </div>
             
-            <!-- Project details sections -->
-            <section class="project-overview">
-                <div class="section-header">
-                    <h2 class="section-title">OVERVIEW</h2>
-                    <div class="section-separator"></div>
+            <!-- Right Side - Gallery -->
+            <div class="hero-gallery-side">
+                <div class="project-featured-image">
+                    <img src="{% static 'images/1.jpg' %}" alt="Project Name" class="featured-image" id="featuredImage">
                 </div>
                 
-                <div class="project-overview-container">
-                    <div class="project-overview-content">
-                        <h3 class="project-overview-title">THE PROJECT</h3>
-                        <p class="project-overview-text">
-                            Describe what inspired you to create this project and what you aimed to accomplish. 
+                <div class="gallery-thumbnails">
+                    <div class="thumbnail active" data-image="{% static 'images/1.jpg' %}">
+                        <img src="{% static 'images/1.jpg' %}" alt="Main Project Image">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/2.jpg' %}">
+                        <img src="{% static 'images/2.jpg' %}" alt="Gallery Image 1">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/3.jpg' %}">
+                        <img src="{% static 'images/3.jpg' %}" alt="Gallery Image 2">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/4.jpg' %}">
+                        <img src="{% static 'images/4.jpg' %}" alt="Gallery Image 3">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/5.jpg' %}">
+                        <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 4">
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- GitHub Commit Display Container -->
+        <div class="github-commit-container">
+            <!-- This will be populated by JavaScript -->
+            <div class="github-header">
+                <a href="#" class="github-logo">
+                    <i class="fab fa-github"></i>
+                    <span>Loading commit data...</span>
+                </a>
+            </div>
+            <div class="github-commit" style="padding: 1.5rem; text-align: center;">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: rgba(255, 255, 255, 0.5);"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="project-content">
+            <!-- Overview Section -->
+            <section class="content-section" id="overview">
+                <div class="section-header">
+                    <h2 class="section-title">Project Overview</h2>
+                    <p class="section-subtitle">A detailed look at the purpose and approach of this project</p>
+                </div>
+                
+                <div class="project-info-grid">
+                    <div class="info-card">
+                        <h3 class="info-card-title">The Project</h3>
+                        <div class="info-card-content">
+                            <p>Describe what inspired you to create this project and what you aimed to accomplish. 
                             Explain the vision behind the work and what problems or needs you identified that led 
-                            to its development. This section gives context about your creative process and goals.
-                        </p>
-                        
-                        <h3 class="project-overview-title">MY APPROACH</h3>
-                        <p class="project-overview-text">
-                            Explain the approach you took to develop this project. Highlight the technologies 
-                            you chose to use and why they were appropriate for this particular work. Describe your process 
-                            and methodology, focusing on how your solution addresses the challenges you identified.
-                        </p>
-                        
-                        <div class="project-links">
-                            <a href="#" class="project-link">VIEW LIVE</a>
-                            <a href="#" class="project-link">GITHUB REPO</a>
+                            to its development. This section gives context about your creative process and goals.</p>
+                            
+                            <div class="info-stats">
+                                <div class="info-stat">
+                                    <div class="stat-label">Date</div>
+                                    <div class="stat-value">February 23, 2025</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Category</div>
+                                    <div class="stat-value">Web Development</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Role</div>
+                                    <div class="stat-value">Full Stack Developer</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div class="project-overview-info">
-                        <h3 class="info-title">PROJECT INFO</h3>
-                        <ul class="info-list">
-                            <li>
-                                <span class="info-label">DATE</span>
-                                <span class="client-info-value">February 23 2025</span>
-                            </li>
-                            <li>
-                                <span class="info-label">CATEGORY</span>
-                                <span class="client-info-value">Web Development</span>
-                            </li>
-                            <li>
-                                <span class="info-label">TECH STACK</span>
-                                <span class="client-info-value">Django, React, PostgreSQL</span>
-                            </li>
-                            <li>
-                                <span class="info-label">ROLE</span>
-                                <span class="client-info-value">Full Stack Developer</span>
-                            </li>
-                            <li>
-                                <span class="info-label">PURPOSE</span>
-                                <span class="client-info-value">Personal Portfolio</span>
-                            </li>
-                        </ul>
+                    <div class="info-card">
+                        <h3 class="info-card-title">My Approach</h3>
+                        <div class="info-card-content">
+                            <p>Explain the approach you took to develop this project. Highlight the technologies 
+                            you chose to use and why they were appropriate for this particular work. Describe your process 
+                            and methodology, focusing on how your solution addresses the challenges you identified.</p>
+                            
+                            <div class="info-stats">
+                                <div class="info-stat">
+                                    <div class="stat-label">Tech Stack</div>
+                                    <div class="stat-value">Django, React, PostgreSQL</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Timeline</div>
+                                    <div class="stat-value">3 Months</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Purpose</div>
+                                    <div class="stat-value">Personal Portfolio</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
-
-            <section class="project-details">
+            
+            <!-- Technical Details Section -->
+            <section class="content-section" id="technical">
                 <div class="section-header">
-                    <h2 class="section-title">TECHNICAL DETAILS</h2>
-                    <div class="section-separator"></div>
+                    <h2 class="section-title">Technical Details</h2>
+                    <p class="section-subtitle">A deeper look at the development process and implementation</p>
                 </div>
                 
-                <div class="details-container">
-                    <div class="details-content">
-                        <h3>Development Process</h3>
-                        <p>
-                            Explain your development process for this project. Discuss the methodology you followed, 
-                            how you broke down the project into manageable tasks, and how you approached problem-solving. 
-                            This section gives insight into your working style and technical decision-making.
-                        </p>
-                        
-                        <h3>Technical Challenges</h3>
-                        <p>
-                            Detail the specific technical challenges you encountered during the project and how you overcame them. 
-                            This demonstrates your problem-solving abilities and resilience. Include code snippets where relevant 
-                            to illustrate complex solutions.
-                        </p>
-                        
-                        <pre>
+                <div class="tech-details">
+                    <h3>Development Process</h3>
+                    <p>
+                        Explain your development process for this project. Discuss the methodology you followed, 
+                        how you broke down the project into manageable tasks, and how you approached problem-solving. 
+                        This section gives insight into your working style and technical decision-making.
+                    </p>
+                    
+                    <h3>Technical Challenges</h3>
+                    <p>
+                        Detail the specific technical challenges you encountered during the project and how you overcame them. 
+                        This demonstrates your problem-solving abilities and resilience. Include code snippets where relevant 
+                        to illustrate complex solutions.
+                    </p>
+                    
+                    <pre>
 // Example code snippet
 function handleAuthentication(user) {
   const token = generateToken(user);
@@ -132,25 +161,25 @@ function handleAuthentication(user) {
     token: token
   };
 }</pre>
-                        
-                        <h3>Key Features</h3>
-                        <ul>
-                            <li>Feature one with brief description</li>
-                            <li>Feature two with brief description</li>
-                            <li>Feature three with brief description</li>
-                            <li>Feature four with brief description</li>
-                        </ul>
-                        
-                        <h3>Lessons Learned</h3>
-                        <p>
-                            Share what you learned from working on this project. Discuss any new technologies or techniques 
-                            you mastered, insights you gained about the problem domain, or how you would approach similar 
-                            projects differently in the future.
-                        </p>
-                    </div>
+                    
+                    <h3>Key Features</h3>
+                    <ul>
+                        <li>Feature one with brief description</li>
+                        <li>Feature two with brief description</li>
+                        <li>Feature three with brief description</li>
+                        <li>Feature four with brief description</li>
+                    </ul>
+                    
+                    <h3>Lessons Learned</h3>
+                    <p>
+                        Share what you learned from working on this project. Discuss any new technologies or techniques 
+                        you mastered, insights you gained about the problem domain, or how you would approach similar 
+                        projects differently in the future.
+                    </p>
                 </div>
             </section>
-
+            
+            <!-- Contact CTA Section -->
             <section class="contact-cta">
                 <div class="cta-content">
                     <h2>INTERESTED IN MY WORK?</h2>
@@ -158,12 +187,18 @@ function handleAuthentication(user) {
                     <a href="{% url 'contact' %}" class="cta-button">GET IN TOUCH</a>
                 </div>
             </section>
+            
+            <!-- Footer -->
+            <div class="project-footer">
+                <p class="footer-text">© 2025 Sebastian Main. All rights reserved.</p>
+            </div>
         </div>
     </div>
 
-    <!-- AOS and Gallery Script -->
+    <!-- Scripts -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
+        // Initialize AOS animation library
         AOS.init({
             duration: 800,
             offset: 100,
@@ -172,7 +207,7 @@ function handleAuthentication(user) {
         
         // Gallery functionality
         document.addEventListener('DOMContentLoaded', function() {
-            const featuredImage = document.querySelector('.featured-image');
+            const featuredImage = document.getElementById('featuredImage');
             const thumbnails = document.querySelectorAll('.thumbnail');
             
             thumbnails.forEach(thumb => {
@@ -185,6 +220,195 @@ function handleAuthentication(user) {
                     this.classList.add('active');
                 });
             });
+            
+            // Scroll animation for content sections
+            const contentSections = document.querySelectorAll('.content-section');
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+            
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+            
+            contentSections.forEach(section => {
+                observer.observe(section);
+            });
         });
+        
+        // GitHub API integration
+        document.addEventListener('DOMContentLoaded', function() {
+            const username = 'smk37git'; // Your GitHub username
+            const repo = 'INFOTC-2040'; // Your repository name
+            
+            fetchLatestCommit(username, repo);
+        });
+
+        function fetchLatestCommit(username, repo) {
+            // GitHub API endpoint for commits
+            const apiUrl = `https://api.github.com/repos/${username}/${repo}/commits`;
+            
+            fetch(apiUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Get the latest commit (first in the array)
+                    const latestCommit = data[0];
+                    updateCommitDisplay(latestCommit, username, repo);
+                })
+                .catch(error => {
+                    console.error('Error fetching commit data:', error);
+                    // Display a fallback message
+                    document.querySelector('.github-commit-container').innerHTML = `
+                        <div class="github-header">
+                            <a href="https://github.com/${username}" class="github-logo">
+                                <i class="fab fa-github"></i>
+                                <span>GitHub Repository</span>
+                            </a>
+                            <a href="https://github.com/${username}/${repo}" class="repo-link">
+                                <i class="fas fa-code-branch"></i> View Repository
+                            </a>
+                        </div>
+                        <div class="github-commit" style="padding: 1.5rem; text-align: center;">
+                            <p>Unable to load latest commit information. Please check the repository directly.</p>
+                        </div>
+                    `;
+                });
+        }
+
+        function updateCommitDisplay(commit, username, repo) {
+            // Format the commit date
+            const commitDate = new Date(commit.commit.author.date);
+            const timeAgo = getTimeAgo(commitDate);
+            
+            // Get the shortened commit hash
+            const shortHash = commit.sha.substring(0, 7);
+            
+            // Get author info
+            const authorName = commit.commit.author.name;
+            const authorAvatar = commit.author ? commit.author.avatar_url : 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png';
+            
+            // Update the DOM with the latest commit info
+            const container = document.querySelector('.github-commit-container');
+            
+            container.innerHTML = `
+                <div class="github-header">
+                    <a href="https://github.com/${username}" class="github-logo">
+                        <i class="fab fa-github"></i>
+                        <span>Latest GitHub Commit</span>
+                    </a>
+                    <a href="https://github.com/${username}/${repo}" class="repo-link">
+                        <i class="fas fa-code-branch"></i> View Repository
+                    </a>
+                </div>
+                
+                <div class="github-commit">
+                    <div class="commit-message">
+                        <i class="fas fa-code-commit"></i>
+                        <div class="commit-message-text">
+                            ${escapeHtml(commit.commit.message)}
+                            <span class="commit-hash" title="Click to copy" onclick="copyToClipboard('${shortHash}')">${shortHash}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="commit-details">
+                        <div class="commit-author">
+                            <img src="${authorAvatar}" alt="${authorName}" class="author-avatar">
+                            <span class="author-name">${authorName}</span>
+                        </div>
+                        
+                        <div class="commit-stats">
+                            <div class="commit-stat">
+                                <i class="far fa-clock"></i>
+                                <span>${timeAgo}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Helper function to format time ago
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            let interval = Math.floor(seconds / 31536000);
+            if (interval > 1) return interval + ' years ago';
+            if (interval === 1) return interval + ' year ago';
+            
+            interval = Math.floor(seconds / 2592000);
+            if (interval > 1) return interval + ' months ago';
+            if (interval === 1) return interval + ' month ago';
+            
+            interval = Math.floor(seconds / 86400);
+            if (interval > 1) return interval + ' days ago';
+            if (interval === 1) return interval + ' day ago';
+            
+            interval = Math.floor(seconds / 3600);
+            if (interval > 1) return interval + ' hours ago';
+            if (interval === 1) return interval + ' hour ago';
+            
+            interval = Math.floor(seconds / 60);
+            if (interval > 1) return interval + ' minutes ago';
+            if (interval === 1) return interval + ' minute ago';
+            
+            return 'just now';
+        }
+
+        // Helper function to prevent XSS
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Copy to clipboard function
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Create temporary tooltip
+                const tooltip = document.createElement('div');
+                tooltip.textContent = 'Copied!';
+                tooltip.style.position = 'fixed';
+                tooltip.style.backgroundColor = 'rgba(0, 255, 65, 0.9)';
+                tooltip.style.color = '#0c0c0c';
+                tooltip.style.padding = '5px 10px';
+                tooltip.style.borderRadius = '3px';
+                tooltip.style.fontSize = '0.8rem';
+                tooltip.style.fontWeight = 'bold';
+                tooltip.style.zIndex = '1000';
+                
+                // Position near hash element
+                const hashElement = document.querySelector('.commit-hash');
+                const rect = hashElement.getBoundingClientRect();
+                tooltip.style.left = `${rect.right + 10}px`;
+                tooltip.style.top = `${rect.top}px`;
+                
+                document.body.appendChild(tooltip);
+                
+                // Remove after 2 seconds
+                setTimeout(() => {
+                    tooltip.style.opacity = '0';
+                    tooltip.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => {
+                        document.body.removeChild(tooltip);
+                    }, 500);
+                }, 1500);
+            }).catch(function(error) {
+                console.error('Error copying text: ', error);
+            });
+        }
     </script>
 {% endblock %}
