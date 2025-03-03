@@ -223,11 +223,14 @@
     flex: 1;
 }
 
+/* Project title and tech - CENTERED for all projects */
 .project-title {
     font-size: 1.8rem;
     color: #fff;
     margin-bottom: 0.5rem;
     text-transform: uppercase;
+    text-align: center;
+    width: 100%;
 }
 
 .project-tech {
@@ -236,6 +239,28 @@
     margin-bottom: 1rem;
     font-family: 'Courier New', monospace;
     display: block;
+    text-align: center;
+    width: 100%;
+}
+
+/* Right align text for even-numbered projects (2 and 4) */
+.project-item:nth-child(even) .project-description {
+    text-align: center;
+}
+
+/* Left align text for odd-numbered projects (1 and 3) */
+.project-item:nth-child(odd) .project-description {
+    text-align: center;
+}
+
+/* Right align project links for even-numbered projects */
+.project-item:nth-child(even) .project-links {
+    justify-content: center;
+}
+
+/* Left align project links for odd-numbered projects */
+.project-item:nth-child(odd) .project-links {
+    justify-content: center;
 }
 
 .project-description {
@@ -556,12 +581,13 @@
         max-width: 400px;
     }
     
-    .project-details {
-        text-align: center;
+    /* Center all text on mobile */
+    .project-description {
+        text-align: center !important;
     }
     
     .project-links {
-        justify-content: center;
+        justify-content: center !important;
     }
     
     .section-separator {
