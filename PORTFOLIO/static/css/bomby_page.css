@@ -602,6 +602,7 @@
 .contact-cta {
     padding: 4rem 0;
     text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     background: linear-gradient(45deg, rgba(20, 20, 30, 0.9), rgba(10, 10, 15, 0.9));
     border-radius: 12px;
     margin: 3rem auto;
