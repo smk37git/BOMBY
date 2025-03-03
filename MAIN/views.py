@@ -36,7 +36,7 @@ def contact(request):
                 f'New Message: {subject}',  # Email subject
                 email_message,
                 'your-gmail@gmail.com',  # From email
-                ['REMOVED_EMAIL'],  # To email
+                ['sebetvbusiness@gmail.com'],  # To email
                 fail_silently=False,
             )
             
