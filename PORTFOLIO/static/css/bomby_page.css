@@ -1,8 +1,11 @@
-/* Main container layout */
+.project-overview-container, .details-container, .contact-cta {
+    width: 100%;
+    max-width: 800px; /* Match the image width */
+}/* Main container layout */
 .project-container {
     display: flex;
     min-height: 100vh;
-    padding-top: 60px;
+    padding-top: 60px; /* Space for navbar */
     background-color: #0c0c0c;
     position: relative;
 }
@@ -17,6 +20,7 @@
     left: 0;
     bottom: 0;
     height: 100vh;
+    padding-top: calc(2rem + 60px); /* Add padding for navbar */
     z-index: 10;
     display: flex;
     flex-direction: column;
@@ -43,19 +47,24 @@
 .project-content {
     flex: 1;
     margin-left: 250px;
-    padding: 2rem;
+    padding: 0 2rem;
     background-color: #0c0c0c;
+    max-width: calc(100vw - 250px); /* Prevent horizontal overflow */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center content horizontally */
 }
 
-/* Featured image with glow effect */
+/* Featured image with glow effect - maintain 16:9 but smaller */
 .project-featured-image {
     width: 100%;
-    max-width: 1920px;
+    max-width: 800px; /* Reduced from 1200px */
     margin-bottom: 1.5rem;
     border-radius: 10px;
-    aspect-ratio: 16/9;
+    aspect-ratio: 16/9; /* Maintain aspect ratio */
     overflow: hidden;
     position: relative;
+    border: 2px solid white;
     box-shadow: 0 0 25px rgba(255, 255, 255, 0.15);
     padding: 3px;
     background: linear-gradient(45deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.3));
@@ -71,11 +80,12 @@
     border-radius: 8px;
 }
 
-/* Gallery thumbnails with glow effect */
+/* Gallery thumbnails with glow effect - smaller for better fit */
 .gallery-thumbnails {
     display: flex;
     gap: 1rem;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
+    max-width: 800px; /* Match featured image width */
 }
 
 .thumbnail {
@@ -86,16 +96,16 @@
     overflow: hidden;
     box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
     padding: 2px;
-    background: linear-gradient(45deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.2));
+    background: linear-gradient(45deg, rgba(255, 255, 255, 0.703), rgba(186, 186, 186, 0.772));
     transition: all 0.3s ease;
     opacity: 0.7;
 }
 
 .thumbnail.active {
     opacity: 1;
-    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
     padding: 2px;
-    background: linear-gradient(45deg, rgba(0, 255, 65, 0.1), rgba(0, 255, 65, 0.3));
+    background: white;
 }
 
 .thumbnail:hover {
@@ -112,21 +122,22 @@
 
 /* Project overview section */
 .project-overview {
-    padding: 4rem 0;
+    padding: 2rem 0; /* Reduced padding */
 }
 
 .section-header {
     text-align: left;
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem; /* Reduced margin */
     position: relative;
     z-index: 1;
     display: flex;
     align-items: center;
     gap: 15px;
+    width: 100%;
 }
 
 .section-title {
-    font-size: clamp(2rem, 5vw, 3rem);
+    font-size: clamp(1.8rem, 4vw, 2.5rem); /* Slightly smaller */
     color: #fff;
     display: inline-block;
     background-color: rgba(20, 20, 30, 0.5);
@@ -335,68 +346,14 @@
     left: -1rem;
 }
 
-/* Client Testimonial */
+/* Remove client testimonial section or modify for personal project */
 .testimonial {
-    background: linear-gradient(145deg, rgba(30, 30, 45, 0.9), rgba(20, 20, 30, 0.8));
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 2.5rem;
-    margin: 4rem 0;
-    position: relative;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.testimonial::before {
-    content: '"';
-    position: absolute;
-    top: 0;
-    left: 2rem;
-    font-size: 8rem;
-    color: rgba(0, 255, 65, 0.1);
-    line-height: 1;
-    font-family: serif;
-}
-
-.testimonial-content {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.1rem;
-    line-height: 1.8;
-    font-style: italic;
-    margin-bottom: 1.5rem;
-}
-
-.testimonial-author {
-    display: flex;
-    align-items: center;
-}
-
-.author-image {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    margin-right: 1rem;
-    border: 2px solid rgba(0, 255, 65, 0.3);
-}
-
-.author-info {
-    display: flex;
-    flex-direction: column;
-}
-
-.author-name {
-    color: #ffffff;
-    font-weight: bold;
-    font-size: 1.1rem;
-}
-
-.author-title {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 0.9rem;
+    display: none; /* Hide the testimonial section */
 }
 
 /* Contact CTA section */
 .contact-cta {
-    padding: 4rem 0;
+    padding: 3rem 0;
     text-align: center;
     background: linear-gradient(45deg, rgba(20, 20, 30, 0.9), rgba(10, 10, 15, 0.9));
     border-radius: 12px;
@@ -404,7 +361,7 @@
 }
 
 .cta-content h2 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     color: #fff;
     margin-bottom: 1.5rem;
     letter-spacing: 2px;
@@ -461,14 +418,19 @@
         width: 100%;
         height: auto;
         position: relative;
+        top: 0;
         padding: 1.5rem;
+        padding-top: calc(1.5rem + 60px);
         text-align: center;
         border-bottom: 1px solid #1a1a1a;
+        border-right: none;
     }
     
     .project-content {
         margin-left: 0;
         padding-top: 2rem;
+        max-width: 100%;
+        align-items: center;
     }
     
     .thumbnail {

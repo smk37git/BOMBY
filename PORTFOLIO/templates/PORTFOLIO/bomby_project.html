@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/project_page.css' %}">
+    <link rel="stylesheet" href="{% static 'css/bomby_page.css' %}">
 {% endblock %}
 
 {% block background %}
@@ -51,18 +51,18 @@
                 
                 <div class="project-overview-container">
                     <div class="project-overview-content">
-                        <h3 class="project-overview-title">THE CHALLENGE</h3>
+                        <h3 class="project-overview-title">THE PROJECT</h3>
                         <p class="project-overview-text">
-                            Describe the challenge or problem that this project aimed to solve. Provide context about the client, 
-                            their needs, and the specific goals they wanted to achieve through this project. This section should 
-                            give visitors a clear understanding of why this project was important and what motivated you to take it on.
+                            Describe what inspired you to create this project and what you aimed to accomplish. 
+                            Explain the vision behind the work and what problems or needs you identified that led 
+                            to its development. This section gives context about your creative process and goals.
                         </p>
                         
-                        <h3 class="project-overview-title">THE SOLUTION</h3>
+                        <h3 class="project-overview-title">MY APPROACH</h3>
                         <p class="project-overview-text">
-                            Explain the solution you developed to address the challenge. Highlight your approach, the technologies 
-                            you chose to use, and why they were appropriate for this particular project. Describe your process 
-                            and methodology, focusing on how your solution meets the client's needs and objectives.
+                            Explain the approach you took to develop this project. Highlight the technologies 
+                            you chose to use and why they were appropriate for this particular work. Describe your process 
+                            and methodology, focusing on how your solution addresses the challenges you identified.
                         </p>
                         
                         <div class="project-links">
@@ -75,12 +75,8 @@
                         <h3 class="info-title">PROJECT INFO</h3>
                         <ul class="info-list">
                             <li>
-                                <span class="info-label">CLIENT</span>
-                                <span class="client-info-value">Katie Jauss</span>
-                            </li>
-                            <li>
                                 <span class="info-label">DATE</span>
-                                <span class="client-info-value">Febuary 23 2025</span>
+                                <span class="client-info-value">February 23 2025</span>
                             </li>
                             <li>
                                 <span class="info-label">CATEGORY</span>
@@ -93,6 +89,10 @@
                             <li>
                                 <span class="info-label">ROLE</span>
                                 <span class="client-info-value">Full Stack Developer</span>
+                            </li>
+                            <li>
+                                <span class="info-label">PURPOSE</span>
+                                <span class="client-info-value">Personal Portfolio</span>
                             </li>
                         </ul>
                     </div>
@@ -151,25 +151,9 @@ function handleAuthentication(user) {
                 </div>
             </section>
 
-            <!-- Client Testimonial (if applicable) -->
-            <div class="testimonial" data-aos="fade-up">
-                <p class="testimonial-content">
-                    Sebastian delivered an exceptional solution that exceeded our expectations. His technical expertise, 
-                    attention to detail, and proactive communication made the development process smooth and enjoyable. 
-                    The final product has significantly improved our workflow and received positive feedback from our users.
-                </p>
-                <div class="testimonial-author">
-                    <img src="{% static 'images/client-avatar.jpg' %}" alt="Client Name" class="author-image">
-                    <div class="author-info">
-                        <span class="author-name">Client Name</span>
-                        <span class="author-title">Position, Company</span>
-                    </div>
-                </div>
-            </div>
-
             <section class="contact-cta">
                 <div class="cta-content">
-                    <h2>NEED A SIMILAR PROJECT?</h2>
+                    <h2>INTERESTED IN MY WORK?</h2>
                     <p>I'm available for freelance projects and would love to discuss how I can help bring your ideas to life.</p>
                     <a href="{% url 'contact' %}" class="cta-button">GET IN TOUCH</a>
                 </div>
