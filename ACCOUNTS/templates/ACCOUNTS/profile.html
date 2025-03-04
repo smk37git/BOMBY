@@ -33,8 +33,8 @@
             </div>
 
             <div class="profile-avatar">
-                {% if user.profile_picture %}
-                <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
+                {% if profile_user.profile_picture %}
+                <img src="{{ profile_user.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
                 {% else %}
                     <div class="profile-picture-placeholder">
                         <i class="fas fa-user"></i>
@@ -61,6 +61,12 @@
                         <p class="empty-bio">No bio added yet.</p>
                     {% endif %}
                 </div>
+            </div>
+
+            <div class="return-account-section">
+                <a href="{% url 'ACCOUNTS:promotional_wall' %}" class="action-button" style="margin-top: 15px;">
+                    <i class="fas fa-arrow-left"></i> Return to Promotional Wall
+                </a>
             </div>
 
             <!-- Return to Account Here -->
