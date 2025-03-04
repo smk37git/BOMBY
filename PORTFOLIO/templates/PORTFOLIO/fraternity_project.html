@@ -1,0 +1,462 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/bomby_page.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="project-container">
+        <!-- Horizontal Split Hero Section -->
+        <section class="hero-split">
+            <!-- Left Side - Hero Content -->
+            <div class="hero-content-side">
+                <h1 class="project-title">BOMBY WEBSITE PROJECT</h1>
+                <p class="project-author">By Sebastian Main</p>
+                <p class="project-brief">A modern web development project showcasing frontend and backend skills with a focus on user experience and performance optimization.
+                    Includes a full E-Commerce platform with user authentication, product listings, and checkout functionality.
+                </p>
+                
+                <div class="hero-cta">
+                    <a href="{% url 'home' %}" class="hero-button primary">View Live</a>
+                    <a href="https://github.com/smk37git/SPDWEBAPP_ENV" class="hero-button">GitHub Repo</a>
+                </div>
+            </div>
+            
+            <!-- Right Side - Gallery -->
+            <div class="hero-gallery-side">
+                <div class="project-featured-image">
+                    <img src="{% static 'images/1.jpg' %}" alt="Project Name" class="featured-image" id="featuredImage">
+                </div>
+                
+                <div class="gallery-thumbnails">
+                    <div class="thumbnail active" data-image="{% static 'images/1.jpg' %}">
+                        <img src="{% static 'images/1.jpg' %}" alt="Main Project Image">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/2.jpg' %}">
+                        <img src="{% static 'images/2.jpg' %}" alt="Gallery Image 1">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/3.jpg' %}">
+                        <img src="{% static 'images/3.jpg' %}" alt="Gallery Image 2">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/4.jpg' %}">
+                        <img src="{% static 'images/4.jpg' %}" alt="Gallery Image 3">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/5.jpg' %}">
+                        <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 4">
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- GitHub Commit Display Container -->
+        <div class="github-commit-container">
+            <!-- This will be populated by JavaScript -->
+            <div class="github-header">
+                <a href="https://github.com/smk37git/BOMBY" class="github-logo">
+                    <i class="fab fa-github"></i>
+                    <span>Loading commit data...</span>
+                </a>
+            </div>
+            <div class="github-commit" style="padding: 1.5rem; text-align: center;">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: rgba(255, 255, 255, 0.5);"></i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="project-content">
+            <!-- Overview Section -->
+            <section class="content-section" id="overview">
+                <div class="section-header">
+                    <h2 class="section-title" style="margin-top: 100px;">Project Overview</h2>
+                    <p class="section-subtitle">A detailed look at the purpose and approach of this project</p>
+                </div>
+                
+                <div class="project-info-grid">
+                    <div class="info-card">
+                        <h3 class="info-card-title">The Project</h3>
+                        <div class="info-card-content">
+                            <p>
+                                I decided to create BOMBY due to the increasingly frustrating experience of being a
+                                freelancer on other popular websites like Fiverr or UpWork to name a few. I wanted to make a platform
+                                that was more user-friendly, and more focused on the user experiences of both the client
+                                and the seller. 
+                                <br></br>
+                                
+                                I figured it would be a good idea to blend that platform with my portfolio.
+                                That way potential clients could see my work and gain that trust all in one place.
+                            </p>
+                            
+                            <div class="info-stats">
+                                <div class="info-stat">
+                                    <div class="stat-label">Date</div>
+                                    <div class="stat-value">February 23, 2025</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Category</div>
+                                    <div class="stat-value">Web Development</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Role</div>
+                                    <div class="stat-value">Full Stack Developer</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3 class="info-card-title">My Approach</h3>
+                        <div class="info-card-content">
+                            <p>
+                                I began this project by first building the foundation using Django. At first it was just the home
+                                page and soon expanded to more as my outlined my ideas and drummed up exactly how I wanted it to
+                                look. My focus on projects like this is centered around the idea of "How can I make it look amazing
+                                and function perfectly". 
+                                <br></br>
+
+                                I've learned what works and what doesn't with clients so I had to create
+                                a great first impression with this project.
+                            </p>
+                            
+                            <div class="info-stats">
+                                <div class="info-stat">
+                                    <div class="stat-label">Tech Stack</div>
+                                    <div class="stat-value">Django, React, SQL</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Timeline</div>
+                                    <div class="stat-value">3 Months</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Purpose</div>
+                                    <div class="stat-value">Personal Portfolio and E-Commerce Platform</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Technical Details Section -->
+            <section class="content-section" id="technical">
+                <div class="section-header">
+                    <h2 class="section-title" style="margin-top: -50px;">Technical Details</h2>
+                    <p class="section-subtitle">A deeper look at the development process and implementation</p>
+                </div>
+                
+                <div class="tech-details">
+                    <h3>Development Process</h3>
+                    <p>
+                        I began by creating my 'MAIN' django app which hosts the home page, contact page, and about me page. I wwanted this
+                        app to be the foundation of the project, this is what users would most likely see when they first connect, so I had to make
+                        a strong first impression. 
+                        <br></br>
+
+                        Secondly, I moved onto my 'ACCOUNTS' app. This was the first building block of the E-Commerce
+                        side of my website. I needed it to include secure account functionality along with a user-friendly interface. I made many secure
+                        additions by employing an admin user-management panel ultilizing CRUD operations. I also included a custom
+                        profanity filter to censor any inappropiate language and also including AWS Image Recognition Software to stop any harmful
+                        images from being uploaded and displayed on the promotional wall page. A part of my site entirely dedicated to users and offering them
+                        the ability to showcase their own social medias and projects. 
+                        <br></br>
+
+                        Next, I created my 'PORTFOLIO' app, this is where all my work would
+                        be hosted and designed in a way to appeal to potential employers and clients alike. It showcases step-by-step my hardwork and offers a chance
+                        for everyone to view my work. 
+                        <br></br>
+                        
+                        Lastly, I started on my 'STORE' app, I saved this for last as I needed the 'ACCOUNTS' app 
+                        due to user's needed an account to purchase and track their orders. This app was the most complex as it needed to be able to handle
+                        multiple users at once, and a large influx of orders which all display each unique user's order and information. Not only that, but
+                        offer a secure checkout process that was user-friendly and instilled trust within clients. Furthermore, on the admin side,
+                        I can track orders through an analytics panel that gives me every order detail, click-rates, finincial information, and more.
+                        All in all, I broke my website down into four corners and built each one up to be a strong foundation accounting for all possiblities.
+                    </p>
+                    
+                    <h3>Technical Challenges</h3>
+                    <p>
+                        The biggest hurdle to get over was organizing the different django apps and stringing them together to make sure they all worked together.
+                        The 'STORE' app is built of the foundation of the 'ACCOUNTS' app, and all the apps (including 'PORTFOLIO') are all built off of
+                        the 'MAIN' app. Getting this organizational structure put together was a challenge with trying to figure out exactly how to string
+                        them all together.
+                        <br></br>
+
+                        This project did not progress without any setbacks however. Through optimizing my website, I discovered a critical error with my
+                        css files that led to users downloading EVERY file on every single page of the website. Identifying the issue and finding a solution
+                        led me to discover that all my css files were being piped through my base.html (the navbar, footer, etc.). Fixing this led to
+                        styling errors over the entire website. I had to go back and reformat all css and html files to look great and this time make them
+                        look even better than they did prior to the error.
+                        <br></br>
+                        
+                        Fixing this critical error massively reduced load times across the entire website and led to a more professional look.
+                    </p>
+                    
+                    <pre>
+// Example code snippet
+function handleAuthentication(user) {
+  const token = generateToken(user);
+  storeUserSession(token);
+  return {
+    success: true,
+    message: 'Authentication successful',
+    token: token
+  };
+}</pre>
+                    
+                    <h3>Key Features</h3>
+                    <ul>
+                        <li>Complete E-Commerce Platform for multiple services</li>
+                        <li>Secure and Protected User Account Functionality</li>
+                        <li>Dynamic and Purposeful Admin Management</li>
+                        <li>Custom Graphic Design and Personality</li>
+                    </ul>
+                    
+                    <h3>Lessons Learned</h3>
+                    <p>
+                        Through working on this project I learned the importance of organization and structure. Stringing together
+                        multiple parts of the website seamlessly was a challenge but I learned how to do it purposefully and effectively.
+                        <br></br>
+
+                        At the beginning of 2025, I had no idea how to build a website, let alone a full E-Commerce platform. However, through
+                        learning the Django framework I've become confident in my abilities to deliver a strong online presence.
+                    </p>
+                </div>
+            </section>
+            
+            <!-- Contact CTA Section -->
+            <section class="contact-cta">
+                <div class="cta-content">
+                    <h2>INTERESTED IN MY WORK?</h2>
+                    <p>I'm available for freelance projects and would love to discuss how I can help bring your ideas to life.</p>
+                    <a href="{% url 'contact' %}" class="cta-button">GET IN TOUCH</a>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS animation library
+        AOS.init({
+            duration: 800,
+            offset: 100,
+            once: true
+        });
+        
+        // Gallery functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const featuredImage = document.getElementById('featuredImage');
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    // Update main image
+                    featuredImage.src = this.getAttribute('data-image');
+                    
+                    // Update active state
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Scroll animation for content sections
+            const contentSections = document.querySelectorAll('.content-section');
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+            
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+            
+            contentSections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+        
+        // GitHub API integration
+        document.addEventListener('DOMContentLoaded', function() {
+            const username = 'smk37git';
+            const repo = 'SPDWEBAPP_ENV';
+            
+            fetchLatestCommit(username, repo);
+        });
+
+        function fetchLatestCommit(username, repo) {
+            const apiUrl = `/portfolio/api/github-commit/${username}/${repo}/`;
+    
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => updateCommitDisplay(data, username, repo))
+            .catch(error => {
+                console.error('Error fetching commit data:', error);
+                // Display fallback message
+                document.querySelector('.github-commit-container').innerHTML = `
+                    <div class="github-header">
+                        <a href="https://github.com/${username}" class="github-logo">
+                            <i class="fab fa-github"></i>
+                            <span>GitHub Repository</span>
+                        </a>
+                        <a href="https://github.com/${username}/${repo}" class="repo-link">
+                            <i class="fas fa-code-branch"></i> View Repository
+                        </a>
+                    </div>
+                    <div class="github-commit" style="padding: 1.5rem; text-align: center;">
+                        <p>Unable to load latest commit information. Please check the repository directly.</p>
+                    </div>
+                `;
+            });
+        }
+
+        function updateCommitDisplay(commit, username, repo) {
+            // Format the commit date
+            const commitDate = new Date(commit.commit.author.date);
+            const timeAgo = getTimeAgo(commitDate);
+            
+            // Get the shortened commit hash
+            const shortHash = commit.sha.substring(0, 7);
+            
+            // Get author info
+            const authorName = commit.commit.author.name;
+            const authorAvatar = commit.author ? commit.author.avatar_url : 'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png';
+            
+            // Get stats if available
+            const additions = commit.stats ? commit.stats.additions : 0;
+            const deletions = commit.stats ? commit.stats.deletions : 0;
+            
+            // Update the DOM with the latest commit info
+            const container = document.querySelector('.github-commit-container');
+            
+            container.innerHTML = `
+                <div class="github-header">
+                    <a href="https://github.com/${username}" class="github-logo">
+                        <i class="fab fa-github"></i>
+                        <span>Latest GitHub Commit</span>
+                    </a>
+                    <a href="https://github.com/${username}/${repo}" class="repo-link">
+                        <i class="fas fa-code-branch"></i> View Repository
+                    </a>
+                </div>
+                
+                <div class="github-commit">
+                    <div class="commit-message">
+                        <i class="fas fa-code-commit"></i>
+                        <div class="commit-message-text">
+                            ${escapeHtml(commit.commit.message)}
+                            <span class="commit-hash" title="Click to copy" onclick="copyToClipboard('${shortHash}')">${shortHash}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="commit-details">
+                        <div class="commit-author">
+                            <img src="${authorAvatar}" alt="${authorName}" class="author-avatar">
+                            <span class="author-name">${authorName}</span>
+                        </div>
+                        
+                        <div class="commit-stats">
+                            <div class="commit-stat">
+                                <i class="far fa-clock"></i>
+                                <span>${timeAgo}</span>
+                            </div>
+                            <div class="commit-stat">
+                                <i class="fas fa-plus-circle" style="color: #2cbe4e;"></i>
+                                <span>${additions}</span>
+                            </div>
+                            <div class="commit-stat">
+                                <i class="fas fa-minus-circle" style="color: #cb2431;"></i>
+                                <span>${deletions}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Helper function to format time ago
+        function getTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            
+            let interval = Math.floor(seconds / 31536000);
+            if (interval > 1) return interval + ' years ago';
+            if (interval === 1) return interval + ' year ago';
+            
+            interval = Math.floor(seconds / 2592000);
+            if (interval > 1) return interval + ' months ago';
+            if (interval === 1) return interval + ' month ago';
+            
+            interval = Math.floor(seconds / 86400);
+            if (interval > 1) return interval + ' days ago';
+            if (interval === 1) return interval + ' day ago';
+            
+            interval = Math.floor(seconds / 3600);
+            if (interval > 1) return interval + ' hours ago';
+            if (interval === 1) return interval + ' hour ago';
+            
+            interval = Math.floor(seconds / 60);
+            if (interval > 1) return interval + ' minutes ago';
+            if (interval === 1) return interval + ' minute ago';
+            
+            return 'just now';
+        }
+
+        // Helper function to prevent XSS
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Copy to clipboard function
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Create temporary tooltip
+                const tooltip = document.createElement('div');
+                tooltip.textContent = 'Copied!';
+                tooltip.style.position = 'fixed';
+                tooltip.style.backgroundColor = 'rgba(0, 255, 65, 0.9)';
+                tooltip.style.color = '#0c0c0c';
+                tooltip.style.padding = '5px 10px';
+                tooltip.style.borderRadius = '3px';
+                tooltip.style.fontSize = '0.8rem';
+                tooltip.style.fontWeight = 'bold';
+                tooltip.style.zIndex = '1000';
+                
+                // Position near hash element
+                const hashElement = document.querySelector('.commit-hash');
+                const rect = hashElement.getBoundingClientRect();
+                tooltip.style.left = `${rect.right + 10}px`;
+                tooltip.style.top = `${rect.top}px`;
+                
+                document.body.appendChild(tooltip);
+                
+                // Remove after 2 seconds
+                setTimeout(() => {
+                    tooltip.style.opacity = '0';
+                    tooltip.style.transition = 'opacity 0.5s ease';
+                    setTimeout(() => {
+                        document.body.removeChild(tooltip);
+                    }, 500);
+                }, 1500);
+            }).catch(function(error) {
+                console.error('Error copying text: ', error);
+            });
+        }
+    </script>
+{% endblock %}

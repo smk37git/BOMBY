@@ -9,7 +9,34 @@ def portfolio(request):
 def bomby_project(request):
     return render(request, 'PORTFOLIO/bomby_project.html')
 
-def github_latest_commit(request, username, repo):
+def github_latest_bomby_commit(request, username, repo):
+    api_url = f"https://api.github.com/repos/{username}/{repo}/commits"
+    
+    try:
+        response = requests.get(api_url)
+        response.raise_for_status()
+        commits = response.json()
+        
+        if commits:
+            commit = commits[0]
+            # Get stats for this commit
+            commit_url = commit['url']
+            stats_response = requests.get(commit_url)
+            stats_response.raise_for_status()
+            commit_details = stats_response.json()
+            
+            # Combine the data
+            commit['stats'] = commit_details.get('stats', {})
+            
+            return JsonResponse(commit)
+        return JsonResponse({})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+def fraternity_project(request):
+    return render(request, 'PORTFOLIO/fraternity_project.html')
+
+def github_latest_fraternity_commit(request, username, repo):
     api_url = f"https://api.github.com/repos/{username}/{repo}/commits"
     
     try:
