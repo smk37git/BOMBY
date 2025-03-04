@@ -1,0 +1,391 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/github_page.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="showcase-container">
+        <!-- Hero Section -->
+        <section class="showcase-hero">
+            <div class="hero-content">
+                <h1 class="hero-title">MY GITHUB PROJECTS</h1>
+                <p class="hero-subtitle">A collection of my favorite coding adventures</p>
+                <a href="https://github.com/smk37git" class="github-profile-link">
+                    <i class="fab fa-github"></i> Visit My GitHub
+                </a>
+            </div>
+        </section>
+        
+        <!-- Introduction Section -->
+        <section class="intro-section">
+            <div class="section-content">
+                <div class="intro-text">
+                    <h2>CODING WITH PURPOSE</h2>
+                    <p>
+                        As a developer, I believe in creating projects that solve real problems. My GitHub 
+                        repositories represent hours of learning, experimenting, and refining my craft.
+                        Each project has taught me valuable lessons about development, design, and the 
+                        importance of well-structured code.
+                    </p>
+                    <p>
+                        Below are some of my favorite projects that showcase my skills and approach to 
+                        development. From web applications to utility tools, these repositories highlight 
+                        my journey as a programmer and my commitment to creating meaningful software.
+                    </p>
+                </div>
+                <div class="intro-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-code-branch"></i>
+                        </div>
+                        <div class="stat-count">8</div>
+                        <div class="stat-label">Repositories</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <div class="stat-count">52279</div>
+                        <div class="stat-label">Lines of Code</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <div class="stat-count">1.5</div>
+                        <div class="stat-label">Years Coding</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Featured Projects Section -->
+        <section class="featured-projects">
+            <div class="section-header">
+                <h2 class="section-title">FEATURED PROJECTS</h2>
+                <p class="section-subtitle">Highlights from my GitHub portfolio</p>
+            </div>
+            
+            <!-- Project 1 -->
+            <div class="project-card">
+                <div class="project-content">
+                    <div class="project-header">
+                        <div class="project-title-container">
+                            <h3 class="project-title">BOMBY WEBSITE PROJECT</h3>
+                            <div class="project-tags">
+                                <span class="project-tag">Python</span>
+                                <span class="project-tag">Django</span>
+                                <span class="project-tag">HTML / CSS / PYTHON</span>
+                            </div>
+                        </div>
+                        <a href="https://github.com/smk37git/BOMBY" class="repo-link">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="project-description">
+                        <p>
+                            A modern web development project showcasing frontend and backend skills with a focus on user experience and performance optimization. Includes a full E-Commerce platform with user authentication, product listings, and checkout functionality.
+                        </p>
+                        <p>
+                            The biggest hurdle to get over was organizing the different django apps and stringing them together to make sure they all worked together. The 'STORE' app is built of the foundation of the 'ACCOUNTS' app, and all the apps (including 'PORTFOLIO') are all built off of the 'MAIN' app. Getting this organizational structure put together was a challenge with trying to figure out exactly how to string them all together.
+                        </p>
+                    </div>
+                    
+                    <div class="project-highlights">
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Real-time data visualization Analytics</span>
+                        </div>
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Secure User Account Management</span>
+                        </div>
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Custom Styling and Unique Branding</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-footer">
+                        <a href="https://github.com/smk37git/django-analytics" class="view-project">View Project</a>
+                    </div>
+                </div>
+                <div class="project-image">
+                    <img src="{% static 'images/1.jpg' %}" alt="Django Analytics Dashboard">
+                </div>
+            </div>
+            
+            <!-- Project 2 -->
+            <div class="project-card reverse">
+                <div class="project-content">
+                    <div class="project-header">
+                        <div class="project-title-container">
+                            <h3 class="project-title">INFOTC-2040</h3>
+                            <div class="project-tags">
+                                <span class="project-tag">C#</span>
+                                <span class="project-tag">OOP</span>
+                                <span class="project-tag">GUI</span>
+                            </div>
+                        </div>
+                        <a href="https://github.com/smk37git/INFOTC-2040" class="repo-link">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="project-description">
+                        <p>
+                            In INFOTC-2040, In this course I implemented algorithms and data structures to solve problems while ultilizing paradigms offered by
+                            the programming language such as procedural, object-oriented, protocol-oriented, functional, and declarative.
+                            This course taught me how to determine an algorithm's efficiency, designing application architecture, and develop applications.
+                            I also built and used libraries and application programming interfaces.
+                            This class was challenging, but very fun!
+                        </p>
+                    </div>
+                    
+                    <div class="project-highlights">
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Design Patterns</span>
+                        </div>
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Object Oriented Programming</span>
+                        </div>
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Data Structures</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-footer">
+                        <a href="https://github.com/smk37git/INFOTC-2040" class="view-project">View Project</a>
+                    </div>
+                </div>
+                <div class="project-image">
+                    <img src="{% static 'images/2.jpg' %}" alt="React Component Library">
+                </div>
+            </div>
+            
+            <!-- Project 3 -->
+            <div class="project-card">
+                <div class="project-content">
+                    <div class="project-header">
+                        <div class="project-title-container">
+                            <h3 class="project-title">FRATERNITY WEBSITE PROJECT</h3>
+                            <div class="project-tags">
+                                <span class="project-tag">Python</span>
+                                <span class="project-tag">DJANGO</span>
+                                <span class="project-tag">HTML / CSS / PYTHON</span>
+                            </div>
+                        </div>
+                        <a href="https://github.com/smk37git/SPDWEBAPP_ENV" class="repo-link">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="project-description">
+                        <p>
+                            Designed my fraternity's new website in a Web Dev team. Our old site was broken and horribly out of date, so we built the new website from the ground up. It features secure account management, data organization, and a branded theme.
+                        </p>
+                        <p>
+                            By learning together how to function in a fullstack Web Development team we were able to figure out how to ultilize our workspaces more purposefully. By sitting down during our meetings and understanding our GitHub worked and how to branch the code we started having better design patterns and ran into near zero conflicts down the line.
+                        </p>
+                    </div>
+                    
+                    <div class="project-highlights">
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Intuitive User Interface for Alumni / Executives / Brothers / New Members</span>
+                        </div>
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Data Management for Philanthropy</span>
+                        </div>
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Interacive Dashboard with Useful Tools</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-footer">
+                        <a href="https://github.com/smk37git/SPDWEBAPP_ENV" class="view-project">View Project</a>
+                    </div>
+                </div>
+                <div class="project-image">
+                    <img src="{% static 'images/3.jpg' %}" alt="CLI Task Manager">
+                </div>
+            </div>
+        </section>
+        
+        <!-- Other Projects Section -->
+        <section class="other-projects">
+            <div class="section-header">
+                <h2 class="section-title">OTHER NOTEWORTHY PROJECTS</h2>
+                <p class="section-subtitle">More from my coding journey</p>
+            </div>
+            
+            <div class="mini-projects-grid">
+                <!-- Mini Project 1 -->
+                <div class="mini-project">
+                    <div class="mini-project-header">
+                        <div class="mini-project-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="mini-project-links">
+                            <a href="https://github.com/smk37git/INFOTC-1040" class="mini-project-link">
+                                <i class="fab fa-github"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <h3 class="mini-project-title">INFOTC-1040</h3>
+                    <p class="mini-project-desc">
+                        In INFOTC-1040, I completed problem solving methods and programming concepts. I also provided experience in designing, developing, implementing, and testing programs.
+                        I enjoyed this class very much and it was a great first step into the world of coding!
+                    </p>
+                    <div class="mini-project-tags">
+                        <span class="mini-tag">Python</span>
+                    </div>
+                </div>
+                
+                <!-- Mini Project 2 -->
+                <div class="mini-project">
+                    <div class="mini-project-header">
+                        <div class="mini-project-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <div class="mini-project-links">
+                            <a href="https://github.com/smk37git/INFOTC-3530" class="mini-project-link">
+                                <i class="fab fa-github"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <h3 class="mini-project-title">INFOTC-3530</h3>
+                    <p class="mini-project-desc">
+                        Interfaces including the file system, command shells,
+                        text editors, pipes and filters, input/output system, shell scripting and Regular Expressions, cloud computing, and containers. Introduced to System Administration and Operating Systems.
+                    </p>
+                    <div class="mini-project-tags">
+                        <span class="mini-tag">UNIX</span>
+                        <span class="mini-tag">Bash</span>
+                        <span class="mini-tag">Scripting</span>
+                    </div>
+                </div>
+                
+                <!-- Mini Project 3 -->
+                <div class="mini-project">
+                    <div class="mini-project-header">
+                        <div class="mini-project-icon">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="mini-project-links">
+                            <a href="https://github.com/smk37git/CMP_SC-3330-Group-Projects" class="mini-project-link">
+                                <i class="fab fa-github"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <h3 class="mini-project-title">CMP_SCI-3330</h3>
+                    <p class="mini-project-desc">
+                        The repository hosting all of my group and I's projects through the semester. Implementing Object-Oriented-Programming with different methods
+                        for a multitude of different projects. This was my first introduction to Java!
+                    </p>
+                    <div class="mini-project-tags">
+                        <span class="mini-tag">Java</span>
+                        <span class="mini-tag">OOP</span>
+                        <span class="mini-tag">Design Patterns</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- My Coding Journey Section -->
+        <section class="journey-section">
+            <div class="section-header">
+                <h2 class="section-title">MY CODING JOURNEY</h2>
+                <p class="section-subtitle">How I became a developer</p>
+            </div>
+            
+            <div class="journey-timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">SPRING 2025</div>
+                        <h3 class="timeline-title">Gaining Confidence and Website Projects</h3>
+                        <p>
+                            Completed my first two full-stack web application using Django, React, and PostgreSQL. 
+                            This project taught me about integrating frontend and backend technologies. I developed
+                            my Fraternity's (Sigma Phi Delta) website and my personal BOMBY website.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">FALL 2024</div>
+                        <h3 class="timeline-title">Broadening my Horizons</h3>
+                        <p>
+                            Dove into different languages like C# in INFOTC-2040 and Bash for Unix (INFOTC-3530).
+                            First experience with Object-Oriented-Programming and System Administration.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">SPRING 2024</div>
+                        <h3 class="timeline-title">First Steps in Programming</h3>
+                        <p>
+                            Started learning Python in INFOTC-1040. Discovered a passion for coding
+                            and creating to get my ideas out into the world.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Contact CTA Section -->
+        <section class="contact-cta">
+            <div class="cta-content">
+                <h2>INTERESTED IN WORKING TOGETHER?</h2>
+                <p>I'm always open to discussing new projects, creative ideas or opportunities to be part of your vision.</p>
+                <div class="cta-buttons">
+                    <a href="{% url 'contact' %}" class="cta-button primary">GET IN TOUCH</a>
+                    <a href="https://github.com/smk37git" class="cta-button">VISIT GITHUB</a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add animation classes when elements come into view
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+            
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.project-card, .mini-project, .timeline-item').forEach(item => {
+                observer.observe(item);
+            });
+        });
+    </script>
+{% endblock %}
