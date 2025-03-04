@@ -36,9 +36,6 @@ def github_latest_bomby_commit(request, username, repo):
 def fraternity_project(request):
     return render(request, 'PORTFOLIO/fraternity_project.html')
 
-def github_project(request):
-    return render(request, 'PORTFOLIO/github_project.html')
-
 def github_latest_fraternity_commit(request, username, repo):
     api_url = f"https://api.github.com/repos/{username}/{repo}/commits"
     
@@ -62,3 +59,9 @@ def github_latest_fraternity_commit(request, username, repo):
         return JsonResponse({})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+def github_project(request):
+    return render(request, 'PORTFOLIO/github_project.html')
+
+def college_project(request):
+    return render(request, 'PORTFOLIO/college_project.html')

@@ -1,0 +1,279 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/college_page.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="showcase-container">
+        <!-- Hero Section -->
+        <section class="showcase-hero">
+            <div class="hero-content">
+                <h1 class="hero-title">IT PROJECTS</h1>
+                <p class="hero-subtitle">Enterprise Resource Planning & Network Security</p>
+                <a href="{% url 'PORTFOLIO:portfolio' %}" class="github-profile-link">
+                    <i class="fas fa-arrow-left"></i> Back to Portfolio
+                </a>
+            </div>
+        </section>
+        
+        <!-- Project 1: ERP Project -->
+        <section class="featured-projects">
+            <div class="section-header">
+                <h2 class="section-title">ENTERPRISE RESOURCE PLANNING</h2>
+                <p class="section-subtitle">Optimizing business processes through integrated IT solutions</p>
+            </div>
+            
+            <div class="project-card">
+                <div class="project-content">
+                    <div class="project-header">
+                        <div class="project-title-container">
+                            <h3 class="project-title">ERP IMPLEMENTATION PROJECT</h3>
+                            <div class="project-tags">
+                                <span class="project-tag">SAP</span>
+                                <span class="project-tag">Business Process</span>
+                                <span class="project-tag">Data Integration</span>
+                            </div>
+                        </div>
+                        <a href="https://github.com/smk37git/erp-project" class="repo-link">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="project-description">
+                        <p>
+                            As part of my IT coursework, I designed and implemented a mock ERP system for a fictional manufacturing company. The project involved analyzing business requirements, mapping processes, and configuring the system to meet specific organizational needs.
+                        </p>
+                        <p>
+                            I focused on integrating key business functions including inventory management, production planning, finance, and human resources. By establishing a centralized database and implementing automated workflows, the system streamlined operations and improved data accuracy.
+                        </p>
+                    </div>
+                    
+                    <div class="project-highlights">
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>End-to-end business process integration</span>
+                        </div>
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Custom reporting dashboards for executive decision-making</span>
+                        </div>
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Automated inventory and production scheduling</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-details">
+                        <h4>Key Accomplishments</h4>
+                        <p>
+                            The project demonstrated my ability to understand complex business requirements and translate them into technical solutions. I created a system that reduced manual data entry by 60% and provided real-time visibility into operations, enabling better decision-making.
+                        </p>
+                        <p>
+                            I implemented role-based access controls to ensure data security while facilitating cross-departmental collaboration. The reporting module I developed allowed for customizable metrics tracking and performance analysis.
+                        </p>
+                        
+                        <h4>Technical Implementation</h4>
+                        <p>
+                            The technical architecture included a centralized database, application servers, and web-based user interfaces. I utilized both SQL and NoSQL databases to handle different types of data and implemented API integrations for external systems.
+                        </p>
+                        
+                        <div class="code-snippet">
+                            <pre>
+// Example code for automated inventory threshold alert
+function checkInventoryLevels() {
+  const items = database.query("SELECT * FROM inventory WHERE quantity < reorder_level");
+  
+  items.forEach(item => {
+    notificationSystem.sendAlert({
+      recipient: item.department_manager,
+      subject: `Low Inventory Alert: ${item.product_name}`,
+      message: `Current quantity (${item.quantity}) is below reorder level (${item.reorder_level}).`,
+      priority: 'high'
+    });
+    
+    logEvent(`Inventory alert generated for ${item.product_id}`);
+  });
+}</pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-image">
+                    <img src="{% static 'images/erp_project.jpg' %}" alt="ERP System Dashboard">
+                </div>
+            </div>
+        </section>
+        
+        <!-- Project 2: Network Security Project -->
+        <section class="featured-projects second-project">
+            <div class="section-header">
+                <h2 class="section-title">NETWORK SECURITY TOPOLOGY</h2>
+                <p class="section-subtitle">Designing secure network architecture for enterprise environments</p>
+            </div>
+            
+            <div class="project-card reverse">
+                <div class="project-content">
+                    <div class="project-header">
+                        <div class="project-title-container">
+                            <h3 class="project-title">SECURE NETWORK DESIGN PROJECT</h3>
+                            <div class="project-tags">
+                                <span class="project-tag">Cybersecurity</span>
+                                <span class="project-tag">Firewalls</span>
+                                <span class="project-tag">VLAN</span>
+                            </div>
+                        </div>
+                        <a href="https://github.com/smk37git/network-security" class="repo-link">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="project-description">
+                        <p>
+                            For my Network Security course, I designed a comprehensive network topology for a medium-sized enterprise with multiple departments and varying security requirements. The project focused on implementing defense-in-depth strategies while maintaining operational efficiency.
+                        </p>
+                        <p>
+                            I created a segmented network architecture using VLANs to isolate sensitive departments like finance and R&D. The design included redundant firewalls, intrusion detection systems, and secure remote access solutions to protect against both external and internal threats.
+                        </p>
+                    </div>
+                    
+                    <div class="project-highlights">
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Multi-layered security architecture with defense-in-depth approach</span>
+                        </div>
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Automated threat detection and response systems</span>
+                        </div>
+                        <div class="highlight">
+                            <i class="fas fa-star"></i>
+                            <span>Comprehensive security policies and access controls</span>
+                        </div>
+                    </div>
+                    
+                    <div class="project-details">
+                        <h4>Security Features</h4>
+                        <p>
+                            The topology included multiple security zones with varying levels of protection based on data sensitivity. I implemented next-generation firewalls with deep packet inspection, network traffic analysis tools, and a centralized logging system for security event monitoring.
+                        </p>
+                        
+                        <h4>Disaster Recovery</h4>
+                        <p>
+                            The design incorporated redundant systems and failover capabilities to ensure business continuity in case of security incidents or hardware failures. I created detailed incident response procedures and regular backup strategies for critical systems and data.
+                        </p>
+                        
+                        <div class="code-snippet">
+                            <pre>
+# Example Cisco ASA firewall configuration for DMZ segment
+interface GigabitEthernet0/1
+ nameif dmz
+ security-level 50
+ ip address 192.168.10.1 255.255.255.0
+
+access-list dmz_access extended permit tcp any host 192.168.10.15 eq www
+access-list dmz_access extended permit tcp any host 192.168.10.15 eq https
+access-list dmz_access extended deny ip any any log
+
+access-group dmz_access in interface dmz</pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="project-image">
+                    <img src="{% static 'images/network_security.jpg' %}" alt="Network Security Topology Diagram">
+                </div>
+            </div>
+        </section>
+        
+        <!-- Learning Outcomes Section -->
+        <section class="outcomes-section">
+            <div class="section-header">
+                <h2 class="section-title">LEARNING OUTCOMES</h2>
+                <p class="section-subtitle">Skills and knowledge gained from these projects</p>
+            </div>
+            
+            <div class="outcomes-grid">
+                <div class="outcome-card">
+                    <div class="outcome-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h3 class="outcome-title">Systems Architecture</h3>
+                    <p class="outcome-desc">
+                        Developed skills in designing scalable and secure IT infrastructures that align with business requirements. Learned to balance performance, security, and usability in complex systems.
+                    </p>
+                </div>
+                
+                <div class="outcome-card">
+                    <div class="outcome-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="outcome-title">Security Implementation</h3>
+                    <p class="outcome-desc">
+                        Gained hands-on experience implementing various security controls, from network segmentation to access management. Developed an understanding of security best practices and threat mitigation.
+                    </p>
+                </div>
+                
+                <div class="outcome-card">
+                    <div class="outcome-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3 class="outcome-title">Business Process Optimization</h3>
+                    <p class="outcome-desc">
+                        Learned to analyze workflows and identify opportunities for automation and efficiency improvements. Developed skills in translating business needs into technical requirements.
+                    </p>
+                </div>
+                
+                <div class="outcome-card">
+                    <div class="outcome-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="outcome-title">Cross-functional Collaboration</h3>
+                    <p class="outcome-desc">
+                        Strengthened ability to work with stakeholders from different departments and technical backgrounds. Improved communication skills for explaining complex technical concepts.
+                    </p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Contact CTA Section -->
+        <section class="contact-cta">
+            <div class="cta-content">
+                <h2>INTERESTED IN MY IT EXPERTISE?</h2>
+                <p>I'm always open to discussing IT projects, security implementations, or opportunities to collaborate on technical solutions.</p>
+                <div class="cta-buttons">
+                    <a href="{% url 'contact' %}" class="cta-button primary">GET IN TOUCH</a>
+                    <a href="{% url 'PORTFOLIO:portfolio' %}" class="cta-button">VIEW PORTFOLIO</a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add animation classes when elements come into view
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+            
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+            
+            document.querySelectorAll('.project-card, .outcome-card').forEach(item => {
+                observer.observe(item);
+            });
+        });
+    </script>
+{% endblock %}
