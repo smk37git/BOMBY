@@ -21,6 +21,7 @@
 }
 
 .hero-content {
+    margin-top: 25px;
     max-width: 800px;
     padding: 3rem;
     z-index: 2;
