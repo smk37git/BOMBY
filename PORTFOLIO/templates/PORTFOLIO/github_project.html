@@ -64,7 +64,10 @@
                 </div>
             </div>
 
-            <a href="{% url 'PORTFOLIO:portfolio' %}" class="github-profile-link" style="margin-bottom: -300px;">Back to Portfolio</a>
+            <a href="{% url 'PORTFOLIO:portfolio' %}" class="github-profile-link">
+                <i class="fas fa-arrow-left"></i> Back to Portfolio
+            </a>
+
         </section>
         
         <!-- Featured Projects Section -->
@@ -120,7 +123,7 @@
                     </div>
                 </div>
                 <div class="project-image">
-                    <img src="{% static 'images/1.jpg' %}" alt="Django Analytics Dashboard">
+                    <img src="{% static 'images/BOMBY.jpg' %}" alt="Bomby Project" style="overflow-x: visible; transform: scaleX(85%);">
                 </div>
             </div>
             
@@ -171,7 +174,7 @@
                     </div>
                 </div>
                 <div class="project-image">
-                    <img src="{% static 'images/2.jpg' %}" alt="React Component Library">
+                    <img src="{% static 'images/INFOTC-2040.jpg' %}" alt="React Component Library">
                 </div>
             </div>
             
@@ -221,7 +224,7 @@
                     </div>
                 </div>
                 <div class="project-image">
-                    <img src="{% static 'images/3.jpg' %}" alt="CLI Task Manager">
+                    <img src="{% static 'images/SIGMA_PHI_DELTA.png' %}" alt="CLI Task Manager" style="transform: scale(60%); overflow: visible;">
                 </div>
             </div>
         </section>
@@ -358,10 +361,7 @@
             <div class="cta-content">
                 <h2>INTERESTED IN WORKING TOGETHER?</h2>
                 <p>I'm always open to discussing new projects, creative ideas or opportunities to be part of your vision.</p>
-                <div class="cta-buttons">
-                    <a href="{% url 'contact' %}" class="cta-button primary">GET IN TOUCH</a>
-                    <a href="https://github.com/smk37git" class="cta-button">VISIT GITHUB</a>
-                </div>
+                <a href="{% url 'contact' %}" class="cta-button">GET IN TOUCH</a>
             </div>
         </section>
     </div>

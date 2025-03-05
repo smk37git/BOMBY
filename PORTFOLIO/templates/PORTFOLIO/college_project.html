@@ -17,9 +17,11 @@
             <div class="hero-content">
                 <h1 class="hero-title">IT PROJECTS</h1>
                 <p class="hero-subtitle">Enterprise Resource Planning & Network Security</p>
-                <a href="{% url 'PORTFOLIO:portfolio' %}" class="github-profile-link">
-                    <i class="fas fa-arrow-left"></i> Back to Portfolio
-                </a>
+                <div class="portfolio-link-container">
+                    <a href="{% url 'PORTFOLIO:portfolio' %}" class="portfolio-link">
+                        <i class="fas fa-arrow-left"></i> Back to Portfolio
+                    </a>
+                </div>
             </div>
         </section>
         
@@ -41,71 +43,53 @@
                                 <span class="project-tag">Data Integration</span>
                             </div>
                         </div>
-                        <a href="https://github.com/smk37git/erp-project" class="repo-link">
-                            <i class="fab fa-github"></i>
-                        </a>
                     </div>
                     
                     <div class="project-description">
                         <p>
-                            As part of my IT coursework, I designed and implemented a mock ERP system for a fictional manufacturing company. The project involved analyzing business requirements, mapping processes, and configuring the system to meet specific organizational needs.
+                            For my Enterprise Resource Planning course (ISC-21300), I worked with a team to develop a comprehensive ERP service proposal for Lindenwood Ledgers. We analyzed on-site vs. cloud storage options for the company's data management needs, considering factors like security, cost, accessibility, and scalability.
                         </p>
                         <p>
-                            I focused on integrating key business functions including inventory management, production planning, finance, and human resources. By establishing a centralized database and implementing automated workflows, the system streamlined operations and improved data accuracy.
+                            Our team ultimately recommended moving the company's data to the cloud based on benefits including improved accessibility, compliance with data management laws, easier information sharing, and cost-effectiveness. We detailed the procedures for securing information systems, covering both digital practices and employee training.
                         </p>
+                    </div>
+                    
+                    <div class="project-image-container">
+                        <div class="project-image-frame">
+                            <img src="{% static 'images/ERP_Flowchart.jpg' %}" alt="ERP System Diagram" class="project-diagram">
+                            <div class="image-caption">ERP System Diagram - Cloud vs. On-Site Storage</div>
+                        </div>
                     </div>
                     
                     <div class="project-highlights">
                         <div class="highlight">
                             <i class="fas fa-star"></i>
-                            <span>End-to-end business process integration</span>
+                            <span>Comprehensive analysis of cloud vs. on-site storage solutions</span>
                         </div>
                         <div class="highlight">
                             <i class="fas fa-star"></i>
-                            <span>Custom reporting dashboards for executive decision-making</span>
+                            <span>Detailed security implementation plans for cloud migration</span>
                         </div>
                         <div class="highlight">
                             <i class="fas fa-star"></i>
-                            <span>Automated inventory and production scheduling</span>
+                            <span>Integration of business information systems and big data analytics</span>
                         </div>
                     </div>
                     
                     <div class="project-details">
                         <h4>Key Accomplishments</h4>
                         <p>
-                            The project demonstrated my ability to understand complex business requirements and translate them into technical solutions. I created a system that reduced manual data entry by 60% and provided real-time visibility into operations, enabling better decision-making.
+                            Our team produced a comprehensive ERP proposal that evaluated both cloud and on-site storage options, ultimately recommending cloud storage for its scalability and accessibility advantages. We detailed specific procedures for securing information systems, covering both technical implementation and employee training.
                         </p>
                         <p>
-                            I implemented role-based access controls to ensure data security while facilitating cross-departmental collaboration. The reporting module I developed allowed for customizable metrics tracking and performance analysis.
+                            We explored key concepts including business information systems, big data analytics, automation with AI and machine learning, strategic planning, and ethics in data management. The project demonstrated our ability to evaluate complex technical requirements and develop tailored solutions.
                         </p>
                         
-                        <h4>Technical Implementation</h4>
+                        <h4>Technical Considerations</h4>
                         <p>
-                            The technical architecture included a centralized database, application servers, and web-based user interfaces. I utilized both SQL and NoSQL databases to handle different types of data and implemented API integrations for external systems.
+                            Our proposal included detailed evaluations of hardware, software, database management systems, and data management practices. We emphasized the importance of security measures including strong passwords, two-factor authentication, and data encryption. We also addressed the need for specialized personnel such as Data Analysts and Database Administrators.
                         </p>
-                        
-                        <div class="code-snippet">
-                            <pre>
-// Example code for automated inventory threshold alert
-function checkInventoryLevels() {
-  const items = database.query("SELECT * FROM inventory WHERE quantity < reorder_level");
-  
-  items.forEach(item => {
-    notificationSystem.sendAlert({
-      recipient: item.department_manager,
-      subject: `Low Inventory Alert: ${item.product_name}`,
-      message: `Current quantity (${item.quantity}) is below reorder level (${item.reorder_level}).`,
-      priority: 'high'
-    });
-    
-    logEvent(`Inventory alert generated for ${item.product_id}`);
-  });
-}</pre>
-                        </div>
                     </div>
-                </div>
-                <div class="project-image">
-                    <img src="{% static 'images/erp_project.jpg' %}" alt="ERP System Dashboard">
                 </div>
             </div>
         </section>
@@ -117,7 +101,7 @@ function checkInventoryLevels() {
                 <p class="section-subtitle">Designing secure network architecture for enterprise environments</p>
             </div>
             
-            <div class="project-card reverse">
+            <div class="project-card">
                 <div class="project-content">
                     <div class="project-header">
                         <div class="project-title-container">
@@ -128,114 +112,53 @@ function checkInventoryLevels() {
                                 <span class="project-tag">VLAN</span>
                             </div>
                         </div>
-                        <a href="https://github.com/smk37git/network-security" class="repo-link">
-                            <i class="fab fa-github"></i>
-                        </a>
                     </div>
                     
                     <div class="project-description">
                         <p>
-                            For my Network Security course, I designed a comprehensive network topology for a medium-sized enterprise with multiple departments and varying security requirements. The project focused on implementing defense-in-depth strategies while maintaining operational efficiency.
+                            For my Network Security course (ICS-21400), I collaborated with a team to develop a comprehensive network security proposal for Lindenwood University's IT department. Our task was to identify critical security weaknesses and vulnerabilities within the network perimeter and provide recommendations to reinforce or replace the existing security system.
                         </p>
                         <p>
-                            I created a segmented network architecture using VLANs to isolate sensitive departments like finance and R&D. The design included redundant firewalls, intrusion detection systems, and secure remote access solutions to protect against both external and internal threats.
+                            We conducted a thorough analysis of different firewall technologies, network types, and topologies to create a robust security infrastructure. Our proposal included detailed recommendations on implementing packet filtering firewalls, Next Generation Firewalls (NGFW), and Unified Threat Management (UTM) systems to protect the university's network from unauthorized access and cyber threats.
                         </p>
+                    </div>
+                    
+                    <div class="project-image-container">
+                        <div class="project-image-frame">
+                            <img src="{% static 'images/Network_Topology.jpg' %}" alt="Network Security Topology" class="project-diagram">
+                            <div class="image-caption">Network Security Topology - Campus Network Design</div>
+                        </div>
                     </div>
                     
                     <div class="project-highlights">
                         <div class="highlight">
                             <i class="fas fa-star"></i>
-                            <span>Multi-layered security architecture with defense-in-depth approach</span>
+                            <span>In-depth analysis of firewall technologies based on NIST guidelines</span>
                         </div>
                         <div class="highlight">
                             <i class="fas fa-star"></i>
-                            <span>Automated threat detection and response systems</span>
+                            <span>Evaluation of network types including LAN, WLAN, WAN, and CAN</span>
                         </div>
                         <div class="highlight">
                             <i class="fas fa-star"></i>
-                            <span>Comprehensive security policies and access controls</span>
+                            <span>Comparison of network topologies including bus, star, and mesh</span>
                         </div>
                     </div>
                     
                     <div class="project-details">
-                        <h4>Security Features</h4>
+                        <h4>Firewall Technologies</h4>
                         <p>
-                            The topology included multiple security zones with varying levels of protection based on data sensitivity. I implemented next-generation firewalls with deep packet inspection, network traffic analysis tools, and a centralized logging system for security event monitoring.
+                            Our proposal detailed various firewall technologies, with a focus on packet filtering firewalls that control traffic flow by analyzing protocol numbers, IP addresses, and ports. We explained how these firewalls operate at layers 3 and 4 of the OSI model and how they can be enhanced with stateful inspection to track connected packets.
+                        </p>
+                        <p>
+                            We recommended implementing Next Generation Firewalls (NGFW) for traffic inspection and application awareness, along with Unified Threat Management (UTM) devices to guard against various threats including viruses, malware, and spam.
                         </p>
                         
-                        <h4>Disaster Recovery</h4>
+                        <h4>Network Infrastructure</h4>
                         <p>
-                            The design incorporated redundant systems and failover capabilities to ensure business continuity in case of security incidents or hardware failures. I created detailed incident response procedures and regular backup strategies for critical systems and data.
+                            We analyzed campus area networks (CAN) as the most suitable option for Lindenwood University's 500-acre campus. Our proposal included recommendations for physical and logical topology, with a focus on star and mesh configurations to provide redundancy and fault tolerance. We also provided specifications for Ethernet standards, cabling, and network devices.
                         </p>
-                        
-                        <div class="code-snippet">
-                            <pre>
-# Example Cisco ASA firewall configuration for DMZ segment
-interface GigabitEthernet0/1
- nameif dmz
- security-level 50
- ip address 192.168.10.1 255.255.255.0
-
-access-list dmz_access extended permit tcp any host 192.168.10.15 eq www
-access-list dmz_access extended permit tcp any host 192.168.10.15 eq https
-access-list dmz_access extended deny ip any any log
-
-access-group dmz_access in interface dmz</pre>
-                        </div>
                     </div>
-                </div>
-                <div class="project-image">
-                    <img src="{% static 'images/network_security.jpg' %}" alt="Network Security Topology Diagram">
-                </div>
-            </div>
-        </section>
-        
-        <!-- Learning Outcomes Section -->
-        <section class="outcomes-section">
-            <div class="section-header">
-                <h2 class="section-title">LEARNING OUTCOMES</h2>
-                <p class="section-subtitle">Skills and knowledge gained from these projects</p>
-            </div>
-            
-            <div class="outcomes-grid">
-                <div class="outcome-card">
-                    <div class="outcome-icon">
-                        <i class="fas fa-project-diagram"></i>
-                    </div>
-                    <h3 class="outcome-title">Systems Architecture</h3>
-                    <p class="outcome-desc">
-                        Developed skills in designing scalable and secure IT infrastructures that align with business requirements. Learned to balance performance, security, and usability in complex systems.
-                    </p>
-                </div>
-                
-                <div class="outcome-card">
-                    <div class="outcome-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <h3 class="outcome-title">Security Implementation</h3>
-                    <p class="outcome-desc">
-                        Gained hands-on experience implementing various security controls, from network segmentation to access management. Developed an understanding of security best practices and threat mitigation.
-                    </p>
-                </div>
-                
-                <div class="outcome-card">
-                    <div class="outcome-icon">
-                        <i class="fas fa-cogs"></i>
-                    </div>
-                    <h3 class="outcome-title">Business Process Optimization</h3>
-                    <p class="outcome-desc">
-                        Learned to analyze workflows and identify opportunities for automation and efficiency improvements. Developed skills in translating business needs into technical requirements.
-                    </p>
-                </div>
-                
-                <div class="outcome-card">
-                    <div class="outcome-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3 class="outcome-title">Cross-functional Collaboration</h3>
-                    <p class="outcome-desc">
-                        Strengthened ability to work with stakeholders from different departments and technical backgrounds. Improved communication skills for explaining complex technical concepts.
-                    </p>
                 </div>
             </div>
         </section>
@@ -243,12 +166,9 @@ access-group dmz_access in interface dmz</pre>
         <!-- Contact CTA Section -->
         <section class="contact-cta">
             <div class="cta-content">
-                <h2>INTERESTED IN MY IT EXPERTISE?</h2>
-                <p>I'm always open to discussing IT projects, security implementations, or opportunities to collaborate on technical solutions.</p>
-                <div class="cta-buttons">
-                    <a href="{% url 'contact' %}" class="cta-button primary">GET IN TOUCH</a>
-                    <a href="{% url 'PORTFOLIO:portfolio' %}" class="cta-button">VIEW PORTFOLIO</a>
-                </div>
+                <h2>INTERESTED IN WORKING TOGETHER?</h2>
+                <p>I'm always open to discussing new projects, creative ideas or opportunities to be part of your vision.</p>
+                <a href="{% url 'contact' %}" class="cta-button">GET IN TOUCH</a>
             </div>
         </section>
     </div>

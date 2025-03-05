@@ -23,16 +23,18 @@
                 </p>
                 
                 <div class="hero-cta">
+                    <a href="{% url 'PORTFOLIO:portfolio' %}" class="hero-button">
+                        <i class="fas fa-arrow-left"></i> Back to Portfolio
+                    </a>
                     <a href="{% url 'home' %}" class="hero-button primary">View Live</a>
                     <a href="https://github.com/smk37git/BOMBY" class="hero-button">GitHub Repo</a>
-                    <a href="{% url 'PORTFOLIO:portfolio' %}" class="hero-button">Back to Portfolio</a>
                 </div>
             </div>
             
             <!-- Right Side - Gallery -->
             <div class="hero-gallery-side">
                 <div class="project-featured-image">
-                    <img src="{% static 'images/1.jpg' %}" alt="Project Name" class="featured-image" id="featuredImage">
+                    <img src="{% static 'images/BOMBY.jpg' %}" alt="Project Name" class="featured-image" id="featuredImage">
                 </div>
                 
                 <div class="gallery-thumbnails">
