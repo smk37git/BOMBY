@@ -172,7 +172,6 @@ def update_promo_links(request):
         
         # Allow 0-2 links
         if len(promo_links) <= 2:
-            # If using a JSON field (assuming you've added this to your User model)
             request.user.promo_links = promo_links
             request.user.save()
         else:

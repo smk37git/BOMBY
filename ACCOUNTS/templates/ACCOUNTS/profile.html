@@ -85,8 +85,13 @@
                 <h2>Social Links</h2>
             </div>
             <div class="social-links">
-                {% if profile_user.youtube_link or profile_user.twitch_link or profile_user.github_link or profile_user.twitter_link or profile_user.kick_link or profile_user.instagram_link %}
-                    {% if profile_user.youtube_link %}
+                {% if profile_user.youtube_link_1 or profile_user.youtube_link_2 or profile_user.twitch_link or profile_user.github_link or profile_user.twitter_link or profile_user.kick_link or profile_user.instagram_link %}
+                    {% if profile_user.youtube_link_1 %}
+                        <a href="{{ profile_user.youtube_link }}" target="_blank" class="social-link youtube">
+                            <i class="fab fa-youtube"></i> YouTube
+                        </a>
+                    {% endif %}
+                    {% if profile_user.youtube_link_2 %}
                         <a href="{{ profile_user.youtube_link }}" target="_blank" class="social-link youtube">
                             <i class="fab fa-youtube"></i> YouTube
                         </a>

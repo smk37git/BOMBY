@@ -104,16 +104,31 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="{{ form.youtube_link.id_for_label }}">
-                        <i class="fab fa-youtube"></i> YouTube Link
+                    <label for="{{ form.youtube_link_1.id_for_label }}">
+                        <i class="fab fa-youtube"></i> YouTube Link 1
                     </label>
                     <div class="form-input">
-                        {{ form.youtube_link }}
+                        {{ form.youtube_link_1 }}
                     </div>
                     <div class="validation-popup" id="youtube-validation-popup"></div>
-                    {% if form.youtube_link.errors %}
+                    {% if form.youtube_link_1.errors %}
                         <div class="messages">
-                            <p class="message error">{{ form.youtube_link.errors }}</p>
+                            <p class="message error">{{ form.youtube_link_1.errors }}</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.youtube_link_2.id_for_label }}">
+                        <i class="fab fa-youtube"></i> YouTube Link 2
+                    </label>
+                    <div class="form-input">
+                        {{ form.youtube_link_2 }}
+                    </div>
+                    <div class="validation-popup" id="youtube-validation-popup"></div>
+                    {% if form.youtube_link_2.errors %}
+                        <div class="messages">
+                            <p class="message error">{{ form.youtube_link_2.errors }}</p>
                         </div>
                     {% endif %}
                 </div>
@@ -361,7 +376,12 @@
         // Social link validation
         const socialLinks = [
             { 
-                input: document.getElementById('id_youtube_link'), 
+                input: document.getElementById('id_youtube_link_1'), 
+                popup: document.getElementById('youtube-validation-popup'),
+                regex: /^https?:\/\/(www\.)?(youtube\.com\/(channel\/|c\/|@|user\/)|youtu\.be\/)/
+            },
+            { 
+                input: document.getElementById('id_youtube_link_2'), 
                 popup: document.getElementById('youtube-validation-popup'),
                 regex: /^https?:\/\/(www\.)?(youtube\.com\/(channel\/|c\/|@|user\/)|youtu\.be\/)/
             },

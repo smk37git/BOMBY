@@ -50,7 +50,8 @@ class User(AbstractUser):
     bio = models.TextField(max_length = 500, blank=True, null=True, validators=[validate_clean_content])
     
     # Social links
-    youtube_link = models.URLField(max_length=255, blank=True, null=True)
+    youtube_link_1 = models.URLField(max_length=255, blank=True, null=True)
+    youtube_link_2 = models.URLField(max_length=255, blank=True, null=True)
     twitch_link = models.URLField(max_length=255, blank=True, null=True)
     github_link = models.URLField(max_length=255, blank=True, null=True)
     twitter_link = models.URLField(max_length=255, blank=True, null=True)

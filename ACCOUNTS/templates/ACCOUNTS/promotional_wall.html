@@ -49,10 +49,18 @@
                 <div class="user-socials">
                     {% if user.promo_links %}
                         {% for link_type in user.promo_links %}
-                            {% if link_type == 'youtube' and user.youtube_link %}
-                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                    <i class="fab fa-youtube"></i> YouTube
-                                </a>
+                            {% if link_type == 'youtube' %}
+                                {% if user.youtube_link_1 %}
+                                    <a href="{{ user.youtube_link_1 }}" target="_blank" class="social-link youtube">
+                                        <i class="fab fa-youtube"></i> YouTube
+                                    </a>
+                                {% endif %}
+                            {% elif link_type == 'youtube2' %}
+                                {% if user.youtube_link_2 %}
+                                    <a href="{{ user.youtube_link_2 }}" target="_blank" class="social-link youtube">
+                                        <i class="fab fa-youtube"></i> YouTube 2
+                                    </a>
+                                {% endif %}
                             {% elif link_type == 'twitch' and user.twitch_link %}
                                 <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
                                     <i class="fab fa-twitch"></i> Twitch
@@ -75,17 +83,6 @@
                                 </a>
                             {% endif %}
                         {% endfor %}
-                    {% elif user.youtube_link or user.twitch_link %}
-                        {% if user.youtube_link %}
-                            <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                <i class="fab fa-youtube"></i> YouTube
-                            </a>
-                        {% endif %}
-                        {% if user.twitch_link %}
-                            <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                <i class="fab fa-twitch"></i> Twitch
-                            </a>
-                        {% endif %}
                     {% else %}
                         <p class="no-socials">No social links</p>
                     {% endif %}
@@ -126,10 +123,18 @@
                 <div class="user-socials">
                     {% if user.promo_links %}
                         {% for link_type in user.promo_links %}
-                            {% if link_type == 'youtube' and user.youtube_link %}
-                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                    <i class="fab fa-youtube"></i> YouTube
-                                </a>
+                            {% if link_type == 'youtube' %}
+                                {% if user.youtube_link_1 %}
+                                    <a href="{{ user.youtube_link_1 }}" target="_blank" class="social-link youtube">
+                                        <i class="fab fa-youtube"></i> YouTube
+                                    </a>
+                                {% endif %}
+                            {% elif link_type == 'youtube2' %}
+                                {% if user.youtube_link_2 %}
+                                    <a href="{{ user.youtube_link_2 }}" target="_blank" class="social-link youtube">
+                                        <i class="fab fa-youtube"></i> YouTube 2
+                                    </a>
+                                {% endif %}
                             {% elif link_type == 'twitch' and user.twitch_link %}
                                 <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
                                     <i class="fab fa-twitch"></i> Twitch
@@ -152,17 +157,6 @@
                                 </a>
                             {% endif %}
                         {% endfor %}
-                    {% elif user.youtube_link or user.twitch_link %}
-                        {% if user.youtube_link %}
-                            <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                <i class="fab fa-youtube"></i> YouTube
-                            </a>
-                        {% endif %}
-                        {% if user.twitch_link %}
-                            <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                <i class="fab fa-twitch"></i> Twitch
-                            </a>
-                        {% endif %}
                     {% else %}
                         <p class="no-socials">No social links</p>
                     {% endif %}
@@ -203,10 +197,18 @@
                 <div class="user-socials">
                     {% if user.promo_links %}
                         {% for link_type in user.promo_links %}
-                            {% if link_type == 'youtube' and user.youtube_link %}
-                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                    <i class="fab fa-youtube"></i> YouTube
-                                </a>
+                            {% if link_type == 'youtube' %}
+                                {% if user.youtube_link_1 %}
+                                    <a href="{{ user.youtube_link_1 }}" target="_blank" class="social-link youtube">
+                                        <i class="fab fa-youtube"></i> YouTube
+                                    </a>
+                                {% endif %}
+                            {% elif link_type == 'youtube2' %}
+                                {% if user.youtube_link_2 %}
+                                    <a href="{{ user.youtube_link_2 }}" target="_blank" class="social-link youtube">
+                                        <i class="fab fa-youtube"></i> YouTube 2
+                                    </a>
+                                {% endif %}
                             {% elif link_type == 'twitch' and user.twitch_link %}
                                 <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
                                     <i class="fab fa-twitch"></i> Twitch
@@ -229,17 +231,6 @@
                                 </a>
                             {% endif %}
                         {% endfor %}
-                    {% elif user.youtube_link or user.twitch_link %}
-                        {% if user.youtube_link %}
-                            <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                <i class="fab fa-youtube"></i> YouTube
-                            </a>
-                        {% endif %}
-                        {% if user.twitch_link %}
-                            <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                <i class="fab fa-twitch"></i> Twitch
-                            </a>
-                        {% endif %}
                     {% else %}
                         <p class="no-socials">No social links</p>
                     {% endif %}
@@ -280,10 +271,18 @@
                 <div class="user-socials">
                     {% if user.promo_links %}
                         {% for link_type in user.promo_links %}
-                            {% if link_type == 'youtube' and user.youtube_link %}
-                                <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                    <i class="fab fa-youtube"></i> YouTube
-                                </a>
+                            {% if link_type == 'youtube' %}
+                                {% if user.youtube_link_1 %}
+                                    <a href="{{ user.youtube_link_1 }}" target="_blank" class="social-link youtube">
+                                        <i class="fab fa-youtube"></i> YouTube
+                                    </a>
+                                {% endif %}
+                            {% elif link_type == 'youtube2' %}
+                                {% if user.youtube_link_2 %}
+                                    <a href="{{ user.youtube_link_2 }}" target="_blank" class="social-link youtube">
+                                        <i class="fab fa-youtube"></i> YouTube 2
+                                    </a>
+                                {% endif %}
                             {% elif link_type == 'twitch' and user.twitch_link %}
                                 <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
                                     <i class="fab fa-twitch"></i> Twitch
@@ -306,17 +305,6 @@
                                 </a>
                             {% endif %}
                         {% endfor %}
-                    {% elif user.youtube_link or user.twitch_link %}
-                        {% if user.youtube_link %}
-                            <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                <i class="fab fa-youtube"></i> YouTube
-                            </a>
-                        {% endif %}
-                        {% if user.twitch_link %}
-                            <a href="{{ user.twitch_link }}" target="_blank" class="social-link twitch">
-                                <i class="fab fa-twitch"></i> Twitch
-                            </a>
-                        {% endif %}
                     {% else %}
                         <p class="no-socials">No social links</p>
                     {% endif %}

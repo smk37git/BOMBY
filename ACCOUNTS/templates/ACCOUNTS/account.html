@@ -17,6 +17,11 @@
         <h1 class="profile-title">My Account</h1>
     </div>
     
+    <!-- Success message -->
+    <div id="promo-success" class="message success">
+        Promotional links updated successfully!
+    </div>
+
     <div class="profile-content">
         <div class="profile-section">
             <div class="section-header">
@@ -102,10 +107,15 @@
             <div class="profile-section">
                 <h3>Social Links</h3>
                 <div class="social-links">
-                    {% if user.youtube_link or user.twitch_link or user.github_link or user.twitter_link or user.kick_link or user.instagram_link %}
-                        {% if user.youtube_link %}
-                            <a href="{{ user.youtube_link }}" target="_blank" class="social-link youtube">
-                                <i class="fab fa-youtube"></i> YouTube
+                    {% if user.youtube_link_1 or user.youtube_link_2 or user.twitch_link or user.github_link or user.twitter_link or user.kick_link or user.instagram_link %}
+                        {% if user.youtube_link_1 %}
+                            <a href="{{ user.youtube_link_1 }}" target="_blank" class="social-link youtube">
+                                <i class="fab fa-youtube"></i> YouTube 1
+                            </a>
+                        {% endif %}
+                        {% if user.youtube_link_2 %}
+                            <a href="{{ user.youtube_link_2 }}" target="_blank" class="social-link youtube">
+                                <i class="fab fa-youtube"></i> YouTube 2
                             </a>
                         {% endif %}
                         {% if user.twitch_link %}
@@ -143,15 +153,32 @@
                 <h3>Promotional Wall Links</h3>
                 <p class="promo-instructions" style="margin-top: 10px; color: white;">Select up to 2 social links to display on the promotional wall.</p>
                 <p class="promo-instructions" style="margin-top: 10px; color: white;">Don't worry, your other social links will still show on your profile!</p>
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="message {% if message.tags %}{{ message.tags }}{% endif %}" style="background-color: red; color: white; font-size: 20px;">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
                 
                 <form method="post" action="{% url 'ACCOUNTS:update_promo_links' %}" id="promo-links-form">
                     {% csrf_token %}
                     <div class="promo-links-selection">
-                        {% if user.youtube_link %}
+                        {% if user.youtube_link_1 %}
                         <div class="promo-option">
                             <input type="checkbox" id="promo_youtube" name="promo_links" value="youtube" 
                                    {% if 'youtube' in user.promo_links %}checked{% endif %}>
-                            <label for="promo_youtube">YouTube</label>
+                            <label for="promo_youtube">YouTube 1</label>
+                        </div>
+                        {% endif %}
+
+                        {% if user.youtube_link_2 %}
+                        <div class="promo-option">
+                            <input type="checkbox" id="promo_youtube2" name="promo_links" value="youtube2" 
+                                   {% if 'youtube2' in user.promo_links %}checked{% endif %}>
+                            <label for="promo_youtube2">YouTube 2</label>
                         </div>
                         {% endif %}
                         
@@ -197,7 +224,7 @@
                     </div>
                     
                     <div id="promo-warning" class="messages" style="display: none;">
-                        Please select exactly 2 social links for the promotional wall.
+                        Please select up to 2 social links for the promotional wall.
                     </div>
                     
                     <button type="submit" class="action-button">Save Promotional Links</button>
@@ -209,13 +236,14 @@
                     const checkboxes = document.querySelectorAll('input[name="promo_links"]');
                     const warningElement = document.getElementById('promo-warning');
                     const form = document.getElementById('promo-links-form');
+                    const successMsg = document.getElementById('promo-success');
                     
                     // Update warning message and styling
                     function updateWarning() {
                         const checkedCount = document.querySelectorAll('input[name="promo_links"]:checked').length;
                        
                         if (checkedCount > 0) {
-                            warningElement.textContent = `Selected social links: ${checkedCount}`;
+                            warningElement.textContent = `Selected social links: ${checkedCount}/2`;
                             warningElement.style.padding = '10px 15px';
                             warningElement.style.marginBottom = '10px';
                             warningElement.style.borderRadius = '8px';
@@ -227,7 +255,6 @@
                             warningElement.style.opacity = '1';
                             warningElement.style.transition = 'opacity 0.5s ease';
                             warningElement.style.display = 'block';
-
                         } else {
                             warningElement.textContent = `No social links selected!`;
                             warningElement.style.padding = '10px 15px';
@@ -257,6 +284,26 @@
                             updateWarning();
                         });
                     });
+                    
+                    // Form submission handler
+                    form.addEventListener('submit', function(event) {
+                        // Don't prevent default - let form submit normally
+                        localStorage.setItem('showPromoSuccess', 'true');
+                    });
+                    
+                    // Check if success message should be shown
+                    if (localStorage.getItem('showPromoSuccess') === 'true') {
+                        successMsg.style.display = 'block';
+                        localStorage.removeItem('showPromoSuccess');
+                        
+                        // Hide after 5 seconds
+                        setTimeout(function() {
+                            successMsg.style.animation = 'fadeOut 0.5s ease forwards';
+                            setTimeout(function() {
+                                successMsg.style.display = 'none';
+                            }, 500);
+                        }, 5000);
+                    }
                     
                     // Initial warning update
                     updateWarning();
