@@ -9,11 +9,12 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 from django.urls import reverse_lazy
-import os
 from dotenv import load_dotenv
+from google.oauth2 import service_account
+
 
 # Load environment variables from .env file
 load_dotenv(Path(__file__).resolve().parent / '.env')
@@ -46,6 +47,7 @@ INSTALLED_APPS = [
     'MAIN',
     'ACCOUNTS',
     'PORTFOLIO',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -159,3 +161,18 @@ AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 # Image content moderation settings
 ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION', 'False') == 'True'
 IMAGE_MODERATION_CONFIDENCE_THRESHOLD = float(os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD', 85.0))
+
+# Load environment variables
+load_dotenv()
+
+# GCS settings
+GS_BUCKET_NAME = os.getenv('GS_BUCKET_NAME')
+GS_PROJECT_ID = os.getenv('GS_PROJECT_ID')
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    os.path.join(BASE_DIR, os.getenv('GS_CREDENTIALS_FILE_PATH'))
+)
+GS_DEFAULT_ACL = os.getenv('GS_DEFAULT_ACL', None)
+GS_FILE_OVERWRITE = os.getenv('GS_FILE_OVERWRITE', 'False') == 'True'
+
+# Storage backend
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
