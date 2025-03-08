@@ -13,6 +13,23 @@ IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
 echo "Building Docker image..."
 docker build -t $IMAGE_NAME .
 
+# Test the Docker image locally
+echo "Testing Docker image locally..."
+docker run --rm -p 8080:8080 -e PORT=8080 $IMAGE_NAME &
+DOCKER_PID=$!
+
+# Wait for the container to start
+sleep 5
+
+# Test local access
+echo "Testing local access..."
+curl -v http://localhost:8080/
+echo "Testing static file access..."
+curl -v http://localhost:8080/static/test.html
+
+# Stop the local container
+kill $DOCKER_PID
+
 # Configure Docker to use gcloud as a credential helper
 echo "Configuring Docker authentication..."
 gcloud auth configure-docker
@@ -46,10 +63,12 @@ sleep 10
 
 # Check if the website is accessible
 echo "Checking if the website is accessible..."
-curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL
+curl -v $SERVICE_URL
 
 # Check if static files are accessible
 echo "Checking if static files are accessible..."
-curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL/static/admin/css/base.css
+curl -v $SERVICE_URL/static/test.html
+curl -v $SERVICE_URL/static/admin/css/base.css
 
 echo "Deployment verification complete!"
+echo "If you're still having issues with static files, try accessing: $SERVICE_URL/static/test.html in your browser"

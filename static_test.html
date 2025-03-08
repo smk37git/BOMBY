@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Static Files Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            color: #0066cc;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success {
+            background-color: #dff0d8;
+            border: 1px solid #d6e9c6;
+            color: #3c763d;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .error {
+            background-color: #f2dede;
+            border: 1px solid #ebccd1;
+            color: #a94442;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0052a3;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Static Files Test</h1>
+        
+        <div class="success">
+            <p><strong>Success!</strong> If you can see this page with styling, your browser can load HTML files.</p>
+        </div>
+        
+        <h2>Static File Test</h2>
+        <p>This page will help diagnose issues with static files in your Cloud Run deployment.</p>
+        
+        <h3>1. Test CSS Loading</h3>
+        <button onclick="testCssLoading()">Test CSS Loading</button>
+        <div id="cssTestResult"></div>
+        
+        <h3>2. Test Image Loading</h3>
+        <button onclick="testImageLoading()">Test Image Loading</button>
+        <div id="imageTestResult"></div>
+        
+        <h3>3. Browser Information</h3>
+        <pre id="browserInfo"></pre>
+        
+        <h3>4. Request Headers</h3>
+        <pre id="requestHeaders"></pre>
+        
+        <script>
+            // Display browser information
+            document.getElementById('browserInfo').textContent = 
+                'User Agent: ' + navigator.userAgent + '\n' +
+                'Platform: ' + navigator.platform + '\n' +
+                'Cookies Enabled: ' + navigator.cookieEnabled + '\n' +
+                'Current URL: ' + window.location.href;
+            
+            // Test CSS loading
+            function testCssLoading() {
+                const result = document.getElementById('cssTestResult');
+                result.innerHTML = '<p>Testing CSS loading...</p>';
+                
+                // Create a test element with a background image
+                const testElement = document.createElement('div');
+                testElement.style.width = '100px';
+                testElement.style.height = '100px';
+                testElement.style.backgroundColor = 'blue';
+                result.appendChild(testElement);
+                
+                // Try to load a CSS file
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = '/static/admin/css/base.css';
+                link.onload = function() {
+                    result.innerHTML += '<div class="success"><p>Successfully loaded CSS file: /static/admin/css/base.css</p></div>';
+                };
+                link.onerror = function() {
+                    result.innerHTML += '<div class="error"><p>Failed to load CSS file: /static/admin/css/base.css</p></div>';
+                    
+                    // Try with different paths
+                    const paths = [
+                        '/static/css/style.css',
+                        '/staticfiles/admin/css/base.css',
+                        '/media/css/style.css'
+                    ];
+                    
+                    result.innerHTML += '<p>Trying alternative paths:</p>';
+                    const table = document.createElement('table');
+                    table.innerHTML = '<tr><th>Path</th><th>Status</th></tr>';
+                    result.appendChild(table);
+                    
+                    paths.forEach(path => {
+                        const row = document.createElement('tr');
+                        const pathCell = document.createElement('td');
+                        pathCell.textContent = path;
+                        const statusCell = document.createElement('td');
+                        statusCell.textContent = 'Testing...';
+                        row.appendChild(pathCell);
+                        row.appendChild(statusCell);
+                        table.appendChild(row);
+                        
+                        const testLink = document.createElement('link');
+                        testLink.rel = 'stylesheet';
+                        testLink.href = path;
+                        testLink.onload = function() {
+                            statusCell.textContent = 'Success';
+                            statusCell.style.color = 'green';
+                        };
+                        testLink.onerror = function() {
+                            statusCell.textContent = 'Failed';
+                            statusCell.style.color = 'red';
+                        };
+                        document.head.appendChild(testLink);
+                    });
+                };
+                document.head.appendChild(link);
+            }
+            
+            // Test image loading
+            function testImageLoading() {
+                const result = document.getElementById('imageTestResult');
+                result.innerHTML = '<p>Testing image loading...</p>';
+                
+                // Try to load the admin logo
+                const img = document.createElement('img');
+                img.src = '/static/admin/img/icon-yes.svg';
+                img.style.width = '50px';
+                img.style.height = '50px';
+                img.onload = function() {
+                    result.innerHTML += '<div class="success"><p>Successfully loaded image: /static/admin/img/icon-yes.svg</p></div>';
+                    result.appendChild(img);
+                };
+                img.onerror = function() {
+                    result.innerHTML += '<div class="error"><p>Failed to load image: /static/admin/img/icon-yes.svg</p></div>';
+                    
+                    // Try with different paths
+                    const paths = [
+                        '/static/img/logo.png',
+                        '/staticfiles/admin/img/icon-yes.svg',
+                        '/media/img/logo.png'
+                    ];
+                    
+                    result.innerHTML += '<p>Trying alternative paths:</p>';
+                    const table = document.createElement('table');
+                    table.innerHTML = '<tr><th>Path</th><th>Status</th></tr>';
+                    result.appendChild(table);
+                    
+                    paths.forEach(path => {
+                        const row = document.createElement('tr');
+                        const pathCell = document.createElement('td');
+                        pathCell.textContent = path;
+                        const statusCell = document.createElement('td');
+                        statusCell.textContent = 'Testing...';
+                        row.appendChild(pathCell);
+                        row.appendChild(statusCell);
+                        table.appendChild(row);
+                        
+                        const testImg = document.createElement('img');
+                        testImg.src = path;
+                        testImg.style.display = 'none';
+                        testImg.onload = function() {
+                            statusCell.textContent = 'Success';
+                            statusCell.style.color = 'green';
+                            testImg.style.display = 'inline';
+                            testImg.style.width = '20px';
+                            testImg.style.height = '20px';
+                            statusCell.appendChild(testImg);
+                        };
+                        testImg.onerror = function() {
+                            statusCell.textContent = 'Failed';
+                            statusCell.style.color = 'red';
+                        };
+                        document.body.appendChild(testImg);
+                    });
+                };
+                result.appendChild(img);
+            }
+            
+            // Get request headers
+            fetch(window.location.href)
+                .then(response => {
+                    const headers = Array.from(response.headers.entries())
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join('\n');
+                    document.getElementById('requestHeaders').textContent = headers;
+                })
+                .catch(error => {
+                    document.getElementById('requestHeaders').textContent = 'Error fetching headers: ' + error.message;
+                });
+        </script>
+    </div>
+</body>
+</html> 

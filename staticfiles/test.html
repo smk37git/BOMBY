@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Static Files Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #0066cc;
+        }
+        .success {
+            background-color: #dff0d8;
+            border: 1px solid #d6e9c6;
+            color: #3c763d;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Static Files Test</h1>
+    <div class="success">
+        <p><strong>Success!</strong> If you can see this page with styling, Nginx is correctly serving static files.</p>
+    </div>
+    <p>This is a test page to verify that static files are being served correctly by Nginx in your Cloud Run deployment.</p>
+    <p>Current time: <script>document.write(new Date().toLocaleString());</script></p>
+</body>
+</html> 
