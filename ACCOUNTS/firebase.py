@@ -12,6 +12,12 @@ firebase_app = None
 db = None
 
 try:
+    users_ref = db.collection('users')
+except AttributeError:
+    print("Firebase database connection failed", file=sys.stderr)
+    users_ref = None
+
+try:
     # Path to service account credentials
     cred_path = os.path.join(settings.BASE_DIR, 'firebase-credentials.json')
     
