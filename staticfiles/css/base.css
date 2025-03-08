@@ -1,0 +1,340 @@
+body {
+    font-family: Arial, sans-serif;
+    color: white;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+}
+
+/* Navigation bar styles */
+.custom-navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 3rem;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 1px 5px rgba(255, 255, 255, 0.2);
+    box-sizing: border-box;
+}
+
+.nav-brand {
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+    text-decoration: none;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+}
+
+.nav-menu {
+    display: flex;
+    gap: 2rem;
+    align-items: center; /* Add this to vertically align all nav items */
+}
+
+.nav-link {
+    color: white;
+    text-decoration: none;
+    font-size: 1.5rem !important;
+    position: relative;
+    transition: all 0.3s ease;
+    padding: 0.5rem 0.5rem;
+    display: inline-block; /* Ensure consistent display */
+    vertical-align: middle; /* Align items vertically */
+}
+
+.nav-link:hover {
+    color: #f0f0f0;
+}
+
+/* Underline effect on hover */
+.nav-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -5px;
+    left: 0;
+    background-color: white;
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
+
+/* Dropdown Menu Styles */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.dropdown::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 15px; /* Height of the gap */
+    bottom: -15px;
+    left: 0;
+    z-index: 2;
+}
+
+.dropdown-toggle {
+    display: inline-flex; /* Change to inline-flex */
+    align-items: center; /* Center items vertically */
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 4px;
+    margin-top: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    left: 0;
+    top: 100%;
+}
+
+.dropdown-content::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 10px;
+    top: -10px;
+    left: 0;
+}
+
+.custom-navbar .dropdown-content a {
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 1.2rem !important;
+    transition: all 0.2s ease;
+}
+
+.dropdown-content a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.dropdown:hover .dropdown-content,
+.dropdown-content:hover {
+    display: block;
+}
+
+/* Arrow indicator for dropdown */
+.dropdown-arrow {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 0.8em;
+    transition: transform 0.3s ease;
+    color: white;
+    vertical-align: middle;
+    transform: translateY(-1px); /* Slight adjustment for alignment */
+}
+
+.dropdown:hover .dropdown-arrow {
+    transform: rotate(180deg) translateY(1px); /* Adjust rotation center */
+}
+
+/* Main content area with proper spacing for navbar */
+main {
+    padding-top: 80px;
+    min-height: calc(100vh - 150px);
+}
+
+/* Footer styles */
+.base-footer {
+    background-color: black;
+    color: white;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 15px;
+    position: relative;
+    z-index: 10;
+    width: 100%;
+}
+
+.base-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background-image: linear-gradient(to top, rgb(159, 159, 159) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* Admin link in footer */
+.admin-link {
+    display: inline-block;
+    margin-left: 15px;
+    color: #ff5555;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.admin-link:hover {
+    text-decoration: underline;
+}
+
+/* Message notifications */
+.message-container {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    z-index: 1000;
+    width: 300px;
+}
+
+.messages {
+    margin-bottom: 20px;
+}
+
+.message {
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #f8f9fa;
+    color: #333;
+    position: relative;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.message.success {
+    background-color: #00671851;
+    color: #ffffff;
+    border-left: 4px solid #28a745;
+}
+
+.message.error {
+    background-color: #37000556;
+    color: #ffffff;
+    border-left: 4px solid #dc3545;
+}
+
+.message.warning {
+    background-color: #5e4800;
+    color: #ffffff;
+    border-left: 4px solid #ffc107;
+}
+
+.message.info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border-left: 4px solid #17a2b8;
+}
+
+.message-close {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+.message-close:hover {
+    opacity: 1;
+}
+
+/* Mobile navigation toggle button */
+.mobile-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Responsive navigation for mobile devices */
+@media (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+    }
+    
+    .custom-navbar {
+        padding: 1rem;
+    }
+    
+    .mobile-toggle {
+        display: block;
+    }
+    
+    .nav-menu {
+        flex-direction: column;
+        width: 100%;
+        align-items: center;
+        gap: 0.5rem;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease;
+        padding: 0;
+        margin: 0;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background-color: rgba(0, 0, 0, 0.9);
+    }
+    
+    .nav-menu.active {
+        max-height: 500px;
+        padding: 1rem 0;
+    }
+    
+    .nav-link {
+        width: 100%;
+        text-align: center;
+        padding: 0.8rem 0;
+    }
+    
+    .dropdown {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .dropdown-content {
+        position: static;
+        width: 100%;
+        margin: 0 auto;
+        background-color: rgba(0, 0, 0, 0.3);
+        box-shadow: none;
+        border: none;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.5s ease;
+        padding: 0;
+    }
+    
+    .dropdown:hover .dropdown-content,
+    .dropdown:focus .dropdown-content,
+    .dropdown:active .dropdown-content,
+    .dropdown-content.show {
+        max-height: 500px;
+        display: block;
+    }
+    
+    .message-container {
+        width: calc(100% - 40px);
+        top: 80px;
+    }
+}

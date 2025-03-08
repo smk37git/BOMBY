@@ -1,0 +1,324 @@
+/* Enhanced About Page Styling - Fixed Binary Background */
+.about-section {
+    padding: 20px 50px 50px 50px;
+    position: relative;
+    overflow-x: hidden;
+    z-index: 2;
+    min-height: 100vh;
+    margin-top: -140px;
+}
+
+.about-header h1 {
+    text-align: center;
+    font-size: 3.5em;
+    padding: 20px 40px;
+    margin: 100px auto 30px;
+    margin-left: 550px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    width: fit-content;
+    color: white;
+    position: relative;
+    z-index: 4; /* Increased z-index */
+}
+
+.about-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
+    position: relative;
+    z-index: 4; /* Increased z-index */
+}
+
+.about-image {
+    position: relative;
+    width: 300px;
+    height: auto; /* Changed from fixed height to auto */
+    z-index: 4; /* Increased z-index */
+    margin-bottom: 30px; /* Add margin to separate from content below */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.about-image::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: rotate 10s linear infinite;
+    z-index: 1;
+    height: 300px; /* Match the width of the image */
+}
+
+@keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.about-image img {
+    width: 100%;
+    max-width: 300px; /* Ensure image doesn't exceed container */
+    height: 300px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #ffffff;
+    box-shadow: 0 0 20px rgb(255, 255, 255);
+    position: relative;
+    z-index: 2;
+}
+
+.image-title {
+    padding-top: 10px;
+    font-size: 1.5em;
+    color: #ffffff;
+    text-align: center;
+    margin-top: 10px;
+    z-index: 4; /* Increased z-index */
+    position: relative; /* Add position relative */
+    background: transparent; /* Ensure no background is interfering */
+}
+
+.image-email {
+    font-size: 1em;
+    color: #ffffff;
+    text-align: center;
+    margin-top: 5px;
+    margin-bottom: 15px; /* Added space below email */
+    z-index: 4; /* Increased z-index */
+    position: relative; /* Add position relative */
+    background: transparent; /* Ensure no background is interfering */
+}
+
+.about-details {
+    flex: 1;
+    background-color: #0a0a0a;
+    padding: 10px 30px 30px 30px;
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+    z-index: 4; /* Increased z-index */
+}
+
+.about-details h2 {
+    font-size: 2em;
+    margin-top: 20px;
+    color: #ffffff;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+    padding-bottom: 5px;
+}
+
+.about-details p {
+    font-size: 1.1em;
+    margin-top: 10px;
+    color: #ffffff;
+    padding-bottom: 5px;
+}
+
+.about-details ul {
+    list-style-type: none;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.about-details ul li:hover {
+    transform: translateX(10px);
+    transition: transform 0.3s ease;
+}
+
+.section-separator {
+    position: relative;
+    width: 100%;
+    height: 1px;
+    margin-bottom: -1px; /* Negative margin to overlap properly */
+    background: transparent;
+    z-index: 3;
+}
+
+.section-separator::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(to bottom, rgb(159, 159, 159), rgba(255, 255, 255, 0));
+}
+
+.contact-section {
+    position: relative;
+    text-align: center;
+    padding: 20px;
+    padding-top: 30px; /* Reduced top padding */
+    background-color: #0a0a0a;
+    opacity: 1 !important;
+    border-top: none; /* Remove any border */
+    z-index: 2; /* Lower z-index so separator appears on top */
+}
+
+.contact-link {
+    padding: 12px 25px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    margin-bottom: 5px;
+    z-index: 5;
+}
+
+.contact-section h2 {
+    margin-top: 0;
+}
+
+.contact-links {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+    position: relative;
+    z-index: 5; /* Increased z-index */
+    margin-bottom: 0;
+}
+
+.contact-links a {
+    padding: 12px 25px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    margin-bottom: 10px;
+    z-index: 5; /* Increased z-index */
+}
+
+.contact-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+.contact-links a:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    .about-section {
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    .about-section::before,
+    .about-section::after {
+        font-size: 14px;
+        line-height: 1.8;
+        animation-duration: 30s; /* Faster on mobile */
+    }
+    
+    .about-header h1 {
+        font-size: 2.4em;
+        padding: 15px 25px;
+        margin-top: 100px;
+        margin-left: 140px;
+    }
+    
+    .about-content {
+        flex-direction: column;
+        align-items: center;
+        gap: 60px; /* Increased gap for mobile view */
+    }
+    
+    .about-image {
+        margin-bottom: -60px; /* Increased bottom margin */
+        width: 220px; /* Slightly smaller for mobile */
+    }
+    
+    .about-image img {
+        height: 220px; /* Match the width */
+        width: 220px;
+    }
+    
+    .about-image::before {
+        height: 220px; /* Match the new image size */
+    }
+    
+    .image-title {
+        margin-top: 20px; /* More space above the title */
+        font-size: 1.4em; /* Slightly smaller font */
+    }
+    
+    .image-email {
+        margin-top: 10px;
+        margin-bottom: 20px; /* Extra space below email */
+        font-size: 0.9em; /* Slightly smaller font */
+    }
+    
+    .about-details {
+        width: 100%;
+        margin-top: 10px; /* Additional space between image section and details box */
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .about-section {
+        min-height: 100vh;
+        overflow: hidden;
+    }
+
+    .about-section::before,
+    .about-section::after {
+        font-size: 12px;
+        line-height: 1.7;
+        animation-duration: 25s; /* Even faster on smallest devices */
+    }
+    
+    .about-header h1 {
+        font-size: 2em;
+        padding: 12px 20px;
+        margin: 40px auto 20px;
+        margin-top: 20px;
+    }
+    
+    .about-content {
+        gap: 50px; /* Adjust gap for very small screens */
+    }
+    
+    .about-image {
+        width: 180px; /* Even smaller for very small screens */
+    }
+    
+    .about-image img {
+        height: 180px; /* Match the width */
+        width: 180px;
+    }
+    
+    .about-image::before {
+        height: 180px; /* Match the new image size */
+    }
+    
+    .image-title {
+        margin-top: 15px;
+        font-size: 1.3em;
+    }
+    
+    .image-email {
+        font-size: 0.85em;
+        margin-bottom: 15px;
+        word-break: break-all; /* Handle long email addresses */
+    }
+}
