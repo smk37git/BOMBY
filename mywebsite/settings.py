@@ -56,6 +56,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'mywebsite.middleware.StaticFilesMiddleware',
 ]
 
 ROOT_URLCONF = 'mywebsite.urls'
@@ -124,8 +125,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATIC_URL = os.environ.get('STATIC_URL', '/static/')
+STATIC_ROOT = os.environ.get('STATIC_ROOT', os.path.join(BASE_DIR, 'staticfiles'))
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'MAIN/static'),
+    os.path.join(BASE_DIR, 'ACCOUNTS/static'),
+    os.path.join(BASE_DIR, 'PORTFOLIO/static'),
+]
 
 # Media files (User uploads)
 MEDIA_URL = '/media/'
@@ -162,7 +168,7 @@ IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDE
 
 # CSRF Stuff
 CSRF_TRUSTED_ORIGINS = [
-    'https://bomby-799218251279.us-central1.run.app'
+    'https://bomby-799218251279.us-central1.run.app',
     'https://bomby.us'
 ]
 SESSION_COOKIE_SECURE = True

@@ -28,8 +28,28 @@ gcloud run deploy $SERVICE_NAME \
   --platform managed \
   --region $REGION \
   --allow-unauthenticated \
-  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,EMAIL_HOST=smtp.gmail.com,EMAIL_PORT=587,EMAIL_USE_TLS=True,EMAIL_HOST_USER=sebe@gmail.com,AWS_REGION=us-east-1,ENABLE_IMAGE_MODERATION=False,IMAGE_MODERATION_CONFIDENCE_THRESHOLD=85.0" \
+  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,EMAIL_HOST=smtp.gmail.com,EMAIL_PORT=587,EMAIL_USE_TLS=True,EMAIL_HOST_USER=sebe@gmail.com,AWS_REGION=us-east-1,ENABLE_IMAGE_MODERATION=False,IMAGE_MODERATION_CONFIDENCE_THRESHOLD=85.0,STATIC_URL=/static/,STATIC_ROOT=/app/staticfiles" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,EMAIL_HOST_PASSWORD=email-host-password:latest,AWS_ACCESS_KEY_ID=aws-access-key:latest,AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
-  --memory 512Mi
+  --memory 512Mi \
+  --cpu 1 \
+  --concurrency 80 \
+  --max-instances 10
 
-echo "Deployment complete! Your website should be available soon at the URL above."
+# Get the URL of the deployed service
+SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --region $REGION --format="value(status.url)")
+
+echo "Deployment complete! Your website is available at: $SERVICE_URL"
+echo "Verifying deployment..."
+
+# Wait a moment for the service to be fully available
+sleep 10
+
+# Check if the website is accessible
+echo "Checking if the website is accessible..."
+curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL
+
+# Check if static files are accessible
+echo "Checking if static files are accessible..."
+curl -s -o /dev/null -w "%{http_code}" $SERVICE_URL/static/admin/css/base.css
+
+echo "Deployment verification complete!"
