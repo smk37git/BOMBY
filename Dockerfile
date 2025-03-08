@@ -26,6 +26,11 @@ RUN mkdir -p ACCOUNTS/static/media
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
+# After the collectstatic command in Dockerfile
+RUN cp -r MAIN/static/* staticfiles/ || true
+RUN cp -r ACCOUNTS/static/* staticfiles/ || true
+RUN cp -r PORTFOLIO/static/* staticfiles/ || true
+
 # Expose the port
 EXPOSE 8080
 
