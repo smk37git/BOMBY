@@ -22,8 +22,8 @@ COPY . .
 RUN mkdir -p ACCOUNTS/static/media
 
 # Collect static files
-RUN mkdir -p staticfiles
 RUN python manage.py collectstatic --noinput
+RUN chmod -R 755 /app/staticfiles
 
 # Expose the port
 EXPOSE 8080
