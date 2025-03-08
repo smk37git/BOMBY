@@ -9,7 +9,7 @@ import sys
 logger = logging.getLogger(__name__)
 
 # Feature flag - set to False to completely disable Firebase
-USE_FIREBASE = True
+USE_FIREBASE = False
 
 # Initialize variables
 firebase_app = None
