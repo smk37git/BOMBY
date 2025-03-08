@@ -3,6 +3,7 @@ from firebase_admin import credentials, firestore
 from django.conf import settings
 import os
 import logging
+import sys  # Add missing import
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -10,16 +11,13 @@ logger = logging.getLogger(__name__)
 # Initialize variables
 firebase_app = None
 db = None
-
-try:
-    users_ref = db.collection('users')
-except AttributeError:
-    print("Firebase database connection failed", file=sys.stderr)
-    users_ref = None
+users_ref = None
 
 try:
     # Path to service account credentials
-    cred_path = os.path.join(settings.BASE_DIR, 'firebase-credentials.json')
+    cred_path = os.environ.get('FIREBASE_CREDENTIALS_PATH', os.path.join(settings.BASE_DIR, 'firebase-credentials.json'))
+    
+    logger.info(f"Looking for Firebase credentials at: {cred_path}")
     
     if os.path.exists(cred_path):
         cred = credentials.Certificate(cred_path)
@@ -29,18 +27,17 @@ try:
         
         # Get Firestore client
         db = firestore.client()
+        
+        # Initialize the users collection reference
+        users_ref = db.collection('users')
+        
         logger.info("Firebase initialized successfully")
     else:
         logger.error(f"Firebase credentials file not found at: {cred_path}")
 except Exception as e:
     logger.error(f"Firebase initialization error: {str(e)}")
+    print(f"Firebase database connection failed: {str(e)}", file=sys.stderr)
     # Continue without Firebase
-
-# User collection reference
-users_ref = db.collection('users')
-
-# User collection reference
-users_ref = db.collection('users') if db else None
 
 # Helper functions for user operations
 def create_firebase_user(user_data):
