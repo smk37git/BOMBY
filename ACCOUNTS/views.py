@@ -12,12 +12,26 @@ from .moderation import moderate_image_content
 import io
 import boto3
 
+# Import Firestore functions
+from .firebase import create_firebase_user, update_firebase_user, get_firebase_user, delete_firebase_user
+
 # Signup Form
 def signup(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
+            
+            # Create user in Firestore
+            user_data = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'user_type': user.user_type,
+                'promo_links': user.promo_links
+            }
+            create_firebase_user(user_data)
+            
             login(request, user)
             return redirect('ACCOUNTS:account')
     else:
@@ -26,6 +40,8 @@ def signup(request):
 
 @login_required
 def account(request):
+    # You can get Firestore data for additional info if needed
+    # firebase_user_data = get_firebase_user(request.user.id)
     return render(request, 'ACCOUNTS/account.html')
 
 class AdminRequiredMixin(UserPassesTestMixin):
@@ -49,6 +65,9 @@ def profile_view(request, username=None):
         # Redirect to login if no username provided and not logged in
         return redirect('ACCOUNTS:login')
     
+    # Get additional data from Firestore if needed
+    # firebase_user_data = get_firebase_user(profile_user.id)
+    
     context = {
         'profile_user': profile_user,
         'is_own_profile': request.user == profile_user
@@ -58,7 +77,7 @@ def profile_view(request, username=None):
 # Edit Profile Picture
 @login_required
 def edit_profile(request):
-    profile_pic_error = False  # Add this flag
+    profile_pic_error = False
     
     if request.method == 'POST':
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
@@ -83,13 +102,13 @@ def edit_profile(request):
             if hasattr(profile_picture, 'content_type') and profile_picture.content_type not in valid_types:
                 form.add_error('profile_picture', 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
                 messages.error(request, 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
-                profile_pic_error = True  # Set flag
+                profile_pic_error = True
             
             # Check file size (10MB max)
             if profile_picture.size > 10 * 1024 * 1024:
                 form.add_error('profile_picture', 'Image size must be less than 10MB.')
                 messages.error(request, 'Image size must be less than 10MB.')
-                profile_pic_error = True  # Set flag
+                profile_pic_error = True
             
             # Content moderation
             is_safe, explicit_categories = moderate_image_content(profile_picture)
@@ -98,10 +117,20 @@ def edit_profile(request):
                 error_msg = f'Image contains inappropriate content and cannot be used. Detected: {categories_str}'
                 form.add_error('profile_picture', error_msg)
                 messages.error(request, error_msg)
-                profile_pic_error = True  # Set flag
+                profile_pic_error = True
         
         if form.is_valid():
             user = form.save()
+            
+            # Update user in Firestore
+            profile_pic_url = user.profile_picture.url if user.profile_picture else ""
+            update_data = {
+                'username': user.username,
+                'profile_picture_url': profile_pic_url,
+                'promo_links': user.promo_links
+            }
+            update_firebase_user(user.id, update_data)
+            
             # Add success message based on what was updated
             if profile_pic_changed:
                 messages.success(request, 'Profile picture updated successfully!')
@@ -111,13 +140,11 @@ def edit_profile(request):
     else:
         form = ProfileEditForm(instance=request.user)
     
-    # Include the error flag in the context
     return render(request, 'ACCOUNTS/edit_profile.html', {
         'form': form,
         'profile_pic_error': profile_pic_error
     })
 
-    
 @login_required
 def edit_username(request, user_id=None):
     # If no user_id is provided, use the current logged-in user
@@ -136,7 +163,11 @@ def edit_username(request, user_id=None):
     if request.method == 'POST':
         form = form_class(request.POST, instance=user)
         if form.is_valid():
-            form.save()
+            user = form.save()
+            
+            # Update username in Firestore
+            update_firebase_user(user.id, {'username': user.username})
+            
             return redirect(redirect_url)
     else:
         form = form_class(instance=user)
@@ -174,6 +205,10 @@ def update_promo_links(request):
         if len(promo_links) <= 2:
             request.user.promo_links = promo_links
             request.user.save()
+            
+            # Update in Firestore
+            update_firebase_user(request.user.id, {'promo_links': promo_links})
+            
         else:
             messages.error(request, 'Please select up to 2 social links for the promotional wall.')
     
@@ -220,7 +255,13 @@ def bulk_change_user_type(request):
         user_type = request.POST.get('user_type')
         
         if selected_users and user_type:
+            # Update in Django DB
             User.objects.filter(id__in=selected_users).update(user_type=user_type)
+            
+            # Update each user in Firestore
+            for user_id in selected_users:
+                update_firebase_user(user_id, {'user_type': user_type})
+                
             messages.success(request, f"Updated {len(selected_users)} users to {user_type.lower()} type.")
     
     return redirect('ACCOUNTS:user_management')
@@ -232,6 +273,11 @@ def bulk_delete_users(request):
         selected_users = request.POST.get('selected_users', '').split(',')
         
         if selected_users:
+            # Delete from Firebase first
+            for user_id in selected_users:
+                delete_firebase_user(user_id)
+                
+            # Then delete from Django DB
             deleted_count = User.objects.filter(id__in=selected_users).delete()[0]
             messages.success(request, f"Successfully deleted {deleted_count} users.")
     
