@@ -13,23 +13,6 @@ IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
 echo "Building Docker image..."
 docker build -t $IMAGE_NAME .
 
-# Test the Docker image locally
-echo "Testing Docker image locally..."
-docker run --rm -p 8080:8080 -e PORT=8080 $IMAGE_NAME &
-DOCKER_PID=$!
-
-# Wait for the container to start
-sleep 5
-
-# Test local access
-echo "Testing local access..."
-curl -v http://localhost:8080/
-echo "Testing static file access..."
-curl -v http://localhost:8080/static/test.html
-
-# Stop the local container
-kill $DOCKER_PID
-
 # Configure Docker to use gcloud as a credential helper
 echo "Configuring Docker authentication..."
 gcloud auth configure-docker
@@ -45,30 +28,9 @@ gcloud run deploy $SERVICE_NAME \
   --platform managed \
   --region $REGION \
   --allow-unauthenticated \
-  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,EMAIL_HOST=smtp.gmail.com,EMAIL_PORT=587,EMAIL_USE_TLS=True,EMAIL_HOST_USER=sebe@gmail.com,AWS_REGION=us-east-1,ENABLE_IMAGE_MODERATION=False,IMAGE_MODERATION_CONFIDENCE_THRESHOLD=85.0,STATIC_URL=/static/,STATIC_ROOT=/app/staticfiles" \
+  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,EMAIL_HOST=smtp.gmail.com,EMAIL_PORT=587,EMAIL_USE_TLS=True,EMAIL_HOST_USER=sebe@gmail.com,AWS_REGION=us-east-1,ENABLE_IMAGE_MODERATION=False,IMAGE_MODERATION_CONFIDENCE_THRESHOLD=85.0" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,EMAIL_HOST_PASSWORD=email-host-password:latest,AWS_ACCESS_KEY_ID=aws-access-key:latest,AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
   --memory 512Mi \
-  --cpu 1 \
-  --concurrency 80 \
-  --max-instances 10
+  --cpu 1
 
-# Get the URL of the deployed service
-SERVICE_URL=$(gcloud run services describe $SERVICE_NAME --region $REGION --format="value(status.url)")
-
-echo "Deployment complete! Your website is available at: $SERVICE_URL"
-echo "Verifying deployment..."
-
-# Wait a moment for the service to be fully available
-sleep 10
-
-# Check if the website is accessible
-echo "Checking if the website is accessible..."
-curl -v $SERVICE_URL
-
-# Check if static files are accessible
-echo "Checking if static files are accessible..."
-curl -v $SERVICE_URL/static/test.html
-curl -v $SERVICE_URL/static/admin/css/base.css
-
-echo "Deployment verification complete!"
-echo "If you're still having issues with static files, try accessing: $SERVICE_URL/static/test.html in your browser"
+echo "Deployment complete! Your website should be available soon."
