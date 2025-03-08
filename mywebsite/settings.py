@@ -159,3 +159,11 @@ AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 # Image content moderation settings
 ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION')
 IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD')
+
+# CSRF Stuff
+CSRF_TRUSTED_ORIGINS = [
+    'https://bomby-website-xyz.run.app'
+    'https://bomby.us'
+]
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
