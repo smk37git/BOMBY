@@ -30,7 +30,7 @@ gcloud run deploy $SERVICE_NAME \
   --region $REGION \
   --allow-unauthenticated \
   --service-account="799218251279-compute@developer.gserviceaccount.com" \
-  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,STATIC_URL=/static/,STATIC_ROOT=/app/staticfiles,EMAIL_HOST=smtp.gmail.com,EMAIL_PORT=587,EMAIL_USE_TLS=True,EMAIL_HOST_USER=sebe@gmail.com,AWS_REGION=us-east-1,ENABLE_IMAGE_MODERATION=False,IMAGE_MODERATION_CONFIDENCE_THRESHOLD=85.0,FIREBASE_CREDENTIALS_PATH=/app/firebase-credentials.json" \
+  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=localhost,127.0.0.1,.run.app,$SERVICE_NAME.run.app,$SERVICE_NAME-799218251279.$REGION.run.app" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,EMAIL_HOST_PASSWORD=email-host-password:latest,AWS_ACCESS_KEY_ID=aws-access-key:latest,AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,/app/firebase-credentials.json=FIREBASE_CREDENTIALS:latest" \
   --memory 512Mi \
   --cpu 1
