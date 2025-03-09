@@ -18,17 +18,26 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project
 COPY . .
 
-# Create media directory if it doesn't exist
-RUN mkdir -p ACCOUNTS/static/media
+# Copy service account credentials for local testing
+COPY database-bucket.json /app/database-bucket.json
+ENV GOOGLE_APPLICATION_CREDENTIALS=/app/database-bucket.json
+
+# Copy backup script if it exists (will be created by deploy script)
+ARG BACKUP_SCRIPT=""
+ARG ENTRYPOINT_WRAPPER=""
+COPY ${BACKUP_SCRIPT} /app/backup-db.sh || true
+COPY ${ENTRYPOINT_WRAPPER} /app/entrypoint-wrapper.sh || true
 
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
-# Make entrypoint script executable
+# Make scripts executable
 RUN chmod +x entrypoint.sh
+RUN if [ -f "/app/backup-db.sh" ]; then chmod +x /app/backup-db.sh; fi
+RUN if [ -f "/app/entrypoint-wrapper.sh" ]; then chmod +x /app/entrypoint-wrapper.sh; fi
 
 # Expose the port
 EXPOSE 8080
 
-# Use entrypoint script
-CMD ["./entrypoint.sh"]
+# Use entrypoint script or wrapper if it exists
+CMD if [ -f "/app/entrypoint-wrapper.sh" ]; then /app/entrypoint-wrapper.sh; else ./entrypoint.sh; fi
