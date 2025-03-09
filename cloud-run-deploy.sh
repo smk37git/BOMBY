@@ -25,6 +25,9 @@ gcloud auth configure-docker
 echo "Pushing image to Google Container Registry..."
 docker push $IMAGE_NAME
 
+# Get values from .env file
+SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
+
 # Deploy to Cloud Run
 echo "Deploying to Cloud Run..."
 gcloud run deploy $SERVICE_NAME \
@@ -32,7 +35,7 @@ gcloud run deploy $SERVICE_NAME \
   --platform managed \
   --region $REGION \
   --allow-unauthenticated \
-  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,SENDGRID_API_KEY=your-sendgrid-api-key,AWS_REGION=us-east-1,ENABLE_IMAGE_MODERATION=False,IMAGE_MODERATION_CONFIDENCE_THRESHOLD=85.0" \
+  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,SENDGRID_API_KEY=$SENDGRID_KEY" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,AWS_ACCESS_KEY_ID=aws-access-key:latest,AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
   --memory 512Mi
 
