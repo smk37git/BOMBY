@@ -95,6 +95,10 @@ DATABASES = {
     }
 }
 
+# Make SQLite work in Cloud Run by ensuring the directory exists and is writable
+db_dir = os.path.dirname(DATABASES['default']['NAME'])
+os.makedirs(db_dir, exist_ok=True)
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
