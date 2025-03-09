@@ -8,51 +8,18 @@ PROJECT_ID="premium-botany-453018-a0"
 SERVICE_NAME="bomby-website"
 REGION="us-central1"
 IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
-BUCKET_NAME="bomby-user-data"  # Replace with your actual bucket name
+BUCKET_NAME="bomby-user-data"
 
 # Create GCS bucket if it doesn't exist
 echo "Ensuring GCS bucket exists..."
 gsutil ls -b gs://$BUCKET_NAME > /dev/null 2>&1 || gsutil mb -l $REGION gs://$BUCKET_NAME
 
-# Download latest database from bucket if it exists
-echo "Checking for existing database in bucket..."
+# Check for existing database
 gsutil cp gs://$BUCKET_NAME/db.sqlite3 ./db.sqlite3 || echo "No database found in bucket"
-
-# Apply migrations if database exists
-if [ -f "./db.sqlite3" ]; then
-  echo "Applying migrations to existing database..."
-  python manage.py migrate
-fi
-
-# Create a backup script for the container
-echo "Creating database backup script..."
-cat > backup-db.sh << 'EOF'
-#!/bin/bash
-while true; do
-  echo "[$(date)] Backing up database..."
-  cp /app/db.sqlite3 /app/db.sqlite3.bak
-  gsutil cp /app/db.sqlite3.bak gs://$BUCKET_NAME/db.sqlite3
-  echo "[$(date)] Database backed up successfully"
-  sleep 3600  # Backup every hour
-done
-EOF
-chmod +x backup-db.sh
-
-# Create an entrypoint wrapper to start backup process
-echo "Creating entrypoint wrapper..."
-cat > entrypoint-wrapper.sh << 'EOF'
-#!/bin/bash
-# Start the backup script in the background
-nohup /app/backup-db.sh &
-
-# Run the original entrypoint
-exec /app/entrypoint.sh
-EOF
-chmod +x entrypoint-wrapper.sh
 
 # Build the Docker image
 echo "Building Docker image..."
-docker build -t $IMAGE_NAME --build-arg BACKUP_SCRIPT=backup-db.sh --build-arg ENTRYPOINT_WRAPPER=entrypoint-wrapper.sh .
+docker build -t $IMAGE_NAME .
 
 # Configure Docker to use gcloud as a credential helper
 echo "Configuring Docker authentication..."
