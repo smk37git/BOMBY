@@ -161,6 +161,13 @@ EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 
+import logging
+logger = logging.getLogger('django.mail')
+logger.setLevel(logging.DEBUG)
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+logger.addHandler(handler)
+
 ## LOGIN SETTINGS
 AUTH_USER_MODEL = 'ACCOUNTS.User'
 LOGIN_URL = 'ACCOUNTS:login'
