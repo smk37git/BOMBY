@@ -39,6 +39,20 @@
         </div>
     </form>
 
+    <div class="auth-divider">
+        <span>OR</span>
+    </div>
+
+    <!-- Firebase Auth Buttons -->
+    <div class="firebase-auth">
+        <button id="googleLogin" class="auth-button google">
+            <i class="fab fa-google"></i> Sign in with Google
+        </button>
+        <button id="emailLogin" class="auth-button email">
+            <i class="fas fa-envelope"></i> Sign in with Email
+        </button>
+    </div>
+
     <div class="auth-header create-account-section">
         <h1 class="auth-title">Create Account</h1>
         <p class="auth-subtitle">Gain access to all features and the store!</p>
@@ -49,4 +63,91 @@
     </div>
 
 </div>
+
+<!-- Firebase Scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch Firebase config from the server
+    fetch('{% url "ACCOUNTS:firebase_config" %}')
+        .then(response => response.json())
+        .then(config => {
+            // Initialize Firebase
+            firebase.initializeApp(config);
+            
+            // Google sign-in
+            document.getElementById('googleLogin').addEventListener('click', function() {
+                const provider = new firebase.auth.GoogleAuthProvider();
+                firebase.auth().signInWithPopup(provider)
+                    .then((result) => {
+                        // Get the user's ID token
+                        return result.user.getIdToken();
+                    })
+                    .then(idToken => {
+                        // Send the token to your backend
+                        return fetch('{% url "ACCOUNTS:firebase_login" %}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ idToken }),
+                        });
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Redirect to account page
+                            window.location.href = '{% url "ACCOUNTS:account" %}';
+                        } else {
+                            alert('Login failed: ' + data.error);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error('Error during sign-in', error);
+                        alert('Login failed: ' + error.message);
+                    });
+            });
+            
+            // Email sign-in button
+            document.getElementById('emailLogin').addEventListener('click', function() {
+                // Simple email/password popup
+                const email = prompt('Enter your email:');
+                if (email) {
+                    const password = prompt('Enter your password:');
+                    if (password) {
+                        firebase.auth().signInWithEmailAndPassword(email, password)
+                            .then((userCredential) => {
+                                return userCredential.user.getIdToken();
+                            })
+                            .then(idToken => {
+                                return fetch('{% url "ACCOUNTS:firebase_login" %}', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ idToken }),
+                                });
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    window.location.href = '{% url "ACCOUNTS:account" %}';
+                                } else {
+                                    alert('Login failed: ' + data.error);
+                                }
+                            })
+                            .catch((error) => {
+                                alert('Login failed: ' + error.message);
+                            });
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error loading Firebase config:', error);
+        });
+});
+</script>
 {% endblock %}

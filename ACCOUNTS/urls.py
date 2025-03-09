@@ -7,6 +7,9 @@ from django.urls import reverse_lazy
 app_name = 'ACCOUNTS'
 
 urlpatterns = [
+     # Add Firebase authentication URLs
+     path('firebase-login/', views.firebase_login, name='firebase_login'),
+     path('firebase-config/', views.firebase_config, name='firebase_config'),
      
      # Main Account URLS
      path('signup/', views.signup, name='signup'),

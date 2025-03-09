@@ -9,9 +9,66 @@ from .models import User
 from django.conf import settings
 from PIL import Image
 from .moderation import moderate_image_content
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import firebase_admin
+from firebase_admin import auth as firebase_auth
+import json
 import io
 import boto3
 
+# Add Firebase-related views here
+@csrf_exempt
+def firebase_login(request):
+    """Handle Firebase authentication and Django login"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            id_token = data.get('idToken')
+            
+            # Use the custom authentication backend
+            user = authenticate(request=request, firebase_token=id_token)
+            
+            if user:
+                # Login the user to Django
+                login(request, user)
+                
+                return JsonResponse({
+                    'success': True,
+                    'user': {
+                        'id': user.id,
+                        'username': user.username,
+                        'email': user.email,
+                    }
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Failed to authenticate with Firebase token'
+                }, status=401)
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Method not allowed'
+    }, status=405)
+
+def firebase_config(request):
+    """Return Firebase configuration for frontend use"""
+    return JsonResponse({
+        'apiKey': settings.FIREBASE_CONFIG['apiKey'],
+        'authDomain': settings.FIREBASE_CONFIG['authDomain'],
+        'projectId': settings.FIREBASE_CONFIG['projectId'],
+        'storageBucket': settings.FIREBASE_CONFIG['storageBucket'],
+        'messagingSenderId': settings.FIREBASE_CONFIG['messagingSenderId'],
+        'appId': settings.FIREBASE_CONFIG['appId'],
+    })
+    
 # Signup Form
 def signup(request):
     if request.method == 'POST':
