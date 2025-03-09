@@ -16,6 +16,7 @@ from firebase_admin import auth as firebase_auth
 import json
 import io
 import boto3
+from django.http import HttpResponse
 
 # Add Firebase-related views here
 @csrf_exempt
