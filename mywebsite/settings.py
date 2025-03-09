@@ -162,6 +162,7 @@ EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'sebetvbusiness@gmail.com')
 SENDGRID_SANDBOX_MODE = False
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False  # Add this line
 
 ## LOGIN SETTINGS
 AUTH_USER_MODEL = 'ACCOUNTS.User'
