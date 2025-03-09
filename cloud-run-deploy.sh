@@ -36,4 +36,9 @@ gcloud run deploy $SERVICE_NAME \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,EMAIL_HOST_PASSWORD=email-host-password:latest,AWS_ACCESS_KEY_ID=aws-access-key:latest,AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
   --memory 512Mi
 
+# Grant secret access to service account
+gcloud secrets add-iam-policy-binding email-host-password \
+  --member="serviceAccount:${PROJECT_ID}-compute@developer.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+
 echo "Deployment complete! Your website should be available soon at the URL above."
