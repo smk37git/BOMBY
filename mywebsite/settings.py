@@ -161,7 +161,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'sebetvbusiness@gmail.com')
-SENDGRID_SANDBOX_MODE = os.environ.get('SENDGRID_SANDBOX_MODE', 'True') == 'True'
+SENDGRID_SANDBOX_MODE = False
 
 ## LOGIN SETTINGS
 AUTH_USER_MODEL = 'ACCOUNTS.User'
