@@ -159,6 +159,7 @@ EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 DEFAULT_FROM_EMAIL = 'sebetvbusiness@gmail.com' 
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 ## LOGIN SETTINGS
 AUTH_USER_MODEL = 'ACCOUNTS.User'
