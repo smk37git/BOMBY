@@ -8,14 +8,9 @@ PROJECT_ID="premium-botany-453018-a0"
 SERVICE_NAME="bomby-website"
 REGION="us-central1"
 IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
-BUCKET_NAME="bomby-user-data"
-
-# Create GCS bucket if it doesn't exist
-echo "Ensuring GCS bucket exists..."
-gsutil ls -b gs://$BUCKET_NAME > /dev/null 2>&1 || gsutil mb -l $REGION gs://$BUCKET_NAME
-
-# Check for existing database
-gsutil cp gs://$BUCKET_NAME/db.sqlite3 ./db.sqlite3 || echo "No database found in bucket"
+INSTANCE_CONNECTION_NAME="$PROJECT_ID:$REGION:bomby-database"
+DB_NAME="postgres"
+DB_USER="postgres"
 
 # Build the Docker image
 echo "Building Docker image..."
@@ -29,13 +24,18 @@ gcloud auth configure-docker
 echo "Pushing image to Google Container Registry..."
 docker push $IMAGE_NAME
 
-# Upload the service account key to Secret Manager if not already there
-echo "Ensuring service account key secret exists..."
-gcloud secrets describe gcs-credentials > /dev/null 2>&1 || \
-gcloud secrets create gcs-credentials --data-file=database-bucket.json
+# Upload secrets if not already there
+echo "Ensuring secrets exist..."
+gcloud secrets describe django-secret-key > /dev/null 2>&1 || \
+gcloud secrets create django-secret-key --replication-policy="automatic"
 
 # Get values from .env file
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
+DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
+
+# Add DB password to Secret Manager if not already there
+gcloud secrets describe postgres-password > /dev/null 2>&1 || \
+gcloud secrets create postgres-password --replication-policy="automatic" --data-file=<(echo -n "$DB_PASSWORD")
 
 # Deploy to Cloud Run
 echo "Deploying to Cloud Run..."
@@ -44,8 +44,9 @@ gcloud run deploy $SERVICE_NAME \
   --platform managed \
   --region $REGION \
   --allow-unauthenticated \
-  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,SENDGRID_API_KEY=$SENDGRID_KEY,GS_BUCKET_NAME=$BUCKET_NAME,GS_PROJECT_ID=$PROJECT_ID" \
-  --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,GOOGLE_APPLICATION_CREDENTIALS=gcs-credentials:latest,AWS_ACCESS_KEY_ID=aws-access-key:latest,AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
-  --memory 512Mi
+  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,SENDGRID_API_KEY=$SENDGRID_KEY,DB_NAME=$DB_NAME,DB_USER=$DB_USER,DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,GS_BUCKET_NAME=bomby-database" \
+  --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,DB_PASSWORD=postgres-password:latest,AWS_ACCESS_KEY_ID=aws-access-key:latest,AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
+  --memory 512Mi \
+  --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
 echo "Deployment complete! Your website should be available soon at the URL above."

@@ -1,5 +1,8 @@
 FROM python:3.11-slim
 
+# Install PostgreSQL client
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -17,10 +20,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project and entrypoint script
 COPY . .
-
-# Copy service account credentials for local testing
-COPY database-bucket.json /app/database-bucket.json
-ENV GOOGLE_APPLICATION_CREDENTIALS=/app/database-bucket.json
 
 # Ensure entrypoint script is executable
 RUN chmod +x /app/entrypoint.sh

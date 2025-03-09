@@ -90,13 +90,14 @@ WSGI_APPLICATION = 'mywebsite.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', '/cloudsql/premium-botany-453018-a0:us-central1:bomby-database'),
+        'PORT': '5432',
     }
 }
-
-# Add this line if missing
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -155,17 +156,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'ACCOUNTS/static/media')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Google Cloud Storage Settings
-GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
-GS_PROJECT_ID = os.environ.get('GS_PROJECT_ID')
-GS_CREDENTIALS = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
-GS_DEFAULT_ACL = None  # Remove publicRead to keep files private
-GS_QUERYSTRING_AUTH = True  # Enable signed URLs for authenticated access
-GS_BLOB_CHUNK_SIZE = 1024 * 1024 * 5  # 5 MB
-GS_FILE_OVERWRITE = False  # Prevent accidental overwriting of files
-GS_LOCATION = 'user_data'  # Prefix for organizing files in bucket
-
 
 ## EMAIL SETTINGS
 EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
