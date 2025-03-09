@@ -9,7 +9,7 @@ import json
 
 # Keep validate_image_size and validate_image_dimensions functions
 def validate_image_size(file):
-    max_size = 10 * 1024 * 1024
+    max_size = 5 * 1024 * 1024
     if file.size > max_size:
         raise ValidationError(f"Image size cannot exceed 10MB. Your file is {file.size/(1024*1024):.2f}MB")
 
