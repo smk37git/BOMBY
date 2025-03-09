@@ -11,7 +11,6 @@
 
 {% block content %}
 <div class="auth-container">
-
     <div class="auth-header">
         <h1 class="auth-title">Login</h1>
         <p class="auth-subtitle">Enter your credentials to access your account</p>
@@ -43,6 +42,9 @@
         <span>OR</span>
     </div>
 
+    <!-- CSRF Token for Firebase Auth -->
+    {% csrf_token %}
+
     <!-- Firebase Auth Buttons -->
     <div class="firebase-auth">
         <button id="googleLogin" class="auth-button google">
@@ -61,7 +63,6 @@
             <a href="{% url 'ACCOUNTS:signup' %}" class="auth-button create-account">Create Account</a>
         </div>
     </div>
-
 </div>
 
 <!-- Firebase Scripts -->
@@ -70,6 +71,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Get CSRF token
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
     // Fetch Firebase config from the server
     fetch('{% url "ACCOUNTS:firebase_config" %}')
         .then(response => response.json())
@@ -91,8 +95,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
+                                'X-CSRFToken': csrftoken
                             },
                             body: JSON.stringify({ idToken }),
+                            credentials: 'same-origin'
                         });
                     })
                     .then(response => response.json())
@@ -126,8 +132,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
+                                        'X-CSRFToken': csrftoken
                                     },
                                     body: JSON.stringify({ idToken }),
+                                    credentials: 'same-origin'
                                 });
                             })
                             .then(response => response.json())
