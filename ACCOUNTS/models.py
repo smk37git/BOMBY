@@ -33,6 +33,9 @@ class User(AbstractUser):
         CLIENT = 'CLIENT', 'Client'
         ADMIN = 'ADMIN', 'Admin'
 
+    class Meta:
+        db_table = 'ACCOUNTS_user'
+
     # Rest of your existing model stays the same
     user_type = models.CharField(
         max_length=10,
