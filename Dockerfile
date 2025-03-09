@@ -15,6 +15,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# After installing dependencies but before starting the server
+RUN python manage.py migrate
+
 # Copy project
 COPY . .
 
@@ -23,6 +26,7 @@ RUN mkdir -p ACCOUNTS/static/media
 
 # Collect static files
 RUN python manage.py collectstatic --noinput
+
 
 # Expose the port
 EXPOSE 8080

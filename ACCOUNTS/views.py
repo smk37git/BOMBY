@@ -206,35 +206,31 @@ def edit_username(request, user_id=None):
 
 # Promotional Wall
 def promotional_wall(request):
+    """View to display users organized by user type"""
     try:
-        # Your existing view code
-        admin_users = User.objects.filter(user_type=User.UserType.ADMIN)
-        # Rest of the function
+        # Initialize context first
+        context = {}
+        
+        # Get users by type - with error checks
+        admin_users = User.objects.filter(user_type=User.UserType.ADMIN).order_by('username')
+        client_users = User.objects.filter(user_type=User.UserType.CLIENT).order_by('username')
+        supporter_users = User.objects.filter(user_type=User.UserType.SUPPORTER).order_by('username')
+        member_users = User.objects.filter(user_type=User.UserType.MEMBER).order_by('username')
+        
+        # Add to context
+        context = {
+            'admin_users': admin_users,
+            'client_users': client_users,
+            'supporter_users': supporter_users,
+            'member_users': member_users,
+        }
+        
         return render(request, 'ACCOUNTS/promotional_wall.html', context)
     except Exception as e:
         import traceback
         error_details = traceback.format_exc()
         print(f"Error in promotional_wall: {error_details}")
-        # Return a simple error response
         return HttpResponse(f"Server Error: {str(e)}", status=500)
-
-
-    """View to display users organized by user type"""
-    
-    # Get users by type
-    admin_users = User.objects.filter(user_type=User.UserType.ADMIN).order_by('username')
-    client_users = User.objects.filter(user_type=User.UserType.CLIENT).order_by('username')
-    supporter_users = User.objects.filter(user_type=User.UserType.SUPPORTER).order_by('username')
-    member_users = User.objects.filter(user_type=User.UserType.MEMBER).order_by('username')
-    
-    context = {
-        'admin_users': admin_users,
-        'client_users': client_users,
-        'supporter_users': supporter_users,
-        'member_users': member_users,
-    }
-    
-    return render(request, 'ACCOUNTS/promotional_wall.html', context)
 
 @login_required
 def update_promo_links(request):
