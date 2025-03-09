@@ -205,6 +205,19 @@ def edit_username(request, user_id=None):
 
 # Promotional Wall
 def promotional_wall(request):
+    try:
+        # Your existing view code
+        admin_users = User.objects.filter(user_type=User.UserType.ADMIN)
+        # Rest of the function
+        return render(request, 'ACCOUNTS/promotional_wall.html', context)
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"Error in promotional_wall: {error_details}")
+        # Return a simple error response
+        return HttpResponse(f"Server Error: {str(e)}", status=500)
+
+
     """View to display users organized by user type"""
     
     # Get users by type
