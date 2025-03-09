@@ -49,7 +49,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    #'mywebsite.middleware.StaticFilesMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -125,13 +124,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = os.environ.get('STATIC_URL', '/static/')
-STATIC_ROOT = os.environ.get('STATIC_ROOT', os.path.join(BASE_DIR, 'staticfiles'))
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'MAIN/static'),
-    os.path.join(BASE_DIR, 'ACCOUNTS/static'),
-    os.path.join(BASE_DIR, 'PORTFOLIO/static'),
-]
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Media files (User uploads)
 MEDIA_URL = '/media/'
@@ -165,29 +159,3 @@ AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 # Image content moderation settings
 ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION')
 IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD')
-
-# CSRF Stuff
-CSRF_TRUSTED_ORIGINS = [
-    'https://bomby-799218251279.us-central1.run.app',
-    'https://bomby.us'
-]
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
-
-# Firebase Configuration
-FIREBASE_CREDENTIALS = os.path.join(BASE_DIR, 'firebase-credentials.json')
-
-# Logging
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'WARNING',
-    },
-}

@@ -24,9 +24,6 @@ urlpatterns = [
     path('', include('MAIN.urls')),
     path('accounts/', include('ACCOUNTS.urls', namespace='ACCOUNTS')),
     path('portfolio/', include('PORTFOLIO.urls', namespace='PORTFOLIO')),
-    path('test/', test_view, name='test_view'),
-    path('health/', health_check, name='health_check'),
-    path('static_test/<path:path>', static_test, name='static_test'),
 ]
 # Add static and media URLs for development
 if settings.DEBUG:

@@ -5,10 +5,8 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8080
 ENV DJANGO_SECRET_KEY=dev-secret-key-change-in-production
-ENV DEBUG=False
-ENV ALLOWED_HOSTS=localhost,127.0.0.1,.run.app
-ENV STATIC_URL=/static/
-ENV STATIC_ROOT=/app/staticfiles
+ENV DEBUG=True
+ENV ALLOWED_HOSTS=localhost,127.0.0.1
 
 # Set work directory
 WORKDIR /app
@@ -25,11 +23,6 @@ RUN mkdir -p ACCOUNTS/static/media
 
 # Collect static files
 RUN python manage.py collectstatic --noinput
-
-# After the collectstatic command in Dockerfile
-RUN cp -r MAIN/static/* staticfiles/ || true
-RUN cp -r ACCOUNTS/static/* staticfiles/ || true
-RUN cp -r PORTFOLIO/static/* staticfiles/ || true
 
 # Expose the port
 EXPOSE 8080
