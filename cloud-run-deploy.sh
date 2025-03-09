@@ -31,6 +31,7 @@ gcloud secrets create django-secret-key --replication-policy="automatic"
 
 # Get values from .env file
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
+DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
 DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
 
 # Add DB password to Secret Manager if not already there
@@ -44,7 +45,7 @@ gcloud run deploy $SERVICE_NAME \
   --platform managed \
   --region $REGION \
   --allow-unauthenticated \
-  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,SENDGRID_API_KEY=$SENDGRID_KEY,DB_NAME=$DB_NAME,DB_USER=$DB_USER,DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,GS_BUCKET_NAME=bomby-database" \
+  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,SENDGRID_API_KEY=$SENDGRID_KEY,DEFAULT_FROM_EMAIL=$DEFAULT_FROM_EMAIL,DB_NAME=$DB_NAME,DB_USER=$DB_USER,DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,GS_BUCKET_NAME=bomby-database" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,DB_PASSWORD=postgres-password:latest,AWS_ACCESS_KEY_ID=aws-access-key:latest,AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
   --memory 512Mi \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME

@@ -13,13 +13,5 @@ fi
 # Run migrations
 python manage.py migrate
 
-# After migrations
-if [ ! -f /tmp/data_imported ]; then
-  echo "Importing data..."
-  gsutil cp gs://bomby-user-data/data.json /tmp/
-  python manage.py loaddata /tmp/data.json
-  touch /tmp/data_imported
-fi
-
 # Start the server
 gunicorn mywebsite.wsgi:application --bind 0.0.0.0:$PORT
