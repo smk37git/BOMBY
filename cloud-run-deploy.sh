@@ -9,6 +9,10 @@ SERVICE_NAME="bomby-website"
 REGION="us-central1"
 IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
 
+# Apply database migrations
+echo "Apply database migrations"
+python manage.py migrate
+
 # Build the Docker image
 echo "Building Docker image..."
 docker build -t $IMAGE_NAME .
