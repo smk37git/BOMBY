@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -126,6 +127,18 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Whitenoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+WHITENOISE_MIMETYPES = {
+    '.css': 'text/css',
+    '.js': 'application/javascript',
+    '.html': 'text/html',
+    '.jpg': 'image/jpeg',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml',
+}
 
 # Media files (User uploads)
 MEDIA_URL = '/media/'

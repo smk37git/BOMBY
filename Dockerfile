@@ -28,4 +28,4 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8080
 
 # Start Gunicorn
-CMD exec gunicorn mywebsite.wsgi:application --bind 0.0.0.0:$PORT
+CMD exec gunicorn mywebsite.wsgi:application --bind 0.0.0.0:$PORT --timeout 120
