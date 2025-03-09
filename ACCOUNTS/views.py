@@ -314,6 +314,10 @@ def bulk_delete_users(request):
 def create_admin(request):
     from ACCOUNTS.models import User
     import uuid
+    from django.db import connection
+    
+    # Ensure database connection is open
+    connection.ensure_connection()
     
     # This endpoint only works in development mode
     if not settings.DEBUG:
