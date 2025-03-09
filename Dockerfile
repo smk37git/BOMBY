@@ -24,9 +24,11 @@ RUN mkdir -p ACCOUNTS/static/media
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
+# Make entrypoint script executable
+RUN chmod +x entrypoint.sh
 
 # Expose the port
 EXPOSE 8080
 
-# Start Gunicorn
-CMD exec gunicorn mywebsite.wsgi:application --bind 0.0.0.0:$PORT --timeout 120
+# Use entrypoint script
+CMD ["./entrypoint.sh"]
