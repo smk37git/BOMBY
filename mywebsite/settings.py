@@ -35,10 +35,7 @@ DEBUG = True
 #DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
-CSRF_TRUSTED_ORIGINS = [
-    'https://bomby-799218251279.us-central1.run.app',
-    'https://*.run.app
-    ]
+CSRF_TRUSTED_ORIGINS = ['https://bomby-799218251279.us-central1.run.app']
 
 
 # Application definition
@@ -58,9 +55,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',  # only once
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -90,17 +87,12 @@ WSGI_APPLICATION = 'mywebsite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# Fix database path for Cloud Run persistence
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'data', 'db.sqlite3'),
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
-# Make SQLite work in Cloud Run by ensuring the directory exists and is writable
-db_dir = os.path.dirname(DATABASES['default']['NAME'])
-os.makedirs(db_dir, exist_ok=True)
 
 
 # Password validation
