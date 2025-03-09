@@ -62,3 +62,6 @@ env/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# firebase
+firebase-credentials.json
