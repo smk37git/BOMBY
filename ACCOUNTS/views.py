@@ -315,7 +315,13 @@ def bulk_delete_users(request):
 @login_required
 def test_file_upload(request):
     import logging
+    import datetime
+    from django.core.files.base import ContentFile
     logger = logging.getLogger(__name__)
+
+    timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    path = default_storage.save(f'test_uploads/test-{timestamp}.txt', ContentFile("test content"))
+    logger.info(f"Storage backend class: {default_storage.__class__.__name__}")
     
     if request.method == 'POST' and request.FILES.get('test_file'):
         try:
@@ -343,6 +349,7 @@ def test_file_upload(request):
                 'success': False,
                 'error': str(e)
             }, status=500)
+    
     
     # Simple upload form
     return render(request, 'ACCOUNTS/test_upload.html')
