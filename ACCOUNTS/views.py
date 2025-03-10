@@ -24,6 +24,8 @@ import logging
 import datetime
 from django.core.files.base import ContentFile
 import traceback
+from google.cloud import storage
+
 
 # Add Firebase-related views here
 @csrf_exempt
@@ -354,3 +356,41 @@ def test_file_upload(request):
     
     # Simple upload form
     return render(request, 'ACCOUNTS/test_upload.html')
+
+@login_required
+def debug_gcs_direct(request):
+    
+    try:
+        # Initialize client
+        client = storage.Client()
+        bucket = client.bucket('bomby-database')
+        
+        # Create a test file with timestamp
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        test_content = f"Test content created at {timestamp}"
+        
+        # Upload directly to GCS
+        blob = bucket.blob(f'debug/direct-test-{timestamp}.txt')
+        blob.upload_from_string(test_content)
+        
+        # List files in bucket
+        blobs = list(bucket.list_blobs(prefix='debug/'))
+        
+        return JsonResponse({
+            'success': True,
+            'bucket': bucket.name,
+            'uploaded_file': blob.name,
+            'public_url': blob.public_url,
+            'files_in_debug': [b.name for b in blobs]
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc(),
+            'env_vars': {
+                'USE_GCS': os.environ.get('USE_GCS'),
+                'GS_BUCKET_NAME': os.environ.get('GS_BUCKET_NAME'),
+                'GS_PROJECT_ID': os.environ.get('GS_PROJECT_ID')
+            }
+        })
