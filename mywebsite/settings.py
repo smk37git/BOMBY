@@ -202,4 +202,5 @@ DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = os.environ.get('BUCKET_NAME')
 GS_PROJECT_ID = 'premium-botany-453018-a0'
 GS_DEFAULT_ACL = 'publicRead'
+GS_CREDENTIALS = None
 GS_FILE_OVERWRITE = False
