@@ -17,6 +17,10 @@ import json
 import io
 import boto3
 from django.http import HttpResponse
+import logging
+
+# Set up logger
+logger = logging.getLogger(__name__)
 
 # Add Firebase-related views here
 @csrf_exempt
@@ -142,7 +146,7 @@ def edit_profile(request):
         # Validate profile picture if uploaded
         profile_picture = request.FILES.get('profile_picture')
         if profile_picture:
-            print(f"DEBUG: Received profile picture: {profile_picture.name}, size: {profile_picture.size}, type: {profile_picture.content_type}")
+            logger.info(f"Received profile picture: {profile_picture.name}, size: {profile_picture.size}, type: {profile_picture.content_type}")
             profile_pic_changed = True
             # Check file type
             valid_types = ['image/jpeg', 'image/png', 'image/gif']
@@ -171,12 +175,30 @@ def edit_profile(request):
             
             # Debug info for profile pic
             if profile_pic_changed and user.profile_picture:
-                print(f"DEBUG: Saved profile picture to: {user.profile_picture.name}")
-                print(f"DEBUG: Profile picture URL: {user.profile_picture.url}")
-                print(f"DEBUG: Storage backend: {settings.DEFAULT_FILE_STORAGE}")
-                print(f"DEBUG: GS_BUCKET_NAME: {settings.GS_BUCKET_NAME}")
-                print(f"DEBUG: GS_LOCATION: {settings.GS_LOCATION}")
-                print(f"DEBUG: GS_CREDENTIALS: {settings.GS_CREDENTIALS is None}")
+                logger.info(f"Saved profile picture to: {user.profile_picture.name}")
+                logger.info(f"Profile picture URL: {user.profile_picture.url}")
+                logger.info(f"Storage backend: {settings.DEFAULT_FILE_STORAGE}")
+                logger.info(f"GS_BUCKET_NAME: {settings.GS_BUCKET_NAME}")
+                logger.info(f"GS_LOCATION: {settings.GS_LOCATION}")
+                logger.info(f"GS_CREDENTIALS: {settings.GS_CREDENTIALS is None}")
+                
+                # Verify the file exists in storage
+                try:
+                    from django.core.files.storage import default_storage
+                    if default_storage.exists(user.profile_picture.name):
+                        logger.info(f"File exists in storage: {user.profile_picture.name}")
+                    else:
+                        logger.error(f"File does not exist in storage: {user.profile_picture.name}")
+                        
+                    # Get file URL with expiration (for debugging)
+                    if hasattr(default_storage, 'url'):
+                        try:
+                            file_url = default_storage.url(user.profile_picture.name)
+                            logger.info(f"Generated URL: {file_url}")
+                        except Exception as e:
+                            logger.error(f"Error generating URL: {str(e)}")
+                except Exception as e:
+                    logger.error(f"Error checking file existence: {str(e)}")
             
             # Add success message
             if profile_pic_changed:

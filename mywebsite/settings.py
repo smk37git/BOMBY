@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials
 import logging
+from google.oauth2 import service_account
 
 # Load environment variables from .env file
 load_dotenv(Path(__file__).resolve().parent / '.env')
@@ -183,7 +184,15 @@ GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'bomby-user-uploads')
 GS_DEFAULT_ACL = 'publicRead'
 GS_LOCATION = ''
 GS_FILE_OVERWRITE = False
-GS_CREDENTIALS = None  # Use Application Default Credentials
+
+# Use explicit credentials file instead of Application Default Credentials
+GS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs-credentials.json')
+if os.path.exists(GS_CREDENTIALS_FILE):
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GS_CREDENTIALS_FILE)
+else:
+    # Fall back to ADC if credentials file doesn't exist
+    GS_CREDENTIALS = None
+    logging.warning("GCS credentials file not found. Falling back to Application Default Credentials.")
 
 # Firebase Settings
 FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase-credentials.json')
@@ -223,5 +232,17 @@ LOGGING = {
         'handlers': ['console'],
         'level': 'INFO',
         'propagate': True,
+    },
+    'loggers': {
+        'storages': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'google.cloud.storage': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
     },
 }
