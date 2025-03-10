@@ -19,9 +19,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Install boto3 for AWS S3 access
-RUN pip install --no-cache-dir boto3
-
 # Copy project
 COPY . .
 
