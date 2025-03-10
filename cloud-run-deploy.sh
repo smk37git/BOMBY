@@ -59,23 +59,8 @@ gcloud run deploy $SERVICE_NAME \
   --platform managed \
   --region $REGION \
   --allow-unauthenticated \
-  --set-env-vars="DEBUG=False,\
-ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,\
-SENDGRID_API_KEY=$SENDGRID_KEY,\
-DEFAULT_FROM_EMAIL=$DEFAULT_FROM_EMAIL,\
-SENDGRID_SANDBOX_MODE=False,\
-DB_NAME=$DB_NAME,\
-DB_USER=$DB_USER,\
-DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,\
-AWS_REGION=$AWS_REGION,\
-AWS_DEFAULT_ACL=public-read,\
-ENABLE_IMAGE_MODERATION=$ENABLE_IMG_MOD,\
-IMAGE_MODERATION_CONFIDENCE_THRESHOLD=$IMG_MOD_THRESHOLD" \
-  --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
-DB_PASSWORD=postgres-password:latest,\
-AWS_ACCESS_KEY_ID=aws-access-key:latest,\
-AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
-AWS_S3_BUCKET_NAME=aws-s3-bucket-name:latest" \
+  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,SENDGRID_API_KEY=$SENDGRID_KEY,DEFAULT_FROM_EMAIL=$DEFAULT_FROM_EMAIL,SENDGRID_SANDBOX_MODE=False,DB_NAME=$DB_NAME,DB_USER=$DB_USER,DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,AWS_REGION=$AWS_REGION,AWS_DEFAULT_ACL=public-read,ENABLE_IMAGE_MODERATION=$ENABLE_IMG_MOD,IMAGE_MODERATION_CONFIDENCE_THRESHOLD=$IMG_MOD_THRESHOLD" \
+  --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,DB_PASSWORD=postgres-password:latest,AWS_ACCESS_KEY_ID=aws-access-key:latest,AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,AWS_S3_BUCKET_NAME=aws-s3-bucket-name:latest" \
   --memory 512Mi \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
