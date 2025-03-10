@@ -29,8 +29,7 @@ RUN chmod +x /app/entrypoint.sh
 
 # Create static directory and collect static files with fallback
 RUN mkdir -p /tmp/staticfiles && \
-    echo "Starting static collection..." && \
-    python manage.py collectstatic --noinput --verbosity 3 || echo "Static collection failed, continuing anyway"
+    python manage.py collectstatic --noinput || echo "Static collection failed, continuing anyway"
 
 # Expose the port
 EXPOSE 8080
