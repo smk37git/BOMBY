@@ -17,7 +17,9 @@ import json
 import io
 import boto3
 from django.http import HttpResponse
+
 import os
+from django.core.files.storage import default_storage
 
 # Add Firebase-related views here
 @csrf_exempt
