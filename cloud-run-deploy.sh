@@ -14,7 +14,6 @@ DB_USER="postgres"
 DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
-GS_BUCKET_NAME="bomby-database"
 
 # Build the Docker image
 echo "Building Docker image..."
@@ -52,7 +51,6 @@ SENDGRID_SANDBOX_MODE=False,\
 DB_NAME=$DB_NAME,\
 DB_USER=$DB_USER,\
 DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,\
-GS_BUCKET_NAME=$GS_BUCKET_NAME,\
 GS_PROJECT_ID=$PROJECT_ID,\
 USE_GCS=True" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\

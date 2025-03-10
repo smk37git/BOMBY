@@ -148,20 +148,6 @@ WHITENOISE_MIMETYPES = {
     '.svg': 'image/svg+xml',
 }
 
-# User Uploads
-if os.environ.get('USE_GCS', 'False') == 'True':
-    # Google Cloud Storage settings
-    DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-    GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
-    GS_PROJECT_ID = os.environ.get('GS_PROJECT_ID')
-    GS_DEFAULT_ACL = 'publicRead'
-    GS_LOCATION = 'media'
-    MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_LOCATION}/'
-else:
-    # Local media settings
-    MEDIA_URL = '/media/'
-    MEDIA_ROOT = os.path.join(BASE_DIR, 'ACCOUNTS/static/media')
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
