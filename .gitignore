@@ -67,4 +67,4 @@ Thumbs.db
 firebase-credentials.json
 
 # Google Bucket
-database-bucket.json
+gcs-credentials.json

@@ -18,6 +18,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy GCS credentials (will be mounted in production)
+COPY gcs-credentials.json /app/gcs-credentials.json
+
 # Copy project and entrypoint script
 COPY . .
 

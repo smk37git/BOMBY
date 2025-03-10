@@ -16,6 +16,7 @@ import os
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials
+from google.oauth2 import service_account
 
 # Load environment variables from .env file
 load_dotenv(Path(__file__).resolve().parent / '.env')
@@ -98,6 +99,21 @@ DATABASES = {
         'PORT': '5432',
     }
 }
+
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_BUCKET_NAME = 'bomby-user-uploads'  # Choose a unique bucket name
+GS_DEFAULT_ACL = 'publicRead'
+GS_LOCATION = 'profile_pictures'  # Folder inside bucket
+GS_FILE_OVERWRITE = False  # Don't overwrite files with same name
+
+# Use environment variable for service account credentials
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    os.path.join(BASE_DIR, 'gcs-credentials.json')
+) if os.path.exists(os.path.join(BASE_DIR, 'gcs-credentials.json')) else None
+
+# Fallback to local storage for development
+if DEBUG and GS_CREDENTIALS is None:
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
