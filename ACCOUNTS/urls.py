@@ -57,4 +57,5 @@ urlpatterns = [
      path('user-management/', views.user_management, name='user_management'),
      path('bulk-change-user-type/', views.bulk_change_user_type, name='bulk_change_user_type'),
      path('bulk-delete-users/', views.bulk_delete_users, name='bulk_delete_users'),
+     path('test-upload/', views.test_file_upload, name='test_file_upload'),
 ]

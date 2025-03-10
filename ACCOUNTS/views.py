@@ -310,3 +310,38 @@ def bulk_delete_users(request):
             messages.success(request, f"Successfully deleted {deleted_count} users.")
     
     return redirect('ACCOUNTS:user_management')
+
+@login_required
+def test_file_upload(request):
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    if request.method == 'POST' and request.FILES.get('test_file'):
+        try:
+            # Log environment settings
+            logger.info(f"USE_GCS: {os.environ.get('USE_GCS')}")
+            logger.info(f"GS_BUCKET_NAME: {os.environ.get('GS_BUCKET_NAME')}")
+            logger.info(f"Storage backend: {settings.DEFAULT_FILE_STORAGE}")
+            
+            test_file = request.FILES['test_file']
+            # Save directly using default_storage
+            from django.core.files.storage import default_storage
+            path = default_storage.save(f'test_uploads/{test_file.name}', test_file)
+            url = default_storage.url(path)
+            
+            return JsonResponse({
+                'success': True,
+                'file_path': path,
+                'url': url
+            })
+        except Exception as e:
+            logger.error(f"Upload error: {str(e)}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)
+    
+    # Simple upload form
+    return render(request, 'ACCOUNTS/test_upload.html')
