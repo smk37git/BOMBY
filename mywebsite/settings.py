@@ -191,8 +191,8 @@ AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 
 # Image content moderation settings
-ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION')
-IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD')
+ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION') == 'True'
+IMAGE_MODERATION_CONFIDENCE_THRESHOLD = float(os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD', '99.0'))
 
 # Firebase Settings
 FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase-credentials.json')
