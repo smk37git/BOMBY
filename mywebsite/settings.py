@@ -156,7 +156,6 @@ if os.environ.get('USE_GCS') == 'True':
     GS_PROJECT_ID = os.environ.get('GS_PROJECT_ID')
     GS_CREDENTIALS = None
     GS_DEFAULT_ACL = 'publicRead'
-    #GS_LOCATION = 'media'
     MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'
 
     # Add debugging
@@ -191,7 +190,7 @@ AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 
 # Image content moderation settings
-ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION') == 'False'
+ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION') == 'True'
 IMAGE_MODERATION_CONFIDENCE_THRESHOLD = float(os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD', '99.0'))
 
 # Firebase Settings

@@ -15,8 +15,8 @@ DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
 GS_BUCKET_NAME="bomby-database"
-ENABLE_IMAGE_MODERATION=Falses,\
-IMAGE_MODERATION_CONFIDENCE_THRESHOLD=0.0,\
+ENABLE_IMAGE_MODERATION=True
+IMAGE_MODERATION_CONFIDENCE_THRESHOLD=99.0
 
 # Build the Docker image
 echo "Building Docker image..."
@@ -29,6 +29,10 @@ gcloud auth configure-docker
 # Push the image to Google Container Registry
 echo "Pushing image to Google Container Registry..."
 docker push $IMAGE_NAME
+
+# Set bucket permissions
+echo "Setting bucket permissions..."
+gsutil iam ch allUsers:objectViewer gs://$GS_BUCKET_NAME
 
 # Upload secrets if not already there
 echo "Ensuring secrets exist..."
@@ -56,7 +60,9 @@ DB_USER=$DB_USER,\
 DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,\
 GS_BUCKET_NAME=$GS_BUCKET_NAME,\
 GS_PROJECT_ID=$PROJECT_ID,\
-USE_GCS=True" \
+USE_GCS=True,\
+ENABLE_IMAGE_MODERATION=$ENABLE_IMAGE_MODERATION,\
+IMAGE_MODERATION_CONFIDENCE_THRESHOLD=$IMAGE_MODERATION_CONFIDENCE_THRESHOLD" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
 DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\
