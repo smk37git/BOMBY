@@ -14,6 +14,7 @@ DB_USER="postgres"
 DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
+BUCKET_NAME="bomby-user-uploads"
 
 # Build the Docker image
 echo "Building Docker image..."
@@ -36,6 +37,14 @@ gcloud secrets create django-secret-key --replication-policy="automatic"
 gcloud secrets describe postgres-password > /dev/null 2>&1 || \
 gcloud secrets create postgres-password --replication-policy="automatic" --data-file=<(echo -n "$DB_PASSWORD")
 
+# Ensure the bucket exists with correct permissions
+echo "Ensuring the storage bucket exists..."
+gsutil ls -b gs://$BUCKET_NAME > /dev/null 2>&1 || \
+gsutil mb -l $REGION gs://$BUCKET_NAME
+
+# Make bucket publicly readable
+gsutil iam ch allUsers:objectViewer gs://$BUCKET_NAME
+
 # Deploy to Cloud Run
 echo "Deploying to Cloud Run..."
 gcloud run deploy $SERVICE_NAME \
@@ -43,6 +52,7 @@ gcloud run deploy $SERVICE_NAME \
   --platform managed \
   --region $REGION \
   --allow-unauthenticated \
+  --mount type=cloud-storage,bucket=$BUCKET_NAME,path=/app/media \
   --set-env-vars="DEBUG=False,\
 ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,\
 SENDGRID_API_KEY=$SENDGRID_KEY,\
@@ -50,7 +60,7 @@ DEFAULT_FROM_EMAIL=$DEFAULT_FROM_EMAIL,\
 SENDGRID_SANDBOX_MODE=False,\
 DB_NAME=$DB_NAME,\
 DB_USER=$DB_USER,\
-DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,\
+DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
 DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\

@@ -196,3 +196,15 @@ FIREBASE_CONFIG = {
     'messagingSenderId': os.environ.get('FIREBASE_MESSAGING_SENDER_ID', ''),
     'appId': os.environ.get('FIREBASE_APP_ID', '')
 }
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# For Cloud Run with mounted bucket
+if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
+    # Path where the bucket is mounted
+    GS_MEDIA_BUCKET_PATH = '/app/media'
+    # Set media root to the mount point
+    MEDIA_ROOT = GS_MEDIA_BUCKET_PATH
+    # Use FileSystemStorage for mounted bucket
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'

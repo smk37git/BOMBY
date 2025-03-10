@@ -10,6 +10,21 @@ if [ -n "$DB_HOST" ]; then
   echo "Database connection established!"
 fi
 
+# Check if running in Cloud Run with mounted bucket
+if [ -d "/app/media" ]; then
+  echo "Preparing media directories..."
+  # Create necessary directories
+  mkdir -p /app/media/profile_pictures
+  
+  # Make sure the directories are writable by the application user
+  chmod -R 777 /app/media
+  chown -R nobody:nogroup /app/media
+  
+  # Display permissions for debugging
+  echo "Media directory permissions:"
+  ls -la /app/media
+fi
+
 # Run migrations
 python manage.py migrate
 

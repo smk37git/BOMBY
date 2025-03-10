@@ -19,6 +19,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('MAIN.urls')),
@@ -28,4 +29,7 @@ urlpatterns = [
 # Add static and media URLs for development
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+else:
+    # For production, we still need to serve media files when using file storage
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
