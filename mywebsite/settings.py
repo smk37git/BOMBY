@@ -156,16 +156,15 @@ if os.environ.get('USE_GCS') == 'True':
     GS_PROJECT_ID = os.environ.get('GS_PROJECT_ID')
     GS_CREDENTIALS = None
     GS_DEFAULT_ACL = 'publicRead'
-    GS_LOCATION = 'media'
+    #GS_LOCATION = 'media'
     MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'
-    
-    # Add logging for GCS configuration
-    print(f"Using GCS bucket: {GS_BUCKET_NAME}")
+
+    # Add debugging
+    print(f"GCS Configuration: Bucket={GS_BUCKET_NAME}, Project={GS_PROJECT_ID}")
 else:
     # Local media settings
     MEDIA_URL = '/media/'
     MEDIA_ROOT = os.path.join(BASE_DIR, 'ACCOUNTS/static/media')
-    print("Using local media storage")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
