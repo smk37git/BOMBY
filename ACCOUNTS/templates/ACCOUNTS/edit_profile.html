@@ -84,13 +84,13 @@
                         </div>
                     </div>
                 
-                    <!-- Keep the form field but hide the display section -->
-                    <div style="display:none;">
+                    <!-- File input container -->
+                    <div class="file-input-container">
                         {{ form.profile_picture }}
                         <input type="hidden" name="clear_picture" id="clear-picture-input" value="false">
-                
-                        <!-- This hides the "Currently:" text and filename -->
-                        <div class="currently-info">
+                        
+                        <!-- Hidden info text -->
+                        <div class="currently-info" style="display: none;">
                             Currently: {{ user.profile_picture.name }}
                         </div>
                     </div>
