@@ -17,8 +17,6 @@ import json
 import io
 import boto3
 from django.http import HttpResponse
-import tempfile
-import os
 
 # Add Firebase-related views here
 @csrf_exempt
@@ -125,143 +123,65 @@ def profile_view(request, username=None):
 # Edit Profile Picture
 @login_required
 def edit_profile(request):
-    profile_pic_error = False
+    profile_pic_error = False  # Add this flag
     
     if request.method == 'POST':
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
         
+        # Track if profile picture was changed
         profile_pic_changed = False
         
         # Handle profile picture clearing
         if request.POST.get('clear_picture') == 'true':
             if request.user.profile_picture:
-                try:
-                    # Delete the existing profile picture
-                    request.user.profile_picture.delete(save=False)
-                    request.user.profile_picture = None
-                    profile_pic_changed = True
-                except Exception as e:
-                    logger.error(f"Error clearing profile picture: {str(e)}")
-                    messages.error(request, 'Error clearing profile picture. Please try again.')
-                    profile_pic_error = True
+                # Delete the existing profile picture
+                request.user.profile_picture.delete(save=False)
+                request.user.profile_picture = None
+                profile_pic_changed = True
         
         # Validate profile picture if uploaded
         profile_picture = request.FILES.get('profile_picture')
         if profile_picture:
             profile_pic_changed = True
-            logger.info(f"Received profile picture: {profile_picture.name}, size: {profile_picture.size}, type: {profile_picture.content_type}")
-            
             # Check file type
             valid_types = ['image/jpeg', 'image/png', 'image/gif']
             if hasattr(profile_picture, 'content_type') and profile_picture.content_type not in valid_types:
                 form.add_error('profile_picture', 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
                 messages.error(request, 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
-                profile_pic_error = True
+                profile_pic_error = True  # Set flag
             
-            # Check file size (5MB max)
-            if profile_picture.size > 5 * 1024 * 1024:
-                form.add_error('profile_picture', 'Image size must be less than 5MB.')
-                messages.error(request, 'Image size must be less than 5MB.')
-                profile_pic_error = True
+            # Check file size (10MB max)
+            if profile_picture.size > 10 * 1024 * 1024:
+                form.add_error('profile_picture', 'Image size must be less than 10MB.')
+                messages.error(request, 'Image size must be less than 10MB.')
+                profile_pic_error = True  # Set flag
             
-            # Skip moderation in production if having issues
-            try:
-                is_safe, explicit_categories = moderate_image_content(profile_picture)
-                if not is_safe:
-                    categories_str = ", ".join(explicit_categories)
-                    error_msg = f'Image contains inappropriate content and cannot be used. Detected: {categories_str}'
-                    form.add_error('profile_picture', error_msg)
-                    messages.error(request, error_msg)
-                    profile_pic_error = True
-            except Exception as e:
-                logger.error(f"Moderation error: {str(e)}")
-                # Continue without blocking the upload
+            # Content moderation
+            is_safe, explicit_categories = moderate_image_content(profile_picture)
+            if not is_safe:
+                categories_str = ", ".join(explicit_categories)
+                error_msg = f'Image contains inappropriate content and cannot be used. Detected: {categories_str}'
+                form.add_error('profile_picture', error_msg)
+                messages.error(request, error_msg)
+                profile_pic_error = True  # Set flag
         
         if form.is_valid():
-            try:
-                # Save the form without committing to get the user instance
-                user = form.save(commit=False)
-                
-                # If a new profile picture was uploaded, process it
-                if profile_picture and not profile_pic_error:
-                    # Generate a unique filename to avoid caching issues
-                    import uuid
-                    ext = profile_picture.name.split('.')[-1].lower()
-                    unique_filename = f"profile_pictures/{uuid.uuid4().hex}.{ext}"
-                    logger.info(f"Generated unique filename: {unique_filename}")
-                    
-                    # Try direct upload to S3 using boto3
-                    try:
-                        import boto3
-                        from django.conf import settings
-                        
-                        # Check if AWS credentials are available
-                        if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
-                            raise Exception("AWS credentials not found in settings")
-                        
-                        # Create S3 client
-                        s3_client = boto3.client(
-                            's3',
-                            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                            region_name=settings.AWS_REGION
-                        )
-                        
-                        # Create a temporary file
-                        with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as temp_file:
-                            for chunk in profile_picture.chunks():
-                                temp_file.write(chunk)
-                            temp_file_path = temp_file.name
-                        
-                        # Upload to S3
-                        s3_client.upload_file(
-                            temp_file_path, 
-                            settings.AWS_STORAGE_BUCKET_NAME, 
-                            unique_filename
-                        )
-                        
-                        # Clean up temporary file
-                        os.remove(temp_file_path)
-                        
-                        # Set the profile picture path
-                        user.profile_picture.name = unique_filename
-                        logger.info(f"Successfully uploaded to S3: {unique_filename}")
-                        
-                    except Exception as e:
-                        logger.error(f"Error with direct S3 upload: {str(e)}")
-                        # Fall back to Django's built-in method
-                        profile_picture.seek(0)  # Reset file pointer
-                        user.profile_picture.save(unique_filename, profile_picture, save=False)
-                        logger.info(f"Saved using Django's method: {user.profile_picture.name}")
-                
-                # Save the user instance
-                user.save()
-                logger.info(f"User saved. Profile picture path: {user.profile_picture.name if user.profile_picture else 'None'}")
-                
-                if profile_pic_changed:
-                    if user.profile_picture:
-                        try:
-                            url = user.profile_picture.url
-                            logger.info(f"Profile picture URL: {url}")
-                            messages.success(request, f'Profile picture updated successfully!')
-                        except Exception as e:
-                            logger.error(f"Error generating URL: {str(e)}")
-                            messages.success(request, 'Profile picture updated but there might be issues displaying it.')
-                    else:
-                        messages.success(request, 'Profile picture cleared successfully!')
-                else:
-                    messages.success(request, 'Profile updated successfully!')
-                return redirect('ACCOUNTS:edit_profile')
-            except Exception as e:
-                logger.error(f"Error saving profile: {str(e)}")
-                messages.error(request, f'Error saving profile: {str(e)}')
+            user = form.save()
+            # Add success message based on what was updated
+            if profile_pic_changed:
+                messages.success(request, 'Profile picture updated successfully!')
+            else:
+                messages.success(request, 'Profile updated successfully!')
+            return redirect('ACCOUNTS:edit_profile')
     else:
         form = ProfileEditForm(instance=request.user)
     
+    # Include the error flag in the context
     return render(request, 'ACCOUNTS/edit_profile.html', {
         'form': form,
         'profile_pic_error': profile_pic_error
     })
+
     
 @login_required
 def edit_username(request, user_id=None):

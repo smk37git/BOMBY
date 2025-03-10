@@ -181,13 +181,14 @@ LOGOUT_REDIRECT_URL = 'home'
 ## AWS SETTINGS
 # AWS credentials from environment variables
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_AC`CESS_KEY')
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-2')
 AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_S3_BUCKET_NAME', 'bomby-user-uploads')
 
-# Log AWS credentials status
+# Log AWS credentials status (redacted for security)
 if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
-    logging.info(f"AWS credentials found. Using bucket: {AWS_STORAGE_BUCKET_NAME}")
+    logging.info(f"AWS credentials found. Access Key ID: {AWS_ACCESS_KEY_ID[:4]}...{AWS_ACCESS_KEY_ID[-4:] if len(AWS_ACCESS_KEY_ID) > 8 else ''}")
+    logging.info(f"Using bucket: {AWS_STORAGE_BUCKET_NAME} in region {AWS_REGION}")
 else:
     logging.warning("AWS credentials not found in environment variables!")
 
@@ -197,7 +198,7 @@ AWS_S3_REGION_NAME = AWS_REGION
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
 
 # Basic S3 settings
-AWS_DEFAULT_ACL = None  # Don't try to set ACLs with bucket owner enforced
+AWS_DEFAULT_ACL = 'public-read'  # Make uploaded files publicly readable
 AWS_S3_FILE_OVERWRITE = False  # Don't overwrite files with same name
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',

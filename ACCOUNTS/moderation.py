@@ -1,4 +1,5 @@
-# Updated moderation.py
+# Add this to a new file called moderation.py in your app directory
+
 import boto3
 from django.conf import settings
 import logging
@@ -22,7 +23,7 @@ def moderate_image_content(image_file):
         return True, []
     
     try:
-        # Create boto3 client with explicit credentials
+        # Create boto3 client
         client = boto3.client(
             'rekognition',
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
@@ -43,7 +44,7 @@ def moderate_image_content(image_file):
         
         # Check for explicit categories with confidence above threshold
         explicit_categories = []
-        threshold = float(settings.IMAGE_MODERATION_CONFIDENCE_THRESHOLD)
+        threshold = settings.IMAGE_MODERATION_CONFIDENCE_THRESHOLD
         
         for label in response['ModerationLabels']:
             if label['Confidence'] > threshold:
