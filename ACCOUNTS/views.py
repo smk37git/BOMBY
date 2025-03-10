@@ -123,7 +123,7 @@ def profile_view(request, username=None):
 # Edit Profile Picture
 @login_required
 def edit_profile(request):
-    profile_pic_error = False  # Add this flag
+    profile_pic_error = False
     
     if request.method == 'POST':
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
@@ -142,19 +142,20 @@ def edit_profile(request):
         # Validate profile picture if uploaded
         profile_picture = request.FILES.get('profile_picture')
         if profile_picture:
+            print(f"DEBUG: Received profile picture: {profile_picture.name}, size: {profile_picture.size}, type: {profile_picture.content_type}")
             profile_pic_changed = True
             # Check file type
             valid_types = ['image/jpeg', 'image/png', 'image/gif']
             if hasattr(profile_picture, 'content_type') and profile_picture.content_type not in valid_types:
                 form.add_error('profile_picture', 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
                 messages.error(request, 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
-                profile_pic_error = True  # Set flag
+                profile_pic_error = True
             
             # Check file size (10MB max)
             if profile_picture.size > 10 * 1024 * 1024:
                 form.add_error('profile_picture', 'Image size must be less than 10MB.')
                 messages.error(request, 'Image size must be less than 10MB.')
-                profile_pic_error = True  # Set flag
+                profile_pic_error = True
             
             # Content moderation
             is_safe, explicit_categories = moderate_image_content(profile_picture)
@@ -163,25 +164,35 @@ def edit_profile(request):
                 error_msg = f'Image contains inappropriate content and cannot be used. Detected: {categories_str}'
                 form.add_error('profile_picture', error_msg)
                 messages.error(request, error_msg)
-                profile_pic_error = True  # Set flag
+                profile_pic_error = True
         
         if form.is_valid():
             user = form.save()
-            # Add success message based on what was updated
+            
+            # Debug info for profile pic
+            if profile_pic_changed and user.profile_picture:
+                print(f"DEBUG: Saved profile picture to: {user.profile_picture.name}")
+                print(f"DEBUG: Profile picture URL: {user.profile_picture.url}")
+                print(f"DEBUG: Storage backend: {settings.DEFAULT_FILE_STORAGE}")
+                print(f"DEBUG: GS_BUCKET_NAME: {settings.GS_BUCKET_NAME}")
+                print(f"DEBUG: GS_LOCATION: {settings.GS_LOCATION}")
+                print(f"DEBUG: GS_CREDENTIALS: {settings.GS_CREDENTIALS is None}")
+            
+            # Add success message
             if profile_pic_changed:
                 messages.success(request, 'Profile picture updated successfully!')
             else:
                 messages.success(request, 'Profile updated successfully!')
             return redirect('ACCOUNTS:edit_profile')
+        else:
+            print(f"DEBUG: Form errors: {form.errors}")
     else:
         form = ProfileEditForm(instance=request.user)
     
-    # Include the error flag in the context
     return render(request, 'ACCOUNTS/edit_profile.html', {
         'form': form,
         'profile_pic_error': profile_pic_error
     })
-
     
 @login_required
 def edit_username(request, user_id=None):

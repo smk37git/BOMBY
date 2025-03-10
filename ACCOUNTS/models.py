@@ -45,7 +45,7 @@ class User(AbstractUser):
     
     # All your existing fields and methods remain unchanged
     profile_picture = models.ImageField(
-        upload_to='profile_pictures/', 
+        upload_to='', # Empty string since GS_LOCATION already specifies profile_pictures/ 
         blank=True, 
         null=True,
         validators=[validate_image_size, validate_image_dimensions]
