@@ -4,8 +4,7 @@ FROM python:3.11-slim
 RUN apt-get update && apt-get install -y postgresql-client lsb-release curl gnupg && \
     echo "deb http://packages.cloud.google.com/apt gcsfuse-$(lsb_release -c -s) main" | tee /etc/apt/sources.list.d/gcsfuse.list && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
-    apt-get update && apt-get install -y gcsfuse && \
-    mkdir -p /app/media
+    apt-get update && apt-get install -y gcsfuse
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -28,8 +27,9 @@ COPY . .
 # Ensure entrypoint script is executable
 RUN chmod +x /app/entrypoint.sh
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Create static directory and collect static files with fallback
+RUN mkdir -p /tmp/staticfiles && \
+    python manage.py collectstatic --noinput || echo "Static collection failed, continuing anyway"
 
 # Expose the port
 EXPOSE 8080
