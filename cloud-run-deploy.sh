@@ -62,9 +62,14 @@ USE_GCS=True" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
 DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\
-AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
-/app/gcs-credentials.json=gcs-credentials:latest" \
+AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
+  --mount="type=secret,target=/secrets/gcs-credentials,name=gcs-credentials,version=latest" \
   --memory 512Mi \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
+
+if [ $? -ne 0 ]; then
+  echo "Deployment failed. Checking Cloud Run logs..."
+  gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=$SERVICE_NAME" --limit=20
+fi
 
 echo "Deployment complete! Your website should be available soon at the URL above."

@@ -190,7 +190,7 @@ try:
     
     # Check multiple possible locations for credentials
     gcs_credentials_paths = [
-        '/gcs-credentials/gcs-credentials.json',
+        '/secrets/gcs-credentials/gcs-credentials.json',
         os.path.join(BASE_DIR, 'gcs-credentials.json')
     ]
     
