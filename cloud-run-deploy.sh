@@ -14,6 +14,12 @@ DB_USER="postgres"
 DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
+AWS_S3_BUCKET_NAME=$(grep AWS_S3_BUCKET_NAME .env | cut -d'=' -f2)
+AWS_REGION=$(grep AWS_REGION .env | cut -d'=' -f2)
+AWS_ACCESS_KEY=$(grep AWS_ACCESS_KEY_ID .env | cut -d'=' -f2)
+AWS_SECRET_KEY=$(grep AWS_SECRET_ACCESS_KEY .env | cut -d'=' -f2)
+ENABLE_IMG_MOD=$(grep ENABLE_IMAGE_MODERATION .env | cut -d'=' -f2)
+IMG_MOD_THRESHOLD=$(grep IMAGE_MODERATION_CONFIDENCE_THRESHOLD .env | cut -d'=' -f2)
 
 # Build the Docker image
 echo "Building Docker image..."
@@ -36,6 +42,16 @@ gcloud secrets create django-secret-key --replication-policy="automatic"
 gcloud secrets describe postgres-password > /dev/null 2>&1 || \
 gcloud secrets create postgres-password --replication-policy="automatic" --data-file=<(echo -n "$DB_PASSWORD")
 
+# Add AWS credentials to Secret Manager if not already there
+gcloud secrets describe aws-access-key > /dev/null 2>&1 || \
+gcloud secrets create aws-access-key --replication-policy="automatic" --data-file=<(echo -n "$AWS_ACCESS_KEY")
+
+gcloud secrets describe aws-secret-key > /dev/null 2>&1 || \
+gcloud secrets create aws-secret-key --replication-policy="automatic" --data-file=<(echo -n "$AWS_SECRET_KEY")
+
+gcloud secrets describe aws-s3-bucket-name > /dev/null 2>&1 || \
+gcloud secrets create aws-s3-bucket-name --replication-policy="automatic" --data-file=<(echo -n "$AWS_S3_BUCKET_NAME")
+
 # Deploy to Cloud Run
 echo "Deploying to Cloud Run..."
 gcloud run deploy $SERVICE_NAME \
@@ -51,10 +67,15 @@ SENDGRID_SANDBOX_MODE=False,\
 DB_NAME=$DB_NAME,\
 DB_USER=$DB_USER,\
 DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,\
+AWS_REGION=$AWS_REGION,\
+AWS_DEFAULT_ACL=public-read,\
+ENABLE_IMAGE_MODERATION=$ENABLE_IMG_MOD,\
+IMAGE_MODERATION_CONFIDENCE_THRESHOLD=$IMG_MOD_THRESHOLD" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
 DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\
-AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
+AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
+AWS_S3_BUCKET_NAME=aws-s3-bucket-name:latest" \
   --memory 512Mi \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
