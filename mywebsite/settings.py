@@ -23,7 +23,6 @@ load_dotenv(Path(__file__).resolve().parent / '.env')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -37,9 +36,7 @@ DEBUG = True
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
 CSRF_TRUSTED_ORIGINS = ['https://bomby-799218251279.us-central1.run.app']
 
-
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -84,10 +81,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'mywebsite.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -101,7 +96,6 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -117,40 +111,22 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
+STATIC_URL = '/static/'
+STATIC_ROOT = '/tmp/staticfiles'
 
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-# Whitenoise
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-WHITENOISE_MIMETYPES = {
-    '.css': 'text/css',
-    '.js': 'application/javascript',
-    '.html': 'text/html',
-    '.jpg': 'image/jpeg',
-    '.png': 'image/png',
-    '.svg': 'image/svg+xml',
-}
+# Simplify staticfiles for deployment
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 
 # Default primary key field type
-# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
-
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ## EMAIL SETTINGS
@@ -158,7 +134,7 @@ EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'sebetvbusiness@gmail.com')
 SENDGRID_SANDBOX_MODE = False
-SENDGRID_SANDBOX_MODE_IN_DEBUG = False  # Add this line
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False
 
 ## LOGIN SETTINGS
 AUTH_USER_MODEL = 'ACCOUNTS.User'
@@ -197,7 +173,7 @@ FIREBASE_CONFIG = {
     'appId': os.environ.get('FIREBASE_APP_ID', '')
 }
 
-# GCS Storage settings - MEDIA_URL/MEDIA_ROOT removed
+# GCS Storage settings
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = os.environ.get('BUCKET_NAME')
 GS_PROJECT_ID = 'premium-botany-453018-a0'
