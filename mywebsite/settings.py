@@ -16,8 +16,6 @@ import os
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials
-import logging
-from google.oauth2 import service_account
 
 # Load environment variables from .env file
 load_dotenv(Path(__file__).resolve().parent / '.env')
@@ -178,32 +176,6 @@ AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION')
 IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD')
 
-# Google Cloud Storage Settings - Simplified Configuration
-DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'bomby-user-uploads')
-GS_PROJECT_ID = os.environ.get('GS_PROJECT_ID', 'premium-botany-453018-a0')
-GS_DEFAULT_ACL = 'publicRead'
-GS_LOCATION = ''
-GS_FILE_OVERWRITE = False
-GS_BLOB_CHUNK_SIZE = 1024 * 1024 * 5  # 5 MB
-GS_MAX_MEMORY_SIZE = 1024 * 1024 * 5  # 5 MB
-
-# Use explicit credentials file instead of Application Default Credentials
-GS_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'gcs-credentials.json')
-if os.path.exists(GS_CREDENTIALS_FILE):
-    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(GS_CREDENTIALS_FILE)
-    logger = logging.getLogger(__name__)
-    logger.info(f"Using GCS credentials from file: {GS_CREDENTIALS_FILE}")
-    logger.info(f"GCS Project ID: {GS_PROJECT_ID}")
-    logger.info(f"GCS Bucket Name: {GS_BUCKET_NAME}")
-else:
-    # Fall back to ADC if credentials file doesn't exist
-    GS_CREDENTIALS = None
-    logging.warning("GCS credentials file not found. Falling back to Application Default Credentials.")
-
-# Set custom endpoint to generate absolute URLs
-GS_CUSTOM_ENDPOINT = f"https://storage.googleapis.com/{GS_BUCKET_NAME}"
-
 # Firebase Settings
 FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase-credentials.json')
 if os.path.exists(FIREBASE_CREDENTIALS_PATH):
@@ -242,17 +214,5 @@ LOGGING = {
         'handlers': ['console'],
         'level': 'INFO',
         'propagate': True,
-    },
-    'loggers': {
-        'storages': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-        'google.cloud.storage': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
     },
 }
