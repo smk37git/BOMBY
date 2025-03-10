@@ -149,11 +149,11 @@ WHITENOISE_MIMETYPES = {
 }
 
 # User Uploads
-if os.environ.get('USE_GCS', 'False') == 'True':
+if True:
     # Google Cloud Storage settings
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
-    GS_BUCKET_NAME = 'bomby-database'  # Hardcode to avoid any env var issues
-    GS_PROJECT_ID = 'premium-botany-453018-a0'  # Hardcode your project ID
+    GS_BUCKET_NAME = 'bomby-database' 
+    GS_PROJECT_ID = 'premium-botany-453018-a0'
     GS_DEFAULT_ACL = 'publicRead'
     GS_LOCATION = 'media'
     GS_FILE_OVERWRITE = False  # Don't overwrite files with the same name
