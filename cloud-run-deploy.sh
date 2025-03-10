@@ -15,8 +15,8 @@ DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
 GS_BUCKET_NAME="bomby-database"
-ENABLE_IMAGE_MODERATION=True,\
-IMAGE_MODERATION_CONFIDENCE_THRESHOLD=99.0,\
+ENABLE_IMAGE_MODERATION=Falses,\
+IMAGE_MODERATION_CONFIDENCE_THRESHOLD=0.0,\
 
 # Build the Docker image
 echo "Building Docker image..."
