@@ -176,7 +176,22 @@ def edit_profile(request):
         
         if form.is_valid():
             try:
-                user = form.save()
+                # Save the form without committing to get the user instance
+                user = form.save(commit=False)
+                
+                # If a new profile picture was uploaded, process it
+                if profile_picture and not profile_pic_error:
+                    # Generate a unique filename to avoid caching issues
+                    import uuid
+                    ext = profile_picture.name.split('.')[-1]
+                    unique_filename = f"profile_pictures/{uuid.uuid4().hex}.{ext}"
+                    
+                    # Save the profile picture with the unique filename
+                    user.profile_picture.save(unique_filename, profile_picture, save=False)
+                
+                # Save the user instance
+                user.save()
+                
                 if profile_pic_changed:
                     messages.success(request, 'Profile picture updated successfully!')
                 else:

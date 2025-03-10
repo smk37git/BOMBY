@@ -39,7 +39,7 @@
                 <div class="profile-picture-section">
                     <div class="profile-picture-container">
                         {% if user.profile_picture and not profile_pic_error %}
-                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="edit_current-profile-picture" id="profile-preview" onerror="this.style.display='none'; document.getElementById('edit_profile-placeholder').style.display='flex';">
+                            <img src="{{ user.profile_picture.url }}?v={{ user.last_login|date:'U' }}" alt="Profile Picture" class="edit_current-profile-picture" id="profile-preview" onerror="this.onerror=null; this.style.display='none'; document.getElementById('profile-placeholder').style.display='flex';">
                             <div class="profile-picture-placeholder" id="profile-placeholder" style="display: none;">
                                 <i class="fas fa-user"></i>
                             </div>

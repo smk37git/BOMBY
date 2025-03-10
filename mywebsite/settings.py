@@ -175,10 +175,13 @@ AWS_REGION = os.environ.get('AWS_REGION', 'us-east-2')  # Default to us-east-2
 
 # S3 Storage configuration
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_S3_BUCKET_NAME')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_S3_BUCKET_NAME', 'bomby-user-uploads')
 AWS_S3_REGION_NAME = AWS_REGION  # Use the same region variable consistently
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
-AWS_DEFAULT_ACL = 'public-read'
+
+# Since bucket has "bucket owner enforced" setting, ACLs are disabled
+AWS_DEFAULT_ACL = None  # Don't try to set ACLs
+AWS_BUCKET_ACL = None   # Don't try to set bucket ACL
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
