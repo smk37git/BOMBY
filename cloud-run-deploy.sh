@@ -16,6 +16,20 @@ SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
 GCS_BUCKET_NAME="bomby-user-uploads"
 
+# Ensure the GCS bucket exists
+echo "Ensuring GCS bucket exists..."
+gsutil ls -b gs://$GCS_BUCKET_NAME > /dev/null 2>&1 || \
+gsutil mb -l $REGION gs://$GCS_BUCKET_NAME
+
+# Make the bucket publicly readable
+echo "Setting bucket permissions..."
+gsutil iam ch allUsers:objectViewer gs://$GCS_BUCKET_NAME
+
+# Add GCS credentials to Secret Manager if not already there
+echo "Ensuring GCS credentials are in Secret Manager..."
+gcloud secrets describe gcs-credentials > /dev/null 2>&1 || \
+gcloud secrets create gcs-credentials --replication-policy="automatic" --data-file=gcs-credentials.json
+
 # Build the Docker image
 echo "Building Docker image..."
 docker build -t $IMAGE_NAME .
@@ -37,10 +51,6 @@ gcloud secrets create django-secret-key --replication-policy="automatic"
 gcloud secrets describe postgres-password > /dev/null 2>&1 || \
 gcloud secrets create postgres-password --replication-policy="automatic" --data-file=<(echo -n "$DB_PASSWORD")
 
-# Add GCS credentials to Secret Manager if not already there
-gcloud secrets describe gcs-credentials > /dev/null 2>&1 || \
-gcloud secrets create gcs-credentials --replication-policy="automatic" --data-file=gcs-credentials.json
-
 # Deploy to Cloud Run
 echo "Deploying to Cloud Run..."
 gcloud run deploy $SERVICE_NAME \
@@ -57,8 +67,7 @@ DB_NAME=$DB_NAME,\
 DB_USER=$DB_USER,\
 DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,\
 GS_PROJECT_ID=$PROJECT_ID,\
-GS_BUCKET_NAME=$GCS_BUCKET_NAME,\
-USE_GCS=True" \
+GS_BUCKET_NAME=$GCS_BUCKET_NAME" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
 DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\
@@ -67,9 +76,11 @@ AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
   --memory 512Mi \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
+# Check deployment status
 if [ $? -ne 0 ]; then
   echo "Deployment failed. Checking Cloud Run logs..."
   gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=$SERVICE_NAME" --limit=20
+  exit 1
 fi
 
-echo "Deployment complete! Your website should be available soon at the URL above."
+echo "Deployment complete! Your website should be available at: https://$SERVICE_NAME-799218251279.a.run.app"
