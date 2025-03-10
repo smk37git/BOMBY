@@ -5,7 +5,7 @@ set -e
 
 # Configuration
 PROJECT_ID="premium-botany-453018-a0"
-SERVICE_NAME="bomby"
+SERVICE_NAME="bomby-website"
 REGION="us-central1"
 IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
 INSTANCE_CONNECTION_NAME="$PROJECT_ID:$REGION:bomby-database"
@@ -14,7 +14,6 @@ DB_USER="postgres"
 DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
-BUCKET_NAME="bomby-user-uploads"
 
 # Build the Docker image
 echo "Building Docker image..."
@@ -51,13 +50,12 @@ DEFAULT_FROM_EMAIL=$DEFAULT_FROM_EMAIL,\
 SENDGRID_SANDBOX_MODE=False,\
 DB_NAME=$DB_NAME,\
 DB_USER=$DB_USER,\
-BUCKET_NAME=$BUCKET_NAME,\
-DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME" \
+DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,\
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
 DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\
 AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
   --memory 512Mi \
-  --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME \
+  --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
 echo "Deployment complete! Your website should be available soon at the URL above."

@@ -1,9 +1,10 @@
 #!/bin/bash
 
-# Wait for PostgreSQL...
+# Wait for PostgreSQL to be ready (if needed)
 if [ -n "$DB_HOST" ]; then
   echo "Waiting for PostgreSQL..."
   until pg_isready -h ${DB_HOST#/cloudsql/} -U $DB_USER 2>/dev/null; do
+    echo "Database connection not available, waiting..."
     sleep 2
   done
   echo "Database connection established!"

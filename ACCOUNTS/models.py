@@ -97,11 +97,11 @@ class User(AbstractUser):
             self.save()
             
     def save(self, *args, **kwargs):
-        # Process image if needed, but don't create directories or use filesystem operations
-        if self.pk is not None and self.profile_picture:
+        # Existing save method remains unchanged
+        if self.pk is not None:
             try:
                 old_instance = User.objects.get(pk=self.pk)
-                if old_instance.profile_picture != self.profile_picture:
+                if old_instance.profile_picture != self.profile_picture and self.profile_picture:
                     img = Image.open(self.profile_picture)
                     
                     max_width, max_height = 800, 800
