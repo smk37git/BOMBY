@@ -181,7 +181,7 @@ IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDE
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME', 'bomby-user-uploads')
 GS_DEFAULT_ACL = 'publicRead'
-GS_LOCATION = 'profile_pictures'
+GS_LOCATION = ''
 GS_FILE_OVERWRITE = False
 GS_CREDENTIALS = None  # Use Application Default Credentials
 

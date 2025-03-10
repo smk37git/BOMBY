@@ -39,7 +39,7 @@
                 <div class="profile-picture-section">
                     <div class="profile-picture-container">
                         {% if user.profile_picture and not profile_pic_error %}
-                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="edit_current-profile-picture" id="profile-preview" onerror="this.style.display='none'; document.getElementById('edit_profile-placeholder').style.display='flex';">
+                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="edit_current-profile-picture" id="profile-preview" onerror="this.style.display='none'; document.getElementById('profile-placeholder').style.display='flex';">
                             <div class="profile-picture-placeholder" id="profile-placeholder" style="display: none;">
                                 <i class="fas fa-user"></i>
                             </div>
@@ -60,7 +60,7 @@
                             </div>
                         </div>
                         <div class="action-buttons">
-                            <label for="{{ form.profile_picture.id_for_label }}" class="action-button">
+                            <label for="id_profile_picture" class="action-button">
                                 <i class="fas fa-camera" style="color: white;"></i>
                                 <span style="color: white;">Choose Photo</span>
                             </label>
@@ -69,6 +69,10 @@
                                 <span>Clear</span>
                             </button>
                         </div>
+                        
+                        <!-- File input directly in the form -->
+                        {{ form.profile_picture }}
+                        <input type="hidden" name="clear_picture" id="clear-picture-input" value="false">
                     </div>
                     
                     <!-- Profile operations container -->
@@ -81,17 +85,6 @@
                             <button type="submit" class="action-button">
                                 <i class="fas fa-save"></i> Save Changes
                             </button>
-                        </div>
-                    </div>
-                
-                    <!-- Keep the form field but hide the display section -->
-                    <div style="display:none;">
-                        {{ form.profile_picture }}
-                        <input type="hidden" name="clear_picture" id="clear-picture-input" value="false">
-                
-                        <!-- This hides the "Currently:" text and filename -->
-                        <div class="currently-info">
-                            Currently: {{ user.profile_picture.name }}
                         </div>
                     </div>
                 </div>
@@ -246,14 +239,18 @@
         });
 
         // Profile picture handling
-        const fileInput = document.getElementById('{{ form.profile_picture.id_for_label }}');
+        const fileInput = document.getElementById('id_profile_picture');
         const previewImg = document.getElementById('profile-preview');
         const placeholder = document.getElementById('profile-placeholder');
         const clearBtn = document.getElementById('clear-photo-btn');
         const clearInput = document.getElementById('clear-picture-input');
-        const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-        const maxWidth = 800;
-        const maxHeight = 800;
+        
+        // Hide file input visually but keep it accessible
+        fileInput.style.position = 'absolute';
+        fileInput.style.width = '1px';
+        fileInput.style.height = '1px';
+        fileInput.style.overflow = 'hidden';
+        fileInput.style.clip = 'rect(0,0,0,0)';
         
         // Show/hide clear button based on whether profile picture exists
         if (previewImg && previewImg.src && previewImg.src !== window.location.href) {
@@ -290,85 +287,23 @@
         }
         
         fileInput.addEventListener('change', function(e) {
+            console.log("File selected:", this.files[0]);
             const file = e.target.files[0];
             
             if (!file) return;
             
-            // Check file size
-            if (file.size > maxSize) {
-                alert('File is too large. Maximum size is 10MB.');
-                fileInput.value = '';
-                return;
-            }
-            
-            // Check file type
-            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-            if (!validTypes.includes(file.type)) {
-                alert('Invalid file type. Please upload a JPEG, PNG, or GIF image.');
-                fileInput.value = '';
-                return;
-            }
-            
             // Preview the image
             const reader = new FileReader();
             reader.onload = function(e) {
-                // Create temp image to check dimensions
-                const img = new Image();
-                img.onload = function() {
-                    // Check if dimensions need resizing
-                    if (img.width > maxWidth || img.height > maxHeight) {
-                        const canvas = document.createElement('canvas');
-                        let width = img.width;
-                        let height = img.height;
-                        
-                        // Calculate new dimensions while maintaining aspect ratio
-                        if (width > height) {
-                            if (width > maxWidth) {
-                                height = Math.round(height * (maxWidth / width));
-                                width = maxWidth;
-                            }
-                        } else {
-                            if (height > maxHeight) {
-                                width = Math.round(width * (maxHeight / height));
-                                height = maxHeight;
-                            }
-                        }
-                        
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        // Convert to file and update preview
-                        previewImg.src = canvas.toDataURL(file.type);
-                        
-                        // Optional: Convert canvas image to Blob for form submission
-                        canvas.toBlob(function(blob) {
-                            // Create a new File object
-                            const resizedFile = new File([blob], file.name, {
-                                type: file.type,
-                                lastModified: new Date().getTime()
-                            });
-                            
-                            // Replace the original file with resized one (requires custom handling)
-                            const dataTransfer = new DataTransfer();
-                            dataTransfer.items.add(resizedFile);
-                            fileInput.files = dataTransfer.files;
-                        }, file.type);
-                    } else {
-                        previewImg.src = e.target.result;
-                    }
-                    
-                    if (placeholder) {
-                        placeholder.style.display = 'none';
-                    }
-                    previewImg.style.display = 'block';
-                    if (clearBtn) {
-                        clearBtn.style.display = 'inline-flex';
-                    }
-                    clearInput.value = 'false';
-                };
-                img.src = e.target.result;
+                previewImg.src = e.target.result;
+                if (placeholder) {
+                    placeholder.style.display = 'none';
+                }
+                previewImg.style.display = 'block';
+                if (clearBtn) {
+                    clearBtn.style.display = 'inline-flex';
+                }
+                clearInput.value = 'false';
             };
             reader.readAsDataURL(file);
         });
@@ -413,9 +348,13 @@
         ];
 
         socialLinks.forEach(link => {
+            if (!link.input) return;
+            
             link.input.addEventListener('input', function() {
                 const value = this.value.trim();
                 const popup = link.popup;
+                
+                if (!popup) return;
 
                 if (value && !link.regex.test(value)) {
                     popup.textContent = 'Invalid link format';
