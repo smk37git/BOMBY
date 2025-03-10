@@ -10,6 +10,7 @@ ENV PORT=8080
 ENV DJANGO_SECRET_KEY=dev-secret-key-change-in-production
 ENV DEBUG=True
 ENV ALLOWED_HOSTS=localhost,127.0.0.1
+ENV DJANGO_SETTINGS_MODULE=mywebsite.settings
 
 # Set work directory
 WORKDIR /app
@@ -18,7 +19,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy project and entrypoint script
+# Install boto3 for AWS S3 access
+RUN pip install --no-cache-dir boto3
+
+# Copy project
 COPY . .
 
 # Ensure entrypoint script is executable

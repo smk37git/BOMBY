@@ -39,7 +39,8 @@
 
             <div class="profile-avatar">
                 {% if user.profile_picture %}
-                <img src="{{ user.profile_picture.url }}?v={{ user.last_login|date:'U' }}" alt="Profile Picture" class="profile-picture" onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <img src="{{ user.profile_picture.url }}?v={{ user.last_login|date:'U' }}" alt="Profile Picture" class="profile-picture" 
+                     onerror="this.onerror=null; this.style.display='none'; this.nextElementSibling.style.display='flex'; console.log('Error loading profile picture from: ' + this.src);">
                 <div class="profile-picture-placeholder" style="display: none;">
                     <i class="fas fa-user"></i>
                 </div>

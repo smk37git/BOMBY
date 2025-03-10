@@ -17,6 +17,8 @@ import json
 import io
 import boto3
 from django.http import HttpResponse
+import tempfile
+import os
 
 # Add Firebase-related views here
 @csrf_exempt
@@ -147,6 +149,7 @@ def edit_profile(request):
         profile_picture = request.FILES.get('profile_picture')
         if profile_picture:
             profile_pic_changed = True
+            logger.info(f"Received profile picture: {profile_picture.name}, size: {profile_picture.size}, type: {profile_picture.content_type}")
             
             # Check file type
             valid_types = ['image/jpeg', 'image/png', 'image/gif']
@@ -183,23 +186,75 @@ def edit_profile(request):
                 if profile_picture and not profile_pic_error:
                     # Generate a unique filename to avoid caching issues
                     import uuid
-                    ext = profile_picture.name.split('.')[-1]
+                    ext = profile_picture.name.split('.')[-1].lower()
                     unique_filename = f"profile_pictures/{uuid.uuid4().hex}.{ext}"
+                    logger.info(f"Generated unique filename: {unique_filename}")
                     
-                    # Save the profile picture with the unique filename
-                    user.profile_picture.save(unique_filename, profile_picture, save=False)
+                    # Try direct upload to S3 using boto3
+                    try:
+                        import boto3
+                        from django.conf import settings
+                        
+                        # Check if AWS credentials are available
+                        if not settings.AWS_ACCESS_KEY_ID or not settings.AWS_SECRET_ACCESS_KEY:
+                            raise Exception("AWS credentials not found in settings")
+                        
+                        # Create S3 client
+                        s3_client = boto3.client(
+                            's3',
+                            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                            region_name=settings.AWS_REGION
+                        )
+                        
+                        # Create a temporary file
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=f".{ext}") as temp_file:
+                            for chunk in profile_picture.chunks():
+                                temp_file.write(chunk)
+                            temp_file_path = temp_file.name
+                        
+                        # Upload to S3
+                        s3_client.upload_file(
+                            temp_file_path, 
+                            settings.AWS_STORAGE_BUCKET_NAME, 
+                            unique_filename
+                        )
+                        
+                        # Clean up temporary file
+                        os.remove(temp_file_path)
+                        
+                        # Set the profile picture path
+                        user.profile_picture.name = unique_filename
+                        logger.info(f"Successfully uploaded to S3: {unique_filename}")
+                        
+                    except Exception as e:
+                        logger.error(f"Error with direct S3 upload: {str(e)}")
+                        # Fall back to Django's built-in method
+                        profile_picture.seek(0)  # Reset file pointer
+                        user.profile_picture.save(unique_filename, profile_picture, save=False)
+                        logger.info(f"Saved using Django's method: {user.profile_picture.name}")
                 
                 # Save the user instance
                 user.save()
+                logger.info(f"User saved. Profile picture path: {user.profile_picture.name if user.profile_picture else 'None'}")
                 
                 if profile_pic_changed:
-                    messages.success(request, 'Profile picture updated successfully!')
+                    if user.profile_picture:
+                        try:
+                            url = user.profile_picture.url
+                            logger.info(f"Profile picture URL: {url}")
+                            messages.success(request, f'Profile picture updated successfully!')
+                        except Exception as e:
+                            logger.error(f"Error generating URL: {str(e)}")
+                            messages.success(request, 'Profile picture updated but there might be issues displaying it.')
+                    else:
+                        messages.success(request, 'Profile picture cleared successfully!')
                 else:
                     messages.success(request, 'Profile updated successfully!')
                 return redirect('ACCOUNTS:edit_profile')
             except Exception as e:
                 logger.error(f"Error saving profile: {str(e)}")
-                messages.error(request, 'Error saving profile. Please try again.')
+                messages.error(request, f'Error saving profile: {str(e)}')
     else:
         form = ProfileEditForm(instance=request.user)
     

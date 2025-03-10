@@ -17,9 +17,20 @@ import logging
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials
+from google.oauth2 import service_account
+from datetime import timedelta
 
 # Load environment variables from .env file
 load_dotenv(Path(__file__).resolve().parent / '.env')
+
+# Try to import AWS credentials
+try:
+    import sys
+    sys.path.append(str(Path(__file__).resolve().parent.parent))
+    import aws_credentials
+    logging.info("AWS credentials imported successfully.")
+except ImportError:
+    logging.warning("AWS credentials import failed. Make sure aws_credentials.py exists.")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -168,31 +179,52 @@ LOGIN_REDIRECT_URL = reverse_lazy('ACCOUNTS:account')
 LOGOUT_REDIRECT_URL = 'home'
 
 ## AWS SETTINGS
-# AWS credentials for services like Rekognition
+# AWS credentials from environment variables
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
-AWS_REGION = os.environ.get('AWS_REGION', 'us-east-2')  # Default to us-east-2
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-2')
+AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_S3_BUCKET_NAME', 'bomby-user-uploads')
+
+# Log AWS credentials status
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
+    logging.info(f"AWS credentials found. Using bucket: {AWS_STORAGE_BUCKET_NAME}")
+else:
+    logging.warning("AWS credentials not found in environment variables!")
 
 # S3 Storage configuration
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_S3_BUCKET_NAME', 'bomby-user-uploads')
-AWS_S3_REGION_NAME = AWS_REGION  # Use the same region variable consistently
+AWS_S3_REGION_NAME = AWS_REGION
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
 
-# Since bucket has "bucket owner enforced" setting, ACLs are disabled
-AWS_DEFAULT_ACL = None  # Don't try to set ACLs
-AWS_BUCKET_ACL = None   # Don't try to set bucket ACL
+# Basic S3 settings
+AWS_DEFAULT_ACL = None  # Don't try to set ACLs with bucket owner enforced
+AWS_S3_FILE_OVERWRITE = False  # Don't overwrite files with same name
 AWS_S3_OBJECT_PARAMETERS = {
     'CacheControl': 'max-age=86400',
 }
+
+# Media settings
 MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
+MEDIA_ROOT = ''  # Not needed for S3
 
 # Advanced S3 settings
 AWS_S3_ADDRESSING_STYLE = 'virtual'  # Use virtual-hosted style URLs
 AWS_S3_SIGNATURE_VERSION = 's3v4'    # Use signature version 4
-AWS_S3_FILE_OVERWRITE = False        # Don't overwrite files with same name
 AWS_S3_VERIFY = True                 # Verify SSL
-AWS_S3_ENDPOINT_URL = f'https://s3.{AWS_S3_REGION_NAME}.amazonaws.com'
+
+# Increase logging for S3 operations
+LOGGING['loggers']['boto3'] = {
+    'handlers': ['console'],
+    'level': 'DEBUG',
+}
+LOGGING['loggers']['botocore'] = {
+    'handlers': ['console'],
+    'level': 'DEBUG',
+}
+LOGGING['loggers']['s3transfer'] = {
+    'handlers': ['console'],
+    'level': 'DEBUG',
+}
 
 # Reduce boto/AWS logging noise
 logging.getLogger('boto3').setLevel(logging.CRITICAL)
