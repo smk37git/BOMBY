@@ -197,7 +197,8 @@ FIREBASE_CONFIG = {
     'appId': os.environ.get('FIREBASE_APP_ID', '')
 }
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
 GS_BUCKET_NAME = os.environ.get('BUCKET_NAME')
+GS_PROJECT_ID = 'premium-botany-453018-a0'
+GS_DEFAULT_ACL = 'publicRead'  # Makes files accessible via URL
+GS_FILE_OVERWRITE = False  # Don't overwrite files with the same name

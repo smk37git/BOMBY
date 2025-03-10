@@ -9,14 +9,6 @@ if [ -n "$DB_HOST" ]; then
   echo "Database connection established!"
 fi
 
-# Mount GCS bucket with proper options
-echo "Mounting GCS bucket..."
-gcsfuse --implicit-dirs -o allow_other $BUCKET_NAME /app/media || echo "Bucket mounting failed, continuing anyway"
-
-# Create required directories
-mkdir -p /app/media/profile_pictures
-chmod -R 777 /app/media
-
 # Run migrations
 python manage.py migrate
 

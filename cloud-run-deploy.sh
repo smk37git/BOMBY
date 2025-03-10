@@ -59,6 +59,5 @@ AWS_ACCESS_KEY_ID=aws-access-key:latest,\
 AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
   --memory 512Mi \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME \
-  --update-volumes=name=media,type=cloud-storage,bucket=$BUCKET_NAME,mount-path=/app/media
 
 echo "Deployment complete! Your website should be available soon at the URL above."
