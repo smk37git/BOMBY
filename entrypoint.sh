@@ -10,6 +10,10 @@ if [ -n "$DB_HOST" ]; then
   echo "Database connection established!"
 fi
 
+# Mount GCS bucket
+echo "Mounting GCS bucket..."
+gcsfuse --implicit-dirs $BUCKET_NAME /app/media || echo "Bucket mounting failed, continuing anyway"
+
 # Run migrations
 python manage.py migrate
 

@@ -196,3 +196,6 @@ FIREBASE_CONFIG = {
     'messagingSenderId': os.environ.get('FIREBASE_MESSAGING_SENDER_ID', ''),
     'appId': os.environ.get('FIREBASE_APP_ID', '')
 }
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

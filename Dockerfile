@@ -1,7 +1,11 @@
 FROM python:3.11-slim
 
-# Install PostgreSQL client
-RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+# Install PostgreSQL client and gcsfuse
+RUN apt-get update && apt-get install -y postgresql-client lsb-release curl gnupg && \
+    echo "deb http://packages.cloud.google.com/apt gcsfuse-$(lsb_release -c -s) main" | tee /etc/apt/sources.list.d/gcsfuse.list && \
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
+    apt-get update && apt-get install -y gcsfuse && \
+    mkdir -p /app/media
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
