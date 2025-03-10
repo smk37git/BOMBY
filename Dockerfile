@@ -15,8 +15,16 @@ ENV DJANGO_SETTINGS_MODULE=mywebsite.settings
 # Set work directory
 WORKDIR /app
 
-# Install dependencies
-COPY requirements.txt .
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copy requirements files
+COPY requirements.txt s3_requirements.txt ./
+
+# Install S3 requirements first
+RUN pip install --no-cache-dir -r s3_requirements.txt
+
+# Install other dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project
@@ -24,9 +32,6 @@ COPY . .
 
 # Ensure entrypoint script is executable
 RUN chmod +x /app/entrypoint.sh
-
-# Collect static files
-RUN python manage.py collectstatic --noinput
 
 # Expose the port
 EXPOSE 8080
