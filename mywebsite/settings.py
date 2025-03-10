@@ -154,7 +154,7 @@ if os.environ.get('USE_GCS', 'False') == 'True':
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
     GS_PROJECT_ID = os.environ.get('GS_PROJECT_ID')
-    GS_DEFAULT_ACL = 'publicRead'
+    GS_DEFAULT_ACL = 'private'
     GS_LOCATION = 'media'
     MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_LOCATION}/'
 else:
