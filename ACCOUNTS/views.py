@@ -17,7 +17,6 @@ import json
 import io
 import boto3
 from django.http import HttpResponse
- from django.core.files.storage import default_storage
 
 # Add Firebase-related views here
 @csrf_exempt
@@ -124,7 +123,7 @@ def profile_view(request, username=None):
 # Edit Profile Picture
 @login_required
 def edit_profile(request):
-    profile_pic_error = False
+    profile_pic_error = False  # Add this flag
     
     if request.method == 'POST':
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
@@ -135,6 +134,7 @@ def edit_profile(request):
         # Handle profile picture clearing
         if request.POST.get('clear_picture') == 'true':
             if request.user.profile_picture:
+                # Delete the existing profile picture
                 request.user.profile_picture.delete(save=False)
                 request.user.profile_picture = None
                 profile_pic_changed = True
@@ -143,49 +143,45 @@ def edit_profile(request):
         profile_picture = request.FILES.get('profile_picture')
         if profile_picture:
             profile_pic_changed = True
-            try:
-                # Check file type
-                valid_types = ['image/jpeg', 'image/png', 'image/gif']
-                if hasattr(profile_picture, 'content_type') and profile_picture.content_type not in valid_types:
-                    form.add_error('profile_picture', 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
-                    messages.error(request, 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
-                    profile_pic_error = True
-                
-                # Check file size (10MB max)
-                if profile_picture.size > 10 * 1024 * 1024:
-                    form.add_error('profile_picture', 'Image size must be less than 10MB.')
-                    messages.error(request, 'Image size must be less than 10MB.')
-                    profile_pic_error = True
-                
-                # Content moderation
-                is_safe, explicit_categories = moderate_image_content(profile_picture)
-                if not is_safe:
-                    categories_str = ", ".join(explicit_categories)
-                    error_msg = f'Image contains inappropriate content and cannot be used. Detected: {categories_str}'
-                    form.add_error('profile_picture', error_msg)
-                    messages.error(request, error_msg)
-                    profile_pic_error = True
-            except Exception as e:
-                messages.error(request, f"Error saving image: {str(e)}")
-                profile_pic_error = True
+            # Check file type
+            valid_types = ['image/jpeg', 'image/png', 'image/gif']
+            if hasattr(profile_picture, 'content_type') and profile_picture.content_type not in valid_types:
+                form.add_error('profile_picture', 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
+                messages.error(request, 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
+                profile_pic_error = True  # Set flag
+            
+            # Check file size (10MB max)
+            if profile_picture.size > 10 * 1024 * 1024:
+                form.add_error('profile_picture', 'Image size must be less than 10MB.')
+                messages.error(request, 'Image size must be less than 10MB.')
+                profile_pic_error = True  # Set flag
+            
+            # Content moderation
+            is_safe, explicit_categories = moderate_image_content(profile_picture)
+            if not is_safe:
+                categories_str = ", ".join(explicit_categories)
+                error_msg = f'Image contains inappropriate content and cannot be used. Detected: {categories_str}'
+                form.add_error('profile_picture', error_msg)
+                messages.error(request, error_msg)
+                profile_pic_error = True  # Set flag
         
         if form.is_valid():
-            try:
-                user = form.save()
-                if profile_pic_changed:
-                    messages.success(request, 'Profile picture updated successfully!')
-                else:
-                    messages.success(request, 'Profile updated successfully!')
-                return redirect('ACCOUNTS:edit_profile')
-            except Exception as e:
-                messages.error(request, f"Error saving profile: {str(e)}")
+            user = form.save()
+            # Add success message based on what was updated
+            if profile_pic_changed:
+                messages.success(request, 'Profile picture updated successfully!')
+            else:
+                messages.success(request, 'Profile updated successfully!')
+            return redirect('ACCOUNTS:edit_profile')
     else:
         form = ProfileEditForm(instance=request.user)
     
+    # Include the error flag in the context
     return render(request, 'ACCOUNTS/edit_profile.html', {
         'form': form,
         'profile_pic_error': profile_pic_error
     })
+
     
 @login_required
 def edit_username(request, user_id=None):

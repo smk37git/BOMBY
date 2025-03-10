@@ -29,8 +29,8 @@
             <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
                 <div class="card-header">
                     <div class="user-avatar">
-                        {% if user.get_profile_picture %}
-                            <img src="{{ user.get_profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
                         {% else %}
                             <div class="profile-picture-placeholder">
                                 <i class="fas fa-user"></i>
@@ -99,8 +99,8 @@
             <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
                 <div class="card-header">
                     <div class="user-avatar">
-                        {% if user.get_profile_picture %}
-                            <img src="{{ user.get_profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
                         {% else %}
                             <div class="profile-picture-placeholder">
                                 <i class="fas fa-user"></i>
@@ -169,8 +169,8 @@
             <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
                 <div class="card-header">
                     <div class="user-avatar">
-                        {% if user.get_profile_picture %}
-                            <img src="{{ user.get_profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
                         {% else %}
                             <div class="profile-picture-placeholder">
                                 <i class="fas fa-user"></i>
@@ -239,8 +239,8 @@
             <a href="{% url 'ACCOUNTS:user_profile' user.username %}" class="user-profile-link">
                 <div class="card-header">
                     <div class="user-avatar">
-                        {% if user.get_profile_picture %}
-                            <img src="{{ user.get_profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="profile-picture">
                         {% else %}
                             <div class="profile-picture-placeholder">
                                 <i class="fas fa-user"></i>

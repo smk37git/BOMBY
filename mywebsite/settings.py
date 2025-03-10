@@ -149,14 +149,14 @@ WHITENOISE_MIMETYPES = {
 }
 
 # User Uploads
-if os.environ.get('USE_GCS') == 'True':
+if os.environ.get('USE_GCS', 'False') == 'True':
     # Google Cloud Storage settings
     DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
     GS_BUCKET_NAME = os.environ.get('GS_BUCKET_NAME')
     GS_PROJECT_ID = os.environ.get('GS_PROJECT_ID')
-    GS_CREDENTIALS = None
     GS_DEFAULT_ACL = 'publicRead'
-    MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'
+    GS_LOCATION = 'media'
+    MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/{GS_LOCATION}/'
 else:
     # Local media settings
     MEDIA_URL = '/media/'
@@ -187,8 +187,8 @@ AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 
 # Image content moderation settings
-ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION') == 'True'
-IMAGE_MODERATION_CONFIDENCE_THRESHOLD = float(os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD', '99.0'))
+ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION')
+IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD')
 
 # Firebase Settings
 FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase-credentials.json')
