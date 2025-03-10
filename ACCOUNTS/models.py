@@ -6,6 +6,8 @@ from .validators import validate_clean_content
 from PIL import Image
 import io
 import json
+import uuid
+import logging
 
 # Keep validate_image_size and validate_image_dimensions functions
 def validate_image_size(file):
@@ -120,14 +122,32 @@ class User(AbstractUser):
                         if img_format == 'JPG':
                             img_format = 'JPEG'
                         img.save(buffer, format=img_format)
+                        buffer.seek(0)
+                        
+                        # Generate a unique filename to avoid overwriting
+                        filename = f"profile_pictures/{uuid.uuid4().hex}.{img_format.lower()}"
                         
                         from django.core.files.base import ContentFile
+                        from django.core.files.storage import default_storage
+                        
+                        # Delete old profile picture if it exists
+                        if old_instance.profile_picture:
+                            try:
+                                default_storage.delete(old_instance.profile_picture.name)
+                            except Exception as e:
+                                logger = logging.getLogger(__name__)
+                                logger.error(f"Error deleting old profile picture: {str(e)}")
+                        
+                        # Save directly to default storage
                         self.profile_picture.save(
-                            self.profile_picture.name,
+                            filename,
                             ContentFile(buffer.getvalue()),
                             save=False
                         )
             except User.DoesNotExist:
                 pass
+            except Exception as e:
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error processing profile picture: {str(e)}")
             
         super().save(*args, **kwargs)

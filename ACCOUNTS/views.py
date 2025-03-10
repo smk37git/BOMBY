@@ -139,7 +139,13 @@ def edit_profile(request):
         if request.POST.get('clear_picture') == 'true':
             if request.user.profile_picture:
                 # Delete the existing profile picture
-                request.user.profile_picture.delete(save=False)
+                from django.core.files.storage import default_storage
+                try:
+                    default_storage.delete(request.user.profile_picture.name)
+                    logger.info(f"Deleted profile picture: {request.user.profile_picture.name}")
+                except Exception as e:
+                    logger.error(f"Error deleting profile picture: {str(e)}")
+                
                 request.user.profile_picture = None
                 profile_pic_changed = True
         
@@ -162,13 +168,16 @@ def edit_profile(request):
                 profile_pic_error = True
             
             # Content moderation
-            is_safe, explicit_categories = moderate_image_content(profile_picture)
-            if not is_safe:
-                categories_str = ", ".join(explicit_categories)
-                error_msg = f'Image contains inappropriate content and cannot be used. Detected: {categories_str}'
-                form.add_error('profile_picture', error_msg)
-                messages.error(request, error_msg)
-                profile_pic_error = True
+            try:
+                is_safe, explicit_categories = moderate_image_content(profile_picture)
+                if not is_safe:
+                    categories_str = ", ".join(explicit_categories)
+                    error_msg = f'Image contains inappropriate content and cannot be used. Detected: {categories_str}'
+                    form.add_error('profile_picture', error_msg)
+                    messages.error(request, error_msg)
+                    profile_pic_error = True
+            except Exception as e:
+                logger.error(f"Error in content moderation: {str(e)}")
         
         if form.is_valid():
             user = form.save()
@@ -207,7 +216,7 @@ def edit_profile(request):
                 messages.success(request, 'Profile updated successfully!')
             return redirect('ACCOUNTS:edit_profile')
         else:
-            print(f"DEBUG: Form errors: {form.errors}")
+            logger.error(f"Form errors: {form.errors}")
     else:
         form = ProfileEditForm(instance=request.user)
     
