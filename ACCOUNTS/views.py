@@ -324,6 +324,11 @@ def bulk_delete_users(request):
 def test_file_upload(request):
     logger = logging.getLogger(__name__)
 
+    client = storage.Client(credentials=GS_CREDENTIALS)
+    bucket = client.bucket(GS_BUCKET_NAME)
+    blob = bucket.blob('test-creds.txt')
+    blob.upload_from_string('Testing credentials')
+
     timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     path = default_storage.save(f'test_uploads/test-{timestamp}.txt', ContentFile("test content"))
     logger.info(f"Storage backend class: {default_storage.__class__.__name__}")
