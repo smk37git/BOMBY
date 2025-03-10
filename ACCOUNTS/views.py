@@ -20,6 +20,10 @@ from django.http import HttpResponse
 
 import os
 from django.core.files.storage import default_storage
+import logging
+import datetime
+from django.core.files.base import ContentFile
+import traceback
 
 # Add Firebase-related views here
 @csrf_exempt
@@ -316,9 +320,6 @@ def bulk_delete_users(request):
 
 @login_required
 def test_file_upload(request):
-    import logging
-    import datetime
-    from django.core.files.base import ContentFile
     logger = logging.getLogger(__name__)
 
     timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -334,7 +335,6 @@ def test_file_upload(request):
             
             test_file = request.FILES['test_file']
             # Save directly using default_storage
-            from django.core.files.storage import default_storage
             path = default_storage.save(f'test_uploads/{test_file.name}', test_file)
             url = default_storage.url(path)
             
@@ -345,7 +345,6 @@ def test_file_upload(request):
             })
         except Exception as e:
             logger.error(f"Upload error: {str(e)}")
-            import traceback
             logger.error(traceback.format_exc())
             return JsonResponse({
                 'success': False,
