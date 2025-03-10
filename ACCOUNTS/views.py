@@ -17,6 +17,7 @@ import json
 import io
 import boto3
 from django.http import HttpResponse
+ from django.core.files.storage import default_storage
 
 # Add Firebase-related views here
 @csrf_exempt
@@ -123,7 +124,6 @@ def profile_view(request, username=None):
 # Edit Profile Picture
 @login_required
 def edit_profile(request):
-    from django.core.files.storage import default_storage
     profile_pic_error = False
     
     if request.method == 'POST':
@@ -144,14 +144,6 @@ def edit_profile(request):
         if profile_picture:
             profile_pic_changed = True
             try:
-                # Test direct storage
-                test_path = f"profile_pictures/test_{profile_picture.name}"
-                test_url = default_storage.save(test_path, profile_picture)
-                print(f"Test save successful: {test_url}")
-                
-                # Reset file position
-                profile_picture.seek(0)
-                
                 # Check file type
                 valid_types = ['image/jpeg', 'image/png', 'image/gif']
                 if hasattr(profile_picture, 'content_type') and profile_picture.content_type not in valid_types:
@@ -174,9 +166,6 @@ def edit_profile(request):
                     messages.error(request, error_msg)
                     profile_pic_error = True
             except Exception as e:
-                print(f"Storage error: {str(e)}")
-                import traceback
-                print(traceback.format_exc())
                 messages.error(request, f"Error saving image: {str(e)}")
                 profile_pic_error = True
         
@@ -189,7 +178,6 @@ def edit_profile(request):
                     messages.success(request, 'Profile updated successfully!')
                 return redirect('ACCOUNTS:edit_profile')
             except Exception as e:
-                print(f"Form save error: {str(e)}")
                 messages.error(request, f"Error saving profile: {str(e)}")
     else:
         form = ProfileEditForm(instance=request.user)

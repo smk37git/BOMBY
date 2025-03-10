@@ -157,9 +157,6 @@ if os.environ.get('USE_GCS') == 'True':
     GS_CREDENTIALS = None
     GS_DEFAULT_ACL = 'publicRead'
     MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/'
-
-    # Add debugging
-    print(f"GCS Configuration: Bucket={GS_BUCKET_NAME}, Project={GS_PROJECT_ID}")
 else:
     # Local media settings
     MEDIA_URL = '/media/'
