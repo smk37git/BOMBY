@@ -16,7 +16,6 @@ import os
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials
-from google.oauth2 import service_account
 
 # Load environment variables from .env file
 load_dotenv(Path(__file__).resolve().parent / '.env')
@@ -163,10 +162,6 @@ if True:
     # Add debugging - this will log GCS operations
     import logging
     logging.getLogger('storages').setLevel(logging.DEBUG)
-
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    os.path.join(BASE_DIR, 'database-bucket.json')
-)
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
