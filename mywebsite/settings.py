@@ -13,24 +13,12 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 from django.urls import reverse_lazy
 import os
-import logging
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials
-from google.oauth2 import service_account
-from datetime import timedelta
 
 # Load environment variables from .env file
 load_dotenv(Path(__file__).resolve().parent / '.env')
-
-# Try to import AWS credentials
-try:
-    import sys
-    sys.path.append(str(Path(__file__).resolve().parent.parent))
-    import aws_credentials
-    logging.info("AWS credentials imported successfully.")
-except ImportError:
-    logging.warning("AWS credentials import failed. Make sure aws_credentials.py exists.")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -170,7 +158,7 @@ EMAIL_BACKEND = 'sendgrid_backend.SendgridBackend'
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'sebetvbusiness@gmail.com')
 SENDGRID_SANDBOX_MODE = False
-SENDGRID_SANDBOX_MODE_IN_DEBUG = False
+SENDGRID_SANDBOX_MODE_IN_DEBUG = False  # Add this line
 
 ## LOGIN SETTINGS
 AUTH_USER_MODEL = 'ACCOUNTS.User'
@@ -179,63 +167,14 @@ LOGIN_REDIRECT_URL = reverse_lazy('ACCOUNTS:account')
 LOGOUT_REDIRECT_URL = 'home'
 
 ## AWS SETTINGS
-# AWS credentials from environment variables
+# AWS credentials for services like Rekognition
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_AC`CESS_KEY')
-AWS_REGION = os.environ.get('AWS_REGION', 'us-east-2')
-AWS_STORAGE_BUCKET_NAME = os.environ.get('AWS_S3_BUCKET_NAME', 'bomby-user-uploads')
-
-# Log AWS credentials status (redacted for security)
-if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY:
-    logging.info(f"AWS credentials found. Access Key ID: {AWS_ACCESS_KEY_ID[:4]}...{AWS_ACCESS_KEY_ID[-4:] if len(AWS_ACCESS_KEY_ID) > 8 else ''}")
-    logging.info(f"Using bucket: {AWS_STORAGE_BUCKET_NAME} in region {AWS_REGION}")
-else:
-    logging.warning("AWS credentials not found in environment variables!")
-
-# S3 Storage configuration
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
-AWS_S3_REGION_NAME = AWS_REGION
-AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
-
-# Basic S3 settings
-AWS_DEFAULT_ACL = 'public-read'  # Make uploaded files publicly readable
-AWS_S3_FILE_OVERWRITE = False  # Don't overwrite files with same name
-AWS_S3_OBJECT_PARAMETERS = {
-    'CacheControl': 'max-age=86400',
-}
-
-# Media settings
-MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/'
-MEDIA_ROOT = ''  # Not needed for S3
-
-# Advanced S3 settings
-AWS_S3_ADDRESSING_STYLE = 'virtual'  # Use virtual-hosted style URLs
-AWS_S3_SIGNATURE_VERSION = 's3v4'    # Use signature version 4
-AWS_S3_VERIFY = True                 # Verify SSL
-
-# Increase logging for S3 operations
-LOGGING['loggers']['boto3'] = {
-    'handlers': ['console'],
-    'level': 'DEBUG',
-}
-LOGGING['loggers']['botocore'] = {
-    'handlers': ['console'],
-    'level': 'DEBUG',
-}
-LOGGING['loggers']['s3transfer'] = {
-    'handlers': ['console'],
-    'level': 'DEBUG',
-}
-
-# Reduce boto/AWS logging noise
-logging.getLogger('boto3').setLevel(logging.CRITICAL)
-logging.getLogger('botocore').setLevel(logging.CRITICAL)
-logging.getLogger('s3transfer').setLevel(logging.CRITICAL)
-logging.getLogger('urllib3').setLevel(logging.WARNING)
+AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 
 # Image content moderation settings
-ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION', 'True') == 'True'
-IMAGE_MODERATION_CONFIDENCE_THRESHOLD = float(os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD', '85.0'))
+ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION')
+IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD')
 
 # Firebase Settings
 FIREBASE_CREDENTIALS_PATH = os.path.join(BASE_DIR, 'firebase-credentials.json')
@@ -256,24 +195,4 @@ FIREBASE_CONFIG = {
     'storageBucket': os.environ.get('FIREBASE_STORAGE_BUCKET', ''),
     'messagingSenderId': os.environ.get('FIREBASE_MESSAGING_SENDER_ID', ''),
     'appId': os.environ.get('FIREBASE_APP_ID', '')
-}
-
-# LOGGING
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-    'django': {
-        'handlers': ['console'],
-        'level': 'INFO',
-        'propagate': True,
-    },
 }
