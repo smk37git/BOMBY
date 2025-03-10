@@ -394,3 +394,32 @@ def debug_gcs_direct(request):
                 'GS_PROJECT_ID': os.environ.get('GS_PROJECT_ID')
             }
         })
+
+@login_required
+def debug_django_storage(request):
+    
+    try:
+        # Create test content
+        timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        test_content = f"Django storage test at {timestamp}"
+        
+        # Use default_storage (django-storages)
+        path = default_storage.save(f'debug/django-{timestamp}.txt', ContentFile(test_content))
+        url = default_storage.url(path)
+        
+        # Get storage class info
+        storage_class = default_storage.__class__.__name__
+        
+        return JsonResponse({
+            'success': True,
+            'storage_class': storage_class,
+            'file_path': path,
+            'file_url': url,
+            'exists': default_storage.exists(path)
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        })
