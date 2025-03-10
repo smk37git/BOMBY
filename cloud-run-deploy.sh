@@ -5,7 +5,7 @@ set -e
 
 # Configuration
 PROJECT_ID="premium-botany-453018-a0"
-SERVICE_NAME="bomby"
+SERVICE_NAME="bomby-website"
 REGION="us-central1"
 IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
 INSTANCE_CONNECTION_NAME="$PROJECT_ID:$REGION:bomby-database"
@@ -14,21 +14,6 @@ DB_USER="postgres"
 DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
-GCS_BUCKET_NAME="bomby-user-uploads"
-
-# Ensure the GCS bucket exists
-echo "Ensuring GCS bucket exists..."
-gsutil ls -b gs://$GCS_BUCKET_NAME > /dev/null 2>&1 || \
-gsutil mb -l $REGION gs://$GCS_BUCKET_NAME
-
-# Make the bucket publicly readable
-echo "Setting bucket permissions..."
-gsutil iam ch allUsers:objectViewer gs://$GCS_BUCKET_NAME
-
-# Add GCS credentials to Secret Manager if not already there
-echo "Ensuring GCS credentials are in Secret Manager..."
-gcloud secrets describe gcs-credentials > /dev/null 2>&1 || \
-gcloud secrets create gcs-credentials --replication-policy="automatic" --data-file=gcs-credentials.json
 
 # Build the Docker image
 echo "Building Docker image..."
@@ -67,20 +52,12 @@ DB_NAME=$DB_NAME,\
 DB_USER=$DB_USER,\
 DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,\
 GS_PROJECT_ID=$PROJECT_ID,\
-GS_BUCKET_NAME=$GCS_BUCKET_NAME" \
+USE_GCS=True" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
 DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\
 AWS_SECRET_ACCESS_KEY=aws-secret-key:latest" \
-  --mount="type=secret,target=/secrets/gcs-credentials,name=gcs-credentials,version=latest" \
   --memory 512Mi \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
-# Check deployment status
-if [ $? -ne 0 ]; then
-  echo "Deployment failed. Checking Cloud Run logs..."
-  gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=$SERVICE_NAME" --limit=20
-  exit 1
-fi
-
-echo "Deployment complete! Your website should be available at: https://$SERVICE_NAME-799218251279.a.run.app"
+echo "Deployment complete! Your website should be available soon at the URL above."

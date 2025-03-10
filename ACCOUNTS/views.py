@@ -17,10 +17,6 @@ import json
 import io
 import boto3
 from django.http import HttpResponse
-import logging
-
-# Set up logger
-logger = logging.getLogger(__name__)
 
 # Add Firebase-related views here
 @csrf_exempt
@@ -127,7 +123,7 @@ def profile_view(request, username=None):
 # Edit Profile Picture
 @login_required
 def edit_profile(request):
-    profile_pic_error = False
+    profile_pic_error = False  # Add this flag
     
     if request.method == 'POST':
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
@@ -139,91 +135,53 @@ def edit_profile(request):
         if request.POST.get('clear_picture') == 'true':
             if request.user.profile_picture:
                 # Delete the existing profile picture
-                from django.core.files.storage import default_storage
-                try:
-                    default_storage.delete(request.user.profile_picture.name)
-                    logger.info(f"Deleted profile picture: {request.user.profile_picture.name}")
-                except Exception as e:
-                    logger.error(f"Error deleting profile picture: {str(e)}")
-                
+                request.user.profile_picture.delete(save=False)
                 request.user.profile_picture = None
                 profile_pic_changed = True
         
         # Validate profile picture if uploaded
         profile_picture = request.FILES.get('profile_picture')
         if profile_picture:
-            logger.info(f"Received profile picture: {profile_picture.name}, size: {profile_picture.size}, type: {profile_picture.content_type}")
             profile_pic_changed = True
             # Check file type
             valid_types = ['image/jpeg', 'image/png', 'image/gif']
             if hasattr(profile_picture, 'content_type') and profile_picture.content_type not in valid_types:
                 form.add_error('profile_picture', 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
                 messages.error(request, 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
-                profile_pic_error = True
+                profile_pic_error = True  # Set flag
             
             # Check file size (10MB max)
             if profile_picture.size > 10 * 1024 * 1024:
                 form.add_error('profile_picture', 'Image size must be less than 10MB.')
                 messages.error(request, 'Image size must be less than 10MB.')
-                profile_pic_error = True
+                profile_pic_error = True  # Set flag
             
             # Content moderation
-            try:
-                is_safe, explicit_categories = moderate_image_content(profile_picture)
-                if not is_safe:
-                    categories_str = ", ".join(explicit_categories)
-                    error_msg = f'Image contains inappropriate content and cannot be used. Detected: {categories_str}'
-                    form.add_error('profile_picture', error_msg)
-                    messages.error(request, error_msg)
-                    profile_pic_error = True
-            except Exception as e:
-                logger.error(f"Error in content moderation: {str(e)}")
+            is_safe, explicit_categories = moderate_image_content(profile_picture)
+            if not is_safe:
+                categories_str = ", ".join(explicit_categories)
+                error_msg = f'Image contains inappropriate content and cannot be used. Detected: {categories_str}'
+                form.add_error('profile_picture', error_msg)
+                messages.error(request, error_msg)
+                profile_pic_error = True  # Set flag
         
         if form.is_valid():
             user = form.save()
-            
-            # Debug info for profile pic
-            if profile_pic_changed and user.profile_picture:
-                logger.info(f"Saved profile picture to: {user.profile_picture.name}")
-                logger.info(f"Profile picture URL: {user.profile_picture.url}")
-                logger.info(f"Storage backend: {settings.DEFAULT_FILE_STORAGE}")
-                logger.info(f"GS_BUCKET_NAME: {settings.GS_BUCKET_NAME}")
-                logger.info(f"GS_LOCATION: {settings.GS_LOCATION}")
-                logger.info(f"GS_CREDENTIALS: {settings.GS_CREDENTIALS is None}")
-                
-                # Verify the file exists in storage
-                try:
-                    from django.core.files.storage import default_storage
-                    if default_storage.exists(user.profile_picture.name):
-                        logger.info(f"File exists in storage: {user.profile_picture.name}")
-                    else:
-                        logger.error(f"File does not exist in storage: {user.profile_picture.name}")
-                        
-                    # Get file URL with expiration (for debugging)
-                    if hasattr(default_storage, 'url'):
-                        try:
-                            file_url = default_storage.url(user.profile_picture.name)
-                            logger.info(f"Generated URL: {file_url}")
-                        except Exception as e:
-                            logger.error(f"Error generating URL: {str(e)}")
-                except Exception as e:
-                    logger.error(f"Error checking file existence: {str(e)}")
-            
-            # Add success message
+            # Add success message based on what was updated
             if profile_pic_changed:
                 messages.success(request, 'Profile picture updated successfully!')
             else:
                 messages.success(request, 'Profile updated successfully!')
             return redirect('ACCOUNTS:edit_profile')
-        else:
-            logger.error(f"Form errors: {form.errors}")
     else:
         form = ProfileEditForm(instance=request.user)
     
+    # Include the error flag in the context
     return render(request, 'ACCOUNTS/edit_profile.html', {
         'form': form,
         'profile_pic_error': profile_pic_error
     })
+
     
 @login_required
 def edit_username(request, user_id=None):
