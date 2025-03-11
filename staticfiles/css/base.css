@@ -9,11 +9,11 @@ body {
 /* Navigation bar styles */
 .custom-navbar {
     display: flex;
-    justify-content: space-between;
     align-items: center;
     padding: 1.5rem 3rem;
     width: 100%;
     position: absolute;
+    justify-content: flex-end;
     top: 0;
     left: 0;
     z-index: 1000;
@@ -25,6 +25,47 @@ body {
     box-sizing: border-box;
 }
 
+/* Brand container with bomb icon */
+.nav-brand-container {
+    display: flex;
+    align-items: center;
+    margin-right: auto;
+}
+
+.bomb-icon-link {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    margin-right: 10px;
+    transition: transform 0.3s ease;
+}
+
+.bomb-icon-link:hover {
+    transform: scale(1.1);
+}
+
+.bomb-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 2px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+    transition: filter 0.3s ease;
+}
+
+.bomb-icon:hover {
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 1));
+}
+
+.bomb-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 .nav-brand {
     font-size: 2rem;
     font-weight: bold;
@@ -32,12 +73,16 @@ body {
     text-decoration: none;
     letter-spacing: 1px;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
 }
 
 .nav-menu {
     display: flex;
-    gap: 2rem;
-    align-items: center; /* Add this to vertically align all nav items */
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    width: 100%;
 }
 
 .nav-link {
@@ -47,8 +92,8 @@ body {
     position: relative;
     transition: all 0.3s ease;
     padding: 0.5rem 0.5rem;
-    display: inline-block; /* Ensure consistent display */
-    vertical-align: middle; /* Align items vertically */
+    display: inline-block;
+    vertical-align: middle;
 }
 
 .nav-link:hover {
@@ -82,15 +127,16 @@ body {
     content: '';
     position: absolute;
     width: 100%;
-    height: 15px; /* Height of the gap */
+    height: 15px;
     bottom: -15px;
     left: 0;
     z-index: 2;
 }
 
 .dropdown-toggle {
-    display: inline-flex; /* Change to inline-flex */
-    align-items: center; /* Center items vertically */
+    display: inline-flex;
+    align-items: center;
+    font-size: 1.5rem !important;
 }
 
 .dropdown-content {
@@ -144,11 +190,105 @@ body {
     transition: transform 0.3s ease;
     color: white;
     vertical-align: middle;
-    transform: translateY(-1px); /* Slight adjustment for alignment */
+    transform: translateY(-1px);
 }
 
 .dropdown:hover .dropdown-arrow {
-    transform: rotate(180deg) translateY(1px); /* Adjust rotation center */
+    transform: rotate(180deg) translateY(1px);
+}
+
+/* Separator line - positioned where the red line is in your image */
+.nav-separator {
+    height: 20px;
+    width: 1px;
+    background-color: rgba(255, 255, 255, 0.5);
+    margin: 0 .5rem;
+}
+
+/* Account section styles */
+.account-section {
+    display: flex;
+    align-items: center;
+}
+
+.account-section .nav-link,
+.account-section .dropdown-toggle {
+    font-size: 1.5rem !important;
+    display: flex;
+    align-items: center;
+}
+
+/* Profile picture container in navbar */
+.nav-profile-pic-container {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Profile picture in navbar */
+.nav-profile-pic {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-sizing: border-box;
+}
+
+/* Profile picture placeholder */
+.nav-profile-pic-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-sizing: border-box;
+}
+
+.nav-profile-pic-placeholder i {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Adjust dropdown position for account menu */
+.account-section .dropdown-content {
+    right: 0;
+    left: auto;
+}
+
+/* Style for the logout button */
+.dropdown-content form {
+    margin: 0;
+    padding: 0;
+}
+
+.dropdown-content button {
+    background: none;
+    border: none;
+    color: white;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 1.2rem !important;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.dropdown-content button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Spacer removed completely */
+.nav-spacer {
+    display: none;
 }
 
 /* Main content area with proper spacing for navbar */
@@ -336,5 +476,29 @@ main {
     .message-container {
         width: calc(100% - 40px);
         top: 80px;
+    }
+
+    .nav-separator {
+        display: none;
+    }
+    
+    .account-section {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .account-section .dropdown-content {
+        position: static;
+        width: 100%;
+    }
+    
+    .nav-brand-container {
+        flex-grow: 1;
+        justify-content: center;
+    }
+    
+    .bomb-icon {
+        width: 20px;
+        height: 20px;
     }
 }

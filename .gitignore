@@ -68,3 +68,6 @@ firebase-credentials.json
 
 # Google Bucket
 gcs-credentials.json
+
+# Local Docker
+docker-compose.yml

@@ -28,5 +28,7 @@ fi
 # Run migrations
 python manage.py migrate
 
+python manage.py collectstatic --noinput --clear
+
 # Start the server
 gunicorn mywebsite.wsgi:application --bind 0.0.0.0:$PORT
