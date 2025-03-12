@@ -135,46 +135,194 @@
     position: relative;
     text-align: center;
     margin: 20px 0;
-  }
+}
   
-  .auth-divider:before, .auth-divider:after {
+.auth-divider:before, .auth-divider:after {
     content: "";
     position: absolute;
     top: 50%;
     width: 40%;
     height: 1px;
     background: rgba(255, 255, 255, 0.3);
-  }
+}
   
-  .auth-divider:before {
+.auth-divider:before {
     left: 0;
-  }
+}
   
-  .auth-divider:after {
+.auth-divider:after {
     right: 0;
-  }
+}
   
-  .auth-divider span {
+.auth-divider span {
     background: #0a0a0a;
     padding: 0 15px;
     color: rgba(255, 255, 255, 0.7);
-  }
+}
   
-  .firebase-auth {
+.firebase-auth {
     display: flex;
     flex-direction: column;
     gap: 12px;
     margin-bottom: 25px;
-  }
+}
   
-  .auth-button.google {
+.auth-button.google {
     background: linear-gradient(45deg, #ea4335, #db4437);
-  }
+}
+
+.auth-button.google:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 0, 0, 0.3);
+}
   
-  .auth-button.email {
+.auth-button.email {
     background: linear-gradient(45deg, #4285f4, #3367d6);
-  }
+}
+
+.auth-button.email:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 170, 255, 0.3);
+}
   
-  .auth-button i {
+.auth-button i {
     margin-right: 8px;
-  }
+}
+
+/* New two-panel layout styles */
+.panels-container {
+    display: flex;
+    max-width: 900px;
+    margin: 80px auto;
+}
+
+.panel {
+    flex: 1;
+    padding: 40px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
+.login-panel {
+    margin-right: 20px;
+}
+
+.signup-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.signup-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.signup-panel .auth-button {
+    margin-bottom: 20px;
+}
+
+/* Make sure panel dividers have correct background */
+.panel .auth-divider span {
+    background-color: #0a0a0a;
+}
+
+/* Custom auth modal styling */
+.custom-auth-modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.custom-auth-container {
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    color: #fff;
+    width: 90%;
+    max-width: 400px;
+    padding: 30px;
+}
+
+.custom-auth-container h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.8rem;
+}
+
+.custom-auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.custom-auth-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.custom-auth-field label {
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.custom-auth-field input {
+    padding: 12px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    color: white;
+    font-size: 1rem;
+}
+
+.custom-auth-field input:focus {
+    outline: none;
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+}
+
+.custom-auth-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.custom-auth-buttons button {
+    flex: 1;
+}
+
+.custom-auth-buttons .cancel-btn {
+    margin-right: 10px;
+    background: linear-gradient(45deg, #505050, #303030);
+}
+
+.custom-auth-buttons .submit-btn {
+    margin-left: 10px;
+}
+
+/* Responsive layout for small screens */
+@media (max-width: 900px) {
+    .panels-container {
+        flex-direction: column;
+        max-width: 450px;
+    }
+    
+    .login-panel {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+}

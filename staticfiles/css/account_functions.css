@@ -129,3 +129,107 @@
     font-size: 0.85rem;
     padding: 5px 0;
 }
+
+/* Firebase Auth */
+.auth-divider {
+    position: relative;
+    text-align: center;
+    margin: 20px 0;
+}
+  
+.auth-divider:before, .auth-divider:after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.3);
+}
+  
+.auth-divider:before {
+    left: 0;
+}
+  
+.auth-divider:after {
+    right: 0;
+}
+  
+.auth-divider span {
+    background: #0a0a0a;
+    padding: 0 15px;
+    color: rgba(255, 255, 255, 0.7);
+}
+  
+.firebase-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+  
+.auth-button google {
+    background: linear-gradient(45deg, #ea4335, #db4437);
+}
+  
+.auth-button email {
+    background: linear-gradient(45deg, #4285f4, #3367d6);
+}
+  
+.auth-button i {
+    margin-right: 8px;
+}
+
+/* New two-panel layout styles */
+.panels-container {
+    display: flex;
+    max-width: 900px;
+    margin: 80px auto;
+}
+
+.panel {
+    flex: 1;
+    padding: 40px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
+.login-panel {
+    margin-right: 20px;
+}
+
+.signup-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.signup-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.signup-panel .auth-button {
+    margin-bottom: 20px;
+}
+
+/* Make sure panel dividers have correct background */
+.panel .auth-divider span {
+    background-color: #0a0a0a;
+}
+
+/* Responsive layout for small screens */
+@media (max-width: 900px) {
+    .panels-container {
+        flex-direction: column;
+        max-width: 450px;
+    }
+    
+    .login-panel {
+        margin-right: 0;
+        margin-bottom: 20px;
+    }
+}
