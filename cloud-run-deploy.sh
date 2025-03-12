@@ -5,7 +5,7 @@ set -e
 
 # Configuration
 PROJECT_ID="premium-botany-453018-a0"
-SERVICE_NAME="bomby-website"
+SERVICE_NAME="bomby"
 REGION="us-central1"
 IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
 INSTANCE_CONNECTION_NAME="$PROJECT_ID:$REGION:bomby-database"
