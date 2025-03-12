@@ -54,11 +54,6 @@ INSTALLED_APPS = [
     'ACCOUNTS',
     'PORTFOLIO',
     'storages',
-    'django.contrib.sites',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-    'allauth.socialaccount.providers.google',
 ]
 
 # Add site ID
