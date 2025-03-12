@@ -10,57 +10,72 @@
 {% endblock %}
 
 {% block content %}
-<div class="auth-container">
-    <div class="auth-header">
-        <h1 class="auth-title">Login</h1>
-        <p class="auth-subtitle">Enter your credentials to access your account</p>
-    </div>
-    
-    <form method="post" action="{% url 'ACCOUNTS:login' %}" class="auth-form">
-        {% csrf_token %}
-        
-        {% if form.errors %}
-            <div class="messages">
-                <p class="message error"> Your username or password was incorrect. Please try again.</p>
-            </div>
-        {% endif %}
-        
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required autofocus>
-        
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
-        
-        <button type="submit" class="auth-button">Sign In</button>
-
-        <div class="auth-links">
-            <p>Forgot your password? <a href="{% url 'ACCOUNTS:password_reset' %}">Reset it here</a></p>
+<div class="panels-container">
+    <!-- Left Panel (Login) -->
+    <div class="panel login-panel">
+        <div class="auth-header">
+            <h1 class="auth-title">Login</h1>
+            <p class="auth-subtitle">Enter your credentials to access your account</p>
         </div>
-    </form>
+        
+        <form method="post" action="{% url 'ACCOUNTS:login' %}" class="auth-form">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+                <div class="messages">
+                    <p class="message error">Your username or password was incorrect. Please try again.</p>
+                </div>
+            {% endif %}
+            
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autofocus>
+            
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+            
+            <button type="submit" class="auth-button">Sign In</button>
 
-    <div class="auth-divider">
-        <span>OR</span>
+            <div class="auth-links">
+                <p>Forgot your password? <a href="{% url 'ACCOUNTS:password_reset' %}">Reset it here</a></p>
+            </div>
+        </form>
+
+        <div class="auth-divider">
+            <span>OR</span>
+        </div>
+
+        <!-- Firebase Auth Buttons -->
+        <div class="firebase-auth">
+            <button id="googleLogin" class="auth-button google">
+                <i class="fab fa-google"></i> Login with Google
+            </button>
+            <button id="emailLogin" class="auth-button email">
+                <i class="fas fa-envelope"></i> Login with Email
+            </button>
+        </div>
     </div>
 
-    <!-- CSRF Token for Firebase Auth -->
-    {% csrf_token %}
-
-    <!-- Firebase Auth Buttons -->
-    <div class="firebase-auth">
-        <button id="googleLogin" class="auth-button google">
-            <i class="fab fa-google"></i> Sign in with Google
-        </button>
-        <button id="emailLogin" class="auth-button email">
-            <i class="fas fa-envelope"></i> Sign in with Email
-        </button>
-    </div>
-
-    <div class="auth-header create-account-section">
-        <h1 class="auth-title">Create Account</h1>
-        <p class="auth-subtitle">Gain access to all features and the store!</p>
-
-        <div class="button-container">
-            <a href="{% url 'ACCOUNTS:signup' %}" class="auth-button create-account">Create Account</a>
+    <!-- Right Panel (Create Account) -->
+    <div class="panel signup-panel">
+        <div class="auth-header">
+            <h1 class="auth-title">Create Account</h1>
+            <p class="auth-subtitle">Gain access to all features and the store!</p>
+            <div class="signup-content">
+                <a href="{% url 'ACCOUNTS:signup' %}" class="auth-button create-account">Create Account</a>
+                
+                <div class="auth-divider">
+                    <span>OR</span>
+                </div>
+                
+                <div class="firebase-auth">
+                    <button id="googleSignup" class="auth-button google">
+                        <i class="fab fa-google"></i> Sign up with Google
+                    </button>
+                    <button id="emailSignup" class="auth-button email">
+                        <i class="fas fa-envelope"></i> Sign up with Email
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -70,65 +85,146 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Get CSRF token
-    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    
-    // Fetch Firebase config from the server
-    fetch('{% url "ACCOUNTS:firebase_config" %}')
-        .then(response => response.json())
-        .then(config => {
-            // Initialize Firebase
-            firebase.initializeApp(config);
-            
-            // Google sign-in
-            document.getElementById('googleLogin').addEventListener('click', function() {
-                const provider = new firebase.auth.GoogleAuthProvider();
-                firebase.auth().signInWithPopup(provider)
-                    .then((result) => {
-                        // Get the user's ID token
-                        return result.user.getIdToken();
-                    })
-                    .then(idToken => {
-                        // Send the token to your backend
-                        return fetch('{% url "ACCOUNTS:firebase_login" %}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': csrftoken
-                            },
-                            body: JSON.stringify({ idToken }),
-                            credentials: 'same-origin'
-                        });
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Redirect to account page
-                            window.location.href = '{% url "ACCOUNTS:account" %}';
-                        } else {
-                            alert('Login failed: ' + data.error);
-                        }
-                    })
-                    .catch((error) => {
-                        console.error('Error during sign-in', error);
-                        alert('Login failed: ' + error.message);
-                    });
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("DOM loaded, Firebase auth initialization starting");
+        
+        // First, ensure CSRF token is set
+        fetch('{% url "ACCOUNTS:set_csrf_token" %}')
+            .then(response => response.json())
+            .then(data => {
+                console.log("CSRF token set successfully");
+                initAuth();
+            })
+            .catch(error => {
+                console.error("Failed to set CSRF token:", error);
+                alert("Authentication initialization failed. Please try refreshing the page.");
             });
             
-            // Email sign-in button
-            document.getElementById('emailLogin').addEventListener('click', function() {
-                // Simple email/password popup
-                const email = prompt('Enter your email:');
-                if (email) {
-                    const password = prompt('Enter your password:');
-                    if (password) {
-                        firebase.auth().signInWithEmailAndPassword(email, password)
-                            .then((userCredential) => {
-                                return userCredential.user.getIdToken();
-                            })
+        function initAuth() {
+            // Get CSRF token
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            console.log("Got CSRF token:", csrftoken ? "Yes" : "No");
+            
+            // Show loader function
+            function showLoader() {
+                const loader = document.createElement('div');
+                loader.id = 'auth-loader';
+                loader.innerHTML = `
+                    <div class="auth-loader-overlay">
+                        <div class="auth-loader-spinner"></div>
+                        <div class="auth-loader-text">Authenticating...</div>
+                    </div>
+                `;
+                document.body.appendChild(loader);
+            }
+            
+            // Hide loader function
+            function hideLoader() {
+                const loader = document.getElementById('auth-loader');
+                if (loader) {
+                    document.body.removeChild(loader);
+                }
+            }
+            
+            // Error handler
+            function handleError(error, context = '') {
+                console.error(`Firebase error (${context}):`, error);
+                hideLoader();
+                
+                let message = 'Authentication failed.';
+                
+                if (error.code === 'auth/popup-blocked') {
+                    message = 'Popup was blocked by your browser. Please allow popups or try a different method.';
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    // User closed the popup, don't show error
+                    return;
+                } else if (error.code === 'auth/unauthorized-domain') {
+                    message = 'This domain is not authorized for Firebase authentication. Please contact support.';
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    // Another popup is already open, don't show error
+                    return;
+                } else if (error.code === 'auth/network-request-failed') {
+                    message = 'Network error. Please check your connection and try again.';
+                } else if (error.message) {
+                    message = error.message;
+                }
+                
+                alert(message);
+            }
+            
+            // Fetch Firebase config from the server
+            fetch('{% url "ACCOUNTS:firebase_config" %}')
+                .then(response => {
+                    console.log("Firebase config response status:", response.status);
+                    if (!response.ok) {
+                        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(config => {
+                    console.log("Firebase config loaded successfully");
+                    console.log("Project ID:", config.projectId);
+                    
+                    // Initialize Firebase
+                    firebase.initializeApp(config);
+                    
+                    // Handle redirect result first (for cases where popup was blocked)
+                    console.log("Checking for redirect result");
+                    firebase.auth().getRedirectResult()
+                        .then((result) => {
+                            if (result.user) {
+                                console.log("Got user from redirect, handling auth success");
+                                showLoader();
+                                handleFirebaseUser(result.user, 'login');
+                            } else {
+                                console.log("No redirect result found");
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('Redirect result error:', error);
+                            handleError(error, 'redirect');
+                        });
+                    
+                    // Google sign-in
+                    document.getElementById('googleLogin').addEventListener('click', function() {
+                        googleAuth('login');
+                    });
+                    
+                    // Google sign-up
+                    document.getElementById('googleSignup').addEventListener('click', function() {
+                        googleAuth('signup');
+                    });
+                    
+                    // Email sign-in
+                    document.getElementById('emailLogin').addEventListener('click', function() {
+                        emailAuth('login');
+                    });
+                    
+                    // Email sign-up
+                    document.getElementById('emailSignup').addEventListener('click', function() {
+                        emailAuth('signup');
+                    });
+                    
+                    // Function to handle Firebase user object
+                    function handleFirebaseUser(user, mode) {
+                        console.log(`Processing Firebase user (mode: ${mode})`);
+                        console.log("Email:", user.email);
+                        console.log("Display name:", user.displayName);
+                        
+                        // Force token refresh to ensure we have a fresh token
+                        user.getIdToken(true)
                             .then(idToken => {
-                                return fetch('{% url "ACCOUNTS:firebase_login" %}', {
+                                console.log(`Got fresh token (length: ${idToken.length})`);
+                                
+                                // Determine backend endpoint
+                                const endpoint = mode === 'signup' 
+                                    ? '{% url "ACCOUNTS:firebase_signup" %}'
+                                    : '{% url "ACCOUNTS:firebase_login" %}';
+                                    
+                                console.log(`Sending token to: ${endpoint}`);
+                                
+                                // Send token to backend
+                                return fetch(endpoint, {
                                     method: 'POST',
                                     headers: {
                                         'Content-Type': 'application/json',
@@ -138,24 +234,208 @@ document.addEventListener('DOMContentLoaded', function() {
                                     credentials: 'same-origin'
                                 });
                             })
-                            .then(response => response.json())
+                            .then(response => {
+                                console.log(`Server response status: ${response.status}`);
+                                if (!response.ok) {
+                                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                                }
+                                return response.json();
+                            })
                             .then(data => {
+                                hideLoader();
                                 if (data.success) {
+                                    console.log("Authentication successful, redirecting");
                                     window.location.href = '{% url "ACCOUNTS:account" %}';
                                 } else {
-                                    alert('Login failed: ' + data.error);
+                                    console.error("Server reported error:", data.error);
+                                    throw new Error(data.error || 'Authentication failed');
                                 }
                             })
-                            .catch((error) => {
-                                alert('Login failed: ' + error.message);
+                            .catch(error => {
+                                handleError(error, 'token-processing');
                             });
                     }
-                }
-            });
-        })
-        .catch(error => {
-            console.error('Error loading Firebase config:', error);
-        });
-});
+                    
+                    // Function to handle Google authentication
+                    function googleAuth(mode) {
+                        console.log(`Starting Google auth (mode: ${mode})`);
+                        showLoader();
+                        
+                        const provider = new firebase.auth.GoogleAuthProvider();
+                        
+                        // Add scopes to request
+                        provider.addScope('profile');
+                        provider.addScope('email');
+                        
+                        // Add login hint to prevent account chooser
+                        provider.setCustomParameters({
+                            'prompt': 'select_account',
+                            'login_hint': ''
+                        });
+                        
+                        // Use redirect auth instead of popup for more reliable behavior
+                        firebase.auth().signInWithRedirect(provider)
+                            .catch(error => {
+                                handleError(error, 'google-redirect');
+                            });
+                    }
+                    
+                    // Function to handle Email sign-in/sign-up
+                    function emailAuth(mode) {
+                        console.log(`Starting email auth (mode: ${mode})`);
+                        
+                        // Create modal
+                        const modal = document.createElement('div');
+                        modal.className = 'custom-auth-modal';
+                        
+                        if (mode === 'login') {
+                            // Login form
+                            modal.innerHTML = `
+                                <div class="custom-auth-container">
+                                    <h2>Login with Email</h2>
+                                    <div class="custom-auth-form">
+                                        <div class="custom-auth-field">
+                                            <label for="email">Email</label>
+                                            <input type="email" id="email" required>
+                                        </div>
+                                        <div class="custom-auth-field">
+                                            <label for="password">Password</label>
+                                            <input type="password" id="password" required>
+                                        </div>
+                                        <div class="custom-auth-buttons">
+                                            <button type="button" class="auth-button cancel-btn">Cancel</button>
+                                            <button type="button" class="auth-button submit-btn">Login</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            // Signup form
+                            modal.innerHTML = `
+                                <div class="custom-auth-container">
+                                    <h2>Sign Up with Email</h2>
+                                    <div class="custom-auth-form">
+                                        <div class="custom-auth-field">
+                                            <label for="username">Username</label>
+                                            <input type="text" id="username" required>
+                                        </div>
+                                        <div class="custom-auth-field">
+                                            <label for="email">Email</label>
+                                            <input type="email" id="email" required>
+                                        </div>
+                                        <div class="custom-auth-field">
+                                            <label for="password">Create Password</label>
+                                            <input type="password" id="password" required>
+                                        </div>
+                                        <div class="custom-auth-field">
+                                            <label for="confirm-password">Confirm Password</label>
+                                            <input type="password" id="confirm-password" required>
+                                        </div>
+                                        <div class="custom-auth-buttons">
+                                            <button type="button" class="auth-button cancel-btn">Cancel</button>
+                                            <button type="button" class="auth-button submit-btn">Sign Up</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        document.body.appendChild(modal);
+                        
+                        // Focus on first input
+                        setTimeout(() => {
+                            modal.querySelector('input').focus();
+                        }, 100);
+                        
+                        // Handle cancel
+                        modal.querySelector('.cancel-btn').addEventListener('click', function() {
+                            document.body.removeChild(modal);
+                        });
+                        
+                        // Handle submit
+                        modal.querySelector('.submit-btn').addEventListener('click', function() {
+                            if (mode === 'login') {
+                                // Handle login
+                                const email = modal.querySelector('#email').value;
+                                const password = modal.querySelector('#password').value;
+                                
+                                if (!email || !password) {
+                                    alert('Please enter your email and password');
+                                    return;
+                                }
+                                
+                                showLoader();
+                                document.body.removeChild(modal);
+                                
+                                firebase.auth().signInWithEmailAndPassword(email, password)
+                                    .then((userCredential) => {
+                                        handleFirebaseUser(userCredential.user, 'login');
+                                    })
+                                    .catch((error) => {
+                                        handleError(error, 'email-login');
+                                    });
+                                    
+                            } else {
+                                // Handle signup
+                                const username = modal.querySelector('#username').value;
+                                const email = modal.querySelector('#email').value;
+                                const password = modal.querySelector('#password').value;
+                                const confirmPassword = modal.querySelector('#confirm-password').value;
+                                
+                                if (!username || !email || !password || !confirmPassword) {
+                                    alert('Please fill out all fields');
+                                    return;
+                                }
+                                
+                                if (password !== confirmPassword) {
+                                    alert('Passwords do not match');
+                                    return;
+                                }
+                                
+                                showLoader();
+                                document.body.removeChild(modal);
+                                
+                                firebase.auth().createUserWithEmailAndPassword(email, password)
+                                    .then((userCredential) => {
+                                        console.log("User account created, updating profile");
+                                        // Set display name for the user (for username)
+                                        return userCredential.user.updateProfile({
+                                            displayName: username
+                                        }).then(() => userCredential.user);
+                                    })
+                                    .then((user) => {
+                                        // Ensure profile is updated before proceeding
+                                        console.log("Profile updated with username");
+                                        return firebase.auth().currentUser.reload().then(() => {
+                                            return firebase.auth().currentUser;
+                                        });
+                                    })
+                                    .then((user) => {
+                                        handleFirebaseUser(user, 'signup');
+                                    })
+                                    .catch((error) => {
+                                        handleError(error, 'email-signup');
+                                    });
+                            }
+                        });
+                        
+                        // Handle enter key
+                        modal.addEventListener('keydown', function(e) {
+                            if (e.key === 'Enter') {
+                                modal.querySelector('.submit-btn').click();
+                            } else if (e.key === 'Escape') {
+                                modal.querySelector('.cancel-btn').click();
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading Firebase config:', error);
+                    alert('Failed to load authentication services. Please try again later.');
+                });
+        }
+    });
 </script>
+
+{% csrf_token %}
 {% endblock %}

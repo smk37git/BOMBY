@@ -14,6 +14,8 @@ from pathlib import Path
 from django.urls import reverse_lazy
 import os
 from dotenv import load_dotenv
+import firebase_admin
+from firebase_admin import credentials
 import logging
 
 # Configure logging
@@ -31,25 +33,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-fallback-secret-key-for-development')
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 #DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
-
-# Fix the CSRF_TRUSTED_ORIGINS for Cloud Run
-CSRF_TRUSTED_ORIGINS = []
-if os.environ.get('K_SERVICE'):
-    CSRF_TRUSTED_ORIGINS = [
-        f"https://{os.environ.get('K_SERVICE')}-{os.environ.get('K_REVISION', '')}.{os.environ.get('K_REGION', 'us-central1')}.run.app",
-        f"https://{os.environ.get('K_SERVICE')}.{os.environ.get('K_REGION', 'us-central1')}.run.app",
-        f"https://*.{os.environ.get('K_REGION', 'us-central1')}.run.app",
-        "https://*.run.app",
-    ]
-else:
-    CSRF_TRUSTED_ORIGINS = ['https://bomby-799218251279.us-central1.run.app']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
+CSRF_TRUSTED_ORIGINS = ['https://bomby-799218251279.us-central1.run.app']
 
 
 # Application definition
@@ -70,9 +61,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -189,22 +180,56 @@ AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 # Image content moderation settings
 ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION')
 IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD')
+
+# Firebase Settings
+FIREBASE_CREDENTIALS_PATH = os.environ.get('FIREBASE_CREDENTIALS_PATH', os.path.join(BASE_DIR, 'firebase-credentials.json'))
+
+# Define Firebase project ID - IMPORTANT: This must match the project_id in firebase-credentials.json
+FIREBASE_PROJECT_ID = "bomby-data"
+
+try:
+    if os.path.exists(FIREBASE_CREDENTIALS_PATH):
+        logger.info(f"Initializing Firebase with credentials from: {FIREBASE_CREDENTIALS_PATH}")
+        FIREBASE_APP = firebase_admin.initialize_app(
+            credentials.Certificate(FIREBASE_CREDENTIALS_PATH)
+        )
+        logger.info("Firebase initialized successfully with credentials file")
+    else:
+        # Fallback to application default credentials if file doesn't exist
+        logger.warning(f"Credentials file not found at {FIREBASE_CREDENTIALS_PATH}, using default credentials")
+        FIREBASE_APP = firebase_admin.initialize_app()
+except firebase_admin.exceptions.FirebaseError as e:
+    logger.error(f"Firebase initialization error: {e}")
+except ValueError as e:
+    logger.error(f"Firebase credentials error: {e}")
     
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
+    'ACCOUNTS.firebase_auth.FirebaseAuthBackend',
 ]
+
+# Hardcode the Firebase project ID to match your firebase-credentials.json
+FIREBASE_CONFIG = {
+    'apiKey': os.environ.get('FIREBASE_API_KEY', ''),
+    'authDomain': os.environ.get('FIREBASE_AUTH_DOMAIN', ''),
+    'projectId': FIREBASE_PROJECT_ID,  # Hardcoded to match service account
+    'storageBucket': os.environ.get('FIREBASE_STORAGE_BUCKET', ''),
+    'messagingSenderId': os.environ.get('FIREBASE_MESSAGING_SENDER_ID', ''),
+    'appId': os.environ.get('FIREBASE_APP_ID', '')
+}
+
+# Log Firebase configuration (without sensitive values)
+logger.info(f"Firebase project ID: {FIREBASE_CONFIG['projectId']}")
+logger.info(f"Firebase auth domain: {FIREBASE_CONFIG['authDomain']}")
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-if os.environ.get('K_SERVICE'):  # Running on Cloud Run
-    ALLOWED_HOSTS.extend([
-        # Add all possible Cloud Run URLs
-        f"{os.environ.get('K_SERVICE')}-{os.environ.get('K_REVISION', '')}.{os.environ.get('K_REGION', 'us-central1')}.run.app",
-        f"{os.environ.get('K_SERVICE')}.{os.environ.get('K_REGION', 'us-central1')}.run.app",
-        "*-{}.run.app".format(os.environ.get('K_REGION', 'us-central1')),
-        "*.run.app",
-        # For testing
-        "localhost", 
-        "127.0.0.1",
-    ])
+# For Cloud Run with mounted bucket
+if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
+    # Path where the bucket is mounted
+    GS_MEDIA_BUCKET_PATH = '/app/media'
+    # Set media root to the mount point
+    MEDIA_ROOT = GS_MEDIA_BUCKET_PATH
+    # Use FileSystemStorage for mounted bucket
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'

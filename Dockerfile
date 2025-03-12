@@ -21,6 +21,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project and entrypoint script
 COPY . .
 
+# Create directory for Firebase credentials
+RUN mkdir -p /app/firebase && chmod 755 /app/firebase
+
 # Ensure entrypoint script is executable
 RUN chmod +x /app/entrypoint.sh
 
