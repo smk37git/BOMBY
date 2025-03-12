@@ -1,6 +1,5 @@
 {% extends 'MAIN/base.html' %}
 {% load static %}
-{% load socialaccount %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/account_functions.css' %}">
@@ -40,16 +39,6 @@
                 <p>Forgot your password? <a href="{% url 'ACCOUNTS:password_reset' %}">Reset it here</a></p>
             </div>
         </form>
-        
-        <div class="auth-divider">
-            <span>OR</span>
-        </div>
-        
-        <div class="firebase-auth">
-            <a href="{% provider_login_url 'google' %}" class="auth-button google">
-                <i class="fa fa-google"></i> Sign in with Google
-            </a>
-        </div>
     </div>
 
     <!-- Right Panel (Create Account) -->
@@ -59,14 +48,6 @@
             <p class="auth-subtitle">Gain access to all features and the store!</p>
             <div class="signup-content">
                 <a href="{% url 'ACCOUNTS:signup' %}" class="auth-button create-account">Create Account</a>
-                
-                <div class="auth-divider">
-                    <span>OR</span>
-                </div>
-                
-                <a href="{% provider_login_url 'google' process='signup' %}" class="auth-button google">
-                    <i class="fa fa-google"></i> Sign up with Google
-                </a>
             </div>
         </div>
     </div>

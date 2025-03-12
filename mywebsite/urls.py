@@ -25,7 +25,6 @@ urlpatterns = [
     path('', include('MAIN.urls')),
     path('accounts/', include('ACCOUNTS.urls', namespace='ACCOUNTS')),
     path('portfolio/', include('PORTFOLIO.urls', namespace='PORTFOLIO')),
-    path('auth/', include('allauth.urls')),
 ]
 # Add static and media URLs for development
 if settings.DEBUG:
