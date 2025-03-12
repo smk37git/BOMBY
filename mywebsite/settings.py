@@ -54,7 +54,15 @@ INSTALLED_APPS = [
     'ACCOUNTS',
     'PORTFOLIO',
     'storages',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
+
+# Add site ID
+SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -181,6 +189,7 @@ IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDE
     
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 MEDIA_URL = '/media/'
@@ -194,3 +203,23 @@ if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
     MEDIA_ROOT = GS_MEDIA_BUCKET_PATH
     # Use FileSystemStorage for mounted bucket
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+# OAuth provider settings
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID'),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
+
+LOGIN_REDIRECT_URL = reverse_lazy('ACCOUNTS:account')

@@ -15,6 +15,8 @@ DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
 BUCKET_NAME="bomby-user-uploads"
+GOOGLE_CLIENT_ID=$(grep GOOGLE_CLIENT_ID .env | cut -d'=' -f2)
+GOOGLE_CLIENT_SECRET=$(grep GOOGLE_CLIENT_SECRET .env | cut -d'=' -f2)
 
 # Build the Docker image
 echo "Building Docker image..."
@@ -28,7 +30,10 @@ gcloud auth configure-docker
 echo "Pushing image to Google Container Registry..."
 docker push $IMAGE_NAME
 
-# Other secrets
+# Create secrets
+echo "Setting up secrets..."
+
+# Existing secrets
 gcloud secrets describe django-secret-key > /dev/null 2>&1 || \
 gcloud secrets create django-secret-key --replication-policy="automatic"
 
@@ -37,6 +42,13 @@ gcloud secrets create postgres-password --replication-policy="automatic" --data-
 
 gcloud secrets describe sendgrid-api-key > /dev/null 2>&1 || \
 gcloud secrets create sendgrid-api-key --replication-policy="automatic" --data-file=<(echo -n "$SENDGRID_KEY")
+
+# New Google OAuth secrets
+gcloud secrets describe google-client-id > /dev/null 2>&1 || \
+gcloud secrets create google-client-id --replication-policy="automatic" --data-file=<(echo -n "$GOOGLE_CLIENT_ID")
+
+gcloud secrets describe google-client-secret > /dev/null 2>&1 || \
+gcloud secrets create google-client-secret --replication-policy="automatic" --data-file=<(echo -n "$GOOGLE_CLIENT_SECRET")
 
 # Ensure the bucket exists with correct permissions
 echo "Ensuring the storage bucket exists..."
@@ -65,7 +77,9 @@ DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\
 AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
 SENDGRID_API_KEY=sendgrid-api-key:latest,\
-DEFAULT_FROM_EMAIL=default-from-email:latest" \
+DEFAULT_FROM_EMAIL=default-from-email:latest,\
+GOOGLE_CLIENT_ID=google-client-id:latest,\
+GOOGLE_CLIENT_SECRET=google-client-secret:latest" \
   --memory 512Mi \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
