@@ -15,10 +15,6 @@ import json
 import io
 import boto3
 from django.http import HttpResponse
-import logging
-
-# Setup logger
-logger = logging.getLogger(__name__)
 
 # Signup Form
 def signup(request):

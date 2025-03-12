@@ -37,8 +37,19 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'django-fallback-secret-key-for
 DEBUG = True
 #DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
-CSRF_TRUSTED_ORIGINS = ['https://bomby-799218251279.us-central1.run.app']
+ALLOWED_HOSTS = []
+
+# Fix the CSRF_TRUSTED_ORIGINS for Cloud Run
+CSRF_TRUSTED_ORIGINS = []
+if os.environ.get('K_SERVICE'):
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{os.environ.get('K_SERVICE')}-{os.environ.get('K_REVISION', '')}.{os.environ.get('K_REGION', 'us-central1')}.run.app",
+        f"https://{os.environ.get('K_SERVICE')}.{os.environ.get('K_REGION', 'us-central1')}.run.app",
+        f"https://*.{os.environ.get('K_REGION', 'us-central1')}.run.app",
+        "https://*.run.app",
+    ]
+else:
+    CSRF_TRUSTED_ORIGINS = ['https://bomby-799218251279.us-central1.run.app']
 
 
 # Application definition
@@ -59,9 +70,9 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -186,11 +197,14 @@ AUTHENTICATION_BACKENDS = [
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-# For Cloud Run with mounted bucket
-if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
-    # Path where the bucket is mounted
-    GS_MEDIA_BUCKET_PATH = '/app/media'
-    # Set media root to the mount point
-    MEDIA_ROOT = GS_MEDIA_BUCKET_PATH
-    # Use FileSystemStorage for mounted bucket
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+if os.environ.get('K_SERVICE'):  # Running on Cloud Run
+    ALLOWED_HOSTS.extend([
+        # Add all possible Cloud Run URLs
+        f"{os.environ.get('K_SERVICE')}-{os.environ.get('K_REVISION', '')}.{os.environ.get('K_REGION', 'us-central1')}.run.app",
+        f"{os.environ.get('K_SERVICE')}.{os.environ.get('K_REGION', 'us-central1')}.run.app",
+        "*-{}.run.app".format(os.environ.get('K_REGION', 'us-central1')),
+        "*.run.app",
+        # For testing
+        "localhost", 
+        "127.0.0.1",
+    ])

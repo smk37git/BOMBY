@@ -7,8 +7,6 @@ from django.urls import reverse_lazy
 app_name = 'ACCOUNTS'
 
 urlpatterns = [
-     # Add CSRF cookie setter
-     path('set-csrf-token/', views.set_csrf_cookie, name='set_csrf_token'),
      
      # Main Account URLS
      path('signup/', views.signup, name='signup'),
