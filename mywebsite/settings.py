@@ -73,7 +73,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'mywebsite.urls'
@@ -224,11 +223,3 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 LOGIN_REDIRECT_URL = reverse_lazy('ACCOUNTS:account')
-
-# django-allauth settings
-ACCOUNT_ADAPTER = 'ACCOUNTS.adapters.CustomAccountAdapter'
-SOCIALACCOUNT_ADAPTER = 'ACCOUNTS.adapters.CustomSocialAccountAdapter'
-ACCOUNT_EMAIL_VERIFICATION = 'none'
-SOCIALACCOUNT_AUTO_SIGNUP = True
-SOCIALACCOUNT_EMAIL_REQUIRED = False
-ACCOUNT_USERNAME_REQUIRED = True
