@@ -203,23 +203,3 @@ if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
     MEDIA_ROOT = GS_MEDIA_BUCKET_PATH
     # Use FileSystemStorage for mounted bucket
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
-
-# OAuth provider settings
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'APP': {
-            'client_id': os.environ.get('GOOGLE_CLIENT_ID'),
-            'secret': os.environ.get('GOOGLE_CLIENT_SECRET'),
-            'key': ''
-        },
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        }
-    }
-}
-
-LOGIN_REDIRECT_URL = reverse_lazy('ACCOUNTS:account')
