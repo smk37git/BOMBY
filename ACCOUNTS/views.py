@@ -15,6 +15,24 @@ import json
 import io
 import boto3
 from django.http import HttpResponse
+from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from allauth.socialaccount.providers.oauth2.client import OAuth2Client
+from django.conf import settings
+
+def google_login(request):
+    """Custom view to directly initiate Google OAuth flow"""
+    adapter = GoogleOAuth2Adapter(request)
+    callback_url = request.build_absolute_uri('/auth/google/callback/')
+    client = OAuth2Client(
+        request, 
+        settings.SOCIALACCOUNT_PROVIDERS['google']['APP']['client_id'], 
+        settings.SOCIALACCOUNT_PROVIDERS['google']['APP']['secret'],
+        callback_url
+    )
+    
+    # Directly start OAuth flow
+    authorization_url = adapter.get_authorize_url(client, request)
+    return redirect(authorization_url)
 
 # Signup Form
 def signup(request):
