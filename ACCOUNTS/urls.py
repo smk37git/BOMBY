@@ -9,11 +9,6 @@ app_name = 'ACCOUNTS'
 urlpatterns = [
      # Add CSRF cookie setter
      path('set-csrf-token/', views.set_csrf_cookie, name='set_csrf_token'),
-
-     # Firebase authentication URLs
-     path('firebase-config/', views.firebase_config, name='firebase_config'),
-     path('firebase-login/', views.firebase_login, name='firebase_login'),
-     path('firebase-signup/', views.firebase_signup, name='firebase_signup'),
      
      # Main Account URLS
      path('signup/', views.signup, name='signup'),

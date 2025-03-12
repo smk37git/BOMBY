@@ -63,9 +63,6 @@ env/
 ehthumbs.db
 Thumbs.db
 
-# firebase
-firebase-credentials.json
-
 # Google Bucket
 gcs-credentials.json
 

@@ -22,10 +22,7 @@ def validate_image_dimensions(file):
     if img.width > max_width or img.height > max_height:
         raise ValidationError(f"Image dimensions cannot exceed 800x800 pixels. Your image is {img.width}x{img.height} pixels.")
 
-# Add the firebase_uid field
 class User(AbstractUser):
-    # Firebase user ID field
-    firebase_uid = models.CharField(max_length=128, blank=True, null=True, unique=True)
     
     class UserType(models.TextChoices):
         MEMBER = 'MEMBER', 'Member'

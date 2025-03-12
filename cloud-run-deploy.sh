@@ -16,14 +16,6 @@ SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
 BUCKET_NAME="bomby-user-uploads"
 
-# Firebase Configuration
-FIREBASE_API_KEY=$(grep FIREBASE_API_KEY .env | cut -d'=' -f2)
-FIREBASE_AUTH_DOMAIN=$(grep FIREBASE_AUTH_DOMAIN .env | cut -d'=' -f2)
-FIREBASE_PROJECT_ID=$(grep FIREBASE_PROJECT_ID .env | cut -d'=' -f2)
-FIREBASE_STORAGE_BUCKET=$(grep FIREBASE_STORAGE_BUCKET .env | cut -d'=' -f2)
-FIREBASE_MESSAGING_SENDER_ID=$(grep FIREBASE_MESSAGING_SENDER_ID .env | cut -d'=' -f2)
-FIREBASE_APP_ID=$(grep FIREBASE_APP_ID .env | cut -d'=' -f2)
-
 # Build the Docker image
 echo "Building Docker image..."
 docker build -t $IMAGE_NAME .
@@ -35,31 +27,6 @@ gcloud auth configure-docker
 # Push the image to Google Container Registry
 echo "Pushing image to Google Container Registry..."
 docker push $IMAGE_NAME
-
-# Create or update Firebase secrets
-echo "Ensuring Firebase secrets exist..."
-
-# Ensure firebase-credentials secret exists (the service account JSON file)
-gcloud secrets describe firebase-credentials-json > /dev/null 2>&1 || \
-gcloud secrets create firebase-credentials-json --replication-policy="automatic"
-
-gcloud secrets describe firebase-api-key > /dev/null 2>&1 || \
-gcloud secrets create firebase-api-key --replication-policy="automatic" --data-file=<(echo -n "$FIREBASE_API_KEY")
-
-gcloud secrets describe firebase-auth-domain > /dev/null 2>&1 || \
-gcloud secrets create firebase-auth-domain --replication-policy="automatic" --data-file=<(echo -n "$FIREBASE_AUTH_DOMAIN")
-
-gcloud secrets describe firebase-project-id > /dev/null 2>&1 || \
-gcloud secrets create firebase-project-id --replication-policy="automatic" --data-file=<(echo -n "$FIREBASE_PROJECT_ID")
-
-gcloud secrets describe firebase-storage-bucket > /dev/null 2>&1 || \
-gcloud secrets create firebase-storage-bucket --replication-policy="automatic" --data-file=<(echo -n "$FIREBASE_STORAGE_BUCKET")
-
-gcloud secrets describe firebase-messaging-sender-id > /dev/null 2>&1 || \
-gcloud secrets create firebase-messaging-sender-id --replication-policy="automatic" --data-file=<(echo -n "$FIREBASE_MESSAGING_SENDER_ID")
-
-gcloud secrets describe firebase-app-id > /dev/null 2>&1 || \
-gcloud secrets create firebase-app-id --replication-policy="automatic" --data-file=<(echo -n "$FIREBASE_APP_ID")
 
 # Other secrets
 gcloud secrets describe django-secret-key > /dev/null 2>&1 || \
@@ -92,19 +59,11 @@ ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,\
 SENDGRID_SANDBOX_MODE=False,\
 DB_NAME=$DB_NAME,\
 DB_USER=$DB_USER,\
-FIREBASE_CREDENTIALS_PATH=/app/firebase/firebase-credentials.json,\
 DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
 DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\
 AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
-/app/firebase/firebase-credentials.json=firebase-credentials-json:latest,\
-FIREBASE_API_KEY=firebase-api-key:latest,\
-FIREBASE_AUTH_DOMAIN=firebase-auth-domain:latest,\
-FIREBASE_PROJECT_ID=firebase-project-id:latest,\
-FIREBASE_STORAGE_BUCKET=firebase-storage-bucket:latest,\
-FIREBASE_MESSAGING_SENDER_ID=firebase-messaging-sender-id:latest,\
-FIREBASE_APP_ID=firebase-app-id:latest,\
 SENDGRID_API_KEY=sendgrid-api-key:latest,\
 DEFAULT_FROM_EMAIL=default-from-email:latest" \
   --memory 512Mi \
