@@ -1,0 +1,204 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/store_item.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="product-container">
+    <!-- Back link -->
+    <div class="product-navigation">
+        <a href="{% url 'STORE:store' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Store
+        </a>
+    </div>
+    
+    <!-- Split layout for product -->
+    <div class="product-split">
+        <!-- Left side: Gallery -->
+        <div class="product-gallery-side">
+            <div class="product-featured-image">
+                <img src="{% static 'images/1.jpg' %}" 
+                     alt="Basic Package" class="featured-image" id="featuredImage">
+            </div>
+            
+            <div class="gallery-thumbnails">
+                <!-- Thumbnails -->
+                <div class="thumbnail active" data-image="{% static 'images/1.jpg' %}">
+                    <img src="{% static 'images/1.jpg' %}" alt="Main Package View">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/2.jpg' %}">
+                    <img src="{% static 'images/2.jpg' %}" alt="Gallery Image 2">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/3.jpg' %}">
+                    <img src="{% static 'images/3.jpg' %}" alt="Gallery Image 3">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/4.jpg' %}">
+                    <img src="{% static 'images/4.jpg' %}" alt="Gallery Image 4">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/5.jpg' %}">
+                    <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 5">
+                </div>
+            </div>
+            
+            <div class="product-status-container">
+                <div class="product-status active">ACTIVE</div>
+                
+                {% if user.is_staff %}
+                <div class="admin-toggle">
+                    <label class="toggle" data-product-id="1">
+                        <input type="checkbox" class="toggle-checkbox" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Right side: Product info -->
+        <div class="product-info-side">
+            <div class="product-card">
+                <h1 class="product-title">BASIC PACKAGE</h1>
+                
+                <div class="product-description">
+                    <h2>DESCRIPTION</h2>
+                    <p>Start your streaming journey with our Basic Package. This includes a custom overlay with essential elements to make your stream look professional.</p>
+                </div>
+                
+                <div class="product-features">
+                    <h2>FEATURES:</h2>
+                    <ul class="features-list">
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            Basic stream overlay
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            Simple alerts setup
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            Single scene design
+                        </li>
+                        <li>
+                            <i class="fas fa-check-circle"></i>
+                            1 minor revision
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="product-purchase">
+                    <div class="price-section">
+                        <div class="price-label">Price:</div>
+                        <div class="price-value">$25.00</div>
+                    </div>
+                    <a href="{% url 'contact' %}?subject=Purchase%20Basic%20Package" class="purchase-btn">PURCHASE NOW</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Helper function to get CSRF token - defined outside to avoid scope issues
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gallery functionality
+        const featuredImage = document.getElementById('featuredImage');
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        
+        if (featuredImage && thumbnails.length > 0) {
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    // Update main image
+                    featuredImage.src = this.getAttribute('data-image');
+                    
+                    // Update active state
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        }
+        
+        // Admin toggle functionality - separate from Django template logic
+        const staffCheckbox = document.querySelector('.toggle-checkbox');
+        if (staffCheckbox) {
+            staffCheckbox.addEventListener('change', function() {
+                const toggleLabel = this.closest('.toggle');
+                if (!toggleLabel) return;
+                
+                const productId = toggleLabel.dataset.productId;
+                if (!productId) return;
+                
+                const isActive = this.checked;
+                
+                // Find the status element directly in product-status-container
+                const statusElement = document.querySelector('.product-status');
+                if (!statusElement) return;
+                
+                // Update UI
+                if (isActive) {
+                    statusElement.textContent = 'ACTIVE';
+                    statusElement.classList.add('active');
+                    statusElement.classList.remove('inactive');
+                } else {
+                    statusElement.textContent = 'INACTIVE';
+                    statusElement.classList.add('inactive');
+                    statusElement.classList.remove('active');
+                }
+                
+                // Send AJAX request to update product status
+                fetch(`/STORE/admin/toggle/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ active: isActive })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Server error: ' + response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Product status updated:', data);
+                })
+                .catch(error => {
+                    console.error('Error updating product status:', error);
+                    // Revert UI on error
+                    this.checked = !isActive;
+                    
+                    if (!isActive) {
+                        statusElement.textContent = 'ACTIVE';
+                        statusElement.classList.add('active');
+                        statusElement.classList.remove('inactive');
+                    } else {
+                        statusElement.textContent = 'INACTIVE';
+                        statusElement.classList.add('inactive');
+                        statusElement.classList.remove('active');
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

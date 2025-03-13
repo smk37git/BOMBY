@@ -1,0 +1,333 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/store.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+    <header class="store-hero">
+        <div class="hero-content">
+            <h1 class="main-title">MY STORE</h1>
+            <p class="subtitle">SERVICES & PRODUCTS</p>
+        </div>
+    </header>
+
+    <!-- Stream Setup Services Section -->
+    <section class="store-section" id="stream-setup">
+        <div class="section-header">
+            <h2 class="section-title">STREAM SETUP SERVICE</h2>
+            <div class="section-separator-right"></div>
+        </div>
+        
+        <div class="products-grid">
+            <!-- Basic Package -->
+            <div class="product-item" data-aos="fade-up">
+                <a href="{% url 'STORE:basic_package' %}" class="product-link">
+                    <div class="window">
+                        <div class="window-header">
+                            <div class="window-controls">
+                                <div class="control red"></div>
+                                <div class="control yellow"></div>
+                                <div class="control green"></div>
+                            </div>
+                            <div class="window-title">Basic Package</div>
+                            {% if user.is_staff %}
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="1">
+                                    <input type="checkbox" class="toggle-checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="window-content">
+                            <img src="{% static 'images/product-basic-stream.jpg' %}" alt="Basic Stream Package">
+                        </div>
+                        <div class="window-footer">
+                            <div class="product-status active">ACTIVE</div>
+                            <div class="product-price">$25</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Standard Package -->
+            <div class="product-item" data-aos="fade-up" data-aos-delay="100">
+                <a href="{% url 'STORE:standard_package' %}" class="product-link">
+                    <div class="window">
+                        <div class="window-header">
+                            <div class="window-controls">
+                                <div class="control red"></div>
+                                <div class="control yellow"></div>
+                                <div class="control green"></div>
+                            </div>
+                            <div class="window-title">Standard Package</div>
+                            {% if user.is_staff %}
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="2">
+                                    <input type="checkbox" class="toggle-checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="window-content">
+                            <img src="{% static 'images/product-standard-stream.jpg' %}" alt="Standard Stream Package">
+                        </div>
+                        <div class="window-footer">
+                            <div class="product-status active">ACTIVE</div>
+                            <div class="product-price">$45</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Premium Package -->
+            <div class="product-item" data-aos="fade-up" data-aos-delay="200">
+                <a href="{% url 'STORE:premium_package' %}" class="product-link">
+                    <div class="window">
+                        <div class="window-header">
+                            <div class="window-controls">
+                                <div class="control red"></div>
+                                <div class="control yellow"></div>
+                                <div class="control green"></div>
+                            </div>
+                            <div class="window-title">Premium Package</div>
+                            {% if user.is_staff %}
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="3">
+                                    <input type="checkbox" class="toggle-checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="window-content">
+                            <img src="{% static 'images/product-premium-stream.jpg' %}" alt="Premium Stream Package">
+                        </div>
+                        <div class="window-footer">
+                            <div class="product-status active">ACTIVE</div>
+                            <div class="product-price">$75</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- My Stream Setup -->
+            <div class="product-item" data-aos="fade-up" data-aos-delay="300">
+                <a href="{% url 'STORE:stream_setup' %}" class="product-link">
+                    <div class="window">
+                        <div class="window-header">
+                            <div class="window-controls">
+                                <div class="control red"></div>
+                                <div class="control yellow"></div>
+                                <div class="control green"></div>
+                            </div>
+                            <div class="window-title">My Stream Setup</div>
+                        </div>
+                        <div class="window-content">
+                            <img src="{% static 'images/my-setup.jpg' %}" alt="My Stream Setup">
+                        </div>
+                        <div class="window-footer special-footer">
+                            <div class="streamer-name">SEBE_TV</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Website Building Section -->
+    <section class="store-section" id="website-building">
+        <div class="section-header">
+            <h2 class="section-title">WEBSITE BUILDING</h2>
+            <div class="section-separator-right"></div>
+        </div>
+        
+        <div class="products-grid website-grid">
+            <!-- Basic Website -->
+            <div class="product-item" data-aos="fade-up">
+                <a href="{% url 'STORE:basic_website' %}" class="product-link">
+                    <div class="window">
+                        <div class="window-header">
+                            <div class="window-controls">
+                                <div class="control red"></div>
+                                <div class="control yellow"></div>
+                                <div class="control green"></div>
+                            </div>
+                            <div class="window-title">Basic Website</div>
+                            {% if user.is_staff %}
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="5">
+                                    <input type="checkbox" class="toggle-checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="window-content">
+                            <img src="{% static 'images/website-basic.jpg' %}" alt="Basic Website Package">
+                        </div>
+                        <div class="window-footer">
+                            <div class="product-status active">ACTIVE</div>
+                            <div class="product-price">$150</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- E-Commerce Website -->
+            <div class="product-item" data-aos="fade-up" data-aos-delay="100">
+                <a href="{% url 'STORE:ecommerce_website' %}" class="product-link">
+                    <div class="window">
+                        <div class="window-header">
+                            <div class="window-controls">
+                                <div class="control red"></div>
+                                <div class="control yellow"></div>
+                                <div class="control green"></div>
+                            </div>
+                            <div class="window-title">E-Commerce Website</div>
+                            {% if user.is_staff %}
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="6">
+                                    <input type="checkbox" class="toggle-checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="window-content">
+                            <img src="{% static 'images/website-ecommerce.jpg' %}" alt="E-Commerce Website Package">
+                        </div>
+                        <div class="window-footer">
+                            <div class="product-status active">ACTIVE</div>
+                            <div class="product-price">$350</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Custom Project -->
+            <div class="product-item" data-aos="fade-up" data-aos-delay="200">
+                <a href="{% url 'STORE:custom_project' %}" class="product-link">
+                    <div class="window">
+                        <div class="window-header">
+                            <div class="window-controls">
+                                <div class="control red"></div>
+                                <div class="control yellow"></div>
+                                <div class="control green"></div>
+                            </div>
+                            <div class="window-title">Custom Project</div>
+                            {% if user.is_staff %}
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="7">
+                                    <input type="checkbox" class="toggle-checkbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="window-content">
+                            <img src="{% static 'images/website-custom.jpg' %}" alt="Custom Website Project">
+                        </div>
+                        <div class="window-footer">
+                            <div class="product-status active">ACTIVE</div>
+                            <div class="product-price">Custom</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="contact-cta">
+        <div class="cta-content">
+            <h2>NEED SOMETHING CUSTOM?</h2>
+            <p>I'm always open to discussing custom projects and unique requirements. Let's create something amazing together!</p>
+            <a href="{% url 'contact' %}" class="cta-button">GET IN TOUCH</a>
+        </div>
+    </section>
+
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            offset: 100,
+            once: true
+        });
+    </script>
+
+    <!-- Admin Toggle Script -->
+    {% if user.is_staff %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Admin toggle functionality
+            document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const toggleLabel = this.closest('.toggle');
+                    const productId = toggleLabel.dataset.productId;
+                    const isActive = this.checked;
+                    const statusElement = this.closest('.product-item').querySelector('.product-status');
+                    
+                    // Update UI
+                    if (isActive) {
+                        statusElement.textContent = 'ACTIVE';
+                        statusElement.classList.add('active');
+                        statusElement.classList.remove('inactive');
+                    } else {
+                        statusElement.textContent = 'INACTIVE';
+                        statusElement.classList.add('inactive');
+                        statusElement.classList.remove('active');
+                    }
+                    
+                    // Send AJAX request to update product status
+                    fetch(`/STORE/admin/toggle/${productId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Product status updated:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error updating product status:', error);
+                        // Revert UI on error
+                        this.checked = !isActive;
+                        statusElement.textContent = isActive ? 'INACTIVE' : 'ACTIVE';
+                        statusElement.classList.toggle('active');
+                        statusElement.classList.toggle('inactive');
+                    });
+                });
+            });
+            
+            // Helper function to get CSRF token
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        });
+    </script>
+    {% endif %}
+{% endblock %}
