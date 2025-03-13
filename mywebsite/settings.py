@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'MAIN',
     'ACCOUNTS',
     'PORTFOLIO',
+    'STORE',
     'storages',
 ]
 
