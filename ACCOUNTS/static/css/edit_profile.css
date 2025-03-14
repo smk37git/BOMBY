@@ -1,4 +1,3 @@
-/* Main container styles */
 .edit_profile-container {
     max-width: 1200px;
     margin: 50px auto 30px;
@@ -23,7 +22,6 @@
     color: white;
 }
 
-/* Header styles */
 .profile-header {
     text-align: center;
     padding-top: 10px;
@@ -239,7 +237,6 @@ textarea {
     line-height: 1.5;
 }
 
-/* Hide file input */
 input[type="file"] {
     display: none;
 }
@@ -292,7 +289,7 @@ input[type="file"] {
     display: none;
 }
 
-/* Social icons - all white as requested */
+/* Social icons */
 .fab.fa-youtube,
 .fab.fa-twitch,
 .fab.fa-github,
@@ -306,7 +303,7 @@ input[type="file"] {
     margin-top: 20px;
 }
 
-/* Responsive adjustments */
+/* Responsive for Mobile */
 @media (max-width: 992px) and (min-width: 769px) {
     .edit_profile-container {
         max-width: 90%;

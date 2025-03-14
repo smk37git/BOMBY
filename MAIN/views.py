@@ -4,15 +4,15 @@ from django.contrib import messages
 
 # Create your views here.
 
-## Homepage View
+# Homepage View
 def home(request):
     return render(request, 'MAIN/home.html')
 
-## About View
+# About View
 def about(request):
     return render(request, 'MAIN/about.html')
 
-## Contact View
+# Contact View
 def contact(request):
     if request.method == 'POST':
         # Extract form data
@@ -49,6 +49,6 @@ def contact(request):
     
     return render(request, 'MAIN/contact.html')
 
-## Portfolio View
+# Portfolio View
 def portfolio(request):
     return render(request, 'PORTFOLIO/portfolio.html')

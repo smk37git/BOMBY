@@ -174,12 +174,11 @@ LOGIN_REDIRECT_URL = reverse_lazy('ACCOUNTS:account')
 LOGOUT_REDIRECT_URL = 'home'
 
 ## AWS SETTINGS
-# AWS credentials for services like Rekognition
 AWS_ACCESS_KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
 AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 
-# Image content moderation settings
+# AWS Rekognition
 ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION')
 IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD')
     

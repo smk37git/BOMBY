@@ -57,7 +57,7 @@
 
 <div class="star_background"></div>
 
-<!-- Add this script to generate ASCII stars -->
+<!-- Script to generate ASCII Stars -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const body = document.body;
@@ -74,15 +74,15 @@
             star.className = 'star';
             
             // Random position - ensuring better edge coverage
-            const posX = Math.random() * 99; // 0-99% of width
-            const posY = Math.random() * 98 + 1; // 1-99% of height
+            const posX = Math.random() * 99;
+            const posY = Math.random() * 98 + 1;
             
             // Apply position
             star.style.left = posX + 'vw';
             star.style.top = posY + 'vh';
             
             // Vary the size for visual interest
-            const baseSize = Math.random() * 10 + 20; // 20-30px
+            const baseSize = Math.random() * 10 + 20;
             star.style.fontSize = baseSize + 'px';
             
             // Random animation delay and duration

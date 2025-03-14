@@ -98,7 +98,6 @@
 
 {% block extra_js %}
 <script>
-    // Wait until the DOM is fully loaded
     document.addEventListener('DOMContentLoaded', function() {
         var modal = document.getElementById('popup-modal');
         var closeModalButton = document.getElementById('close-modal');
@@ -109,12 +108,12 @@
             modal.style.opacity = '0';
             setTimeout(function() {
                 modal.style.display = 'none';
-                modal.classList.remove('fade-out'); // Reset for future triggers
+                modal.classList.remove('fade-out');
                 modal.style.opacity = '1';
-            }, 500); // Match fadeOut duration
+            }, 500);
         }
     
-        // Show the popup modal ONLY if it exists (i.e., after submission)
+        // Show the popup modal ONLY if it exists
         if (modal) {
             modal.style.display = 'flex';
             modal.style.opacity = '1';

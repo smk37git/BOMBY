@@ -47,13 +47,7 @@ def toggle_product_status(request, product_id):
     This is a simplified implementation that doesn't use a database.
     In a real scenario, you would update a Product model in your database.
     """
-    # In a real implementation, you would:
-    # 1. Fetch the product from the database
-    # 2. Toggle its status
-    # 3. Save it
-    # 4. Return the updated status
     
-    # For now, we'll just return a success response
     return JsonResponse({
         'success': True,
         'product_id': product_id,

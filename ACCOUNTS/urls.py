@@ -16,12 +16,12 @@ urlpatterns = [
      # Logged in View
      path('account/', views.account, name='account'),
 
-     # Username Management - Fixed paths with specific routes first
+     # Username Management
      path('profile/change-username/', views.edit_username, {'user_id': None}, name='profile_edit_username'),
      path('account/change-username/', views.edit_username, {'user_id': None}, name='edit_username'),
      path('edit-username/<int:user_id>/', views.edit_username, name='edit_username_admin'),
      
-     # Viewing Another Account - More general route after specific ones
+     # Viewing Another Account
      path('profile/<str:username>/', views.profile_view, name='user_profile'),
 
      # Password Resetting

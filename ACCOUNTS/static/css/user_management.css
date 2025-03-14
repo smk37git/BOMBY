@@ -9,7 +9,7 @@
     width: fit-content;
     color: white;
     position: relative;
-    z-index: 4; /* Increased z-index */
+    z-index: 4;
 }
 
 /* Profile container styles */

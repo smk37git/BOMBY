@@ -17,7 +17,7 @@ class CustomUserCreationForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
-## Edit Profile
+# Edit Profile
 class ProfileEditForm(forms.ModelForm):
     youtube_link_1 = forms.URLField(
         required=False,
@@ -166,7 +166,7 @@ class ProfileEditForm(forms.ModelForm):
             
         return image
 
-## Edit Username
+# Edit Username
 class UsernameEditForm(forms.ModelForm):
     username = forms.CharField(
         max_length=20,

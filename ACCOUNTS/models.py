@@ -33,14 +33,14 @@ class User(AbstractUser):
     class Meta:
         db_table = 'ACCOUNTS_user'
 
-    # Rest of your existing model stays the same
+    # Rest of model stays the same
     user_type = models.CharField(
         max_length=10,
         choices=UserType.choices,
         default=UserType.MEMBER,
     )
     
-    # All your existing fields and methods remain unchanged
+    # All existing fields and methods remain unchanged
     profile_picture = models.ImageField(
         upload_to='profile_pictures/', 
         blank=True, 
@@ -58,7 +58,7 @@ class User(AbstractUser):
     instagram_link = models.URLField(max_length=255, blank=True, null=True)
     _promo_links = models.TextField(blank=True, null=True)
     
-    # Your existing methods
+    # Existing Methods
     def set_promo_links(self, links):
         self._promo_links = json.dumps(links) if links else None
 

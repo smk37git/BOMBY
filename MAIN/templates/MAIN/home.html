@@ -115,9 +115,9 @@
                 function getFormattedChar() {
                     if (Math.random() > 0.25) {
                         const digit = Math.random() > 0.5 ? '1' : '0';
-                        return digit.padEnd(4, ' ');  // Increased padding
+                        return digit.padEnd(4, ' ');
                     }
-                    return ' ';  // Matching space padding
+                    return ' ';
                 }
 
                 function generateLine() {
@@ -148,7 +148,7 @@
 
             function update() {
                 binaryElement.setAttribute('data-binary', generateBinary());
-                const offset = (frameCount / FRAMES_PER_SHIFT) * -1; // Keep original offset
+                const offset = (frameCount / FRAMES_PER_SHIFT) * -1;
                 binaryElement.style.transform = `translateY(${offset}px)`;
                 frameCount++;
                 requestAnimationFrame(update);
@@ -191,7 +191,7 @@
         // Get the video element
         const video = document.getElementById('eye-animation-video');
         
-        // Set the playback rate to slow down the video (e.g., 0.5 for half speed)
+        // Control speed
         video.playbackRate = 0.5;
     </script>
 

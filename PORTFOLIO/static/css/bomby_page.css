@@ -1,8 +1,7 @@
-/* Main container layout */
 .project-container {
     min-height: 100vh;
     position: relative;
-    padding-top: 1px; /* Space for navbar */
+    padding-top: 1px;
 }
 
 /* Split hero section */
@@ -684,7 +683,7 @@
     .hero-gallery-side {
         width: 60%;
         padding: 2rem;
-        padding-top: 3rem; /* Add more space at the top */
+        padding-top: 3rem;
         display: flex;
         flex-direction: column;
         justify-content: center;

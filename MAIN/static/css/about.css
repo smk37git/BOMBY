@@ -1,4 +1,3 @@
-/* Enhanced About Page Styling - Fixed Binary Background */
 .about-section {
     padding: 20px 50px 50px 50px;
     position: relative;
@@ -20,7 +19,7 @@
     width: fit-content;
     color: white;
     position: relative;
-    z-index: 4; /* Increased z-index */
+    z-index: 4;
 }
 
 .about-content {
@@ -29,15 +28,15 @@
     align-items: flex-start;
     gap: 40px;
     position: relative;
-    z-index: 4; /* Increased z-index */
+    z-index: 4;
 }
 
 .about-image {
     position: relative;
     width: 300px;
-    height: auto; /* Changed from fixed height to auto */
-    z-index: 4; /* Increased z-index */
-    margin-bottom: 30px; /* Add margin to separate from content below */
+    height: auto;
+    z-index: 4;
+    margin-bottom: 30px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -54,7 +53,7 @@
     border-radius: 50%;
     animation: rotate 10s linear infinite;
     z-index: 1;
-    height: 300px; /* Match the width of the image */
+    height: 300px;
 }
 
 @keyframes rotate {
@@ -64,7 +63,7 @@
 
 .about-image img {
     width: 100%;
-    max-width: 300px; /* Ensure image doesn't exceed container */
+    max-width: 300px;
     height: 300px;
     border-radius: 50%;
     object-fit: cover;
@@ -80,9 +79,9 @@
     color: #ffffff;
     text-align: center;
     margin-top: 10px;
-    z-index: 4; /* Increased z-index */
-    position: relative; /* Add position relative */
-    background: transparent; /* Ensure no background is interfering */
+    z-index: 4;
+    position: relative;
+    background: transparent;
 }
 
 .image-email {
@@ -90,10 +89,10 @@
     color: #ffffff;
     text-align: center;
     margin-top: 5px;
-    margin-bottom: 15px; /* Added space below email */
-    z-index: 4; /* Increased z-index */
-    position: relative; /* Add position relative */
-    background: transparent; /* Ensure no background is interfering */
+    margin-bottom: 15px;
+    z-index: 4;
+    position: relative;
+    background: transparent;
 }
 
 .about-details {
@@ -103,7 +102,7 @@
     border-radius: 15px;
     border: 2px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(5px);
-    z-index: 4; /* Increased z-index */
+    z-index: 4;
 }
 
 .about-details h2 {
@@ -138,7 +137,7 @@
     position: relative;
     width: 100%;
     height: 1px;
-    margin-bottom: -1px; /* Negative margin to overlap properly */
+    margin-bottom: -1px;
     background: transparent;
     z-index: 3;
 }
@@ -157,11 +156,11 @@
     position: relative;
     text-align: center;
     padding: 20px;
-    padding-top: 30px; /* Reduced top padding */
+    padding-top: 30px;
     background-color: #0a0a0a;
     opacity: 1 !important;
-    border-top: none; /* Remove any border */
-    z-index: 2; /* Lower z-index so separator appears on top */
+    border-top: none;
+    z-index: 2;
 }
 
 .contact-link {
@@ -188,7 +187,7 @@
     flex-wrap: wrap;
     margin-top: 20px;
     position: relative;
-    z-index: 5; /* Increased z-index */
+    z-index: 5;
     margin-bottom: 0;
 }
 
@@ -202,7 +201,7 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     margin-bottom: 10px;
-    z-index: 5; /* Increased z-index */
+    z-index: 5;
 }
 
 .contact-link:hover {
@@ -226,7 +225,7 @@
     .about-section::after {
         font-size: 14px;
         line-height: 1.8;
-        animation-duration: 30s; /* Faster on mobile */
+        animation-duration: 30s;
     }
     
     .about-header h1 {
@@ -239,37 +238,37 @@
     .about-content {
         flex-direction: column;
         align-items: center;
-        gap: 60px; /* Increased gap for mobile view */
+        gap: 60px;
     }
     
     .about-image {
-        margin-bottom: -60px; /* Increased bottom margin */
-        width: 220px; /* Slightly smaller for mobile */
+        margin-bottom: -60px;
+        width: 220px;
     }
     
     .about-image img {
-        height: 220px; /* Match the width */
+        height: 220px;
         width: 220px;
     }
     
     .about-image::before {
-        height: 220px; /* Match the new image size */
+        height: 220px;
     }
     
     .image-title {
-        margin-top: 20px; /* More space above the title */
-        font-size: 1.4em; /* Slightly smaller font */
+        margin-top: 20px;
+        font-size: 1.4em;
     }
     
     .image-email {
         margin-top: 10px;
-        margin-bottom: 20px; /* Extra space below email */
-        font-size: 0.9em; /* Slightly smaller font */
+        margin-bottom: 20px;
+        font-size: 0.9em;
     }
     
     .about-details {
         width: 100%;
-        margin-top: 10px; /* Additional space between image section and details box */
+        margin-top: 10px;
     }
 }
 
@@ -284,7 +283,7 @@
     .about-section::after {
         font-size: 12px;
         line-height: 1.7;
-        animation-duration: 25s; /* Even faster on smallest devices */
+        animation-duration: 25s;
     }
     
     .about-header h1 {
@@ -295,20 +294,20 @@
     }
     
     .about-content {
-        gap: 50px; /* Adjust gap for very small screens */
+        gap: 50px;
     }
     
     .about-image {
-        width: 180px; /* Even smaller for very small screens */
+        width: 180px;
     }
     
     .about-image img {
-        height: 180px; /* Match the width */
+        height: 180px;
         width: 180px;
     }
     
     .about-image::before {
-        height: 180px; /* Match the new image size */
+        height: 180px;
     }
     
     .image-title {
@@ -319,6 +318,6 @@
     .image-email {
         font-size: 0.85em;
         margin-bottom: 15px;
-        word-break: break-all; /* Handle long email addresses */
+        word-break: break-all;
     }
 }

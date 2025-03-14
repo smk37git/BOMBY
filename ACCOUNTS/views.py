@@ -69,7 +69,7 @@ def profile_view(request, username=None):
 # Edit Profile Picture
 @login_required
 def edit_profile(request):
-    profile_pic_error = False  # Add this flag
+    profile_pic_error = False
     
     if request.method == 'POST':
         form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
@@ -94,13 +94,13 @@ def edit_profile(request):
             if hasattr(profile_picture, 'content_type') and profile_picture.content_type not in valid_types:
                 form.add_error('profile_picture', 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
                 messages.error(request, 'Invalid file type. Please upload a JPEG, PNG, or GIF image.')
-                profile_pic_error = True  # Set flag
+                profile_pic_error = True
             
             # Check file size (10MB max)
             if profile_picture.size > 10 * 1024 * 1024:
                 form.add_error('profile_picture', 'Image size must be less than 10MB.')
                 messages.error(request, 'Image size must be less than 10MB.')
-                profile_pic_error = True  # Set flag
+                profile_pic_error = True
             
             # Content moderation
             is_safe, explicit_categories = moderate_image_content(profile_picture)
@@ -109,7 +109,7 @@ def edit_profile(request):
                 error_msg = f'Image contains inappropriate content and cannot be used. Detected: {categories_str}'
                 form.add_error('profile_picture', error_msg)
                 messages.error(request, error_msg)
-                profile_pic_error = True  # Set flag
+                profile_pic_error = True
         
         if form.is_valid():
             user = form.save()

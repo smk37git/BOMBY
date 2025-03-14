@@ -32,5 +32,5 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 else:
-    # For production, we still need to serve media files when using file storage
+    # For production
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

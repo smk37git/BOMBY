@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Wait for PostgreSQL to be ready (if needed)
+# Wait for PostgreSQL
 if [ -n "$DB_HOST" ]; then
   echo "Waiting for PostgreSQL..."
   until pg_isready -h ${DB_HOST#/cloudsql/} -U $DB_USER 2>/dev/null; do
@@ -16,7 +16,7 @@ if [ -d "/app/media" ]; then
   # Create necessary directories
   mkdir -p /app/media/profile_pictures
   
-  # Make sure the directories are writable by the application user
+  # Make sure the directories are writable
   chmod -R 777 /app/media
   chown -R nobody:nogroup /app/media
   
