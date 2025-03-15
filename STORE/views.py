@@ -42,23 +42,33 @@ def custom_project(request):
     return render(request, 'STORE/custom_project.html', {'product': product})
 
 # Admin Views
+@csrf_exempt
 @require_POST
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def toggle_product_status(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     
+    # Print debug info
+    print(f"BEFORE: Product {product_id} status: {product.is_active}")
+    
     # Parse the request body to get the active status
     try:
         data = json.loads(request.body)
         is_active = data.get('active', not product.is_active)
+        print(f"Received request to change status to: {is_active}")
     except json.JSONDecodeError:
         # If no JSON body, just toggle the current state
         is_active = not product.is_active
+        print(f"No JSON body, toggling to: {is_active}")
     
     # Update the product status
     product.is_active = is_active
     product.save()
+    
+    # Verify save
+    product.refresh_from_db()
+    print(f"AFTER: Product {product_id} status: {product.is_active}")
     
     return JsonResponse({
         'success': True,
