@@ -92,68 +92,63 @@ def custom_project(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def toggle_product_status(request, product_id):
-    product = get_object_or_404(Product, id=product_id)
-    table_name = Product._meta.db_table
+    # Get product
+    product = Product.objects.get(id=product_id)
     
     # Parse the request body to get the active status
     try:
         data = json.loads(request.body)
         is_active = data.get('active', not product.is_active)
-        print(f"Received request to change status to: {is_active}")
     except json.JSONDecodeError:
         # If no JSON body, just toggle the current state
         is_active = not product.is_active
-        print(f"No JSON body, toggling to: {is_active}")
     
-    # Ensure the change is being made
-    if product.is_active != is_active:
-        # Update using model save
-        product.is_active = is_active
-        product.save()
-        
-        # Update directly in database to be sure
-        from django.db import connection
-        with connection.cursor() as cursor:
-            query = f"UPDATE {table_name} SET is_active = %s WHERE id = %s"
-            print(f"Executing query: {query}")
-            cursor.execute(query, [is_active, product_id])
-        
-        # Verify changes
-        product.refresh_from_db()
-        print(f"After direct SQL: Product {product_id} status: {product.is_active}")
+    # Set and save (simpler approach)
+    product.is_active = is_active
+    product.save()
+    
+    # Double check by fetching again
+    fresh_product = Product.objects.get(id=product_id)
+    
+    # Force Django to commit the transaction
+    from django.db import transaction
+    transaction.commit()
     
     return JsonResponse({
         'success': True,
         'product_id': product_id,
-        'is_active': product.is_active,
+        'original_is_active': product.is_active,
+        'fresh_is_active': fresh_product.is_active,
+        'requested_state': is_active,
         'message': f'Product {product_id} status updated successfully'
     })
 
 def debug_product(request, product_id):
-    # Get table name from model's Meta
-    table_name = Product._meta.db_table
-    
-    # Check product directly from database using correct table name
-    from django.db import connection
-    with connection.cursor() as cursor:
-        query = f"SELECT id, name, is_active FROM {table_name} WHERE id = %s"
-        print(f"Executing query: {query}")
-        cursor.execute(query, [product_id])
-        row = cursor.fetchone()
-    
-    # Also try ORM
-    product = Product.objects.get(id=product_id)
-    
-    return JsonResponse({
-        'table_name': table_name,
-        'direct_db': {
-            'id': row[0],
-            'name': row[1],
-            'is_active': row[2] if row else None,
-        },
-        'orm': {
-            'id': product.id,
-            'name': product.name,
-            'is_active': product.is_active,
-        }
-    })
+    # Try ORM approach only - skip direct SQL
+    try:
+        product = Product.objects.get(id=product_id)
+        
+        # Check direct database for table names first
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT table_name 
+                FROM information_schema.tables 
+                WHERE table_schema = 'public'
+            """)
+            tables = [row[0] for row in cursor.fetchall()]
+        
+        return JsonResponse({
+            'product_from_orm': {
+                'id': product.id,
+                'name': product.name,
+                'is_active': product.is_active,
+            },
+            'available_tables': tables,
+            'model_table_name': Product._meta.db_table
+        })
+    except Exception as e:
+        return JsonResponse({
+            'error': str(e),
+            'error_type': type(e).__name__
+        }, status=500)
