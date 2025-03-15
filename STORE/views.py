@@ -8,8 +8,14 @@ from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 
 def store(request):
-    # Add .order_by('id') to ensure consistent query results
-    products = Product.objects.all().order_by('id')
+    products = [
+        Product.objects.get(id=1),  # Basic Package
+        Product.objects.get(id=2),  # Standard Package
+        Product.objects.get(id=3),  # Premium Package
+        Product.objects.get(id=5),  # Basic Website
+        Product.objects.get(id=6),  # E-commerce Website
+        Product.objects.get(id=7),  # Custom Project
+    ]
     
     # Explicitly disable browser caching
     response = render(request, 'STORE/store.html', {'products': products})
@@ -31,28 +37,46 @@ def basic_package(request):
     return response
 
 def standard_package(request):
-    product = get_object_or_404(Product, id=2)
-    return render(request, 'STORE/standard_package.html', {'product': product})
+    product = Product.objects.get(id=2)
+    
+    # Add cache control headers
+    response = render(request, 'STORE/standard_package.html', {'product': product})
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 def premium_package(request):
-    product = get_object_or_404(Product, id=3)
-    return render(request, 'STORE/premium_package.html', {'product': product})
+    product = Product.objects.get(id=3)
+    response = render(request, 'STORE/premium_package.html', {'product': product})
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
-def stream_setup(request):
-    return render(request, 'STORE/stream_setup.html')
-
-# Website building views
 def basic_website(request):
-    product = get_object_or_404(Product, id=5)
-    return render(request, 'STORE/basic_website.html', {'product': product})
+    product = Product.objects.get(id=5)
+    response = render(request, 'STORE/basic_website.html', {'product': product})
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 def ecommerce_website(request):
-    product = get_object_or_404(Product, id=6)
-    return render(request, 'STORE/ecommerce_website.html', {'product': product})
+    product = Product.objects.get(id=6)
+    response = render(request, 'STORE/ecommerce_website.html', {'product': product})
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate' 
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 def custom_project(request):
-    product = get_object_or_404(Product, id=7)
-    return render(request, 'STORE/custom_project.html', {'product': product})
+    product = Product.objects.get(id=7)
+    response = render(request, 'STORE/custom_project.html', {'product': product})
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 # Admin Views
 @csrf_exempt
