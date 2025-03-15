@@ -310,22 +310,18 @@
             
             // Direct click handler for the toggle slider (not the checkbox)
             document.querySelectorAll('.toggle').forEach(toggle => {
-                toggle.style.cursor = 'pointer';
-                toggle.style.position = 'relative';
-                toggle.style.zIndex = '1001';
-                
                 toggle.addEventListener('click', function(e) {
                     e.stopPropagation();
                     e.preventDefault();
                     
-                    // Find elements we need
+                    // Find elements
                     const checkbox = this.querySelector('.toggle-checkbox');
                     const productId = this.dataset.productId;
                     
-                    // Toggle state and determine new active status
+                    // Toggle state
                     const newState = !checkbox.checked;
                     
-                    // Find status element based on page context
+                    // Find status element
                     let statusElement;
                     if (this.closest('.product-item')) {
                         statusElement = this.closest('.product-item').querySelector('.product-status');
@@ -333,34 +329,28 @@
                         statusElement = document.querySelector('.product-status');
                     }
                     
-                    // Immediately update the checkbox UI
+                    // Update UI immediately
                     checkbox.checked = newState;
-                    
-                    // Update the status text/class
                     statusElement.textContent = newState ? 'ACTIVE' : 'INACTIVE';
                     statusElement.className = 'product-status ' + (newState ? 'active' : 'inactive');
                     
-                    // Determine which force view to use based on the state
+                    // IMPORTANT: Use the correct force URL
                     const url = newState ? 
-                        `/STORE/force-active/${productId}/` : 
-                        `/STORE/force-inactive/${productId}/`;
+                        '/STORE/force-active/' + productId + '/' : 
+                        '/STORE/force-inactive/' + productId + '/';
                     
-                    // Send the API request
-                    fetch(url, {
-                        method: 'GET',
-                        headers: {
-                            'X-CSRFToken': getCookie('csrftoken')
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Server response:', data);
-                        // Force page reload to show correct state
-                        window.location.reload(true);
-                    })
-                    .catch(error => {
-                        console.error('Error updating status:', error);
-                    });
+                    console.log("Calling URL:", url);
+                    
+                    // Send GET request (not POST)
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Response:', data);
+                            window.location.reload(true);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
                 });
             });
         });
