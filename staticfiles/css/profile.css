@@ -61,7 +61,7 @@
     width: fit-content;
     color: white;
     position: relative;
-    z-index: 4; /* Increased z-index */
+    z-index: 4;
 }
 
 .section-header {
@@ -233,9 +233,9 @@
     border-radius: 10px;
     color: white;
     line-height: 1.5;
-    overflow: hidden; /* Hide the scrollbar */
-    height: auto; /* Let content expand naturally */
-    max-height: none; /* Remove the height restriction */
+    overflow: hidden;
+    height: auto;
+    max-height: none;
 }
 
 .empty-bio {

@@ -57,7 +57,7 @@
     border-radius: 10px;
     overflow: hidden;
     border: 3px solid rgb(255, 255, 255);
-    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.5);
     margin-bottom: 1rem;
     padding: 0;
     position: relative;
@@ -196,11 +196,11 @@
 }
 
 .product-card {
-    background: rgba(37, 33, 55, 0.95);
-    border: 2px solid rgba(166, 0, 255, 0.3);
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
     padding: 2rem;
-    box-shadow: 0 10px 30px rgba(166, 0, 255, 0.2);
+    box-shadow: 0 10px 30px rgba(255, 255, 255, 0.24);
     height: 100%;
     display: flex;
     flex-direction: column;

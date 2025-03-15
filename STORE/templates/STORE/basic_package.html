@@ -46,26 +46,25 @@
                     <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 5">
                 </div>
             </div>
-            
-            <div class="product-status-container">
-                <div class="product-status active">ACTIVE</div>
-                
-                {% if user.is_staff %}
-                <div class="admin-toggle">
-                    <label class="toggle" data-product-id="1">
-                        <input type="checkbox" class="toggle-checkbox" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                {% endif %}
-            </div>
         </div>
         
         <!-- Right side: Product info -->
         <div class="product-info-side">
             <div class="product-card">
-                <h1 class="product-title">BASIC PACKAGE</h1>
-                
+                <h1 class="product-title">BASIC PACKAGE
+                    <div class="product-status-container">
+                        <div class="product-status active">ACTIVE</div>
+                        
+                        {% if user.is_staff %}
+                        <div class="admin-toggle">
+                            <label class="toggle" data-product-id="1">
+                                <input type="checkbox" class="toggle-checkbox" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        {% endif %}
+                    </div>
+                </h1>
                 <div class="product-description">
                     <h2>DESCRIPTION</h2>
                     <p>Start your streaming journey with our Basic Package. This includes a custom overlay with essential elements to make your stream look professional.</p>
@@ -105,7 +104,7 @@
     </div>
 
 <script>
-    // Helper function to get CSRF token - defined outside to avoid scope issues
+    // Helper function to get CSRF token so admin toggle works
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -139,10 +138,13 @@
             });
         }
         
-        // Admin toggle functionality - separate from Django template logic
+        // Admin toggle functionality
         const staffCheckbox = document.querySelector('.toggle-checkbox');
         if (staffCheckbox) {
-            staffCheckbox.addEventListener('change', function() {
+            staffCheckbox.addEventListener('change', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
                 const toggleLabel = this.closest('.toggle');
                 if (!toggleLabel) return;
                 

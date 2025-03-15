@@ -266,67 +266,49 @@
     <!-- Admin Toggle Script -->
     {% if user.is_staff %}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Admin toggle functionality
-            document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    const toggleLabel = this.closest('.toggle');
-                    const productId = toggleLabel.dataset.productId;
-                    const isActive = this.checked;
-                    const statusElement = this.closest('.product-item').querySelector('.product-status');
-                    
-                    // Update UI
-                    if (isActive) {
-                        statusElement.textContent = 'ACTIVE';
-                        statusElement.classList.add('active');
-                        statusElement.classList.remove('inactive');
-                    } else {
-                        statusElement.textContent = 'INACTIVE';
-                        statusElement.classList.add('inactive');
-                        statusElement.classList.remove('active');
-                    }
-                    
-                    // Send AJAX request to update product status
-                    fetch(`/STORE/admin/toggle/${productId}/`, {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRFToken': getCookie('csrftoken'),
-                            'Content-Type': 'application/json'
-                        }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Product status updated:', data);
-                    })
-                    .catch(error => {
-                        console.error('Error updating product status:', error);
-                        // Revert UI on error
-                        this.checked = !isActive;
-                        statusElement.textContent = isActive ? 'INACTIVE' : 'ACTIVE';
-                        statusElement.classList.toggle('active');
-                        statusElement.classList.toggle('inactive');
-                    });
+        document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const toggleLabel = this.closest('.toggle');
+                const productId = toggleLabel.dataset.productId;
+                const isActive = this.checked;
+                const statusElement = this.closest('.product-item').querySelector('.product-status');
+                
+                // Update UI
+                if (isActive) {
+                    statusElement.textContent = 'ACTIVE';
+                    statusElement.classList.add('active');
+                    statusElement.classList.remove('inactive');
+                } else {
+                    statusElement.textContent = 'INACTIVE';
+                    statusElement.classList.add('inactive');
+                    statusElement.classList.remove('active');
+                }
+                
+                // Send AJAX request to update product status
+                fetch(`/STORE/admin/toggle/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ active: isActive })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Product status updated:', data);
+                })
+                .catch(error => {
+                    console.error('Error updating product status:', error);
+                    // Revert UI on error
+                    this.checked = !isActive;
+                    statusElement.textContent = isActive ? 'INACTIVE' : 'ACTIVE';
+                    statusElement.classList.toggle('active');
+                    statusElement.classList.toggle('inactive');
                 });
             });
-            
-            // Helper function to get CSRF token
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
-            }
         });
     </script>
     {% endif %}

@@ -1,5 +1,3 @@
-/* Portfolio Page Styles */
-
 /* Hero section */
 .portfolio-hero {
     padding: 4rem 2rem 4rem;
@@ -221,7 +219,7 @@
     flex: 1;
 }
 
-/* Project title and tech - CENTERED for all projects */
+/* Project title and tech */
 .project-title {
     font-size: 1.8rem;
     color: #fff;
@@ -555,7 +553,6 @@
         font-size: 0.8rem;
     }
     
-    /* Ensure console content is centered */
     .code-display pre {
         font-size: 0.4rem !important;
         text-align: center !important;
@@ -569,7 +566,6 @@
         width: 100% !important;
     }
     
-    /* Fix to ensure "PORTFOLIO READY" text is visible */
     .code-display div[class="portfolio-ready"] {
         font-size: 1rem !important;
         margin-top: 10px !important;
