@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Wait for PostgreSQL
 if [ -n "$DB_HOST" ]; then
   echo "Waiting for PostgreSQL..."
@@ -27,6 +29,9 @@ fi
 
 # Run migrations
 python manage.py migrate
+
+# Create products (ONE TIME)
+python create_store_products.py
 
 python manage.py collectstatic --noinput --clear
 
