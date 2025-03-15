@@ -4,13 +4,16 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required, user_passes_test
 import json
 from .models import Product
+from django.db import connection
 
 def store(request):
+    connection.queries_log.clear()
     products = Product.objects.all()
     return render(request, 'STORE/store.html', {'products': products})
 
 # Stream setup service views
 def basic_package(request):
+    connection.queries_log.clear()
     product = get_object_or_404(Product, id=1)
     return render(request, 'STORE/basic_package.html', {'product': product})
 
