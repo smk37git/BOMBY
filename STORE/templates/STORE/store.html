@@ -295,26 +295,39 @@
         }
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Stop the clicks on admin toggles
+            // Apply styles to make toggles more clickable
             document.querySelectorAll('.admin-toggle').forEach(toggle => {
-                toggle.addEventListener('click', function(event) {
-                    event.stopPropagation();
-                });
+                toggle.style.position = 'relative';
+                toggle.style.zIndex = '999';
             });
-            
-            // Handle toggle checkboxes
-            document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
-                // Stop propagation for the checkbox click
-                checkbox.addEventListener('click', function(event) {
-                    event.stopPropagation();
-                });
+
+            // Direct click handler on the toggle labels
+            document.querySelectorAll('.toggle').forEach(toggle => {
+                // Make toggle visibly clickable
+                toggle.style.cursor = 'pointer';
+                toggle.style.position = 'relative';
+                toggle.style.zIndex = '1000';
                 
-                // Handle change event
-                checkbox.addEventListener('change', function() {
-                    const productId = this.closest('.toggle').dataset.productId;
+                // Handle click directly on the label
+                toggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    
+                    // Get checkbox and toggle its state
+                    const checkbox = this.querySelector('.toggle-checkbox');
+                    checkbox.checked = !checkbox.checked;
+                    
+                    // Get product info
+                    const productId = this.dataset.productId;
+                    const isActive = checkbox.checked;
+                    
+                    // Find status element for this product
                     const productItem = this.closest('.product-item');
                     const statusElement = productItem.querySelector('.product-status');
-                    const isActive = this.checked;
+                    
+                    // Update UI immediately for feedback
+                    statusElement.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
+                    statusElement.className = 'product-status ' + (isActive ? 'active' : 'inactive');
                     
                     // Send AJAX request
                     fetch(`/STORE/admin/toggle/${productId}/`, {
@@ -328,17 +341,16 @@
                     .then(response => response.json())
                     .then(data => {
                         console.log('Server response:', data);
+                        // Update based on actual server state
                         const serverIsActive = data.is_active;
-                        
-                        // Update UI based on server response
-                        this.checked = serverIsActive;
+                        checkbox.checked = serverIsActive;
                         statusElement.textContent = serverIsActive ? 'ACTIVE' : 'INACTIVE';
                         statusElement.className = 'product-status ' + (serverIsActive ? 'active' : 'inactive');
                     })
                     .catch(error => {
                         console.error('Error updating product status:', error);
-                        // Revert UI on error
-                        this.checked = !isActive;
+                        // Revert on error
+                        checkbox.checked = !isActive;
                         statusElement.textContent = !isActive ? 'ACTIVE' : 'INACTIVE';
                         statusElement.className = 'product-status ' + (!isActive ? 'active' : 'inactive');
                     });
