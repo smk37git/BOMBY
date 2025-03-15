@@ -316,10 +316,6 @@
                     const statusElement = productItem.querySelector('.product-status');
                     const isActive = this.checked;
                     
-                    // Update UI immediately
-                    statusElement.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
-                    statusElement.className = 'product-status ' + (isActive ? 'active' : 'inactive');
-                    
                     // Send AJAX request
                     fetch(`/STORE/admin/toggle/${productId}/`, {
                         method: 'POST',
@@ -331,7 +327,13 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        console.log('Product status updated:', data);
+                        console.log('Server response:', data);
+                        const serverIsActive = data.is_active;
+                        
+                        // Update UI based on server response
+                        this.checked = serverIsActive;
+                        statusElement.textContent = serverIsActive ? 'ACTIVE' : 'INACTIVE';
+                        statusElement.className = 'product-status ' + (serverIsActive ? 'active' : 'inactive');
                     })
                     .catch(error => {
                         console.error('Error updating product status:', error);
