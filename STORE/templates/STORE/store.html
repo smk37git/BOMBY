@@ -352,16 +352,11 @@
                     .then(response => response.json())
                     .then(data => {
                         console.log('Server response:', data);
-                        // Only update if different from what we set
-                        if (data.is_active !== newState) {
-                            checkbox.checked = data.is_active;
-                            statusElement.textContent = data.is_active ? 'ACTIVE' : 'INACTIVE';
-                            statusElement.className = 'product-status ' + (data.is_active ? 'active' : 'inactive');
-                        }
+                        // Force page reload to show correct state
+                        window.location.reload(true);
                     })
                     .catch(error => {
                         console.error('Error updating status:', error);
-                        // Do not revert UI here - stick with user choice
                     });
                 });
             });

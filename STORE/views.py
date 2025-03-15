@@ -8,15 +8,27 @@ from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 
 def store(request):
-    products = Product.objects.all()
-    timestamp = datetime.now().timestamp()
-    return render(request, 'STORE/store.html', {'products': products})
+    # Add .order_by('id') to ensure consistent query results
+    products = Product.objects.all().order_by('id')
+    
+    # Explicitly disable browser caching
+    response = render(request, 'STORE/store.html', {'products': products})
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 # Stream setup service views
 def basic_package(request):
-    product = get_object_or_404(Product, id=1)
-    timestamp = datetime.now().timestamp()
-    return render(request, 'STORE/basic_package.html', {'product': product})
+    # Always get fresh data from database
+    product = Product.objects.get(id=1)
+    
+    # Disable caching
+    response = render(request, 'STORE/basic_package.html', {'product': product})
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
 
 def standard_package(request):
     product = get_object_or_404(Product, id=2)
