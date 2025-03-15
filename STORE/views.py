@@ -133,6 +133,35 @@ def toggle_product_status(request, product_id):
         'message': f'Product {product_id} status updated successfully'
     })
 
+def force_inactive(request, product_id):
+    """Emergency view to force a product to inactive state"""
+    from django.db import connection
+    
+    # Direct SQL update - no ORM
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "UPDATE \"STORE_product\" SET is_active = false WHERE id = %s",
+            [product_id]
+        )
+    
+    # Verify with direct SQL
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT is_active FROM \"STORE_product\" WHERE id = %s", 
+            [product_id]
+        )
+        result = cursor.fetchone()
+    
+    # Try with ORM too
+    product = Product.objects.get(id=product_id)
+    
+    return JsonResponse({
+        'force_updated': True,
+        'product_id': product_id,
+        'sql_is_active': result[0] if result else None,
+        'orm_is_active': product.is_active
+    })
+
 def debug_product(request, product_id):
     # Try ORM approach only - skip direct SQL
     try:

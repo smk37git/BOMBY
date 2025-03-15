@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/toggle/<int:product_id>/', views.toggle_product_status, name='toggle_product_status'),
 
     # Debugging
+    path('force-inactive/<int:product_id>/', views.force_inactive, name='force_inactive'),
     path('debug-product/<int:product_id>/', views.debug_product, name='debug_product'),
 ]
