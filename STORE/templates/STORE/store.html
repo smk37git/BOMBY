@@ -333,21 +333,24 @@
                         statusElement = document.querySelector('.product-status');
                     }
                     
-                    // Immediately update the checkbox UI (very important)
+                    // Immediately update the checkbox UI
                     checkbox.checked = newState;
                     
                     // Update the status text/class
                     statusElement.textContent = newState ? 'ACTIVE' : 'INACTIVE';
                     statusElement.className = 'product-status ' + (newState ? 'active' : 'inactive');
                     
-                    // Now send the API request
-                    fetch(`/STORE/admin/toggle/${productId}/`, {
-                        method: 'POST',
+                    // Determine which force view to use based on the state
+                    const url = newState ? 
+                        `/STORE/force-active/${productId}/` : 
+                        `/STORE/force-inactive/${productId}/`;
+                    
+                    // Send the API request
+                    fetch(url, {
+                        method: 'GET',
                         headers: {
-                            'X-CSRFToken': getCookie('csrftoken'),
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ active: newState })
+                            'X-CSRFToken': getCookie('csrftoken')
+                        }
                     })
                     .then(response => response.json())
                     .then(data => {

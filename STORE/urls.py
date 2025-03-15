@@ -4,7 +4,7 @@ from . import views
 app_name = 'STORE'
 
 urlpatterns = [
-    # Main store page
+     # Main store page
     path('', views.store, name='store'),
     
     # Stream setup service pages
@@ -20,8 +20,8 @@ urlpatterns = [
     
     # Admin functionality
     path('admin/toggle/<int:product_id>/', views.toggle_product_status, name='toggle_product_status'),
-
-    # Debugging
-    path('force-inactive/<int:product_id>/', views.force_inactive, name='force_inactive'),
+    
+    # Force active/inactive direct URLs
     path('force-active/<int:product_id>/', views.force_active, name='force_active'),
+    path('force-inactive/<int:product_id>/', views.force_inactive, name='force_inactive'),
 ]
