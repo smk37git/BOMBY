@@ -7,14 +7,13 @@ from .models import Product
 from django.db import connection
 
 def store(request):
-    products = Product.objects.all().select_related().using('default')
+    timestamp = datetime.now().timestamp()
     return render(request, 'STORE/store.html', {'products': products})
 
 # Stream setup service views
 def basic_package(request):
-    product = Product.objects.filter(id=1).select_related().using('default').first()
-    if not product:
-        product = get_object_or_404(Product, id=1)
+    product = get_object_or_404(Product, id=1)
+    timestamp = datetime.now().timestamp()
     return render(request, 'STORE/basic_package.html', {'product': product})
 
 def standard_package(request):
