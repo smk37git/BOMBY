@@ -54,6 +54,14 @@ def premium_package(request):
     response['Expires'] = '0'
     return response
 
+def stream_setup(request):
+    # Add cache control headers like the other views
+    response = render(request, 'STORE/stream_setup.html')
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
+
 def basic_website(request):
     product = Product.objects.get(id=5)
     response = render(request, 'STORE/basic_website.html', {'product': product})
