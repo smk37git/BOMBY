@@ -31,7 +31,7 @@ fi
 python manage.py migrate
 
 # Create products (ONE TIME)
-python create_store_products.py
+python create_products.py
 
 python manage.py collectstatic --noinput --clear
 
