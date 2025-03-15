@@ -23,5 +23,5 @@ urlpatterns = [
 
     # Debugging
     path('force-inactive/<int:product_id>/', views.force_inactive, name='force_inactive'),
-    path('debug-product/<int:product_id>/', views.debug_product, name='debug_product'),
+    path('force-active/<int:product_id>/', views.force_active, name='force_active'),
 ]

@@ -87,39 +87,20 @@ def custom_project(request):
     return response
 
 # Admin Views
-@csrf_exempt
 @require_POST
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def toggle_product_status(request, product_id):
-    # Use atomic transaction
-    from django.db import transaction
-    
-    with transaction.atomic():
-        # Get product
-        product = Product.objects.select_for_update().get(id=product_id)
-        
-        # Parse the request body to get the active status
-        try:
-            data = json.loads(request.body)
-            is_active = data.get('active', not product.is_active)
-        except json.JSONDecodeError:
-            # If no JSON body, just toggle the current state
-            is_active = not product.is_active
-        
-        # Set and save
-        product.is_active = is_active
-        product.save()
-        
-        # Force a flush to the database
-        transaction.set_autocommit(False)
-        transaction.commit()
-    
-    # Get fresh instance outside transaction
-    product = Product.objects.get(id=product_id)
-    
-    # Now use direct SQL to update as well
     from django.db import connection
+    
+    # Parse the request body to get the active status
+    try:
+        data = json.loads(request.body)
+        is_active = data.get('active', False)
+    except json.JSONDecodeError:
+        is_active = False
+    
+    # Direct SQL update with parameterized query
     with connection.cursor() as cursor:
         cursor.execute(
             "UPDATE \"STORE_product\" SET is_active = %s WHERE id = %s",
@@ -130,7 +111,7 @@ def toggle_product_status(request, product_id):
         'success': True,
         'product_id': product_id,
         'is_active': is_active,
-        'message': f'Product {product_id} status updated successfully'
+        'message': f'Product {product_id} status updated to {is_active} successfully'
     })
 
 def force_inactive(request, product_id):
@@ -162,32 +143,31 @@ def force_inactive(request, product_id):
         'orm_is_active': product.is_active
     })
 
-def debug_product(request, product_id):
-    # Try ORM approach only - skip direct SQL
-    try:
-        product = Product.objects.get(id=product_id)
-        
-        # Check direct database for table names first
-        from django.db import connection
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT table_name 
-                FROM information_schema.tables 
-                WHERE table_schema = 'public'
-            """)
-            tables = [row[0] for row in cursor.fetchall()]
-        
-        return JsonResponse({
-            'product_from_orm': {
-                'id': product.id,
-                'name': product.name,
-                'is_active': product.is_active,
-            },
-            'available_tables': tables,
-            'model_table_name': Product._meta.db_table
-        })
-    except Exception as e:
-        return JsonResponse({
-            'error': str(e),
-            'error_type': type(e).__name__
-        }, status=500)
+def force_active(request, product_id):
+    """Emergency view to force a product to active state"""
+    from django.db import connection
+    
+    # Direct SQL update - no ORM
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "UPDATE \"STORE_product\" SET is_active = true WHERE id = %s",
+            [product_id]
+        )
+    
+    # Verify with direct SQL
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "SELECT is_active FROM \"STORE_product\" WHERE id = %s", 
+            [product_id]
+        )
+        result = cursor.fetchone()
+    
+    # Try with ORM too
+    product = Product.objects.get(id=product_id)
+    
+    return JsonResponse({
+        'force_updated': True,
+        'product_id': product_id,
+        'sql_is_active': result[0] if result else None,
+        'orm_is_active': product.is_active
+    })
