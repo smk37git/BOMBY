@@ -93,6 +93,7 @@ def custom_project(request):
 @user_passes_test(lambda u: u.is_staff)
 def toggle_product_status(request, product_id):
     product = get_object_or_404(Product, id=product_id)
+    table_name = Product._meta.db_table
     
     # Parse the request body to get the active status
     try:
@@ -106,16 +107,19 @@ def toggle_product_status(request, product_id):
     
     # Ensure the change is being made
     if product.is_active != is_active:
-        # Update the product status with direct SQL if needed
+        # Update using model save
+        product.is_active = is_active
+        product.save()
+        
+        # Update directly in database to be sure
         from django.db import connection
         with connection.cursor() as cursor:
-            cursor.execute(
-                "UPDATE store_product SET is_active = %s WHERE id = %s",
-                [is_active, product_id]
-            )
+            query = f"UPDATE {table_name} SET is_active = %s WHERE id = %s"
+            print(f"Executing query: {query}")
+            cursor.execute(query, [is_active, product_id])
         
-        # Force reload the product
-        product = Product.objects.get(id=product_id)
+        # Verify changes
+        product.refresh_from_db()
         print(f"After direct SQL: Product {product_id} status: {product.is_active}")
     
     return JsonResponse({
@@ -126,20 +130,26 @@ def toggle_product_status(request, product_id):
     })
 
 def debug_product(request, product_id):
-    # Check product directly from database
+    # Get table name from model's Meta
+    table_name = Product._meta.db_table
+    
+    # Check product directly from database using correct table name
     from django.db import connection
     with connection.cursor() as cursor:
-        cursor.execute("SELECT id, name, is_active FROM store_product WHERE id = %s", [product_id])
+        query = f"SELECT id, name, is_active FROM {table_name} WHERE id = %s"
+        print(f"Executing query: {query}")
+        cursor.execute(query, [product_id])
         row = cursor.fetchone()
     
     # Also try ORM
     product = Product.objects.get(id=product_id)
     
     return JsonResponse({
+        'table_name': table_name,
         'direct_db': {
             'id': row[0],
             'name': row[1],
-            'is_active': row[2],
+            'is_active': row[2] if row else None,
         },
         'orm': {
             'id': product.id,
