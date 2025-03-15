@@ -140,63 +140,73 @@
             });
         }
         
-        // Apply styles to make toggles more clickable
+        // Make toggles stand out
         document.querySelectorAll('.admin-toggle').forEach(toggle => {
             toggle.style.position = 'relative';
-            toggle.style.zIndex = '999';
+            toggle.style.zIndex = '1000';
+            toggle.style.pointerEvents = 'auto';
+            
+            // Stop click propagation on the toggle container
+            toggle.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+            });
         });
-
-        // Direct click handler on the toggle labels
+        
+        // Direct click handler for the toggle slider (not the checkbox)
         document.querySelectorAll('.toggle').forEach(toggle => {
-            // Make toggle visibly clickable
             toggle.style.cursor = 'pointer';
             toggle.style.position = 'relative';
-            toggle.style.zIndex = '1000';
+            toggle.style.zIndex = '1001';
             
-            // Handle click directly on the label
             toggle.addEventListener('click', function(e) {
                 e.stopPropagation();
                 e.preventDefault();
                 
-                // Get checkbox and toggle its state
+                // Find elements we need
                 const checkbox = this.querySelector('.toggle-checkbox');
-                checkbox.checked = !checkbox.checked;
-                
-                // Get product info
                 const productId = this.dataset.productId;
-                const isActive = checkbox.checked;
                 
-                // Find status element
-                let statusElement = document.querySelector('.product-status');
+                // Toggle state and determine new active status
+                const newState = !checkbox.checked;
                 
-                // Update UI immediately for feedback
-                statusElement.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
-                statusElement.className = 'product-status ' + (isActive ? 'active' : 'inactive');
+                // Find status element based on page context
+                let statusElement;
+                if (this.closest('.product-item')) {
+                    statusElement = this.closest('.product-item').querySelector('.product-status');
+                } else {
+                    statusElement = document.querySelector('.product-status');
+                }
                 
-                // Send AJAX request
+                // Immediately update the checkbox UI (very important)
+                checkbox.checked = newState;
+                
+                // Update the status text/class
+                statusElement.textContent = newState ? 'ACTIVE' : 'INACTIVE';
+                statusElement.className = 'product-status ' + (newState ? 'active' : 'inactive');
+                
+                // Now send the API request
                 fetch(`/STORE/admin/toggle/${productId}/`, {
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': getCookie('csrftoken'),
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ active: isActive })
+                    body: JSON.stringify({ active: newState })
                 })
                 .then(response => response.json())
                 .then(data => {
                     console.log('Server response:', data);
-                    // Update based on actual server state
-                    const serverIsActive = data.is_active;
-                    checkbox.checked = serverIsActive;
-                    statusElement.textContent = serverIsActive ? 'ACTIVE' : 'INACTIVE';
-                    statusElement.className = 'product-status ' + (serverIsActive ? 'active' : 'inactive');
+                    // Only update if different from what we set
+                    if (data.is_active !== newState) {
+                        checkbox.checked = data.is_active;
+                        statusElement.textContent = data.is_active ? 'ACTIVE' : 'INACTIVE';
+                        statusElement.className = 'product-status ' + (data.is_active ? 'active' : 'inactive');
+                    }
                 })
                 .catch(error => {
-                    console.error('Error updating product status:', error);
-                    // Revert on error
-                    checkbox.checked = !isActive;
-                    statusElement.textContent = !isActive ? 'ACTIVE' : 'INACTIVE';
-                    statusElement.className = 'product-status ' + (!isActive ? 'active' : 'inactive');
+                    console.error('Error updating status:', error);
+                    // Do not revert UI here - stick with user choice
                 });
             });
         });
