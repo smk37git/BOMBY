@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Exit on error
 set -e
 
 # Wait for PostgreSQL
@@ -29,9 +30,6 @@ fi
 
 # Run migrations
 python manage.py migrate
-
-# Create products (ONE TIME)
-python create_products.py
 
 python manage.py collectstatic --noinput --clear
 

@@ -53,12 +53,14 @@
             <div class="product-card">
                 <h1 class="product-title">BASIC PACKAGE
                     <div class="product-status-container">
-                        <div class="product-status active">ACTIVE</div>
+                        <div class="product-status {% if product.is_active %}active{% else %}inactive{% endif %}">
+                            {% if product.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                        </div>
                         
                         {% if user.is_staff %}
                         <div class="admin-toggle">
-                            <label class="toggle" data-product-id="1">
-                                <input type="checkbox" class="toggle-checkbox" checked>
+                            <label class="toggle" data-product-id="{{ product.id }}">
+                                <input type="checkbox" class="toggle-checkbox" {% if product.is_active %}checked{% endif %}>
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
@@ -104,7 +106,7 @@
     </div>
 
 <script>
-    // Helper function to get CSRF token so admin toggle works
+    // Helper function to get CSRF token
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -141,21 +143,24 @@
         // Admin toggle functionality
         const staffCheckbox = document.querySelector('.toggle-checkbox');
         if (staffCheckbox) {
+            // Get initial state from the server
+            const toggleLabel = staffCheckbox.closest('.toggle');
+            const productId = toggleLabel.dataset.productId;
+            const statusElement = document.querySelector('.product-status');
+            
+            // Set initial checkbox state based on status element
+            if (statusElement) {
+                const isActive = statusElement.classList.contains('active');
+                staffCheckbox.checked = isActive;
+            }
+            
             staffCheckbox.addEventListener('change', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                const toggleLabel = this.closest('.toggle');
-                if (!toggleLabel) return;
-                
-                const productId = toggleLabel.dataset.productId;
-                if (!productId) return;
+                if (!toggleLabel || !productId || !statusElement) return;
                 
                 const isActive = this.checked;
-                
-                // Find the status element directly in product-status-container
-                const statusElement = document.querySelector('.product-status');
-                if (!statusElement) return;
                 
                 // Update UI
                 if (isActive) {

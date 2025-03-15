@@ -39,7 +39,7 @@
                             {% if user.is_staff %}
                             <div class="admin-toggle">
                                 <label class="toggle" data-product-id="1">
-                                    <input type="checkbox" class="toggle-checkbox" checked>
+                                    <input type="checkbox" class="toggle-checkbox" {% if products.0.is_active %}checked{% endif %}>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -49,8 +49,10 @@
                             <img src="{% static 'images/product-basic-stream.jpg' %}" alt="Basic Stream Package">
                         </div>
                         <div class="window-footer">
-                            <div class="product-status active">ACTIVE</div>
-                            <div class="product-price">$25</div>
+                            <div class="product-status {% if products.0.is_active %}active{% else %}inactive{% endif %}">
+                                {% if products.0.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                            </div>
+                            <div class="product-price">${{ products.0.price|default:"25" }}</div>
                         </div>
                     </div>
                 </a>
@@ -266,47 +268,79 @@
     <!-- Admin Toggle Script -->
     {% if user.is_staff %}
     <script>
-        document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('change', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const toggleLabel = this.closest('.toggle');
-                const productId = toggleLabel.dataset.productId;
-                const isActive = this.checked;
-                const statusElement = this.closest('.product-item').querySelector('.product-status');
-                
-                // Update UI
-                if (isActive) {
-                    statusElement.textContent = 'ACTIVE';
-                    statusElement.classList.add('active');
-                    statusElement.classList.remove('inactive');
-                } else {
-                    statusElement.textContent = 'INACTIVE';
-                    statusElement.classList.add('inactive');
-                    statusElement.classList.remove('active');
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
                 }
+            }
+            return cookieValue;
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function(e) {
+                    // Prevent default behavior of <a> tag
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const toggleLabel = this.closest('.toggle');
+                    const productId = toggleLabel.dataset.productId;
+                    const productItem = this.closest('.product-item');
+                    const statusElement = productItem.querySelector('.product-status');
+                    const isActive = this.checked;
+                    
+                    // Update UI
+                    if (isActive) {
+                        statusElement.textContent = 'ACTIVE';
+                        statusElement.classList.add('active');
+                        statusElement.classList.remove('inactive');
+                    } else {
+                        statusElement.textContent = 'INACTIVE';
+                        statusElement.classList.add('inactive');
+                        statusElement.classList.remove('active');
+                    }
+                    
+                    // Send AJAX request to update product status
+                    fetch(`/STORE/admin/toggle/${productId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ active: isActive })
+                    })
+                    .then(response => {
+                        if (!response.ok) throw new Error('Server error: ' + response.status);
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Product status updated:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error updating product status:', error);
+                        // Revert UI on error
+                        this.checked = !isActive;
+                        statusElement.textContent = isActive ? 'INACTIVE' : 'ACTIVE';
+                        statusElement.classList.toggle('active');
+                        statusElement.classList.toggle('inactive');
+                    });
+                    
+                    // Stop event propagation to prevent link navigation
+                    return false;
+                });
                 
-                // Send AJAX request to update product status
-                fetch(`/STORE/admin/toggle/${productId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ active: isActive })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Product status updated:', data);
-                })
-                .catch(error => {
-                    console.error('Error updating product status:', error);
-                    // Revert UI on error
-                    this.checked = !isActive;
-                    statusElement.textContent = isActive ? 'INACTIVE' : 'ACTIVE';
-                    statusElement.classList.toggle('active');
-                    statusElement.classList.toggle('inactive');
+                // Add click handler to toggle label to prevent navigation
+                checkbox.closest('.toggle').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                 });
             });
         });
