@@ -140,32 +140,29 @@
             });
         }
         
-        // Make toggles stand out
+        // Stop propagation for the entire toggle container
         document.querySelectorAll('.admin-toggle').forEach(toggle => {
-            toggle.style.position = 'relative';
-            toggle.style.zIndex = '1000';
-            toggle.style.pointerEvents = 'auto';
-            
-            // Stop click propagation on the toggle container
             toggle.addEventListener('click', function(e) {
                 e.stopPropagation();
                 e.preventDefault();
-            });
+                e.stopImmediatePropagation();
+            }, true);
         });
         
+        // Replace the toggle event listeners with this:
         document.querySelectorAll('.toggle').forEach(toggle => {
-            toggle.addEventListener('click', function(e) {
-                e.stopPropagation();
-                e.preventDefault();
+            toggle.style.cursor = 'pointer';
+            
+            toggle.addEventListener('click', function(event) {
+                // Stop ALL event propagation
+                event.stopPropagation();
+                event.preventDefault();
+                event.stopImmediatePropagation();
                 
-                // Find elements
                 const checkbox = this.querySelector('.toggle-checkbox');
                 const productId = this.dataset.productId;
-                
-                // Toggle state
                 const newState = !checkbox.checked;
                 
-                // Find status element
                 let statusElement;
                 if (this.closest('.product-item')) {
                     statusElement = this.closest('.product-item').querySelector('.product-status');
@@ -173,29 +170,33 @@
                     statusElement = document.querySelector('.product-status');
                 }
                 
-                // Update UI immediately
+                // Update UI
                 checkbox.checked = newState;
                 statusElement.textContent = newState ? 'ACTIVE' : 'INACTIVE';
                 statusElement.className = 'product-status ' + (newState ? 'active' : 'inactive');
                 
-                // IMPORTANT: Use the correct force URL
-                const url = newState ? 
-                    '/STORE/force-active/' + productId + '/' : 
-                    '/STORE/force-inactive/' + productId + '/';
+                // Get absolute path from window.location
+                const basePath = window.location.origin;
+                const forcePath = newState ? 
+                    `${basePath}/STORE/force-active/${productId}/` : 
+                    `${basePath}/STORE/force-inactive/${productId}/`;
+                    
+                console.log("Calling URL:", forcePath);
                 
-                console.log("Calling URL:", url);
+                // Use XMLHttpRequest instead of fetch
+                const xhr = new XMLHttpRequest();
+                xhr.open('GET', forcePath, true);
+                xhr.onload = function() {
+                    console.log("Response:", this.responseText);
+                    window.location.reload();
+                };
+                xhr.onerror = function() {
+                    console.error("Error making request");
+                };
+                xhr.send();
                 
-                // Send GET request (not POST)
-                fetch(url)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log('Response:', data);
-                        window.location.reload(true);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            });
+                return false;
+            }, true);
         });
     });
 </script>
