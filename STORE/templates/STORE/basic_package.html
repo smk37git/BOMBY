@@ -140,29 +140,27 @@
             });
         }
         
-        // Admin toggle functionality
-        const staffCheckbox = document.querySelector('.toggle-checkbox');
-        if (staffCheckbox) {
-            // Get initial state from the server
-            const toggleLabel = staffCheckbox.closest('.toggle');
-            const productId = toggleLabel.dataset.productId;
-            const statusElement = document.querySelector('.product-status');
+        // Admin toggle functionality for basic_package.html
+        const toggle = document.querySelector('.toggle');
+        if (toggle) {
+            // Stop click propagation on the toggle
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            });
             
-            // Set initial checkbox state based on status element
-            if (statusElement) {
-                const isActive = statusElement.classList.contains('active');
-                staffCheckbox.checked = isActive;
-            }
-            
-            staffCheckbox.addEventListener('change', function(e) {
+            const staffCheckbox = toggle.querySelector('.toggle-checkbox');
+            if (staffCheckbox) {
+                staffCheckbox.addEventListener('change', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                if (!toggleLabel || !productId || !statusElement) return;
-                
+                const productId = toggle.dataset.productId;
+                const statusElement = document.querySelector('.product-status');
                 const isActive = this.checked;
                 
-                // Update UI
+                // Update UI immediately
                 if (isActive) {
                     statusElement.textContent = 'ACTIVE';
                     statusElement.classList.add('active');
@@ -173,12 +171,12 @@
                     statusElement.classList.remove('active');
                 }
                 
-                // Send AJAX request to update product status
+                // Send AJAX request
                 fetch(`/STORE/admin/toggle/${productId}/`, {
                     method: 'POST',
                     headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Content-Type': 'application/json'
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ active: isActive })
                 })
@@ -195,16 +193,19 @@
                     this.checked = !isActive;
                     
                     if (!isActive) {
-                        statusElement.textContent = 'ACTIVE';
-                        statusElement.classList.add('active');
-                        statusElement.classList.remove('inactive');
+                    statusElement.textContent = 'ACTIVE';
+                    statusElement.classList.add('active');
+                    statusElement.classList.remove('inactive');
                     } else {
-                        statusElement.textContent = 'INACTIVE';
-                        statusElement.classList.add('inactive');
-                        statusElement.classList.remove('active');
+                    statusElement.textContent = 'INACTIVE';
+                    statusElement.classList.add('inactive');
+                    statusElement.classList.remove('active');
                     }
                 });
-            });
+                
+                return false;
+                });
+            }
         }
     });
 </script>
