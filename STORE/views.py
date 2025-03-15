@@ -4,7 +4,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required, user_passes_test
 import json
 from .models import Product
-from django.db import connection
+from datetime import datetime
 
 def store(request):
     timestamp = datetime.now().timestamp()
