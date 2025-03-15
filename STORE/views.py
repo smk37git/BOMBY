@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 import json
 from .models import Product
 from datetime import datetime
+from django.views.decorators.csrf import csrf_exempt
 
 def store(request):
     products = Product.objects.all()
