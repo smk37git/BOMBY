@@ -37,9 +37,9 @@
                             </div>
                             <div class="window-title">Basic Package</div>
                             {% if user.is_staff %}
-                            <div class="admin-toggle" onclick="event.stopPropagation(); return false;">
-                                <label class="toggle" data-product-id="1" onclick="event.stopPropagation(); return false;">
-                                    <input type="checkbox" class="toggle-checkbox" {% if products.0.is_active %}checked{% endif %} onclick="event.stopPropagation();">
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="1">
+                                    <input type="checkbox" class="toggle-checkbox" {% if products.0.is_active %}checked{% endif %}>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -70,9 +70,9 @@
                             </div>
                             <div class="window-title">Standard Package</div>
                             {% if user.is_staff %}
-                            <div class="admin-toggle" onclick="event.stopPropagation(); return false;">
-                                <label class="toggle" data-product-id="1" onclick="event.stopPropagation(); return false;">
-                                    <input type="checkbox" class="toggle-checkbox" {% if products.0.is_active %}checked{% endif %} onclick="event.stopPropagation();">
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="2">
+                                    <input type="checkbox" class="toggle-checkbox" {% if products.1.is_active %}checked{% endif %}>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -82,8 +82,10 @@
                             <img src="{% static 'images/product-standard-stream.jpg' %}" alt="Standard Stream Package">
                         </div>
                         <div class="window-footer">
-                            <div class="product-status active">ACTIVE</div>
-                            <div class="product-price">$45</div>
+                            <div class="product-status {% if products.1.is_active %}active{% else %}inactive{% endif %}">
+                                {% if products.1.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                            </div>
+                            <div class="product-price">${{ products.1.price|default:"45" }}</div>
                         </div>
                     </div>
                 </a>
@@ -101,9 +103,9 @@
                             </div>
                             <div class="window-title">Premium Package</div>
                             {% if user.is_staff %}
-                            <div class="admin-toggle" onclick="event.stopPropagation(); return false;">
-                                <label class="toggle" data-product-id="1" onclick="event.stopPropagation(); return false;">
-                                    <input type="checkbox" class="toggle-checkbox" {% if products.0.is_active %}checked{% endif %} onclick="event.stopPropagation();">
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="3">
+                                    <input type="checkbox" class="toggle-checkbox" {% if products.2.is_active %}checked{% endif %}>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -113,8 +115,10 @@
                             <img src="{% static 'images/product-premium-stream.jpg' %}" alt="Premium Stream Package">
                         </div>
                         <div class="window-footer">
-                            <div class="product-status active">ACTIVE</div>
-                            <div class="product-price">$75</div>
+                            <div class="product-status {% if products.2.is_active %}active{% else %}inactive{% endif %}">
+                                {% if products.2.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                            </div>
+                            <div class="product-price">${{ products.2.price|default:"75" }}</div>
                         </div>
                     </div>
                 </a>
@@ -164,9 +168,9 @@
                             </div>
                             <div class="window-title">Basic Website</div>
                             {% if user.is_staff %}
-                            <div class="admin-toggle" onclick="event.stopPropagation(); return false;">
-                                <label class="toggle" data-product-id="1" onclick="event.stopPropagation(); return false;">
-                                    <input type="checkbox" class="toggle-checkbox" {% if products.0.is_active %}checked{% endif %} onclick="event.stopPropagation();">
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="5">
+                                    <input type="checkbox" class="toggle-checkbox" {% if products.3.is_active %}checked{% endif %}>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -176,8 +180,10 @@
                             <img src="{% static 'images/website-basic.jpg' %}" alt="Basic Website Package">
                         </div>
                         <div class="window-footer">
-                            <div class="product-status active">ACTIVE</div>
-                            <div class="product-price">$150</div>
+                            <div class="product-status {% if products.3.is_active %}active{% else %}inactive{% endif %}">
+                                {% if products.3.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                            </div>
+                            <div class="product-price">${{ products.3.price|default:"150" }}</div>
                         </div>
                     </div>
                 </a>
@@ -195,9 +201,9 @@
                             </div>
                             <div class="window-title">E-Commerce Website</div>
                             {% if user.is_staff %}
-                            <div class="admin-toggle" onclick="event.stopPropagation(); return false;">
-                                <label class="toggle" data-product-id="1" onclick="event.stopPropagation(); return false;">
-                                    <input type="checkbox" class="toggle-checkbox" {% if products.0.is_active %}checked{% endif %} onclick="event.stopPropagation();">
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="6">
+                                    <input type="checkbox" class="toggle-checkbox" {% if products.4.is_active %}checked{% endif %}>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -207,8 +213,10 @@
                             <img src="{% static 'images/website-ecommerce.jpg' %}" alt="E-Commerce Website Package">
                         </div>
                         <div class="window-footer">
-                            <div class="product-status active">ACTIVE</div>
-                            <div class="product-price">$350</div>
+                            <div class="product-status {% if products.4.is_active %}active{% else %}inactive{% endif %}">
+                                {% if products.4.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                            </div>
+                            <div class="product-price">${{ products.4.price|default:"350" }}</div>
                         </div>
                     </div>
                 </a>
@@ -226,9 +234,9 @@
                             </div>
                             <div class="window-title">Custom Project</div>
                             {% if user.is_staff %}
-                            <div class="admin-toggle" onclick="event.stopPropagation(); return false;">
-                                <label class="toggle" data-product-id="1" onclick="event.stopPropagation(); return false;">
-                                    <input type="checkbox" class="toggle-checkbox" {% if products.0.is_active %}checked{% endif %} onclick="event.stopPropagation();">
+                            <div class="admin-toggle">
+                                <label class="toggle" data-product-id="7">
+                                    <input type="checkbox" class="toggle-checkbox" {% if products.5.is_active %}checked{% endif %}>
                                     <span class="toggle-slider"></span>
                                 </label>
                             </div>
@@ -238,7 +246,9 @@
                             <img src="{% static 'images/website-custom.jpg' %}" alt="Custom Website Project">
                         </div>
                         <div class="window-footer">
-                            <div class="product-status active">ACTIVE</div>
+                            <div class="product-status {% if products.5.is_active %}active{% else %}inactive{% endif %}">
+                                {% if products.5.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                            </div>
                             <div class="product-price">Custom</div>
                         </div>
                     </div>
@@ -265,10 +275,10 @@
         });
     </script>
 
-    <!-- Admin Toggle Script for store.html -->
+    <!-- Admin Toggle Script -->
     {% if user.is_staff %}
     <script>
-        // Simple CSRF token function
+        // Helper function to get CSRF token
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -283,72 +293,53 @@
             }
             return cookieValue;
         }
-
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Simple toggle function
-            function toggleProduct(checkbox) {
-                const productId = checkbox.closest('.toggle').dataset.productId;
-                const productItem = checkbox.closest('.product-item');
-                const statusElement = productItem.querySelector('.product-status');
-                const isActive = checkbox.checked;
-                
-                // Update UI immediately
-                statusElement.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
-                statusElement.className = 'product-status ' + (isActive ? 'active' : 'inactive');
-                
-                // API call
-                fetch(`/STORE/admin/toggle/${productId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ active: isActive })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Server error: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Product status updated:', data);
-                })
-                .catch(error => {
-                    console.error('Error updating product status:', error);
-                    // Revert UI on error
-                    checkbox.checked = !isActive;
-                    statusElement.textContent = !isActive ? 'ACTIVE' : 'INACTIVE';
-                    statusElement.className = 'product-status ' + (!isActive ? 'active' : 'inactive');
-                });
-            }
-
-            // Stop clicks on admin-toggle elements to prevent link navigation
+            // Stop the clicks on admin toggles
             document.querySelectorAll('.admin-toggle').forEach(toggle => {
-                toggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    return false;
+                toggle.addEventListener('click', function(event) {
+                    event.stopPropagation();
                 });
             });
-
-            // Add click handler to toggle labels
-            document.querySelectorAll('.toggle').forEach(toggle => {
-                toggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    return false;
-                });
-            });
-
-            // Simple event handling for checkboxes
+            
+            // Handle toggle checkboxes
             document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
-                // Stop propagation on click
-                checkbox.addEventListener('click', function(e) {
-                    e.stopPropagation();
+                // Stop propagation for the checkbox click
+                checkbox.addEventListener('click', function(event) {
+                    event.stopPropagation();
                 });
                 
                 // Handle change event
                 checkbox.addEventListener('change', function() {
-                    toggleProduct(this);
+                    const productId = this.closest('.toggle').dataset.productId;
+                    const productItem = this.closest('.product-item');
+                    const statusElement = productItem.querySelector('.product-status');
+                    const isActive = this.checked;
+                    
+                    // Update UI immediately
+                    statusElement.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
+                    statusElement.className = 'product-status ' + (isActive ? 'active' : 'inactive');
+                    
+                    // Send AJAX request
+                    fetch(`/STORE/admin/toggle/${productId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ active: isActive })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Product status updated:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error updating product status:', error);
+                        // Revert UI on error
+                        this.checked = !isActive;
+                        statusElement.textContent = !isActive ? 'ACTIVE' : 'INACTIVE';
+                        statusElement.className = 'product-status ' + (!isActive ? 'active' : 'inactive');
+                    });
                 });
             });
         });

@@ -58,9 +58,9 @@
                         </div>
                         
                         {% if user.is_staff %}
-                        <div class="admin-toggle" onclick="event.stopPropagation(); return false;">
-                            <label class="toggle" data-product-id="{{ product.id }}" onclick="event.stopPropagation(); return false;">
-                                <input type="checkbox" class="toggle-checkbox" {% if product.is_active %}checked{% endif %} onclick="event.stopPropagation();">
+                        <div class="admin-toggle">
+                            <label class="toggle" data-product-id="{{ product.id }}">
+                                <input type="checkbox" class="toggle-checkbox" {% if product.is_active %}checked{% endif %}>
                                 <span class="toggle-slider"></span>
                             </label>
                         </div>
@@ -106,7 +106,7 @@
     </div>
 
 <script>
-    // Simple CSRF token function
+    // Helper function to get CSRF token
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -122,76 +122,68 @@
         return cookieValue;
     }
 
-    // Separate gallery functionality
     document.addEventListener('DOMContentLoaded', function() {
-        // Gallery image switching
+        // Gallery functionality
         const featuredImage = document.getElementById('featuredImage');
         const thumbnails = document.querySelectorAll('.thumbnail');
         
         if (featuredImage && thumbnails.length > 0) {
             thumbnails.forEach(thumb => {
                 thumb.addEventListener('click', function() {
+                    // Update main image
                     featuredImage.src = this.getAttribute('data-image');
+                    
+                    // Update active state
                     thumbnails.forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
                 });
             });
         }
         
-        // Simple toggle function
-        function toggleProduct(checkbox) {
-            const productId = checkbox.closest('.toggle').dataset.productId;
-            const statusElement = document.querySelector('.product-status');
-            const isActive = checkbox.checked;
-            
-            // Update UI immediately
-            statusElement.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
-            statusElement.className = 'product-status ' + (isActive ? 'active' : 'inactive');
-            
-            // API call
-            fetch(`/STORE/admin/toggle/${productId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ active: isActive })
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Server error: ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Product status updated:', data);
-            })
-            .catch(error => {
-                console.error('Error updating product status:', error);
-                // Revert UI on error
-                checkbox.checked = !isActive;
-                statusElement.textContent = !isActive ? 'ACTIVE' : 'INACTIVE';
-                statusElement.className = 'product-status ' + (!isActive ? 'active' : 'inactive');
+        // Stop clicks on admin-toggle div
+        const adminToggles = document.querySelectorAll('.admin-toggle');
+        if (adminToggles.length > 0) {
+            adminToggles.forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
             });
         }
-
-        // Add click handlers to admin toggles to stop propagation
-        document.querySelectorAll('.admin-toggle').forEach(toggle => {
-            toggle.addEventListener('click', function(e) {
-                e.stopPropagation();
+        
+        // Handle toggle checkboxes
+        const toggleCheckbox = document.querySelector('.toggle-checkbox');
+        if (toggleCheckbox) {
+            toggleCheckbox.addEventListener('change', function() {
+                const productId = this.closest('.toggle').dataset.productId;
+                const statusElement = document.querySelector('.product-status');
+                const isActive = this.checked;
+                
+                // Update UI immediately
+                statusElement.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
+                statusElement.className = 'product-status ' + (isActive ? 'active' : 'inactive');
+                
+                // Send AJAX request
+                fetch(`/STORE/admin/toggle/${productId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ active: isActive })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Product status updated:', data);
+                })
+                .catch(error => {
+                    console.error('Error updating product status:', error);
+                    // Revert UI on error
+                    this.checked = !isActive;
+                    statusElement.textContent = !isActive ? 'ACTIVE' : 'INACTIVE';
+                    statusElement.className = 'product-status ' + (!isActive ? 'active' : 'inactive');
+                });
             });
-        });
-
-        // Add simple click handler to checkboxes
-        document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
-            checkbox.addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
-            
-            checkbox.addEventListener('change', function() {
-                toggleProduct(this);
-            });
-        });
+        }
     });
 </script>
 {% endblock %}

@@ -143,6 +143,9 @@
 /* Toggle switch */
 .admin-toggle {
     margin-left: auto;
+    position: relative;
+    pointer-events: auto;
+    z-index: 10;
 }
 
 .toggle {
@@ -150,12 +153,14 @@
     display: inline-block;
     width: 45px;
     height: 22px;
+    cursor: pointer;
 }
 
 .toggle-checkbox {
     opacity: 0;
     width: 0;
     height: 0;
+    cursor: pointer;
 }
 
 .toggle-slider {

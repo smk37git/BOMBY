@@ -97,6 +97,10 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+.product-link {
+    pointer-events: auto;
+}
+
 /* Window styling (from portfolio) */
 .window {
     background: rgba(20, 20, 30, 0.95);
@@ -159,6 +163,9 @@
 
 .admin-toggle {
     margin-left: auto;
+    position: relative;
+    z-index: 10;
+    pointer-events: auto;
 }
 
 .toggle {
@@ -166,12 +173,14 @@
     display: inline-block;
     width: 45px;
     height: 22px;
+    cursor: pointer;
 }
 
 .toggle-checkbox {
     opacity: 0;
     width: 0;
     height: 0;
+    cursor: pointer;
 }
 
 .toggle-slider {
