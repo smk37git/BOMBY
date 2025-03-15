@@ -92,34 +92,44 @@ def custom_project(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def toggle_product_status(request, product_id):
-    # Get product
+    # Use atomic transaction
+    from django.db import transaction
+    
+    with transaction.atomic():
+        # Get product
+        product = Product.objects.select_for_update().get(id=product_id)
+        
+        # Parse the request body to get the active status
+        try:
+            data = json.loads(request.body)
+            is_active = data.get('active', not product.is_active)
+        except json.JSONDecodeError:
+            # If no JSON body, just toggle the current state
+            is_active = not product.is_active
+        
+        # Set and save
+        product.is_active = is_active
+        product.save()
+        
+        # Force a flush to the database
+        transaction.set_autocommit(False)
+        transaction.commit()
+    
+    # Get fresh instance outside transaction
     product = Product.objects.get(id=product_id)
     
-    # Parse the request body to get the active status
-    try:
-        data = json.loads(request.body)
-        is_active = data.get('active', not product.is_active)
-    except json.JSONDecodeError:
-        # If no JSON body, just toggle the current state
-        is_active = not product.is_active
-    
-    # Set and save (simpler approach)
-    product.is_active = is_active
-    product.save()
-    
-    # Double check by fetching again
-    fresh_product = Product.objects.get(id=product_id)
-    
-    # Force Django to commit the transaction
-    from django.db import transaction
-    transaction.commit()
+    # Now use direct SQL to update as well
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "UPDATE \"STORE_product\" SET is_active = %s WHERE id = %s",
+            [is_active, product_id]
+        )
     
     return JsonResponse({
         'success': True,
         'product_id': product_id,
-        'original_is_active': product.is_active,
-        'fresh_is_active': fresh_product.is_active,
-        'requested_state': is_active,
+        'is_active': is_active,
         'message': f'Product {product_id} status updated successfully'
     })
 
