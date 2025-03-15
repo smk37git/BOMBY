@@ -7,6 +7,7 @@ from .models import Product
 from datetime import datetime
 
 def store(request):
+    products = Product.objects.all()
     timestamp = datetime.now().timestamp()
     return render(request, 'STORE/store.html', {'products': products})
 
