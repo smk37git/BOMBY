@@ -304,15 +304,11 @@
                 }, true);
             });
             
-            // Replace the toggle event listeners with this:
             document.querySelectorAll('.toggle').forEach(toggle => {
                 toggle.style.cursor = 'pointer';
                 
-                toggle.addEventListener('click', function(event) {
-                    // Stop ALL event propagation
-                    event.stopPropagation();
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
                     
                     const checkbox = this.querySelector('.toggle-checkbox');
                     const productId = this.dataset.productId;
@@ -330,28 +326,24 @@
                     statusElement.textContent = newState ? 'ACTIVE' : 'INACTIVE';
                     statusElement.className = 'product-status ' + (newState ? 'active' : 'inactive');
                     
-                    // Get absolute path from window.location
-                    const basePath = window.location.origin;
-                    const forcePath = newState ? 
-                        `${basePath}/STORE/force-active/${productId}/` : 
-                        `${basePath}/STORE/force-inactive/${productId}/`;
-                        
-                    console.log("Calling URL:", forcePath);
+                    // Simple URL construction
+                    const url = newState ? 
+                        '/STORE/force-active/' + productId + '/' : 
+                        '/STORE/force-inactive/' + productId + '/';
                     
-                    // Use XMLHttpRequest instead of fetch
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('GET', forcePath, true);
-                    xhr.onload = function() {
-                        console.log("Response:", this.responseText);
-                        window.location.reload();
-                    };
-                    xhr.onerror = function() {
-                        console.error("Error making request");
-                    };
-                    xhr.send();
+                    console.log("Calling URL:", url);
                     
-                    return false;
-                }, true);
+                    // Simple fetch
+                    fetch(url)
+                        .then(response => response.json())
+                        .then(data => {
+                            console.log('Response:', data);
+                            window.location.reload();
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                        });
+                });
             });
         });
     </script>
