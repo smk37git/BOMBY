@@ -94,9 +94,6 @@ def custom_project(request):
 def toggle_product_status(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     
-    # Print debug info
-    print(f"BEFORE: Product {product_id} status: {product.is_active}")
-    
     # Parse the request body to get the active status
     try:
         data = json.loads(request.body)
@@ -107,17 +104,46 @@ def toggle_product_status(request, product_id):
         is_active = not product.is_active
         print(f"No JSON body, toggling to: {is_active}")
     
-    # Update the product status
-    product.is_active = is_active
-    product.save()
-    
-    # Verify save
-    product.refresh_from_db()
-    print(f"AFTER: Product {product_id} status: {product.is_active}")
+    # Ensure the change is being made
+    if product.is_active != is_active:
+        # Update the product status with direct SQL if needed
+        from django.db import connection
+        with connection.cursor() as cursor:
+            cursor.execute(
+                "UPDATE store_product SET is_active = %s WHERE id = %s",
+                [is_active, product_id]
+            )
+        
+        # Force reload the product
+        product = Product.objects.get(id=product_id)
+        print(f"After direct SQL: Product {product_id} status: {product.is_active}")
     
     return JsonResponse({
         'success': True,
         'product_id': product_id,
         'is_active': product.is_active,
         'message': f'Product {product_id} status updated successfully'
+    })
+
+def debug_product(request, product_id):
+    # Check product directly from database
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT id, name, is_active FROM store_product WHERE id = %s", [product_id])
+        row = cursor.fetchone()
+    
+    # Also try ORM
+    product = Product.objects.get(id=product_id)
+    
+    return JsonResponse({
+        'direct_db': {
+            'id': row[0],
+            'name': row[1],
+            'is_active': row[2],
+        },
+        'orm': {
+            'id': product.id,
+            'name': product.name,
+            'is_active': product.is_active,
+        }
     })

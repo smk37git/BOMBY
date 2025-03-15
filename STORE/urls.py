@@ -20,4 +20,7 @@ urlpatterns = [
     
     # Admin functionality
     path('admin/toggle/<int:product_id>/', views.toggle_product_status, name='toggle_product_status'),
+
+    # Debugging
+    path('debug-product/<int:product_id>/', views.debug_product, name='debug_product'),
 ]
