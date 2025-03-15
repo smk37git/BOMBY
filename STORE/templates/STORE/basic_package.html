@@ -58,7 +58,7 @@
                         </div>
                         
                         {% if user.is_staff %}
-                        <div class="admin-toggle">
+                        <div class="admin-toggle" onclick="event.stopPropagation();">
                             <label class="toggle" data-product-id="{{ product.id }}">
                                 <input type="checkbox" class="toggle-checkbox" {% if product.is_active %}checked{% endif %}>
                                 <span class="toggle-slider"></span>
@@ -140,50 +140,32 @@
             });
         }
         
-        // Admin toggle functionality for basic_package.html
-        const toggle = document.querySelector('.toggle');
-        if (toggle) {
-            // Stop click propagation on the toggle
-            toggle.addEventListener('click', function(e) {
-                e.preventDefault();
+        // Handle toggle checkboxes
+        const toggleCheckbox = document.querySelector('.toggle-checkbox');
+        if (toggleCheckbox) {
+            toggleCheckbox.onclick = function(e) {
                 e.stopPropagation();
-                return false;
-            });
+            };
             
-            const staffCheckbox = toggle.querySelector('.toggle-checkbox');
-            if (staffCheckbox) {
-                staffCheckbox.addEventListener('change', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const productId = toggle.dataset.productId;
+            toggleCheckbox.onchange = function() {
+                const productId = this.closest('.toggle').dataset.productId;
                 const statusElement = document.querySelector('.product-status');
                 const isActive = this.checked;
                 
-                // Update UI immediately
-                if (isActive) {
-                    statusElement.textContent = 'ACTIVE';
-                    statusElement.classList.add('active');
-                    statusElement.classList.remove('inactive');
-                } else {
-                    statusElement.textContent = 'INACTIVE';
-                    statusElement.classList.add('inactive');
-                    statusElement.classList.remove('active');
-                }
+                // Update UI
+                statusElement.textContent = isActive ? 'ACTIVE' : 'INACTIVE';
+                statusElement.className = 'product-status ' + (isActive ? 'active' : 'inactive');
                 
                 // Send AJAX request
                 fetch(`/STORE/admin/toggle/${productId}/`, {
                     method: 'POST',
                     headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Content-Type': 'application/json'
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ active: isActive })
                 })
-                .then(response => {
-                    if (!response.ok) throw new Error('Server error: ' + response.status);
-                    return response.json();
-                })
+                .then(response => response.json())
                 .then(data => {
                     console.log('Product status updated:', data);
                 })
@@ -191,21 +173,10 @@
                     console.error('Error updating product status:', error);
                     // Revert UI on error
                     this.checked = !isActive;
-                    
-                    if (!isActive) {
-                    statusElement.textContent = 'ACTIVE';
-                    statusElement.classList.add('active');
-                    statusElement.classList.remove('inactive');
-                    } else {
-                    statusElement.textContent = 'INACTIVE';
-                    statusElement.classList.add('inactive');
-                    statusElement.classList.remove('active');
-                    }
+                    statusElement.textContent = !isActive ? 'ACTIVE' : 'INACTIVE';
+                    statusElement.className = 'product-status ' + (!isActive ? 'active' : 'inactive');
                 });
-                
-                return false;
-                });
-            }
+            };
         }
     });
 </script>
