@@ -279,6 +279,18 @@
     {% if user.is_staff %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Move all admin-toggle elements outside of their parent anchor tags
+            document.querySelectorAll('.admin-toggle').forEach(toggle => {
+                const parent = toggle.closest('.window-header');
+                const anchor = toggle.closest('a');
+                if (parent && anchor) {
+                    // Extract the toggle from anchor and append to window-header
+                    anchor.removeChild(toggle);
+                    parent.appendChild(toggle);
+                }
+            });
+            
+            // Now set up the toggle event listeners
             document.querySelectorAll('.toggle').forEach(toggle => {
                 toggle.style.cursor = 'pointer';
                 
@@ -297,7 +309,7 @@
                     
                     console.log("Calling URL:", url);
                     
-                    // Make the request and reload the page to match direct URL behavior
+                    // Make the request and reload the page
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
