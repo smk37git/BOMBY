@@ -122,14 +122,13 @@
                 });
             });
             
-            // Disable any link behavior if clicking toggle
-            document.addEventListener('click', function(e) {
-                if (e.target.closest('.toggle') || e.target.closest('.admin-toggle')) {
+            // Handle toggle clicks directly
+            document.querySelectorAll('.toggle, .admin-toggle').forEach(element => {
+                element.addEventListener('click', function(e) {
                     e.preventDefault();
                     e.stopPropagation();
                     
-                    // Get the toggle element
-                    const toggle = e.target.closest('.toggle');
+                    const toggle = this.closest('.toggle');
                     if (!toggle) return;
                     
                     const checkbox = toggle.querySelector('.toggle-checkbox');
@@ -168,8 +167,20 @@
                                 statusElement.className = 'product-status ' + (!newState ? 'active' : 'inactive');
                             }
                         });
-                }
-            }, true);
+                    
+                    return false;
+                });
+            });
+            
+            // Prevent parent links from working when clicking toggles
+            document.querySelectorAll('.product-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    if (e.target.closest('.admin-toggle')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                });
+            });
         });
     </script>
 {% endblock %}
