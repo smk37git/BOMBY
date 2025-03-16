@@ -49,59 +49,180 @@
         </div>
         
         <!-- Right side: Product info -->
-        <div class="product-info-side">
-            <div class="product-card">
-                <h1 class="product-title">BASIC PACKAGE
-                    <div class="product-status-container">
-                        <div class="product-status {% if product.is_active %}active{% else %}inactive{% endif %}">
-                            {% if product.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
-                        </div>
-                        
-                        {% if user.is_staff %}
-                        <div class="admin-toggle">
-                            <label class="toggle" data-product-id="{{ product.id }}">
-                                <input type="checkbox" class="toggle-checkbox" {% if product.is_active %}checked{% endif %}>
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        {% endif %}
-                    </div>
-                </h1>
-                <div class="product-description">
-                    <h2>DESCRIPTION</h2>
-                    <p>Start your streaming journey with our Basic Package. This includes a custom overlay with essential elements to make your stream look professional.</p>
+        <div class="product-card">
+            <h1 class="product-title">BASIC PACKAGE
+                <div class="product-status {% if product.is_active %}active{% else %}inactive{% endif %}">
+                    {% if product.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                 </div>
-                
-                <div class="product-features">
-                    <h2>FEATURES:</h2>
-                    <ul class="features-list">
-                        <li>
-                            <i class="fas fa-check-circle"></i>
-                            Basic stream overlay
-                        </li>
-                        <li>
-                            <i class="fas fa-check-circle"></i>
-                            Simple alerts setup
-                        </li>
-                        <li>
-                            <i class="fas fa-check-circle"></i>
-                            Single scene design
-                        </li>
-                        <li>
-                            <i class="fas fa-check-circle"></i>
-                            1 minor revision
-                        </li>
-                    </ul>
+            </h1>
+            <hr class="page-divider"></hr>
+            
+            <div class="product-features">
+                <h2>FEATURES:</h2>
+                <ul class="features-list">
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Basic stream overlay
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Simple alerts setup
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        Single scene design
+                    </li>
+                    <li>
+                        <i class="fas fa-check-circle"></i>
+                        1 minor revision
+                    </li>
+                </ul>
+            </div>
+            
+            <div class="product-purchase">
+                <div class="price-section">
+                    <div class="price-label">Price:</div>
+                    <div class="price-value">$25.00</div>
                 </div>
+                <a href="{% url 'contact' %}?subject=Purchase%20Basic%20Package" class="purchase-btn">PURCHASE NOW</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Description section moved below gallery and product info -->
+    <div class="product-description-section">
+        <div class="product-card">
+            <div class="product-description">
+                <h2 class="heading-with-line">DESCRIPTION</h2>
                 
-                <div class="product-purchase">
-                    <div class="price-section">
-                        <div class="price-label">Price:</div>
-                        <div class="price-value">$25.00</div>
+                <p>
+                    Lets bring your streaming/recording dreams to life! Message me your thoughts so we can start piecing together your setup!
+                    I am a full-time Information Technology student and also a part-time streamer with over 1000+ hours streamed. 
+                    I have years of experience on both sides of the playing field. Whether it's configuring the back-end of your setup or helping you attract more views to build your online career!
+                    <br>
+                    <br>
+                    Are you feeling overwhelmed with trying to setup your stream yourself? After consulting with me you will feel confident and have the help you need!
+                    <br>
+                    <br>
+                    Here is a list of the things I can setup and more:
+                    <br>
+                    <li class="description-text">OBS Stream Setup (Captures, Video Capture Devices, etc...)</li>
+                    <li class="description-text">Output Settings (Encoding Settings, Tuning, Knowledge of the different Encoders)</li>
+                    <li class="description-text">Best settings for your Computer Specs</li>
+                    <li class="description-text">OBS troubleshooting (Video, Audio, etc...) -- Having low FPS issues? Let me fix that!</li>
+                    <li class="description-text">Overlay integration (Adding graphics and making them look great!)</li>
+                    <li class="description-text">Fluid and CUSTOM source transitions</li>
+                    <li class="description-text">Multi-streaming</li>
+                    <li class="description-text">Alert Boxes, Widgets, Panels, Sponsor Banners</li>
+                    <li class="description-text">Connecting multiple services (Twitch/YouTube/TikTok/etc..) to your OBS!</li>
+                    <li class="description-text">Windows/Mac</li>
+                    <li class="description-text">Coaching to develop your success!</li>
+
+                    <p class="description-text">Please read the FAQ and MESSAGE me!</p>
+                </p>
+
+                <h2 class="heading-with-line">FAQ</h2>
+                
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>Why OBS and not SLOBS or SE.LIVE?</span>
+                        </div>
+                        <div class="faq-answer">
+                            The reason I choose OBS is because it utilizes less performance compared to the rest. Which means more quality for your setup! SLOBS/SE.LIVE require more CPU usage and can actually HARM the value of your stream or recording setup. I will however use SLOBS widgets and overlays by integrating to OBS!
+                        </div>
                     </div>
-                    <a href="{% url 'contact' %}?subject=Purchase%20Basic%20Package" class="purchase-btn">PURCHASE NOW</a>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>What do you mean use OBS with SLOBS integration?</span>
+                        </div>
+                        <div class="faq-answer">
+                            Put simply, I will use SLOBS's many tools to boost OBS's overall quality for a better management and user experience. Things like chatbots, commands, timers, and everything else SLOBS's tools offer! This involves setting them up through menus on SLOBS without explicitly using their program.
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>How do I conduct my setups?</span>
+                        </div>
+                        <div class="faq-answer">
+                            I prefer to conduct business through TeamViewer -- a free software to help me configure everything to be the best it can be. Learn how to install TeamViewer here: https://www.youtube.com/watch?v=efOT1JuGJN4
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>What is my experience?</span>
+                        </div>
+                        <div class="faq-answer">
+                            I have surrounded my life around my passion for computers and all their components; software, hardware, applications, and more! Through my own journey I have poured countless hours into configuring my own devices and trying my best to always learn more. As a life-longer learner there is no end!
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>Why pick my services over others?</span>
+                        </div>
+                        <div class="faq-answer">
+                            As a streamer myself I understand what it means to have a setup that is new, engaging, and beautiful to attract and retain audiences. With my combined experience of streaming and back-end OBS development I can guarantee great results that cover the entire playing field!
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Image gallery functionality
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        const featuredImage = document.getElementById('featuredImage');
+        
+        thumbnails.forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                // Update featured image
+                featuredImage.src = this.dataset.image;
+                
+                // Update active thumbnail
+                thumbnails.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // FAQ dropdown functionality
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            
+            question.addEventListener('click', function() {
+                // Toggle active class
+                item.classList.toggle('active');
+                
+                // Get the chevron container
+                const chevronContainer = this.querySelector('.chevron-container');
+                
+                // Toggle chevron direction
+                if(item.classList.contains('active')) {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                } else {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}
