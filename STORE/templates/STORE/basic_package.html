@@ -108,51 +108,17 @@
     <!-- Admin Toggle Script -->
     {% if user.is_staff %}
     <script>
-        // Helper function to get CSRF token
-        function getCookie(name) {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        }
-        
         document.addEventListener('DOMContentLoaded', function() {
-            // Modified to only prevent default, not stop propagation
-            document.querySelectorAll('.admin-toggle').forEach(toggle => {
-                toggle.addEventListener('click', function(e) {
-                    e.preventDefault();
-                }, false);
-            });
-            
             document.querySelectorAll('.toggle').forEach(toggle => {
                 toggle.style.cursor = 'pointer';
                 
                 toggle.addEventListener('click', function(e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     
                     const checkbox = this.querySelector('.toggle-checkbox');
                     const productId = this.dataset.productId;
                     const newState = !checkbox.checked;
-                    
-                    let statusElement;
-                    if (this.closest('.product-item')) {
-                        statusElement = this.closest('.product-item').querySelector('.product-status');
-                    } else {
-                        statusElement = document.querySelector('.product-status');
-                    }
-                    
-                    // Update UI
-                    checkbox.checked = newState;
-                    statusElement.textContent = newState ? 'ACTIVE' : 'INACTIVE';
-                    statusElement.className = 'product-status ' + (newState ? 'active' : 'inactive');
                     
                     // Simple URL construction
                     const url = newState ? 
@@ -161,11 +127,12 @@
                     
                     console.log("Calling URL:", url);
                     
-                    // Simple fetch
+                    // Make the request and reload the page to match direct URL behavior
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
                             console.log('Response:', data);
+                            window.location.reload();
                         })
                         .catch(error => {
                             console.error('Error:', error);
