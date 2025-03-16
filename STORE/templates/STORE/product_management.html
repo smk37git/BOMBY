@@ -1,0 +1,200 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/user_management.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1 class="user_management-title">Product Management</h1>
+    </div>
+    
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="dashboard-layout">
+        <!-- Products Table Section -->
+        <div class="profile-section user-table-section">
+            <div class="section-header">
+                <h2>Products</h2>
+                <div class="action-buttons">
+                    <form method="get" action="{% url 'STORE:product_management' %}">
+                        <div class="search-container">
+                            <input type="text" name="search" placeholder="Search by product name" value="{{ search_query }}" class="search-input">
+                            <button type="submit" class="action-button">Search</button>
+                            {% if search_query %}
+                                <a href="{% url 'STORE:product_management' %}" class="clear-search">Clear</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="users-table-container">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="select-all-checkbox"></th>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr data-product-id="{{ product.id }}">
+                            <td><input type="checkbox" class="product-select-checkbox" data-product-id="{{ product.id }}"></td>
+                            <td>{{ product.id }}</td>
+                            <td class="product-name-cell">{{ product.name }}</td>
+                            <td>${{ product.price }}</td>
+                            <td>{{ product.description|truncatechars:30 }}</td>
+                            <td>
+                                {% if product.is_active %}
+                                    <span class="account-type admin">Active</span>
+                                {% else %}
+                                    <span class="account-type member">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6">No products found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Product Action Panel -->
+        <div class="user-action-panel" style="margin-top: 20px;">
+            <div class="panel-header">
+                <h3>Actions</h3>
+                <span class="selected-count">0 products selected</span>
+            </div>
+            
+            <div class="action-section">
+                <h4>Edit Product</h4>
+                <a id="btn-edit-product" href="{% url 'STORE:edit_product' 0 %}" class="panel-action-button disabled">Edit Product</a>
+            </div>
+            
+            <div class="action-section">
+                <h4>Change Product Status</h4>
+                <form id="bulk-status-change-form" method="post" action="{% url 'STORE:bulk_change_product_status' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="selected-products-status" name="selected_products" value="">
+                    <select name="status" class="product-status-select" disabled>
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                    <button id="btn-change-status" type="submit" class="panel-action-button" disabled>Update</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        const productCheckboxes = document.querySelectorAll('.product-select-checkbox');
+        const selectedCountDisplay = document.querySelector('.selected-count');
+        
+        // Action panel buttons
+        const editProductBtn = document.getElementById('btn-edit-product');
+        const productStatusSelect = document.querySelector('.product-status-select');
+        const changeStatusBtn = document.getElementById('btn-change-status');
+        
+        // Update action panel button states based on selection
+        function updateButtonStates() {
+            const selectedProducts = getSelectedProducts();
+            const hasSelection = selectedProducts.length > 0;
+            
+            // Update selected count display
+            selectedCountDisplay.textContent = `${selectedProducts.length} product${selectedProducts.length !== 1 ? 's' : ''} selected`;
+            
+            // Enable/disable buttons based on selection
+            productStatusSelect.disabled = !hasSelection;
+            changeStatusBtn.disabled = !hasSelection;
+            
+            // Handle the Edit Product button
+            if (selectedProducts.length === 1) {
+                const productId = selectedProducts[0];
+                editProductBtn.href = `{% url 'STORE:edit_product' 0 %}`.replace('0', productId);
+                editProductBtn.classList.remove('disabled');
+            } else {
+                editProductBtn.href = '#';
+                editProductBtn.classList.add('disabled');
+            }
+        }
+        
+        // Get IDs of selected products
+        function getSelectedProducts() {
+            return Array.from(productCheckboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.dataset.productId);
+        }
+        
+        // Select/Deselect all checkboxes
+        selectAllCheckbox.addEventListener('change', function() {
+            productCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateButtonStates();
+        });
+        
+        // Update select all checkbox when individual checkboxes change
+        productCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const allChecked = Array.from(productCheckboxes).every(cb => cb.checked);
+                const someChecked = Array.from(productCheckboxes).some(cb => cb.checked);
+                
+                selectAllCheckbox.checked = allChecked;
+                // Use indeterminate state when some but not all are checked
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
+                
+                updateButtonStates();
+            });
+        });
+        
+        // Handler for Edit Product button
+        editProductBtn.addEventListener('click', function(e) {
+            if (this.classList.contains('disabled')) {
+                e.preventDefault();
+            }
+        });
+        
+        // Handler for Change Status form submit
+        document.getElementById('bulk-status-change-form').addEventListener('submit', function(e) {
+            if (changeStatusBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+            
+            document.getElementById('selected-products-status').value = getSelectedProducts().join(',');
+        });
+        
+        // Initialize button states
+        updateButtonStates();
+    });
+</script>
+{% endblock %}

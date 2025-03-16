@@ -1,7 +1,8 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib import messages
 import json
 from .models import Product
 from datetime import datetime
@@ -150,3 +151,89 @@ def force_active(request, product_id):
         'product_id': product_id,
         'is_active': True
     })
+
+# Product Management Views
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def product_management(request):
+    """View for managing products"""
+    search_query = request.GET.get('search', '')
+    
+    if search_query:
+        products = Product.objects.filter(name__icontains=search_query)
+    else:
+        products = Product.objects.all()
+    
+    context = {
+        'products': products,
+        'search_query': search_query
+    }
+    
+    # Add cache control headers
+    response = render(request, 'STORE/product_management.html', context)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def edit_product(request, product_id):
+    """View for editing a product"""
+    product = get_object_or_404(Product, id=product_id)
+    
+    if request.method == 'POST':
+        # Process the form data
+        name = request.POST.get('name')
+        price = request.POST.get('price')
+        description = request.POST.get('description')
+        is_active = request.POST.get('is_active') == 'true'
+        
+        # Update the product
+        product.name = name
+        product.price = price
+        product.description = description
+        product.is_active = is_active
+        product.save()
+        
+        messages.success(request, f"Product '{name}' updated successfully.")
+        return redirect('STORE:product_management')
+    
+    context = {
+        'product': product
+    }
+    
+    # Add cache control headers
+    response = render(request, 'STORE/edit_product.html', context)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def bulk_change_product_status(request):
+    """Change status for multiple products at once"""
+    selected_products = request.POST.get('selected_products', '')
+    new_status = request.POST.get('status') == 'true'
+    
+    if selected_products:
+        product_ids = [int(id) for id in selected_products.split(',')]
+        
+        # Update all selected products
+        from django.db import connection
+        with connection.cursor() as cursor:
+            # Using parameterized query for safety
+            status_value = 'true' if new_status else 'false'
+            placeholders = ','.join(['%s'] * len(product_ids))
+            query = f"UPDATE \"STORE_product\" SET is_active = {status_value} WHERE id IN ({placeholders})"
+            cursor.execute(query, product_ids)
+        
+        status_text = 'active' if new_status else 'inactive'
+        messages.success(
+            request, 
+            f"{len(product_ids)} product{'s' if len(product_ids) > 1 else ''} set to {status_text}."
+        )
+    
+    return redirect('STORE:product_management')

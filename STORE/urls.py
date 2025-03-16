@@ -24,4 +24,9 @@ urlpatterns = [
     # Force active/inactive direct URLs
     path('force-active/<int:product_id>/', views.force_active, name='force_active'),
     path('force-inactive/<int:product_id>/', views.force_inactive, name='force_inactive'),
+
+    # Product Management
+    path('admin/products/', views.product_management, name='product_management'),
+    path('admin/products/edit/<int:product_id>/', views.edit_product, name='edit_product'),
+    path('admin/products/bulk-status-change/', views.bulk_change_product_status, name='bulk_change_product_status'),
 ]
