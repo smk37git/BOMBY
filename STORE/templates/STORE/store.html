@@ -295,25 +295,30 @@
         }
         
         document.addEventListener('DOMContentLoaded', function() {
-            // Stop propagation for the entire toggle container
+            // Prevent clicks on admin toggles from triggering parent links
             document.querySelectorAll('.admin-toggle').forEach(toggle => {
                 toggle.addEventListener('click', function(e) {
                     e.stopPropagation();
                     e.preventDefault();
-                    e.stopImmediatePropagation();
+                    return false;
                 }, true);
             });
             
+            // Make toggle labels work correctly
             document.querySelectorAll('.toggle').forEach(toggle => {
                 toggle.style.cursor = 'pointer';
+                toggle.style.position = 'relative';
+                toggle.style.zIndex = '100';
                 
                 toggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
                     e.preventDefault();
                     
                     const checkbox = this.querySelector('.toggle-checkbox');
                     const productId = this.dataset.productId;
                     const newState = !checkbox.checked;
                     
+                    // Find the status element
                     let statusElement;
                     if (this.closest('.product-item')) {
                         statusElement = this.closest('.product-item').querySelector('.product-status');
@@ -321,28 +326,48 @@
                         statusElement = document.querySelector('.product-status');
                     }
                     
-                    // Update UI
+                    // Update UI immediately
                     checkbox.checked = newState;
-                    statusElement.textContent = newState ? 'ACTIVE' : 'INACTIVE';
-                    statusElement.className = 'product-status ' + (newState ? 'active' : 'inactive');
+                    if (statusElement) {
+                        statusElement.textContent = newState ? 'ACTIVE' : 'INACTIVE';
+                        statusElement.className = 'product-status ' + (newState ? 'active' : 'inactive');
+                    }
                     
-                    // Simple URL construction
+                    // Construct URL
                     const url = newState ? 
                         '/STORE/force-active/' + productId + '/' : 
                         '/STORE/force-inactive/' + productId + '/';
                     
                     console.log("Calling URL:", url);
                     
-                    // Simple fetch
+                    // Make API call
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
                             console.log('Response:', data);
-                            window.location.reload();
                         })
                         .catch(error => {
                             console.error('Error:', error);
+                            // Revert UI on error
+                            checkbox.checked = !newState;
+                            if (statusElement) {
+                                statusElement.textContent = !newState ? 'ACTIVE' : 'INACTIVE';
+                                statusElement.className = 'product-status ' + (!newState ? 'active' : 'inactive');
+                            }
                         });
+                    
+                    return false;
+                });
+            });
+            
+            // Also stop parent links from activating when clicking on toggles
+            document.querySelectorAll('.product-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    // Don't follow the link if clicking on or inside admin-toggle
+                    if (e.target.closest('.admin-toggle')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
                 });
             });
         });
