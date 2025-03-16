@@ -284,15 +284,21 @@
                 const parent = toggle.closest('.window-header');
                 const anchor = toggle.closest('a');
                 if (parent && anchor) {
-                    // Extract the toggle from anchor and append to window-header
                     anchor.removeChild(toggle);
                     parent.appendChild(toggle);
                 }
             });
             
-            // Now set up the toggle event listeners
+            // Correct initial state of checkboxes based on status text
             document.querySelectorAll('.toggle').forEach(toggle => {
-                toggle.style.cursor = 'pointer';
+                const productItem = toggle.closest('.product-item');
+                if (productItem) {
+                    const statusElement = productItem.querySelector('.product-status');
+                    const checkbox = toggle.querySelector('.toggle-checkbox');
+                    
+                    // Ensure checkbox matches the text status
+                    checkbox.checked = statusElement.textContent.trim() === 'ACTIVE';
+                }
                 
                 toggle.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -302,14 +308,15 @@
                     const productId = this.dataset.productId;
                     const newState = !checkbox.checked;
                     
-                    // Simple URL construction
+                    // Update visual state immediately for feedback
+                    checkbox.checked = newState;
+                    
                     const url = newState ? 
                         '/STORE/force-active/' + productId + '/' : 
                         '/STORE/force-inactive/' + productId + '/';
                     
                     console.log("Calling URL:", url);
                     
-                    // Make the request and reload the page
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
