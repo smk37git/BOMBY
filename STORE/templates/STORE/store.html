@@ -275,67 +275,71 @@
         });
     </script>
 
-    <!-- Toggle Script -->
+    <!-- Admin Toggle Script -->
     {% if user.is_staff %}
     <script>
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
-            // Handle toggle clicks directly
-            document.querySelectorAll('.toggle, .admin-toggle').forEach(element => {
-                element.addEventListener('click', function(e) {
+            // Modified to only prevent default, not stop propagation
+            document.querySelectorAll('.admin-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
                     e.preventDefault();
-                    e.stopPropagation();
+                }, false);
+            });
+            
+            document.querySelectorAll('.toggle').forEach(toggle => {
+                toggle.style.cursor = 'pointer';
+                
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
                     
-                    const toggle = this.closest('.toggle');
-                    if (!toggle) return;
-                    
-                    const checkbox = toggle.querySelector('.toggle-checkbox');
-                    const productId = toggle.dataset.productId;
+                    const checkbox = this.querySelector('.toggle-checkbox');
+                    const productId = this.dataset.productId;
                     const newState = !checkbox.checked;
                     
-                    // Find status element
-                    const container = toggle.closest('.product-item') || toggle.closest('.product-card');
-                    const statusElement = container ? container.querySelector('.product-status') : document.querySelector('.product-status');
-                    
-                    // Update UI immediately
-                    checkbox.checked = newState;
-                    if (statusElement) {
-                        statusElement.textContent = newState ? 'ACTIVE' : 'INACTIVE';
-                        statusElement.className = 'product-status ' + (newState ? 'active' : 'inactive');
+                    let statusElement;
+                    if (this.closest('.product-item')) {
+                        statusElement = this.closest('.product-item').querySelector('.product-status');
+                    } else {
+                        statusElement = document.querySelector('.product-status');
                     }
                     
-                    // Call API endpoint directly
+                    // Update UI
+                    checkbox.checked = newState;
+                    statusElement.textContent = newState ? 'ACTIVE' : 'INACTIVE';
+                    statusElement.className = 'product-status ' + (newState ? 'active' : 'inactive');
+                    
+                    // Simple URL construction
                     const url = newState ? 
                         '/STORE/force-active/' + productId + '/' : 
                         '/STORE/force-inactive/' + productId + '/';
                     
-                    console.log("Toggling product status, calling URL:", url);
+                    console.log("Calling URL:", url);
                     
+                    // Simple fetch
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
-                            console.log('Success:', data);
+                            console.log('Response:', data);
                         })
                         .catch(error => {
                             console.error('Error:', error);
-                            // Revert UI on error
-                            checkbox.checked = !newState;
-                            if (statusElement) {
-                                statusElement.textContent = !newState ? 'ACTIVE' : 'INACTIVE';
-                                statusElement.className = 'product-status ' + (!newState ? 'active' : 'inactive');
-                            }
                         });
-                    
-                    return false;
-                });
-            });
-            
-            // Prevent parent links from working when clicking toggles
-            document.querySelectorAll('.product-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    if (e.target.closest('.admin-toggle')) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    }
                 });
             });
         });
