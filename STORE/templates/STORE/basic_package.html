@@ -106,7 +106,6 @@
     </div>
 
     <script>
-        // Gallery functionality
         document.addEventListener('DOMContentLoaded', function() {
             // Image gallery functionality
             const thumbnails = document.querySelectorAll('.thumbnail');
@@ -123,50 +122,23 @@
                 });
             });
             
-            // Helper function to get CSRF token
-            function getCookie(name) {
-                let cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    const cookies = document.cookie.split(';');
-                    for (let i = 0; i < cookies.length; i++) {
-                        const cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
-            }
-            
-            // Product status toggle functionality
-            document.querySelectorAll('.admin-toggle').forEach(toggle => {
-                toggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
+            // Disable any link behavior if clicking toggle
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.toggle') || e.target.closest('.admin-toggle')) {
                     e.preventDefault();
-                    return false;
-                }, true);
-            });
-            
-            document.querySelectorAll('.toggle').forEach(toggle => {
-                toggle.style.cursor = 'pointer';
-                toggle.style.position = 'relative';
-                toggle.style.zIndex = '100';
-                
-                toggle.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    e.preventDefault();
                     
-                    const checkbox = this.querySelector('.toggle-checkbox');
-                    const productId = this.dataset.productId;
+                    // Get the toggle element
+                    const toggle = e.target.closest('.toggle');
+                    if (!toggle) return;
+                    
+                    const checkbox = toggle.querySelector('.toggle-checkbox');
+                    const productId = toggle.dataset.productId;
                     const newState = !checkbox.checked;
                     
-                    let statusElement;
-                    if (this.closest('.product-item')) {
-                        statusElement = this.closest('.product-item').querySelector('.product-status');
-                    } else {
-                        statusElement = document.querySelector('.product-status');
-                    }
+                    // Find status element
+                    const container = toggle.closest('.product-item') || toggle.closest('.product-card');
+                    const statusElement = container ? container.querySelector('.product-status') : document.querySelector('.product-status');
                     
                     // Update UI immediately
                     checkbox.checked = newState;
@@ -175,18 +147,17 @@
                         statusElement.className = 'product-status ' + (newState ? 'active' : 'inactive');
                     }
                     
-                    // Construct URL
+                    // Call API endpoint directly
                     const url = newState ? 
                         '/STORE/force-active/' + productId + '/' : 
                         '/STORE/force-inactive/' + productId + '/';
                     
-                    console.log("Calling URL:", url);
+                    console.log("Toggling product status, calling URL:", url);
                     
-                    // Make API call
                     fetch(url)
                         .then(response => response.json())
                         .then(data => {
-                            console.log('Response:', data);
+                            console.log('Success:', data);
                         })
                         .catch(error => {
                             console.error('Error:', error);
@@ -197,10 +168,8 @@
                                 statusElement.className = 'product-status ' + (!newState ? 'active' : 'inactive');
                             }
                         });
-                    
-                    return false;
-                });
-            });
+                }
+            }, true);
         });
     </script>
 {% endblock %}
