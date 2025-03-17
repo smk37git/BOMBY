@@ -81,6 +81,23 @@
     justify-content: center;
 }
 
+.back-link {
+    display: inline-flex;
+    margin-right: 5px;
+    align-items: center;
+    color: white;
+    text-decoration: none;
+    padding: 0.6rem 1.2rem;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
 /* Order Status Badge */
 .order-badge {
     padding: 0.4rem 1rem;
