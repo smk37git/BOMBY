@@ -19,7 +19,7 @@
     </div>
     
     <div class="order-form-container">
-        <form method="post" class="order-form">
+        <form method="post">
             {% csrf_token %}
             
             <div class="order-card">
@@ -33,7 +33,7 @@
                             <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
                             {{ field }}
                             {% if field.help_text %}
-                            <small class="form-text text-muted">{{ field.help_text }}</small>
+                            <small class="form-text">{{ field.help_text }}</small>
                             {% endif %}
                             {% if field.errors %}
                             <div class="error-message">
@@ -45,7 +45,7 @@
                     </div>
                 </div>
             </div>
-            <div class="form-actions">
+            <div class="action-container">
                 <button type="submit" class="submit-button">Submit Information</button>
             </div>
         </form>
@@ -53,20 +53,17 @@
 </div>
 
 <script>
-    // Add target="_blank" to all links in form labels
     document.addEventListener('DOMContentLoaded', function() {
         const labels = document.querySelectorAll('.form-label');
         
         labels.forEach(label => {
-            // Extract URLs from label text
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             const labelHtml = label.innerHTML;
             
-            // Replace URLs with clickable links
             if (urlRegex.test(labelHtml)) {
                 const newHtml = labelHtml.replace(urlRegex, url => {
                     const displayUrl = url.length > 40 ? url.substring(0, 37) + '...' : url;
-                    return `<a href="${url}" target="_blank" class="form-link">${displayUrl}</a>`;
+                    return `<a href="${url}" target="_blank" class="form-link" title="${url}">${displayUrl}</a>`;
                 });
                 
                 label.innerHTML = newHtml;

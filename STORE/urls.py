@@ -37,10 +37,11 @@ urlpatterns = [
     path('admin/products/edit/<int:product_id>/', views.edit_product, name='edit_product'),
     path('admin/products/bulk-status-change/', views.bulk_change_product_status, name='bulk_change_product_status'),
     path('products/create/', views.create_product, name='create_product'),
-path('products/delete/', views.delete_products, name='delete_products'),
+    path('products/delete/', views.delete_products, name='delete_products'),
 
     # Order Management
     path('admin/orders/', views.order_management, name='order_management'),
     path('admin/orders/change-status/', views.admin_change_order_status, name='admin_change_order_status'),
     path('admin/orders/delete/', views.admin_delete_orders, name='admin_delete_orders'),
+    path('admin/orders/add/', views.admin_add_order, name='admin_add_order'),
 ]

@@ -120,9 +120,33 @@
                     <button id="btn-delete-orders" type="submit" class="panel-action-button danger" disabled>Delete Selected Orders</button>
                 </form>
             </div>
+            
+            <div class="action-section">
+                <h4>Add New Order</h4>
+                <form id="add-order-form" method="post" action="{% url 'STORE:admin_add_order' %}">
+                    {% csrf_token %}
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label for="user_select">Select User:</label>
+                        <select name="user_id" id="user_select" class="order-status-select" required>
+                            <option value="">-- Select User --</option>
+                            {% for user in all_users %}
+                                <option value="{{ user.id }}">{{ user.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 10px;">
+                        <label for="product_select">Select Product:</label>
+                        <select name="product_id" id="product_select" class="order-status-select" required>
+                            <option value="">-- Select Product --</option>
+                            {% for product in all_products %}
+                                <option value="{{ product.id }}">{{ product.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="panel-action-button">Create Order</button>
+                </form>
+            </div>
         </div>
-    </div>
-</div>
 {% endblock %}
 
 {% block extra_js %}

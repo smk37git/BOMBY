@@ -153,12 +153,17 @@
                 <h3>Promotional Wall Links</h3>
                 <p class="promo-instructions" style="margin-top: 10px; color: white;">Select up to 2 social links to display on the promotional wall.</p>
                 <p class="promo-instructions" style="margin-top: 10px; color: white;">Don't worry, your other social links will still show on your profile!</p>
+                
                 {% if messages %}
                 <div class="messages">
                     {% for message in messages %}
-                    <div class="message {% if message.tags %}{{ message.tags }}{% endif %}" style="background-color: red; color: white; font-size: 20px;">
-                        {{ message }}
-                    </div>
+                        {% with message_text=message|stringformat:"s" %}
+                            {% if 'order' not in message_text|lower and 'created' not in message_text|lower %}
+                                <div class="message {% if message.tags %}{{ message.tags }}{% endif %}" style="background-color: #37000556; color: white; font-size: 16px;">
+                                    {{ message }}
+                                </div>
+                            {% endif %}
+                        {% endwith %}
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -233,6 +238,11 @@
             
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
+                    // Remove any order-related messages from localStorage
+                    if (localStorage.getItem('orderMessage')) {
+                        localStorage.removeItem('orderMessage');
+                    }
+                    
                     const checkboxes = document.querySelectorAll('input[name="promo_links"]');
                     const warningElement = document.getElementById('promo-warning');
                     const form = document.getElementById('promo-links-form');
@@ -344,7 +354,7 @@
         </a>
     </div>
 
-    <!-- Time Conversrion Script -->
+    <!-- Time Conversion Script -->
      <script>
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('[data-utc]').forEach(function(el) {

@@ -10,6 +10,7 @@ from .models import Order, OrderForm, OrderMessage, OrderAttachment, Review, Pro
 from .forms import OrderQuestionsForm, MessageForm, ReviewForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
+from django.contrib.auth import get_user_model
 import json
 
 def store(request):
@@ -497,9 +498,16 @@ def order_management(request):
     else:
         orders = Order.objects.all().order_by('-created_at')
     
+    # Get all users and products for the add order form
+    User = get_user_model()
+    all_users = User.objects.all().order_by('username')
+    all_products = Product.objects.filter(is_active=True).order_by('name')
+    
     context = {
         'orders': orders,
-        'search_query': search_query
+        'search_query': search_query,
+        'all_users': all_users,
+        'all_products': all_products
     }
     
     response = render(request, 'STORE/order_management.html', context)
@@ -534,6 +542,45 @@ def admin_change_order_status(request):
             request, 
             f"{updated_count} order{'s' if updated_count > 1 else ''} updated to {dict(Order.STATUS_CHOICES)[new_status]}."
         )
+    
+    return redirect('STORE:order_management')
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_add_order(request):
+    """Add a new order for a user"""
+    User = get_user_model()
+    
+    user_id = request.POST.get('user_id')
+    product_id = request.POST.get('product_id')
+    
+    try:
+        user = User.objects.get(id=user_id)
+        product = Product.objects.get(id=product_id)
+        
+        # Create the order
+        order = Order.objects.create(
+            user=user,
+            product=product,
+            status='pending'
+        )
+        
+        # Update user role to client if they aren't already
+        if hasattr(user, 'is_client') and not user.is_client:
+            if hasattr(user, 'promote_to_client'):
+                user.promote_to_client()
+        
+        messages.success(
+            request,
+            f"Order #{order.id} for {product.name} created successfully for user {user.username}."
+        )
+    except User.DoesNotExist:
+        messages.error(request, "Selected user does not exist.")
+    except Product.DoesNotExist:
+        messages.error(request, "Selected product does not exist.")
+    except Exception as e:
+        messages.error(request, f"Error creating order: {str(e)}")
     
     return redirect('STORE:order_management')
 
