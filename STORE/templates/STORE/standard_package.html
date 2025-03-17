@@ -50,7 +50,7 @@
         
         <!-- Right side: Product info -->
         <div class="product-card">
-            <h1 class="product-title">BASIC PACKAGE
+            <h1 class="product-title">STANDARD PACKAGE
                 <div class="product-status {% if product.is_active %}active{% else %}inactive{% endif %}">
                     {% if product.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                 </div>
@@ -82,7 +82,7 @@
             <div class="product-purchase">
                 <div class="price-section">
                     <div class="price-label">Price:</div>
-                    <div class="price-value">$25.00</div>
+                    <div class="price-value">$45.00</div>
                 </div>
                 <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">PURCHASE NOW</a>
             </div>
@@ -267,7 +267,6 @@
         });
     });
 
-    // Add date/time conversion to review dates
     document.addEventListener('DOMContentLoaded', function() {
         // Format dates to local timezone
         const formatLocalDate = (dateString) => {

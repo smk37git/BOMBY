@@ -32,6 +32,7 @@
             <div class="section-header">
                 <h2>Products</h2>
                 <div class="action-buttons">
+                    <a href="{% url 'STORE:create_product' %}" class="action-button">Add New Product</a>
                     <form method="get" action="{% url 'STORE:product_management' %}">
                         <div class="search-container">
                             <input type="text" name="search" placeholder="Search by product name" value="{{ search_query }}" class="search-input">
@@ -106,6 +107,15 @@
                     <button id="btn-change-status" type="submit" class="panel-action-button" disabled>Update</button>
                 </form>
             </div>
+            
+            <div class="action-section">
+                <h4>Delete Products</h4>
+                <form id="delete-products-form" method="post" action="{% url 'STORE:delete_products' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="selected-products-delete" name="selected_products" value="">
+                    <button id="btn-delete-products" type="submit" class="panel-action-button danger" disabled>Delete Selected</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -123,6 +133,7 @@
         const editProductBtn = document.getElementById('btn-edit-product');
         const productStatusSelect = document.querySelector('.product-status-select');
         const changeStatusBtn = document.getElementById('btn-change-status');
+        const deleteProductsBtn = document.getElementById('btn-delete-products');
         
         // Update action panel button states based on selection
         function updateButtonStates() {
@@ -135,6 +146,7 @@
             // Enable/disable buttons based on selection
             productStatusSelect.disabled = !hasSelection;
             changeStatusBtn.disabled = !hasSelection;
+            deleteProductsBtn.disabled = !hasSelection;
             
             // Handle the Edit Product button
             if (selectedProducts.length === 1) {
@@ -191,6 +203,22 @@
             }
             
             document.getElementById('selected-products-status').value = getSelectedProducts().join(',');
+        });
+        
+        // Handler for Delete Products form submit
+        document.getElementById('delete-products-form').addEventListener('submit', function(e) {
+            if (deleteProductsBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Get confirmation before delete
+            if (!confirm('Are you sure you want to delete the selected products? This action cannot be undone.')) {
+                e.preventDefault();
+                return;
+            }
+            
+            document.getElementById('selected-products-delete').value = getSelectedProducts().join(',');
         });
         
         // Initialize button states

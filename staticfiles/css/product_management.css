@@ -146,6 +146,7 @@
 }
 
 .product-select-checkbox,
+.order-select-checkbox,
 #select-all-checkbox {
     cursor: pointer;
     width: 18px;
@@ -269,8 +270,9 @@
     box-shadow: none;
 }
 
-/* Product status selector */
-.product-status-select {
+/* Status selectors */
+.product-status-select,
+.order-status-select {
     padding: 12px 15px;
     border: none;
     border-radius: 8px;
@@ -281,12 +283,13 @@
     margin-bottom: 10px;
 }
 
-.product-status-select[disabled] {
+.product-status-select[disabled],
+.order-status-select[disabled] {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-/* Product Status Badge Styles - Matching store.css */
+/* Status Badge Styles */
 .account-type {
     display: inline-block;
     padding: 5px 12px;
@@ -309,6 +312,12 @@
     background-color: rgba(231, 76, 60, 0.2);
     color: #e74c3c;
     border: 1px solid #e74c3c;
+}
+
+.account-type.primary {
+    background-color: rgba(13, 110, 253, 0.2);
+    color: #0d6efd;
+    border: 1px solid #0d6efd;
 }
 
 /* Messages Styles */

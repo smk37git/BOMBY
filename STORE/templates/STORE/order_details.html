@@ -1,0 +1,529 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Helper function to apply timezone conversion
+        function convertToLocalTime(dateString) {
+            if (!dateString || dateString === '') return '';
+            
+            try {
+                // Parse the date - handle various input formats
+                let date;
+                
+                // Try ISO format first
+                if (dateString.includes('T') || dateString.includes('Z')) {
+                    date = new Date(dateString);
+                }
+                // Handle SQL-like format: YYYY-MM-DD HH:MM:SS
+                else if (dateString.match(/\d{4}-\d{2}-\d{2}/)) {
+                    date = new Date(dateString.replace(' ', 'T'));
+                }
+                // Handle US format: Month D, YYYY, H:MM AM/PM
+                else if (dateString.match(/[A-Za-z]+ \d{1,2}, \d{4}/)) {
+                    date = new Date(dateString);
+                } 
+                // If it's just a time (HH:MM)
+                else if (dateString.match(/^\d{1,2}:\d{2}(:\d{2})?( [APap][Mm])?$/)) {
+                    const now = new Date();
+                    const today = now.toLocaleDateString();
+                    date = new Date(today + ' ' + dateString);
+                }
+                else {
+                    // Try generic parsing as last resort
+                    date = new Date(dateString);
+                }
+                
+                // Check if date is valid
+                if (isNaN(date.getTime())) {
+                    console.warn('Invalid date:', dateString);
+                    return dateString;
+                }
+                
+                // Format based on whether it includes time or is just a date
+                if (dateString.includes(':')) {
+                    // Format with date and time
+                    return date.toLocaleString('en-US', {
+                        year: 'numeric',
+                        month: 'numeric',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true
+                    });
+                } else {
+                    // Format date only
+                    return date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'numeric',
+                        day: 'numeric'
+                    });
+                }
+            } catch (e) {
+                console.error('Error converting date:', e, dateString);
+                return dateString;
+            }
+        }
+        
+        // Function to format just time (for message timestamps)
+        function formatTimeOnly(timeString) {
+            if (!timeString) return '';
+            
+            try {
+                // For timestamp that's just time
+                const now = new Date();
+                const today = now.toLocaleDateString();
+                const date = new Date(today + ' ' + timeString);
+                
+                if (isNaN(date.getTime())) {
+                    return timeString;
+                }
+                
+                return date.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            } catch (e) {
+                console.error('Error formatting time:', e);
+                return timeString;
+            }
+        }
+        
+        // 1. Fix info values in the details card
+        document.querySelectorAll('.info-value:not(#due-date)').forEach(element => {
+            if (element.textContent.trim()) {
+                element.textContent = convertToLocalTime(element.textContent.trim());
+            }
+        });
+        
+        // 2. Fix due date (which has a data attribute)
+        const dueDate = document.getElementById('due-date');
+        if (dueDate && dueDate.dataset.date) {
+            dueDate.textContent = convertToLocalTime(dueDate.dataset.date);
+        }
+        
+        // 3. Fix event times in timeline events (with data-iso-date)
+        document.querySelectorAll('.event-time[data-iso-date]').forEach(element => {
+            if (element.getAttribute('data-iso-date')) {
+                element.textContent = convertToLocalTime(element.getAttribute('data-iso-date'));
+            }
+        });
+        
+        // 4. Fix regular event times without data attributes
+        document.querySelectorAll('.event-time:not([data-iso-date])').forEach(element => {
+            if (element.textContent.trim()) {
+                element.textContent = convertToLocalTime(element.textContent.trim());
+            }
+        });
+        
+        // 5. Fix message timestamps (just time, not date)
+        document.querySelectorAll('.message-time').forEach(element => {
+            if (element.textContent.trim()) {
+                element.textContent = formatTimeOnly(element.textContent.trim());
+            }
+        });
+        
+        // 6. Fix review dates
+        document.querySelectorAll('.review-date').forEach(element => {
+            if (element.textContent.trim()) {
+                element.textContent = convertToLocalTime(element.textContent.trim());
+            }
+        });
+        
+        // Target specifically the messages in messages-container
+        const orderMessages = document.querySelectorAll('#messages-container .message, #messages-container .message-mine, #messages-container .message-other, #messages-container .timeline-event, #messages-container .date-divider');
+        
+        // Remove any auto-dismiss timeouts
+        orderMessages.forEach(message => {
+            message.style.opacity = '1';
+            message.style.visibility = 'visible';
+            message.style.display = 'block';
+        });
+        
+        // Scroll to bottom of messages container
+        const messagesContainer = document.getElementById('messages-container');
+        if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // File upload preview functionality
+        const fileInput = document.getElementById('id_attachments');
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                var fileList = document.getElementById('file-list');
+                fileList.innerHTML = '';
+                
+                if (this.files.length > 0) {
+                    fileList.classList.add('has-files');
+                    
+                    for (var i = 0; i < this.files.length; i++) {
+                        var fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        fileItem.innerHTML = '<i class="fas fa-file"></i> ' + this.files[i].name;
+                        fileList.appendChild(fileItem);
+                    }
+                } else {
+                    fileList.classList.remove('has-files');
+                }
+            });
+        }
+        
+        // AJAX form submission
+        const form = document.getElementById('message-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const xhr = new XMLHttpRequest();
+                
+                xhr.open('POST', window.location.href, true);
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                
+                xhr.onload = function() {
+                    if (xhr.status === 200) {
+                        window.location.reload();
+                    } else {
+                        console.error('Error sending message');
+                    }
+                };
+                
+                xhr.send(formData);
+                document.querySelector('textarea[name="message"]').value = '';
+            });
+        }
+    });
+</script>
+
+<script src="{% static 'js/order-timer.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="order-header-wrapper">
+        <div class="order-header">
+            <h1>Order #{{ order.id }}</h1>
+            <span class="order-badge {% if order.status == 'pending' %}badge-warning
+                  {% elif order.status == 'in_progress' %}badge-primary
+                  {% else %}badge-success{% endif %}">
+                {{ order.get_status_display }}
+            </span>
+        </div>
+    </div>
+    
+    <div class="order-grid">
+        <div class="order-sidebar">
+            <div class="order-card mb-4">
+                <div class="card-header">
+                    <h5>Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="order-info">
+                        <div class="info-item">
+                            <span class="info-label">Product:</span>
+                            <span class="info-value">{{ order.product.name }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Created:</span>
+                            <span class="info-value" data-iso-date="{{ order.created_at|date:'c' }}">{{ order.created_at }}</span>
+                        </div>
+                        {% if order.due_date %}
+                        <div class="info-item">
+                            <span class="info-label">Due Date:</span>
+                            <span class="info-value" id="due-date" data-date="{{ order.due_date|date:'c' }}">{{ order.due_date }}</span>
+                        </div>
+                        {% if order.status == 'in_progress' %}
+                        <div class="order-countdown" id="countdown">
+                            Loading countdown...
+                        </div>
+                        {% endif %}
+                        {% endif %}
+                        {% if order.completed_at %}
+                        <div class="info-item">
+                            <span class="info-label">Completed:</span>
+                            <span class="info-value" data-iso-date="{{ order.completed_at|date:'c' }}">{{ order.completed_at }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            {% if order.status == 'pending' and request.user == order.user %}
+            <div class="action-container">
+                <a href="{% url 'STORE:order_form' order.id %}" class="action-button">
+                    <i class="fas fa-tasks"></i> Complete Order Information
+                </a>
+            </div>
+            {% endif %}
+            
+            {% if order.status == 'in_progress' and request.user.is_staff %}
+            <div class="action-container">
+                <a href="{% url 'STORE:mark_completed' order.id %}" class="action-button">
+                    <i class="fas fa-check-circle"></i> Mark as Completed
+                </a>
+            </div>
+            {% endif %}
+            
+            {% if review_form %}
+            <div class="order-card mb-4">
+                <div class="card-header">
+                    <h5>Leave a Review</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'STORE:submit_review' order.id %}">
+                        {% csrf_token %}
+                        <!-- The rating select will be hidden and replaced by stars via JS -->
+                        <div class="form-group">
+                            {{ review_form.rating }}
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ review_form.comment.id_for_label }}">Comment:</label>
+                            {{ review_form.comment }}
+                        </div>
+                        <button type="submit" class="review-submit-btn">
+                            <i class="fas fa-star"></i> Submit Review
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if order_review %}
+            <div class="order-card mb-4">
+                <div class="card-header">
+                    <h5>Review</h5>
+                </div>
+                <div class="card-body">
+                    <div class="review-rating mb-2">
+                        {% for i in "12345" %}
+                        <span class="fa fa-star {% if i|add:'0' <= order_review.rating %}star-active{% endif %}"></span>
+                        {% endfor %}
+                    </div>
+                    <p class="review-comment">{{ order_review.comment }}</p>
+                    <small class="review-date" data-iso-date="{{ order_review.created_at|date:'c' }}">{{ order_review.created_at }}</small>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="order-main">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <h5><i class="fas fa-comment-alt"></i> Messages</h5>
+                </div>
+                <div class="messages-container" id="messages-container">
+                    <!-- Order Timeline Events -->
+                    <div class="timeline-event">
+                        <div class="event-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-title">
+                                Order placed
+                                <span class="event-time" data-iso-date="{{ order.created_at|date:'c' }}">{{ order.created_at }}</span>
+                            </div>
+                            <div class="event-description">
+                                {{ order.user.username }} placed an order for {{ order.product.name }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if order.status != 'pending' %}
+                    <div class="timeline-event">
+                        <div class="event-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-title">
+                                Order started
+                                <span class="event-time" data-iso-date="{{ order.form.submitted_at|date:'c' }}">{{ order.form.submitted_at }}</span>
+                            </div>
+                            <div class="event-description">
+                                The order is now in progress
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if order.status == 'completed' %}
+                    <div class="timeline-event">
+                        <div class="event-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="event-content">
+                            <div class="event-title">
+                                Order completed
+                                <span class="event-time" data-iso-date="{{ order.completed_at|date:'c' }}">{{ order.completed_at }}</span>
+                            </div>
+                            <div class="event-description">
+                                Your order has been delivered
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Message Groups By Date -->
+                    {% if messages_list %}
+                        {% regroup messages_list by created_at.date as message_groups %}
+                        {% for group in message_groups %}
+                            <div class="date-divider">{{ group.grouper|date }}</div>
+                            
+                            {% for msg in group.list %}
+                            <div class="message {% if msg.sender == request.user %}message-mine{% else %}message-other{% endif %}">
+                                <div class="message-header">
+                                    <div class="message-user">
+                                        <div class="user-avatar">
+                                            {% if msg.sender.profile_picture %}
+                                            <img src="{{ msg.sender.profile_picture.url }}" alt="{{ msg.sender.username }}">
+                                            {% else %}
+                                            <div class="avatar-placeholder">{{ msg.sender.username|first }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <strong class="username">{{ msg.sender.username }}</strong>
+                                    </div>
+                                    <small class="message-time" data-iso-date="{{ msg.created_at|date:'c' }}">{{ msg.created_at|time }}</small>
+                                </div>
+                                <div class="message-body">
+                                    <p>{{ msg.message }}</p>
+                                    {% if msg.attachments.exists %}
+                                    <div class="attachments">
+                                        {% for attachment in msg.attachments.all %}
+                                        <a href="{{ attachment.file.url }}" class="attachment-link" target="_blank">
+                                            <i class="fas fa-paperclip"></i> {{ attachment.filename }}
+                                        </a>
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% endfor %}
+                    {% else %}
+                        <div class="no-messages">
+                            <p><i class="fas fa-comments"></i> No messages yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="chat-form">
+                    <form method="post" enctype="multipart/form-data" class="message-form" id="message-form">
+                        {% csrf_token %}
+                        <div class="message-input-container">
+                            {{ form.message }}
+                        </div>
+                        <div class="message-actions">
+                            <div class="file-upload-wrapper">
+                                <label for="id_attachments" class="file-upload-btn">
+                                    <i class="fas fa-paperclip"></i> Add Files
+                                </label>
+                                <input type="file" name="attachments" id="id_attachments" multiple class="file-input">
+                                <div id="file-list" class="file-list"></div>
+                            </div>
+                            <button type="submit" class="send-button">
+                                <i class="fas fa-paper-plane"></i> Send
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            {% if order.form %}
+            <div class="order-card mb-4">
+                <div class="card-header">
+                    <h5>Order Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-fields">
+                        <div class="form-group">
+                            <label class="form-label">Computer Specifications:</label>
+                            <p>{{ order.form.question1 }}</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Internet Speed:</label>
+                            <p>{{ order.form.question2 }}</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Discord:</label>
+                            <p>{{ order.form.question3 }}</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">TeamViewer:</label>
+                            <p>{{ order.form.question4 }}</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">About Client:</label>
+                            <p>{{ order.form.question5 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    // Rating System
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get the select element
+        const selectRating = document.querySelector('select[name="rating"]');
+        if (!selectRating) return;
+        
+        // Create container for our rating system
+        const ratingContainer = document.createElement('div');
+        ratingContainer.className = 'rating-container';
+        
+        // Add a label
+        const ratingLabel = document.createElement('span');
+        ratingLabel.textContent = 'Rating:';
+        ratingLabel.className = 'rating-label';
+        
+        // Create the star container
+        const starContainer = document.createElement('div');
+        starContainer.className = 'star-rating';
+        
+        // Create 5 stars with radio buttons - in descending order for proper CSS selection
+        for (let i = 5; i >= 1; i--) {
+            // Create radio input
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = 'star-rating';
+            input.id = `star-${i}`;
+            input.value = i;
+            
+            // Create label (star)
+            const label = document.createElement('label');
+            label.htmlFor = `star-${i}`;
+            label.innerHTML = '★';
+            
+            // When clicked, update the select value
+            input.addEventListener('change', function() {
+                selectRating.value = this.value;
+            });
+            
+            // Add to container - input first, then label
+            starContainer.appendChild(input);
+            starContainer.appendChild(label);
+        }
+        
+        // Add elements to rating container
+        ratingContainer.appendChild(ratingLabel);
+        ratingContainer.appendChild(starContainer);
+        
+        // Add the custom rating control before the select
+        selectRating.parentNode.insertBefore(ratingContainer, selectRating);
+        
+        // Style the submit button if it exists
+        const submitButton = document.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.className = 'review-submit-btn';
+        }
+    });
+</script>
+{% endblock %}

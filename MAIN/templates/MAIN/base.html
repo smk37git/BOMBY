@@ -33,7 +33,7 @@
                 <a class="nav-link dropdown-toggle">Store <span class="dropdown-arrow">▾</span></a>
                 <div class="dropdown-content">
                     <a href="{% url 'STORE:store' %}">View Store</a>
-                    <a href="#">Orders</a>
+                    <a href="{% url 'STORE:my_orders' %}">My Orders</a>
                     <a href="{% url 'ACCOUNTS:promotional_wall' %}">Promotional Wall</a>
                 </div>
             </div>
@@ -116,7 +116,12 @@
             // Auto-dismiss messages
             const messages = document.querySelectorAll('.message');
             messages.forEach(message => {
-                // Auto-dismiss after 5 seconds
+                // Skip messages in message containers (chat messages)
+                if (message.closest('#messages-container')) {
+                    return; // Skip this message - it's in a chat
+                }
+                
+                // Auto-dismiss after 5 seconds for non-chat messages
                 setTimeout(() => {
                     message.style.opacity = '0';
                     setTimeout(() => {

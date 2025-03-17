@@ -146,6 +146,7 @@
 }
 
 .product-select-checkbox,
+.order-select-checkbox,
 #select-all-checkbox {
     cursor: pointer;
     width: 18px;
@@ -269,8 +270,9 @@
     box-shadow: none;
 }
 
-/* Product status selector */
-.product-status-select {
+/* Status selectors */
+.product-status-select,
+.order-status-select {
     padding: 12px 15px;
     border: none;
     border-radius: 8px;
@@ -281,34 +283,38 @@
     margin-bottom: 10px;
 }
 
-.product-status-select[disabled] {
+.product-status-select[disabled],
+.order-status-select[disabled] {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-/* Product Status Badge Styles - Matching store.css */
-.account-type {
-    display: inline-block;
-    padding: 5px 12px;
-    border-radius: 6px;
+.order-badge {
+    padding: 0.4rem 1rem;
     font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
+    font-weight: bold;
+    border-radius: 50px;
     letter-spacing: 0.5px;
-    text-align: center;
-    min-width: 80px;
+    text-transform: uppercase;
 }
 
-.account-type.admin {
-    background-color: rgba(39, 174, 96, 0.2);
-    color: #2ecc71;
-    border: 1px solid #2ecc71;
+.badge-warning {
+    background-color: rgba(255, 7, 7, 0.2);
+    color: #ff3f3f;
+    border: 1px solid #ff0707;
 }
 
-.account-type.member {
-    background-color: rgba(231, 76, 60, 0.2);
-    color: #e74c3c;
-    border: 1px solid #e74c3c;
+.badge-primary {
+    background-color: rgba(253, 221, 13, 0.2);
+    color: #ffc824;
+    border: 1px solid #ffc107;
+    white-space: nowrap;
+}
+
+.badge-success {
+    background-color: rgba(25, 135, 84, 0.2);
+    color: #33ffa0;
+    border: 1px solid #198754;
 }
 
 /* Messages Styles */
