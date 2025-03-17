@@ -30,9 +30,22 @@ class Order(models.Model):
     completed_at = models.DateTimeField(blank=True, null=True)
     
     def save(self, *args, **kwargs):
-        # Set due date when status changes to in_progress (3 days from now)
+        # Set due date when status changes to in_progress based on product type
         if self.status == 'in_progress' and not self.due_date:
-            self.due_date = timezone.now() + timezone.timedelta(days=3)
+            # Default is no due date
+            days = None
+            
+            # Set different timers based on package type
+            if self.product_id == 1:  # Basic Package
+                days = 3
+            elif self.product_id == 2:  # Standard Package
+                days = 5
+            elif self.product_id == 3:  # Premium Package
+                days = 7
+                
+            # Only set due date if days is specified
+            if days is not None:
+                self.due_date = timezone.now() + timezone.timedelta(days=days)
         
         # Set completed_at when status changes to completed
         if self.status == 'completed' and not self.completed_at:
