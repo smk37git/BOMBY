@@ -5,6 +5,10 @@
     <link rel="stylesheet" href="{% static 'css/orders.css' %}">
 {% endblock %}
 
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -13,31 +17,8 @@
             if (!dateString || dateString === '') return '';
             
             try {
-                // Parse the date - handle various input formats
-                let date;
-                
-                // Try ISO format first
-                if (dateString.includes('T') || dateString.includes('Z')) {
-                    date = new Date(dateString);
-                }
-                // Handle SQL-like format: YYYY-MM-DD HH:MM:SS
-                else if (dateString.match(/\d{4}-\d{2}-\d{2}/)) {
-                    date = new Date(dateString.replace(' ', 'T'));
-                }
-                // Handle US format: Month D, YYYY, H:MM AM/PM
-                else if (dateString.match(/[A-Za-z]+ \d{1,2}, \d{4}/)) {
-                    date = new Date(dateString);
-                } 
-                // If it's just a time (HH:MM)
-                else if (dateString.match(/^\d{1,2}:\d{2}(:\d{2})?( [APap][Mm])?$/)) {
-                    const now = new Date();
-                    const today = now.toLocaleDateString();
-                    date = new Date(today + ' ' + dateString);
-                }
-                else {
-                    // Try generic parsing as last resort
-                    date = new Date(dateString);
-                }
+                // Parse the date
+                const date = new Date(dateString);
                 
                 // Check if date is valid
                 if (isNaN(date.getTime())) {
@@ -45,25 +26,15 @@
                     return dateString;
                 }
                 
-                // Format based on whether it includes time or is just a date
-                if (dateString.includes(':')) {
-                    // Format with date and time
-                    return date.toLocaleString('en-US', {
-                        year: 'numeric',
-                        month: 'numeric',
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: 'numeric',
-                        hour12: true
-                    });
-                } else {
-                    // Format date only
-                    return date.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'numeric',
-                        day: 'numeric'
-                    });
-                }
+                // Format with date and time
+                return date.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true
+                });
             } catch (e) {
                 console.error('Error converting date:', e, dateString);
                 return dateString;
@@ -71,17 +42,14 @@
         }
         
         // Function to format just time (for message timestamps)
-        function formatTimeOnly(timeString) {
-            if (!timeString) return '';
+        function formatTimeOnly(dateString) {
+            if (!dateString) return '';
             
             try {
-                // For timestamp that's just time
-                const now = new Date();
-                const today = now.toLocaleDateString();
-                const date = new Date(today + ' ' + timeString);
+                const date = new Date(dateString);
                 
                 if (isNaN(date.getTime())) {
-                    return timeString;
+                    return dateString;
                 }
                 
                 return date.toLocaleTimeString('en-US', {
@@ -91,12 +59,12 @@
                 });
             } catch (e) {
                 console.error('Error formatting time:', e);
-                return timeString;
+                return dateString;
             }
         }
         
         // 1. Fix info values in the details card
-        document.querySelectorAll('.info-value:not(#due-date)').forEach(element => {
+        document.querySelectorAll('.info-value').forEach(element => {
             if (element.textContent.trim()) {
                 element.textContent = convertToLocalTime(element.textContent.trim());
             }
@@ -108,31 +76,14 @@
             dueDate.textContent = convertToLocalTime(dueDate.dataset.date);
         }
         
-        // 3. Fix event times in timeline events (with data-iso-date)
-        document.querySelectorAll('.event-time[data-iso-date]').forEach(element => {
+        // 3. Fix event times with data-iso-date attribute
+        document.querySelectorAll('[data-iso-date]').forEach(element => {
             if (element.getAttribute('data-iso-date')) {
-                element.textContent = convertToLocalTime(element.getAttribute('data-iso-date'));
-            }
-        });
-        
-        // 4. Fix regular event times without data attributes
-        document.querySelectorAll('.event-time:not([data-iso-date])').forEach(element => {
-            if (element.textContent.trim()) {
-                element.textContent = convertToLocalTime(element.textContent.trim());
-            }
-        });
-        
-        // 5. Fix message timestamps (just time, not date)
-        document.querySelectorAll('.message-time').forEach(element => {
-            if (element.textContent.trim()) {
-                element.textContent = formatTimeOnly(element.textContent.trim());
-            }
-        });
-        
-        // 6. Fix review dates
-        document.querySelectorAll('.review-date').forEach(element => {
-            if (element.textContent.trim()) {
-                element.textContent = convertToLocalTime(element.textContent.trim());
+                if (element.classList.contains('message-time')) {
+                    element.textContent = formatTimeOnly(element.getAttribute('data-iso-date'));
+                } else {
+                    element.textContent = convertToLocalTime(element.getAttribute('data-iso-date'));
+                }
             }
         });
         
@@ -314,7 +265,7 @@
             <!-- Back link -->
             <div class="product-navigation">
                 <a href="{% url 'STORE:my_orders' %}" class="back-link">
-                    <i class="fas fa-arrow-left"></i>            Back to Orders
+                    <i class="fas fa-arrow-left" style="margin-right: 5px;"></i>Back to Orders
                 </a>
             </div>
         </div>

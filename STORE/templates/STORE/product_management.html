@@ -67,9 +67,9 @@
                             <td>{{ product.description|truncatechars:30 }}</td>
                             <td>
                                 {% if product.is_active %}
-                                    <span class="account-type admin">Active</span>
+                                    <span class="product-status active">Active</span>
                                 {% else %}
-                                    <span class="account-type member">Inactive</span>
+                                    <span class="product-status inactive">Inactive</span>
                                 {% endif %}
                             </td>
                         </tr>

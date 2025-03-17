@@ -12,6 +12,7 @@ urlpatterns = [
     path('standard-package/', views.standard_package, name='standard_package'),
     path('premium-package/', views.premium_package, name='premium_package'),
     path('stream-setup/', views.stream_setup, name='stream_setup'),
+    path('stream-store/', views.stream_store, name='stream_store'),
     
     # Website building pages
     path('basic-website/', views.basic_website, name='basic_website'),

@@ -308,31 +308,12 @@
     color: white;
 }
 
-/* Special product styling */
-.special-product {
-    background: linear-gradient(to bottom, rgba(20, 20, 30, 0.95), rgba(90, 30, 160, 0.4));
-    border: 1px solid rgba(166, 0, 255, 0.3);
-}
-
-.special-product .window-header {
-    background: rgba(90, 30, 160, 0.6);
-}
-
-.special-overlay {
-    background: rgba(90, 30, 160, 0.8);
-}
-
-.special-footer {
-    background: rgba(90, 30, 160, 0.6);
-    justify-content: center;
-}
-
 .streamer-name {
-    font-size: 1.3rem;
-    font-weight: bold;
-    color: white;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+    flex: 1;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.5rem;
+    font-family: monospace;
+    text-align: center;
 }
 
 /* Product Modal */

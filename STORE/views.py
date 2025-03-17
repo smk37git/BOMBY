@@ -74,6 +74,9 @@ def premium_package(request):
 def stream_setup(request):
     return render(request, 'STORE/stream_setup.html')
 
+def stream_store(request):
+    return render(request, 'STORE/stream_store.html')
+
 def basic_website(request):
     product = Product.objects.get(id=5)
     product_reviews = get_all_reviews()

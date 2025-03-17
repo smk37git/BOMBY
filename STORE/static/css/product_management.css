@@ -82,6 +82,26 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.product-status {
+    font-size: 0.8rem;
+    font-weight: bold;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.product-status.active {
+    background-color: rgba(39, 174, 96, 0.2);
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+}
+
+.product-status.inactive {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
 /* Profile Section Styles */
 .profile-section {
     margin-top: 20px;

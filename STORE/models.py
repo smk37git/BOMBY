@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 import os
+import pytz
 
 # Store Page Models
 class Product(models.Model):
@@ -49,7 +50,7 @@ class OrderForm(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
     
 class OrderMessage(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='messages')
+    order = models.ForeignKey('Order', on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
@@ -59,9 +60,12 @@ class OrderMessage(models.Model):
             # Get user's timezone if available, otherwise use server's timezone
             user_timezone = getattr(self.sender, 'timezone', None)
             if user_timezone:
-                from django.utils import timezone
-                # Apply user's timezone to created_at
-                self.created_at = timezone.now().astimezone(pytz.timezone(user_timezone))
+                try:
+                    # Apply user's timezone to created_at
+                    self.created_at = timezone.now().astimezone(pytz.timezone(user_timezone))
+                except (pytz.exceptions.UnknownTimeZoneError, AttributeError):
+                    # Fall back to default behavior if timezone is invalid
+                    pass
         
         super().save(*args, **kwargs)
     
