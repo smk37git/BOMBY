@@ -66,6 +66,10 @@ class OrderMessage(models.Model):
                 except (pytz.exceptions.UnknownTimeZoneError, AttributeError):
                     # Fall back to default behavior if timezone is invalid
                     pass
+            
+            # Filter message content for inappropriate language
+            from ACCOUNTS.validators import validate_clean_content
+            self.message = validate_clean_content(self.message)
         
         super().save(*args, **kwargs)
     

@@ -1,5 +1,7 @@
 from django import forms
 from .models import OrderForm, OrderMessage, OrderAttachment, Review
+from django.core.exceptions import ValidationError
+from ACCOUNTS.validators import validate_clean_content
 
 class OrderQuestionsForm(forms.ModelForm):
     class Meta:
@@ -23,6 +25,11 @@ class MessageForm(forms.ModelForm):
         widgets = {
             'message': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Type your message here...'}),
         }
+    
+    def clean_message(self):
+        message = self.cleaned_data.get('message')
+        from ACCOUNTS.validators import validate_clean_content
+        return validate_clean_content(message)
 
 class ReviewForm(forms.ModelForm):
     class Meta:
@@ -31,3 +38,10 @@ class ReviewForm(forms.ModelForm):
         widgets = {
             'comment': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Share your experience...'}),
         }
+    
+    def clean_comment(self):
+        comment = self.cleaned_data.get('comment')
+        try:
+            return validate_clean_content(comment)
+        except ValidationError as e:
+            raise forms.ValidationError(e.message)

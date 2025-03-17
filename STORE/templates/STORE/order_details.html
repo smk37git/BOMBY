@@ -203,6 +203,14 @@
                         {% endif %}
                     </div>
                 </div>
+
+                {% if order.status == 'in_progress' and request.user.is_staff %}
+                <div class="action-container">
+                    <a href="{% url 'STORE:mark_completed' order.id %}" class="action-button">
+                        <i class="fas fa-check-circle"></i> Mark as Completed
+                    </a>
+                </div>
+                {% endif %}
             </div>
             
             {% if order.status == 'pending' and request.user == order.user %}
@@ -213,29 +221,44 @@
             </div>
             {% endif %}
             
-            {% if order.status == 'in_progress' and request.user.is_staff %}
-            <div class="action-container">
-                <a href="{% url 'STORE:mark_completed' order.id %}" class="action-button">
-                    <i class="fas fa-check-circle"></i> Mark as Completed
-                </a>
-            </div>
-            {% endif %}
-            
             {% if review_form %}
             <div class="order-card mb-4">
                 <div class="card-header">
                     <h5>Leave a Review</h5>
                 </div>
                 <div class="card-body">
+                    {% if messages %}
+                    <div class="messages">
+                        {% for message in messages %}
+                            {% with message_text=message|stringformat:"s" %}
+                                {% if 'order' not in message_text|lower and 'created' not in message_text|lower %}
+                                    <div class="message {% if message.tags %}{{ message.tags }}{% endif %}" style="background-color: #37000556; color: white; font-size: 16px;">
+                                        {{ message }}
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                     <form method="post" action="{% url 'STORE:submit_review' order.id %}">
                         {% csrf_token %}
                         <!-- The rating select will be hidden and replaced by stars via JS -->
                         <div class="form-group">
                             {{ review_form.rating }}
+                            {% if review_form.rating.errors %}
+                            <div class="error-message">
+                                {{ review_form.rating.errors }}
+                            </div>
+                            {% endif %}
                         </div>
                         <div class="form-group">
                             <label for="{{ review_form.comment.id_for_label }}">Comment:</label>
                             {{ review_form.comment }}
+                            {% if review_form.comment.errors %}
+                            <div class="error-message">
+                                {{ review_form.comment.errors }}
+                            </div>
+                            {% endif %}
                         </div>
                         <button type="submit" class="review-submit-btn">
                             <i class="fas fa-star"></i> Submit Review

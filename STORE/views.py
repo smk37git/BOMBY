@@ -251,11 +251,18 @@ def submit_review(request, order_id):
     if request.method == 'POST':
         form = ReviewForm(request.POST)
         if form.is_valid():
-            review = form.save(commit=False)
-            review.order = order
-            review.save()
-            
-            messages.success(request, "Thank you for your review!")
+            try:
+                review = form.save(commit=False)
+                review.order = order
+                review.save()
+                messages.success(request, "Thank you for your review!")
+            except ValidationError as e:
+                messages.error(request, e.message)
+        else:
+            # Handle validation errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"{error}")
     
     return redirect('STORE:order_details', order_id=order.id)
 
