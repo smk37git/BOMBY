@@ -1,0 +1,176 @@
+{% autoescape off %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject }} - BOMBY</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #fff;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #000;
+        }
+        .container {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            background-color: #0a0a0a;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #fff;
+            font-size: 24px;
+            margin-top: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .alert-header {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(45deg, #9e33e6, #505ed7);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .alert-header i {
+            font-size: 20px;
+            margin-right: 10px;
+        }
+        .order-details {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .order-details h3 {
+            color: #a991ff;
+            margin-top: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .order-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .order-info-row:last-child {
+            border-bottom: none;
+        }
+        .order-info-label {
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .order-info-value {
+            color: #fff;
+        }
+        .action-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #9e33e6, #505ed7);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 15px 0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .action-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
+        }
+        .badge-warning {
+            background-color: rgba(255, 7, 7, 0.2);
+            color: #ff3f3f;
+            border: 1px solid #ff0707;
+            padding: 3px 8px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-primary {
+            background-color: rgba(253, 221, 13, 0.2);
+            color: #ffc824;
+            border: 1px solid #ffc107;
+            padding: 3px 8px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-success {
+            background-color: rgba(25, 135, 84, 0.2);
+            color: #33ffa0;
+            border: 1px solid #198754;
+            padding: 3px 8px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ subject }}</h1>
+        
+        <div class="alert-header">
+            <i class="fas fa-bell"></i>
+            <strong style="color: #ffffff;">Admin Notification: Order #{{ order.id }} for {{ order.product.name }}</strong>
+        </div>
+        
+        <div class="order-details">
+            <h3>Order Details</h3>
+            <div class="order-info-row">
+                <span class="order-info-label">Order ID: <span class="order-info-value">{{ order.id }}</span></span>
+            </div>
+            <div class="order-info-row">
+                <span class="order-info-label">Product: <span class="order-info-value"> {{ order.product.name }}</span></span>
+            </div>
+            <div class="order-info-row">
+                <span class="order-info-label">Customer: <span class="order-info-value"> {{ order.user.username }} ({{ order.user.email }})</span></span>
+            </div>
+            <div class="order-info-row">
+                <span class="order-info-label">Status: 
+                    <span class="order-info-value">
+                        {% if order.status == 'pending' %}
+                            <span class="badge-warning"> {{ order.get_status_display }}</span>
+                        {% elif order.status == 'in_progress' %}
+                            <span class="badge-primary"> {{ order.get_status_display }}</span>
+                        {% else %}
+                            <span class="badge-success"> {{ order.get_status_display }}</span>
+                        {% endif %}
+                    </span>
+                </span>
+            </div>
+            <div class="order-info-row">
+                <span class="order-info-label">Order Date: <span class="order-info-value"> {{ order.created_at|date:"F j, Y H:i" }}</span></span>
+            </div>
+            {% if order.due_date %}
+            <div class="order-info-row">
+                <span class="order-info-label">Due Date: <span class="order-info-value"> {{ order.due_date|date:"F j, Y H:i" }}</span></span>
+            </div>
+            {% endif %}
+            {% if order.completed_at %}
+            <div class="order-info-row">
+                <span class="order-info-label">Completed Date: <span class="order-info-value"> {{ order.completed_at|date:"F j, Y H:i" }}</span></span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <a href="{{ protocol }}://{{ domain }}{% url 'STORE:order_details' order.id %}" style="color: #ffffff;" class="action-button">View Order Details</a>
+    </div>
+</body>
+</html>
+{% endautoescape %}

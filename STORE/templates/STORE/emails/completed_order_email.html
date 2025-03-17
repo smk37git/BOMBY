@@ -1,0 +1,202 @@
+{% autoescape off %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Order is Complete - BOMBY</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #fff;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #000;
+        }
+        .container {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            background-color: #0a0a0a;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            color: #fff;
+            font-size: 24px;
+            margin-top: 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .bomby-logo {
+            font-family: monospace;
+            white-space: pre;
+            line-height: 1.2;
+            letter-spacing: 0.05em;
+            margin: 15px 0;
+            color: #ffffff;
+            font-size: 8px;
+        }
+        .order-details {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .order-details h3 {
+            color: #a991ff;
+            margin-top: 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+        .order-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .order-info-row:last-child {
+            border-bottom: none;
+        }
+        .order-info-label {
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .order-info-value {
+            color: #fff;
+        }
+        .action-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #9e33e6, #505ed7);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 15px 0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .action-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
+        }
+        .badge-success {
+            background-color: rgba(25, 135, 84, 0.2);
+            color: #33ffa0;
+            border: 1px solid #198754;
+            padding: 3px 8px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .stars {
+            color: #ffd700;
+            font-size: 24px;
+            letter-spacing: 5px;
+            text-align: center;
+            margin: 10px 0;
+        }
+        .review-box {
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .note {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 20px;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="header">Your Order has been Completed, Thank you for your business!</h1>
+        
+        <div class="header">
+            <div class="bomby-logo">
+                                                    
+                      %#+*%                         
+                    %*-#%#:%                        
+          %        #:#   %=*                        
+       *%-=#-#%  #-*%  %%%##%%%                     
+     %%*:....+:#-+%   %#*****#%                     
+     .*.:-----#%%   %%%#*****##%%%                  
+     %#-.---..+#  %%#**   *******#%%                
+       %=*.-:+   %#*-  +***********#%               
+          %- %  %#** ***************#%   %%         
+            %% %#* .*****************#% %%%         
+           %%%%%#*+******************#%%%%          
+            %%%%#********************#%%%           
+               %#********************#%             
+                %#******************#%              
+                 %#****************#%               
+               %%%%%#************#%%%%              
+              %%%   %%%########%%%  %%%             
+              %%          %%         %%%            
+            %%%%                     %%%%%          
+                                                    
+            </div>
+            <h1>BOMBY</h1>
+        </div>
+        
+        <div class="order-details">
+            <h3>Order Details</h3>
+            <div class="order-info-row">
+                <span class="order-info-label">Order ID: <span class="order-info-value">#{{ order.id }}</span></span>
+            </div>
+            <div class="order-info-row">
+                <span class="order-info-label">Product: <span class="order-info-value">{{ order.product.name }}</span></span>
+            </div>
+            <div class="order-info-row">
+                <span class="order-info-label">Order Date: <span class="order-info-value">{{ order.created_at|date:"F j, Y" }}</span></span>
+            </div>
+            <div class="order-info-row">
+                <span class="order-info-label">Completion Date: <span class="order-info-value">{{ order.completed_at|date:"F j, Y" }}</span></span>
+            </div>
+            <div class="order-info-row">
+                <span class="order-info-label">Status: <span class="order-info-value">
+                    <span class="badge-success">{{ order.get_status_display }}</span>
+                </span></span>
+            </div>
+        </div>
+        
+        <a href="{{ protocol }}://{{ domain }}{% url 'STORE:order_details' order.id %}" style="color: #ffffff;" class="action-button">View Order Details</a>
+        
+        <div class="review-box">
+            <h3 style="color: #a991ff; margin-top: 0; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 10px;">How was your experience?</h3>
+            <div class="stars">★★★★★</div>
+            <p style="text-align: center; color: rgba(255, 255, 255, 0.8);">Thank you for your order, kindly leave a review if you could to improve the service for everyone!</p>
+            <a href="{{ protocol }}://{{ domain }}{% url 'STORE:order_details' order.id %}" style="color: #ffffff;" class="action-button">Leave a Review</a>
+        </div>
+        
+        <p class="note">If you have any questions or need further assistance, please don't hesitate to contacting Bomby by replying to your order messages.</p>
+        
+        <div class="footer">
+            <p>Thanks,<br>Bomby (Sebe's Very Helpful Assistant)</p>
+            <p>&copy; {% now "Y" %} Sebe_TV. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+{% endautoescape %}

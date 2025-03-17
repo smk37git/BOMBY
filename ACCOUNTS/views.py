@@ -15,6 +15,15 @@ import json
 import io
 import boto3
 from django.http import HttpResponse
+from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.forms import PasswordResetForm
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.auth.tokens import default_token_generator
+from django.urls import reverse_lazy
 
 # Signup Form
 def signup(request):
@@ -156,6 +165,69 @@ def edit_username(request, user_id=None):
         'form': form,
         'user_being_edited': user
     })
+
+# Custom Password Reset
+class CustomPasswordResetForm(PasswordResetForm):
+    def send_mail(self, subject_template_name, email_template_name, 
+                  context, from_email, to_email, html_email_template_name=None):
+        """
+        Override the default send_mail to use our styled HTML template
+        """
+        subject = "Password Reset Request - BOMBY"
+        
+        # Render the custom HTML template
+        html_email = render_to_string('ACCOUNTS/emails/password_reset_email.html', context)
+        
+        # Create and send email with HTML content
+        email_message = EmailMultiAlternatives(subject, '', from_email, [to_email])
+        email_message.attach_alternative(html_email, 'text/html')
+        email_message.send()
+    
+    def save(self, domain_override=None,
+             subject_template_name='registration/password_reset_subject.txt',
+             email_template_name='registration/password_reset_email.html',
+             use_https=False, token_generator=default_token_generator,
+             from_email=None, request=None, html_email_template_name=None,
+             extra_email_context=None):
+        """
+        Override the default save method to use our custom email template
+        """
+        email = self.cleaned_data["email"]
+        active_users = self.get_users(email)
+        
+        for user in active_users:
+            if not domain_override:
+                current_site = get_current_site(request)
+                site_name = current_site.name
+                domain = current_site.domain
+            else:
+                site_name = domain = domain_override
+            
+            user_email = user.email
+            context = {
+                'email': user_email,
+                'domain': domain,
+                'site_name': site_name,
+                'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                'user': user,
+                'token': token_generator.make_token(user),
+                'protocol': 'https' if use_https else 'http',
+                **(extra_email_context or {}),
+            }
+            
+            self.send_mail(
+                subject_template_name, email_template_name, context, from_email,
+                user_email, html_email_template_name=html_email_template_name,
+            )
+
+class CustomPasswordResetView(PasswordResetView):
+    """
+    Custom password reset view that uses our styled email template
+    """
+    form_class = CustomPasswordResetForm
+    success_url = reverse_lazy('ACCOUNTS:password_reset_done')
+    email_template_name = 'registration/password_reset_email.html'
+    template_name = 'ACCOUNTS/password_reset.html'
 
 # Promotional Wall
 def promotional_wall(request):

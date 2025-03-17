@@ -297,6 +297,12 @@
     background-color: #fff;
 }
 
+.product-features-container {
+    display: flex;
+    position: relative;
+    flex: 1;
+  }
+
 .product-features {
     margin-bottom: 2rem;
 }
@@ -370,6 +376,49 @@
 .purchase-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
+}
+
+.delivery-time {
+    display: flex;
+    align-items: center;
+    margin: 15px 0;
+    font-size: 1.2rem;
+    color: #a970ff;
+    font-weight: 500;
+}
+
+.delivery-time i {
+    margin-right: 10px;
+    font-size: 1.3rem;
+}
+
+.delivery-badge {
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: rgba(30, 10, 60, 0.7);
+    border: 2px solid #a970ff;
+    border-radius: 15px;
+    padding: 18px;
+    width: 160px;
+    box-shadow: 0 0 15px rgba(169, 112, 255, 0.3);
+}
+
+.delivery-badge i {
+    font-size: 40px;
+    color: #a970ff;
+    margin-bottom: 12px;
+}
+
+.delivery-badge span {
+    color: #a970ff;
+    font-weight: 600;
+    font-size: 1.2rem;
+    text-align: center;
 }
 
 /* FAQ styling */
