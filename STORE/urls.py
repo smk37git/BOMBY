@@ -44,4 +44,11 @@ urlpatterns = [
     path('admin/orders/change-status/', views.admin_change_order_status, name='admin_change_order_status'),
     path('admin/orders/delete/', views.admin_delete_orders, name='admin_delete_orders'),
     path('admin/orders/add/', views.admin_add_order, name='admin_add_order'),
+
+    # Review Management
+    path('admin/reviews/', views.review_management, name='review_management'),
+    path('admin/reviews/view/<int:review_id>/', views.review_details, name='review_details'),
+    path('admin/reviews/edit/<int:review_id>/', views.admin_edit_review, name='admin_edit_review'),
+    path('admin/reviews/delete/', views.admin_delete_reviews, name='admin_delete_reviews'),
+    path('admin/reviews/add/', views.admin_add_review, name='admin_add_review'),
 ]

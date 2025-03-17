@@ -613,3 +613,151 @@ def admin_delete_orders(request):
         )
     
     return redirect('STORE:order_management')
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def review_management(request):
+    """Admin view for managing reviews"""
+    search_query = request.GET.get('search', '')
+    
+    if search_query:
+        # Search by order ID, review ID, or username
+        try:
+            # Try to convert to integer for ID searches
+            id_query = int(search_query)
+            review_filter = Q(id=id_query) | Q(order__id=id_query)
+        except ValueError:
+            review_filter = Q(order__user__username__icontains=search_query)
+            
+        reviews = Review.objects.filter(review_filter)
+    else:
+        reviews = Review.objects.all().order_by('-created_at')
+    
+    # Get orders without reviews for the add review form
+    available_orders = Order.objects.filter(status='completed').exclude(
+        id__in=Review.objects.values_list('order__id', flat=True)
+    ).order_by('-created_at')
+    
+    # Get all active products
+    all_products = Product.objects.filter(is_active=True).order_by('name')
+    
+    context = {
+        'reviews': reviews,
+        'search_query': search_query,
+        'available_orders': available_orders,
+        'all_products': all_products
+    }
+    
+    response = render(request, 'STORE/review_management.html', context)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def review_details(request, review_id):
+    """View a single review in detail"""
+    review = get_object_or_404(Review, id=review_id)
+    
+    context = {
+        'review': review
+    }
+    
+    response = render(request, 'STORE/review_details.html', context)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_edit_review(request, review_id):
+    """Admin view for editing a review"""
+    review = get_object_or_404(Review, id=review_id)
+    
+    if request.method == 'POST':
+        form = ReviewForm(request.POST, instance=review)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Review updated successfully.")
+            return redirect('STORE:review_management')
+    else:
+        form = ReviewForm(instance=review)
+    
+    context = {
+        'form': form,
+        'review': review
+    }
+    
+    response = render(request, 'STORE/edit_review.html', context)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_delete_reviews(request):
+    """Delete selected reviews"""
+    selected_reviews = request.POST.get('selected_reviews', '')
+    
+    if selected_reviews:
+        review_ids = [int(id) for id in selected_reviews.split(',')]
+        
+        # Count before deletion for message
+        count = len(review_ids)
+        
+        # Delete reviews
+        Review.objects.filter(id__in=review_ids).delete()
+        
+        messages.success(
+            request, 
+            f"{count} review{'s' if count > 1 else ''} deleted successfully."
+        )
+    
+    return redirect('STORE:review_management')
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_add_review(request):
+    """Admin view for adding a review directly for a product"""
+    product_id = request.POST.get('product_id')
+    rating = request.POST.get('rating')
+    comment = request.POST.get('comment')
+    
+    try:
+        if not product_id:
+            messages.error(request, "You must select a product")
+            return redirect('STORE:review_management')
+            
+        product = Product.objects.get(id=product_id)
+        
+        # Get the staff user making the request
+        staff_user = request.user
+        
+        # Create a mock order for this review
+        mock_order = Order.objects.create(
+            user=staff_user,
+            product_id=product_id,
+            status='completed',
+            completed_at=timezone.now()
+        )
+        
+        # Create the review
+        review = Review.objects.create(
+            order=mock_order,
+            rating=rating,
+            comment=comment
+        )
+        
+        messages.success(request, f"Review added successfully for {product.name}.")
+            
+    except Product.DoesNotExist:
+        messages.error(request, "Selected product does not exist.")
+    except Exception as e:
+        messages.error(request, f"Error creating review: {str(e)}")
+    
+    return redirect('STORE:review_management')

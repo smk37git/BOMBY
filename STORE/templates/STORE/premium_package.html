@@ -190,15 +190,23 @@
                                 <div class="review-header">
                                     <div class="review-user">
                                         <div class="user-avatar">
-                                            {% if review.order.user.profile_picture and review.order.user.profile_picture.url %}
-                                            <img src="{{ review.order.user.profile_picture.url }}" alt="{{ review.order.user.username }}">
+                                            {% if review.order.user.is_staff %}
+                                                <div class="private-review-avatar"></div>
+                                            {% elif review.order.user.profile_picture and review.order.user.profile_picture.url %}
+                                                <img src="{{ review.order.user.profile_picture.url }}" alt="{{ review.order.user.username }}">
                                             {% else %}
-                                            <div class="avatar-placeholder">{{ review.order.user.username|first }}</div>
+                                                <div class="avatar-placeholder">{{ review.order.user.username|first }}</div>
                                             {% endif %}
                                         </div>
                                         <div class="review-user-info">
                                             <div class="username-and-price">
-                                                <strong class="username">{{ review.order.user.username }}</strong>
+                                                <strong class="username">
+                                                    {% if review.order.user.is_staff %}
+                                                        Private Review
+                                                    {% else %}
+                                                        {{ review.order.user.username }}
+                                                    {% endif %}
+                                                </strong>
                                                 <span class="order-price">${{ review.order.product.price }}</span>
                                             </div>
                                             <div class="review-rating">
@@ -267,6 +275,7 @@
         });
     });
 
+    // Add date/time conversion to review dates
     document.addEventListener('DOMContentLoaded', function() {
         // Format dates to local timezone
         const formatLocalDate = (dateString) => {

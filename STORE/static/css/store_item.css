@@ -372,61 +372,6 @@
     box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
 }
 
-/* Related products */
-.related-products {
-    margin-top: 4rem;
-}
-
-.related-products h2 {
-    font-size: 1.8rem;
-    color: white;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    position: relative;
-    padding-bottom: 0.75rem;
-}
-
-.related-products h2:after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 3px;
-    background-color: #a600ff;
-}
-
-.related-products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 1.5rem;
-}
-
-.product-link {
-    text-decoration: none;
-    color: white;
-    display: block;
-}
-
-/* Window styling for related products */
-.window {
-    background: rgba(20, 20, 30, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    transition: transform 0.3s ease;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.window:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.4);
-}
-
 /* FAQ styling */
 .faq-item {
     margin-bottom: 15px;
@@ -493,6 +438,45 @@
 /* Reviews Section Styling */
 .reviews-section {
     margin-top: 2rem;
+}
+
+.private-review-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #333;
+    border: none;
+    overflow: hidden;
+    position: relative;
+}
+
+.private-review-avatar::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 50%;
+    height: 30%;
+    background-color: #777;
+    border-radius: 50% 50% 0 0;
+}
+
+.private-review-avatar::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 30%;
+    height: 30%;
+    background-color: #777;
+    border-radius: 50%;
+}
+
+.user-avatar .private-review-avatar {
+    width: 100%;
+    height: 100%;
 }
 
 .reviews-list {
