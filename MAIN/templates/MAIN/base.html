@@ -60,6 +60,10 @@
                         </a>
                         <div class="dropdown-content">
                             <a href="{% url 'ACCOUNTS:account' %}">View Profile</a>
+                            <a href="{% url 'ACCOUNTS:inbox' %}" class="notification-badge">
+                                Messages
+                                <span class="notification-count" id="messages-badge"></span>
+                            </a>
                             <a href="{% url 'ACCOUNTS:edit_profile' %}">Edit Profile</a>
                             <form method="post" action="{% url 'ACCOUNTS:logout' %}">
                                 {% csrf_token %}
@@ -117,7 +121,7 @@
             const messages = document.querySelectorAll('.message');
             messages.forEach(message => {
                 // Skip messages in message containers (chat messages)
-                if (message.closest('#messages-container')) {
+                if (message.closest('#messages-container') || message.closest('#chat-messages')) {
                     return; // Skip this message - it's in a chat
                 }
                 
@@ -140,6 +144,40 @@
                     });
                 }
             });
+        });
+    </script>
+
+    <!-- Messaging System-->
+    <script>
+        function checkUnreadMessages() {
+            if (document.getElementById('messages-badge')) {
+                fetch('{% url "ACCOUNTS:get_unread_count" %}', {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const navBadge = document.getElementById('messages-badge');
+                    if (data.unread_count > 0) {
+                        navBadge.textContent = data.unread_count;
+                        navBadge.style.display = 'inline-flex';
+                    } else {
+                        navBadge.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking messages:', error);
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial check
+            checkUnreadMessages();
+            
+            // Check periodically (every 30 seconds)
+            setInterval(checkUnreadMessages, 30000);
         });
     </script>
     

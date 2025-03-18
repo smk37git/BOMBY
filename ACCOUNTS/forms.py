@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from .models import User
 from .validators import validate_clean_username
 from .validators import BANNED_WORDS
+from .models import Message
+from .validators import validate_clean_content
 
 ## Create User Interface
 class CustomUserCreationForm(UserCreationForm):
@@ -177,3 +179,16 @@ class UsernameEditForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username']
+
+# Messaging System
+class MessageForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Type your message here...'}),
+        }
+    
+    def clean_content(self):
+        content = self.cleaned_data.get('content')
+        return validate_clean_content(content)

@@ -1,0 +1,71 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/messages.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="messages-outer-container">
+    <h1 class="messages-title">Find Users</h1>
+    
+    <div class="search-container">
+        <form method="get" action="{% url 'ACCOUNTS:user_search' %}" class="search-form">
+            <input type="text" name="q" placeholder="Search users..." value="{{ query }}" required class="search-input">
+            <button type="submit" class="search-button">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+    </div>
+    
+    <div class="users-list">
+        {% if users %}
+            {% for user in users %}
+                <div class="user-item">
+                    <div class="user-info">
+                        {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="user-avatar">
+                        {% else %}
+                        <div class="avatar-placeholder">{{ user.username|first }}</div>
+                        {% endif %}
+                        
+                        <div class="user-details">
+                            <div class="user-username">{{ user.username }}</div>
+                            <div class="user-account-type {{ user.user_type|lower }}">{{ user.get_user_type_display }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="user-actions">
+                        <a href="{% url 'ACCOUNTS:user_profile' username=user.username %}" class="view-profile-button" title="View Profile">
+                            <i class="fas fa-user"></i> Profile
+                        </a>
+                        <a href="{% url 'ACCOUNTS:start_conversation' user_id=user.id %}" class="message-user-button" title="Message">
+                            <i class="fas fa-comment"></i> Message
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            {% if query %}
+                <div class="empty-results">
+                    <p>No users found matching "{{ query }}"</p>
+                </div>
+            {% else %}
+                <div class="empty-results">
+                    <p>Search for users to start a conversation</p>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+    
+    <div class="back-container">
+        <a href="{% url 'ACCOUNTS:inbox' %}" class="back-to-inbox">
+            <i class="fas fa-arrow-left"></i> Back to Messages
+        </a>
+    </div>
+</div>
+{% endblock %}

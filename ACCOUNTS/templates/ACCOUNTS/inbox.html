@@ -1,0 +1,103 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/messages.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="messages-outer-container">
+    <h1 class="messages-title">Messages</h1>
+    
+    <div class="messages-content">
+        <div class="conversations-list">
+            {% for conversation in conversations %}
+                {% for participant in conversation.participants.all %}
+                    {% if participant != request.user %}
+                        <a href="{% url 'ACCOUNTS:conversation' user_id=participant.id %}" class="conversation-link">
+                            <div class="conversation-item {% if participant.id == active_user_id %}active{% endif %}">
+                                {% if participant.profile_picture %}
+                                <img src="{{ participant.profile_picture.url }}" alt="{{ participant.username }}" class="conversation-avatar">
+                                {% else %}
+                                <div class="avatar-placeholder">{{ participant.username|first }}</div>
+                                {% endif %}
+                                
+                                <div class="conversation-info">
+                                    <div class="conversation-username">{{ participant.username }}</div>
+                                    {% if conversation.last_message %}
+                                    <div class="conversation-last-message">
+                                        {% if conversation.last_message.sender == request.user %}You: {% endif %}
+                                        {{ conversation.last_message.content|truncatechars:30 }}
+                                    </div>
+                                    <div class="conversation-time">
+                                        {{ conversation.last_message.created_at|date:"M d, g:i a" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if conversation.unread_count > 0 %}
+                                <div class="unread-badge">{{ conversation.unread_count }}</div>
+                                {% endif %}
+                            </div>
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            {% empty %}
+                <div class="empty-conversations">
+                    <p>No conversations yet</p>
+                    <a href="{% url 'ACCOUNTS:user_search' %}" class="start-conv-button">
+                        <i class="fas fa-plus" style="font-size: 0.9rem; align-items: center;"></i> Start a conversation
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="chat-area">
+            <div class="empty-state">
+                <i class="fas fa-comments"></i>
+                <p>Select a conversation or start a new one</p>
+                
+                <a href="{% url 'ACCOUNTS:user_search' %}" class="new-message-button">New Message</a>
+                
+                {% if request.user.is_staff %}
+                <p class="staff-note">As a staff member, you can message any user on the platform</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Function to check for new messages
+    function checkUnreadMessages() {
+        fetch('{% url "ACCOUNTS:get_unread_count" %}', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const navBadge = document.getElementById('messages-badge');
+            if (data.unread_count > 0) {
+                navBadge.textContent = data.unread_count;
+                navBadge.style.display = 'flex';
+            } else {
+                navBadge.style.display = 'none';
+            }
+        });
+    }
+    
+    // Check for new messages every 30 seconds
+    setInterval(checkUnreadMessages, 30000);
+    
+    // Initial check
+    document.addEventListener('DOMContentLoaded', checkUnreadMessages);
+</script>
+{% endblock %}

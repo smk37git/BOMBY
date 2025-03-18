@@ -382,6 +382,15 @@
                                     </div>
                                     {% endif %}
                                 </div>
+                                
+                                <!-- Add message actions for continuing in private messages -->
+                                {% if msg.sender != request.user %}
+                                <div class="message-actions">
+                                    <a href="{% url 'ACCOUNTS:copy_order_message' order.id msg.id %}" class="message-action-link" title="Continue in direct messages">
+                                        <i class="fas fa-comments"></i>
+                                    </a>
+                                </div>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         {% endfor %}

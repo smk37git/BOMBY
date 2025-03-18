@@ -128,3 +128,33 @@ class User(AbstractUser):
                 pass
             
         super().save(*args, **kwargs)
+
+# Messaging System
+class Message(models.Model):
+    sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
+    recipient = models.ForeignKey(User, related_name='received_messages', on_delete=models.CASCADE)
+    content = models.TextField(validators=[validate_clean_content])
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    related_order = models.ForeignKey('STORE.Order', null=True, blank=True, on_delete=models.CASCADE)
+    conversation = models.ForeignKey('Conversation', related_name='messages', on_delete=models.CASCADE, null=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Message from {self.sender} to {self.recipient} at {self.created_at}"
+
+class Conversation(models.Model):
+    participants = models.ManyToManyField(User, related_name='conversations')
+    last_message = models.ForeignKey(Message, null=True, blank=True, on_delete=models.SET_NULL, related_name='+')
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-updated_at']
+    
+    def __str__(self):
+        return f"Conversation {self.id}"
+    
+    def other_participant(self, user):
+        return self.participants.exclude(id=user.id).first()

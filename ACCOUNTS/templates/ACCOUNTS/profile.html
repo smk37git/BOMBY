@@ -65,8 +65,13 @@
 
             <div class="return-account-section">
                 <a href="{% url 'ACCOUNTS:promotional_wall' %}" class="action-button" style="margin-top: 15px;">
-                    <i class="fas fa-arrow-left"></i> Return to Promotional Wall
+                    <i class="fas fa-arrow-left"></i> View on Promotional Wall
                 </a>
+                {% if user.id != profile_user.id %}
+                <a href="{% url 'ACCOUNTS:start_conversation' user_id=profile_user.id %}" class="action-button" style="margin-left: 15px;">
+                    <i class="fas fa-comment"></i> Message
+                </a>
+                {% endif %}
             </div>
 
             <!-- Return to Account Here -->

@@ -48,4 +48,13 @@ urlpatterns = [
      path('user-management/', views.user_management, name='user_management'),
      path('bulk-change-user-type/', views.bulk_change_user_type, name='bulk_change_user_type'),
      path('bulk-delete-users/', views.bulk_delete_users, name='bulk_delete_users'),
+
+     # Messaging URLs
+     path('messages/', views.inbox, name='inbox'),
+     path('messages/search/', views.user_search, name='user_search'),
+     path('messages/start/<int:user_id>/', views.start_conversation, name='start_conversation'),
+     path('messages/<int:user_id>/', views.conversation, name='conversation'),
+     path('messages/send/<int:user_id>/', views.send_message, name='send_message'),
+     path('messages/unread-count/', views.get_unread_count, name='get_unread_count'),
+     path('messages/order/<int:order_id>/message/<int:message_id>/', views.copy_order_message_to_inbox, name='copy_order_message'),
 ]

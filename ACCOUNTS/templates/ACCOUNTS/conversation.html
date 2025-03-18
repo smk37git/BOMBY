@@ -1,0 +1,267 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/messages.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="messages-outer-container">
+    <h1 class="messages-title">Messages</h1>
+    
+    <div class="message-actions-header">
+        <a href="{% url 'ACCOUNTS:inbox' %}" class="new-message-button">
+            <i class="fas fa-arrow-left"></i> Back to Inbox
+        </a>
+    </div>
+    
+    <div class="messages-content">
+        <div class="conversations-list">
+            {% for conversation in conversations %}
+                {% for participant in conversation.participants.all %}
+                    {% if participant != request.user %}
+                        <a href="{% url 'ACCOUNTS:conversation' user_id=participant.id %}" class="conversation-link">
+                            <div class="conversation-item {% if participant.id == other_user.id %}active{% endif %}">
+                                {% if participant.profile_picture %}
+                                <img src="{{ participant.profile_picture.url }}" alt="{{ participant.username }}" class="conversation-avatar">
+                                {% else %}
+                                <div class="avatar-placeholder">{{ participant.username|first }}</div>
+                                {% endif %}
+                                
+                                <div class="conversation-info">
+                                    <div class="conversation-username">{{ participant.username }}</div>
+                                    {% if conversation.last_message %}
+                                    <div class="conversation-last-message">
+                                        {% if conversation.last_message.sender == request.user %}You: {% endif %}
+                                        {{ conversation.last_message.content|truncatechars:30 }}
+                                    </div>
+                                    <div class="conversation-time">
+                                        {{ conversation.last_message.created_at|date:"M d, g:i a" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if conversation.unread_count > 0 %}
+                                <div class="unread-badge">{{ conversation.unread_count }}</div>
+                                {% endif %}
+                            </div>
+                        </a>
+                    {% endif %}
+                {% endfor %}
+            {% empty %}
+                <div class="empty-conversations">
+                    <p>No conversations yet</p>
+                    <a href="{% url 'ACCOUNTS:user_search' %}" class="start-conv-button">
+                        <i class="fas fa-plus" style="font-size: 0.9rem; align-items: center;"></i> Start a conversation
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+        
+        <div class="chat-area">
+            <div class="chat-header">
+                {% if other_user.profile_picture %}
+                <img src="{{ other_user.profile_picture.url }}" alt="{{ other_user.username }}" class="conversation-avatar">
+                {% else %}
+                <div class="avatar-placeholder">{{ other_user.username|first }}</div>
+                {% endif %}
+                <h2>{{ other_user.username }}</h2>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                {% if messages %}
+                    {% regroup messages by created_at.date as message_groups %}
+                    {% for group in message_groups %}
+                        <div class="date-divider">{{ group.grouper|date }}</div>
+                        
+                        {% for msg in group.list %}
+                        <div class="message {% if msg.sender == request.user %}message-mine{% else %}message-other{% endif %}">
+                            <div class="message-header">
+                                <div class="message-user">
+                                    <div class="user-avatar">
+                                        {% if msg.sender.profile_picture %}
+                                        <img src="{{ msg.sender.profile_picture.url }}" alt="{{ msg.sender.username }}">
+                                        {% else %}
+                                        <div class="avatar-placeholder">{{ msg.sender.username|first }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <strong class="username">{{ msg.sender.username }}</strong>
+                                </div>
+                                <small class="message-time" data-iso-date="{{ msg.created_at|date:'c' }}">{{ msg.created_at|time }}</small>
+                            </div>
+                            <div class="message-body">
+                                <p>{{ msg.content }}</p>
+                                {% if msg.related_order %}
+                                <div class="related-order">
+                                    <a href="{% url 'STORE:order_details' order_id=msg.related_order.id %}">Order #{{ msg.related_order.id }}</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <div class="no-messages">
+                        <p><i class="fas fa-comments"></i> No messages yet</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <div class="chat-form">
+                <form method="post" action="{% url 'ACCOUNTS:send_message' user_id=other_user.id %}" id="message-form" class="message-form">
+                    {% csrf_token %}
+                    <div class="message-input-container">
+                        <textarea name="content" placeholder="Type your message here..." required></textarea>
+                    </div>
+                    <div class="message-actions">
+                        <button type="submit" class="send-button">
+                            <i class="fas fa-paper-plane"></i> Send
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Helper function to apply timezone conversion
+        function convertToLocalTime(dateString) {
+            if (!dateString || dateString === '') return '';
+            
+            try {
+                // Parse the date
+                const date = new Date(dateString);
+                
+                // Check if date is valid
+                if (isNaN(date.getTime())) {
+                    console.warn('Invalid date:', dateString);
+                    return dateString;
+                }
+                
+                // Format with date and time
+                return date.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true
+                });
+            } catch (e) {
+                console.error('Error converting date:', e, dateString);
+                return dateString;
+            }
+        }
+        
+        // Function to format just time (for message timestamps)
+        function formatTimeOnly(dateString) {
+            if (!dateString) return '';
+            
+            try {
+                const date = new Date(dateString);
+                
+                if (isNaN(date.getTime())) {
+                    return dateString;
+                }
+                
+                return date.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            } catch (e) {
+                console.error('Error formatting time:', e);
+                return dateString;
+            }
+        }
+        
+        // Fix timezone for timestamps with data-iso-date attribute
+        document.querySelectorAll('[data-iso-date]').forEach(element => {
+            if (element.getAttribute('data-iso-date')) {
+                if (element.classList.contains('message-time')) {
+                    element.textContent = formatTimeOnly(element.getAttribute('data-iso-date'));
+                } else {
+                    element.textContent = convertToLocalTime(element.getAttribute('data-iso-date'));
+                }
+            }
+        });
+
+        // Target specifically the messages in chat-messages and prevent auto-dismissal
+        const chatMessages = document.querySelectorAll('#chat-messages .message, #chat-messages .message-mine, #chat-messages .message-other, #chat-messages .date-divider');
+        
+        chatMessages.forEach(message => {
+            message.style.opacity = '1';
+            message.style.visibility = 'visible';
+            message.style.display = 'block';
+        });
+
+        // Scroll to bottom of chat on page load
+        const messagesContainer = document.getElementById('chat-messages');
+        if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // Handle form submission with AJAX
+        const messageForm = document.getElementById('message-form');
+        
+        messageForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Clear form and reload messages
+                    messageForm.reset();
+                    window.location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+        
+        // Function to check for new messages
+        function checkUnreadMessages() {
+            fetch('{% url "ACCOUNTS:get_unread_count" %}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const navBadge = document.getElementById('messages-badge');
+                if (data.unread_count > 0) {
+                    navBadge.textContent = data.unread_count;
+                    navBadge.style.display = 'flex';
+                } else {
+                    navBadge.style.display = 'none';
+                }
+            });
+        }
+        
+        // Check for new messages every 30 seconds
+        setInterval(checkUnreadMessages, 30000);
+        
+        // Initial check
+        checkUnreadMessages();
+    });
+</script>
+{% endblock %}

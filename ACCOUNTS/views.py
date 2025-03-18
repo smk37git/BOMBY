@@ -11,9 +11,6 @@ from PIL import Image
 from .moderation import moderate_image_content
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import json
-import io
-import boto3
 from django.http import HttpResponse
 from django.contrib.auth.views import PasswordResetView
 from django.contrib.auth.forms import PasswordResetForm
@@ -24,6 +21,14 @@ from django.utils.http import urlsafe_base64_encode
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse_lazy
+from django.db.models import Q, Max, Count
+from .models import Message, Conversation
+from .forms import MessageForm
+from STORE.models import Order
+from django.utils import timezone
+import json
+import io
+import boto3
 
 # Signup Form
 def signup(request):
@@ -270,6 +275,236 @@ def update_promo_links(request):
             messages.error(request, 'Please select up to 2 social links for the promotional wall.')
     
     return redirect('ACCOUNTS:account')
+
+# Messaging System
+@login_required
+def inbox(request):
+    # Get all conversations for the current user
+    conversations = Conversation.objects.filter(
+        participants=request.user
+    ).order_by('-updated_at')
+    
+    # Count unread messages for each conversation
+    for conversation in conversations:
+        conversation.unread_count = Message.objects.filter(
+            sender__in=conversation.participants.exclude(id=request.user.id),
+            recipient=request.user,
+            is_read=False,
+            conversation=conversation
+        ).count()
+    
+    # Count total unread messages
+    unread_count = Message.objects.filter(
+        recipient=request.user,
+        is_read=False
+    ).count()
+    
+    return render(request, 'ACCOUNTS/inbox.html', {
+        'conversations': conversations,
+        'unread_count': unread_count
+    })
+
+@login_required
+def conversation(request, user_id):
+    other_user = get_object_or_404(User, id=user_id)
+    
+    # Get or create conversation between current user and other user
+    conversation = Conversation.objects.filter(
+        participants=request.user
+    ).filter(
+        participants=other_user
+    ).first()
+    
+    if not conversation:
+        conversation = Conversation.objects.create()
+        conversation.participants.add(request.user, other_user)
+        conversation.save()
+    
+    # Get all conversations for the sidebar
+    conversations = Conversation.objects.filter(
+        participants=request.user
+    ).order_by('-updated_at')
+    
+    # Count unread messages for each conversation
+    for conv in conversations:
+        conv.unread_count = Message.objects.filter(
+            sender__in=conv.participants.exclude(id=request.user.id),
+            recipient=request.user,
+            is_read=False,
+            conversation=conv
+        ).count()
+    
+    # Get all messages in this conversation
+    messages = Message.objects.filter(
+        Q(sender=request.user, recipient=other_user) | 
+        Q(sender=other_user, recipient=request.user)
+    ).order_by('created_at')
+    
+    # Ensure timezone aware datetimes
+    for msg in messages:
+        if timezone.is_naive(msg.created_at):
+            msg.created_at = timezone.make_aware(msg.created_at)
+    
+    # Mark messages as read
+    unread_messages = messages.filter(recipient=request.user, is_read=False)
+    for message in unread_messages:
+        message.is_read = True
+        message.save()
+    
+    # Handle new message
+    if request.method == 'POST':
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.sender = request.user
+            message.recipient = other_user
+            message.conversation = conversation
+            message.save()
+            
+            # Update conversation's last_message
+            conversation.last_message = message
+            conversation.save()
+            
+            return redirect('ACCOUNTS:conversation', user_id=user_id)
+    else:
+        form = MessageForm()
+    
+    return render(request, 'ACCOUNTS/conversation.html', {
+        'conversation': conversation,
+        'conversations': conversations,
+        'messages': messages,
+        'other_user': other_user,
+        'form': form
+    })
+
+@login_required
+def send_message(request, user_id):
+    if request.method == 'POST':
+        recipient = get_object_or_404(User, id=user_id)
+        content = request.POST.get('content', '').strip()
+        
+        if content:
+            # Get or create conversation
+            conversation = Conversation.objects.filter(
+                participants=request.user
+            ).filter(
+                participants=recipient
+            ).first()
+            
+            if not conversation:
+                conversation = Conversation.objects.create()
+                conversation.participants.add(request.user, recipient)
+                conversation.save()
+            
+            # Create message
+            message = Message.objects.create(
+                sender=request.user,
+                recipient=recipient,
+                content=content,
+                conversation=conversation
+            )
+            
+            # Update conversation's last_message
+            conversation.last_message = message
+            conversation.save()
+            
+            # Handle AJAX requests
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'success'})
+        
+        return redirect('ACCOUNTS:conversation', user_id=user_id)
+    
+    return redirect('ACCOUNTS:inbox')
+
+@login_required
+def get_unread_count(request):
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        unread_count = Message.objects.filter(
+            recipient=request.user,
+            is_read=False
+        ).count()
+        return JsonResponse({'unread_count': unread_count})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+# Function to link order messages with the user messaging system
+@login_required
+def copy_order_message_to_inbox(request, order_id, message_id):
+    """Copy an order message to the user messaging system"""
+    from STORE.models import OrderMessage
+    
+    order = get_object_or_404(Order, id=order_id)
+    order_message = get_object_or_404(OrderMessage, id=message_id, order=order)
+    
+    # Determine recipient (the other user in the order conversation)
+    if request.user == order.user:
+        recipient = order_message.sender
+    else:
+        recipient = order.user
+    
+    # Get or create conversation
+    conversation = Conversation.objects.filter(
+        participants=request.user
+    ).filter(
+        participants=recipient
+    ).first()
+    
+    if not conversation:
+        conversation = Conversation.objects.create()
+        conversation.participants.add(request.user, recipient)
+        conversation.save()
+    
+    # Create message in the user messaging system
+    message = Message.objects.create(
+        sender=request.user,
+        recipient=recipient,
+        content=f"Regarding Order #{order.id}: {order_message.message}",
+        conversation=conversation,
+        related_order=order
+    )
+    
+    # Update conversation's last_message
+    conversation.last_message = message
+    conversation.save()
+    
+    return redirect('ACCOUNTS:conversation', user_id=recipient.id)
+
+@login_required
+def user_search(request):
+    """View to search for users to start a conversation with"""
+    query = request.GET.get('q', '')
+    
+    if query:
+        # Search for users by username
+        users = User.objects.filter(
+            username__icontains=query
+        ).exclude(id=request.user.id)[:20]  # Limit to 20 results
+    else:
+        users = []
+    
+    return render(request, 'ACCOUNTS/user_search.html', {
+        'users': users,
+        'query': query
+    })
+
+@login_required
+def start_conversation(request, user_id):
+    """Start a new conversation with a user"""
+    other_user = get_object_or_404(User, id=user_id)
+    
+    # Check if conversation already exists
+    conversation = Conversation.objects.filter(
+        participants=request.user
+    ).filter(
+        participants=other_user
+    ).first()
+    
+    # If no conversation exists, create one
+    if not conversation:
+        conversation = Conversation.objects.create()
+        conversation.participants.add(request.user, other_user)
+        conversation.save()
+    
+    return redirect('ACCOUNTS:conversation', user_id=user_id)
 
 # Admin View User Management
 def is_admin(user):

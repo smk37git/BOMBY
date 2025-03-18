@@ -396,6 +396,41 @@ main {
     opacity: 1;
 }
 
+.dropdown-content a.notification-badge {
+    padding-right: 16px !important; 
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+.notification-count:empty,
+.notification-count:contains("0") {
+    display: none !important;
+}
+
+/* Notification badge positioning fixes */
+.notification-badge {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.notification-count {
+    background-color: #7b00fe;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: bold;
+    position: relative;
+    top: -1px;
+    margin-left: 5px;
+}
+
 /* Mobile navigation toggle button */
 .mobile-toggle {
     display: none;
