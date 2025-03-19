@@ -73,45 +73,58 @@
             </div>
             
             <div class="chat-messages" id="chat-messages">
-                {% if messages %}
-                    {% regroup messages by created_at.date as message_groups %}
-                    {% for group in message_groups %}
-                        <div class="date-divider">{{ group.grouper|date }}</div>
-                        
-                        {% for msg in group.list %}
-                        <div class="message {% if msg.sender == request.user %}message-mine{% else %}message-other{% endif %}">
-                            <div class="message-header">
-                                <div class="message-user">
-                                    <div class="user-avatar">
-                                        {% if msg.sender.profile_picture %}
-                                        <img src="{{ msg.sender.profile_picture.url }}" alt="{{ msg.sender.username }}">
-                                        {% else %}
-                                        <div class="avatar-placeholder">{{ msg.sender.username|first }}</div>
-                                        {% endif %}
-                                    </div>
-                                    <strong class="username">{{ msg.sender.username }}</strong>
+                {% for msg in messages %}
+                    {% ifchanged msg.created_at.date %}
+                        <div class="date-divider">{{ msg.created_at|date }}</div>
+                    {% endifchanged %}
+                    
+                    <div class="message {% if msg.sender == request.user %}message-mine{% else %}message-other{% endif %}">
+                        <div class="message-header">
+                            <div class="message-user">
+                                <div class="user-avatar">
+                                    {% if msg.sender.profile_picture %}
+                                    <img src="{{ msg.sender.profile_picture.url }}" alt="{{ msg.sender.username }}">
+                                    {% else %}
+                                    <div class="avatar-placeholder small">{{ msg.sender.username|first }}</div>
+                                    {% endif %}
                                 </div>
-                                <small class="message-time" data-iso-date="{{ msg.created_at|date:'c' }}">{{ msg.created_at|time }}</small>
+                                <strong class="username">{{ msg.sender.username }}</strong>
                             </div>
-                            <div class="message-body">
-                                <p>{{ msg.content }}</p>
-                                {% if msg.related_order %}
-                                <div class="related-order">
-                                    <a href="{% url 'STORE:order_details' order_id=msg.related_order.id %}">Order #{{ msg.related_order.id }}</a>
-                                </div>
-                                {% endif %}
-                            </div>
+                            <small class="message-time" data-iso-date="{{ msg.created_at|date:'c' }}">{{ msg.created_at|time }}</small>
                         </div>
-                        {% endfor %}
-                    {% endfor %}
-                {% else %}
+                        <div class="message-body">
+                            <p>{{ msg.content }}</p>
+                            {% if msg.related_order %}
+                            <div class="related-order">
+                                <a href="{% url 'STORE:order_details' order_id=msg.related_order.id %}">Order #{{ msg.related_order.id }}</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% empty %}
                     <div class="no-messages">
                         <p><i class="fas fa-comments"></i> No messages yet</p>
                     </div>
-                {% endif %}
+                {% endfor %}
             </div>
             
             <div class="chat-form">
+                <!-- Error message container -->
+                <div id="error-container" style="display: none;">
+                    <div id="error-message"></div>
+                </div>
+                
+                <!-- Django messages -->
+                {% if django_messages %}
+                <div class="django-messages">
+                    {% for message in django_messages %}
+                        <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
                 <form method="post" action="{% url 'ACCOUNTS:send_message' user_id=other_user.id %}" id="message-form" class="message-form">
                     {% csrf_token %}
                     <div class="message-input-container">
@@ -195,6 +208,27 @@
             }
         });
 
+        // Convert conversation timestamps in the sidebar
+        document.querySelectorAll('.conversation-time').forEach(element => {
+            const dateText = element.textContent.trim();
+            if (dateText) {
+                try {
+                    const date = new Date(dateText);
+                    if (!isNaN(date.getTime())) {
+                        element.textContent = date.toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: 'numeric',
+                            minute: 'numeric',
+                            hour12: true
+                        });
+                    }
+                } catch (e) {
+                    console.error('Error formatting date:', e);
+                }
+            }
+        });
+
         // Target specifically the messages in chat-messages and prevent auto-dismissal
         const chatMessages = document.querySelectorAll('#chat-messages .message, #chat-messages .message-mine, #chat-messages .message-other, #chat-messages .date-divider');
         
@@ -210,33 +244,104 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
         
+        // Function to display error message
+        function showErrorMessage(message) {
+            const errorContainer = document.getElementById('error-container');
+            const errorMessageEl = document.getElementById('error-message');
+            
+            // Clean up the message - remove quotes, brackets and 'Content contains'
+            let cleanMessage = message;
+            if (message.includes('Content contains inappropriate language')) {
+                cleanMessage = 'Message contains inappropriate language';
+            } else {
+                // Remove brackets, quotes and other formatting
+                cleanMessage = message.replace(/[\[\]']/g, '').replace(/^Content contains/, 'Message contains');
+            }
+            
+            errorMessageEl.textContent = cleanMessage;
+            errorContainer.style.display = 'block';
+            errorContainer.classList.remove('fading');
+            
+            setTimeout(() => {
+                // Start fading
+                errorContainer.classList.add('fading');
+                
+                // Hide after transition completes
+                setTimeout(() => {
+                    errorContainer.style.display = 'none';
+                }, 500);
+            }, 4500);
+        }
+        
         // Handle form submission with AJAX
         const messageForm = document.getElementById('message-form');
         
-        messageForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+        if (messageForm) {
+            // Create a variable to track if we're waiting for a response
+            let isSubmitting = false;
             
-            const formData = new FormData(this);
-            
-            fetch(this.action, {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Clear form and reload messages
-                    messageForm.reset();
-                    window.location.reload();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
+            // Add input event listener to reset submission state
+            const contentField = messageForm.querySelector('textarea[name="content"]');
+            contentField.addEventListener('input', function() {
+                // Reset submission state when user types
+                isSubmitting = false;
             });
-        });
+            
+            messageForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Don't submit if already submitting
+                if (isSubmitting) return;
+                
+                const formData = new FormData(this);
+                const content = contentField.value.trim();
+                
+                if (!content) {
+                    showErrorMessage("Message cannot be empty");
+                    return;
+                }
+                
+                // Set submitting state
+                isSubmitting = true;
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => {
+                    console.log("Response status:", response.status);
+                    return response.json()
+                    .then(data => {
+                        if (data.status === 'error') {
+                            throw new Error(data.message || 'Error processing request');
+                        }
+                        return data;
+                    })
+                    .catch(error => {
+                        if (response.ok) {
+                            return { status: 'success' };
+                        }
+                        throw error;
+                    });
+                })
+                .then(data => {
+                    console.log("Response data:", data);
+                    if (data.status === 'success') {
+                        // Simply refresh the page to show the new message
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorMessage(error.message || "Could not send message. Please try again.");
+                    isSubmitting = false;
+                });
+            });
+        }
         
         // Function to check for new messages
         function checkUnreadMessages() {
@@ -248,11 +353,13 @@
             .then(response => response.json())
             .then(data => {
                 const navBadge = document.getElementById('messages-badge');
-                if (data.unread_count > 0) {
-                    navBadge.textContent = data.unread_count;
-                    navBadge.style.display = 'flex';
-                } else {
-                    navBadge.style.display = 'none';
+                if (navBadge) {
+                    if (data.unread_count > 0) {
+                        navBadge.textContent = data.unread_count;
+                        navBadge.style.display = 'flex';
+                    } else {
+                        navBadge.style.display = 'none';
+                    }
                 }
             });
         }

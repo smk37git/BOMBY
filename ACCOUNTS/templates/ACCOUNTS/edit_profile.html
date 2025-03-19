@@ -198,12 +198,7 @@
                     
                     <!-- Error message container -->
                     {% if form.bio.errors %}
-                    <div style="background-color: rgba(255, 0, 0, 0.1); 
-                                border-left: 3px solid #ff0000; 
-                                padding: 10px; 
-                                margin-top: 10px; 
-                                color: #ffffff;
-                                border-radius: 4px;">
+                    <div id="bio-error-container" class="bio-error">
                         {{ form.bio.errors.0 }}
                     </div>
                     {% endif %}
@@ -244,6 +239,27 @@
                 bioValidationMessage.style.display = 'none';
             }
         });
+
+        const bioErrorContainer = document.getElementById('bio-error-container');
+        if (bioErrorContainer) {
+            // Set a timeout to fade out the error message after 5 seconds
+            setTimeout(() => {
+                bioErrorContainer.classList.add('fading');
+                
+                // Hide after transition completes
+                setTimeout(() => {
+                    bioErrorContainer.style.display = 'none';
+                }, 500);
+            }, 4500);
+            
+            // Also hide on input in the bio field
+            document.getElementById('id_bio').addEventListener('input', function() {
+                bioErrorContainer.classList.add('fading');
+                setTimeout(() => {
+                    bioErrorContainer.style.display = 'none';
+                }, 500);
+            });
+        }
 
         // Profile picture handling
         const fileInput = document.getElementById('{{ form.profile_picture.id_for_label }}');

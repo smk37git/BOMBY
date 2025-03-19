@@ -325,7 +325,7 @@ def conversation(request, user_id):
     # Get all conversations for the sidebar
     conversations = Conversation.objects.filter(
         participants=request.user
-    ).order_by('-updated_at')
+    ).prefetch_related('participants').order_by('-updated_at')
     
     # Count unread messages for each conversation
     for conv in conversations:
@@ -337,18 +337,18 @@ def conversation(request, user_id):
         ).count()
     
     # Get all messages in this conversation
-    messages = Message.objects.filter(
+    message_list = Message.objects.filter(
         Q(sender=request.user, recipient=other_user) | 
         Q(sender=other_user, recipient=request.user)
-    ).order_by('created_at')
+    ).select_related('sender', 'recipient').order_by('created_at')
     
     # Ensure timezone aware datetimes
-    for msg in messages:
+    for msg in message_list:
         if timezone.is_naive(msg.created_at):
             msg.created_at = timezone.make_aware(msg.created_at)
     
     # Mark messages as read
-    unread_messages = messages.filter(recipient=request.user, is_read=False)
+    unread_messages = message_list.filter(recipient=request.user, is_read=False)
     for message in unread_messages:
         message.is_read = True
         message.save()
@@ -371,12 +371,16 @@ def conversation(request, user_id):
     else:
         form = MessageForm()
     
+    # Getting Django messages (success, error, etc.) to differentiate from chat messages
+    django_messages = list(messages.get_messages(request))
+    
     return render(request, 'ACCOUNTS/conversation.html', {
         'conversation': conversation,
         'conversations': conversations,
-        'messages': messages,
+        'messages': message_list,
         'other_user': other_user,
-        'form': form
+        'form': form,
+        'django_messages': django_messages
     })
 
 @login_required
@@ -386,34 +390,86 @@ def send_message(request, user_id):
         content = request.POST.get('content', '').strip()
         
         if content:
-            # Get or create conversation
-            conversation = Conversation.objects.filter(
-                participants=request.user
-            ).filter(
-                participants=recipient
-            ).first()
-            
-            if not conversation:
-                conversation = Conversation.objects.create()
-                conversation.participants.add(request.user, recipient)
+            try:
+                # Import the validator directly
+                from .validators import validate_clean_content
+                from django.core.exceptions import ValidationError
+                
+                # Validate content for profanity
+                try:
+                    content = validate_clean_content(content)
+                except ValidationError as e:
+                    print(f"PROFANITY ERROR: {str(e)}")
+                    # For AJAX requests
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'status': 'error',
+                            'message': str(e)
+                        }, status=400)  # Use 400 status code for validation errors
+                    
+                    # For regular form submissions
+                    messages.error(request, str(e))
+                    return redirect('ACCOUNTS:conversation', user_id=user_id)
+                
+                # Get or create conversation
+                conversation = Conversation.objects.filter(
+                    participants=request.user
+                ).filter(
+                    participants=recipient
+                ).first()
+                
+                if not conversation:
+                    conversation = Conversation.objects.create()
+                    conversation.participants.add(request.user, recipient)
+                    conversation.save()
+                
+                # Create message
+                message = Message.objects.create(
+                    sender=request.user,
+                    recipient=recipient,
+                    content=content,
+                    conversation=conversation
+                )
+                
+                # Update conversation's last_message
+                conversation.last_message = message
                 conversation.save()
-            
-            # Create message
-            message = Message.objects.create(
-                sender=request.user,
-                recipient=recipient,
-                content=content,
-                conversation=conversation
-            )
-            
-            # Update conversation's last_message
-            conversation.last_message = message
-            conversation.save()
-            
-            # Handle AJAX requests
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'status': 'success'})
+                
+                # Handle AJAX requests
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'status': 'success',
+                        'message_id': message.id,
+                        'timestamp': message.created_at.isoformat()
+                    })
+                
+                return redirect('ACCOUNTS:conversation', user_id=user_id)
+                
+            except Exception as e:
+                # Log the error for debugging
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Error in send_message: {str(e)}")
+                
+                # For AJAX requests
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': "Could not send message. Please try again."
+                    }, status=500)
+                
+                # For regular form submissions
+                messages.error(request, "Could not send message. Please try again.")
+                return redirect('ACCOUNTS:conversation', user_id=user_id)
         
+        # Empty message
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'error',
+                'message': "Message cannot be empty."
+            }, status=400)
+        
+        messages.error(request, "Message cannot be empty.")
         return redirect('ACCOUNTS:conversation', user_id=user_id)
     
     return redirect('ACCOUNTS:inbox')

@@ -134,7 +134,7 @@
                 <p style="color: white;">You have <strong>{{ unread_count }}</strong> unread message{% if unread_count != 1 %}s{% endif %} from {{ sender_count }} conversation{% if sender_count != 1 %}s{% endif %}.</p>
                 
                 {% if senders %}
-                <p>Messages from: 
+                <p style="color: white;">Messages from: 
                     {% for sender in senders %}
                     {{ sender.username }}{% if not forloop.last %}, {% endif %}
                     {% endfor %}

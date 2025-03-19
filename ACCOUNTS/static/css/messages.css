@@ -864,6 +864,32 @@
     display: none !important;
 }
 
+/* Messages styling */
+.messages {
+    margin-bottom: 20px;
+}
+
+.message {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+#error-message {
+    background-color: rgba(255, 0, 0, 0.1);
+    border-left: 3px solid #ff0000;
+    padding: 10px;
+    margin: 10px 0;
+    color: #ffffff;
+    border-radius: 4px;
+    transition: opacity 0.5s ease-in-out;
+    opacity: 1;
+}
+
+#error-container.fading #error-message {
+    opacity: 0;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
     .messages-content {

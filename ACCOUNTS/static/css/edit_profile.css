@@ -282,6 +282,21 @@ input[type="file"] {
     padding: 5px 0;
 }
 
+.bio-error {
+    background-color: rgba(255, 0, 0, 0.1);
+    border-left: 3px solid #ff0000;
+    padding: 10px;
+    margin-top: 10px;
+    color: #ffffff;
+    border-radius: 4px;
+    transition: opacity 0.5s ease-in-out;
+    opacity: 1;
+}
+
+.bio-error.fading {
+    opacity: 0;
+}
+
 /* Validation popup */
 .validation-popup {
     padding: 0;
