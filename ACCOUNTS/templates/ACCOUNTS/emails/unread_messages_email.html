@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>You Have Unread Messages - BOMBY</title>
+    <title>BOMBY - You Have Unread Messages</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -131,10 +131,10 @@
         <div class="message-summary">
             <h3>Message Summary</h3>
             <div class="message-info">
-                <p>You have <strong>{{ unread_count }}</strong> unread message{% if unread_count != 1 %}s{% endif %} from {{ sender_count }} conversation{% if sender_count != 1 %}s{% endif %}.</p>
+                <p style="color: white;">You have <strong>{{ unread_count }}</strong> unread message{% if unread_count != 1 %}s{% endif %} from {{ sender_count }} conversation{% if sender_count != 1 %}s{% endif %}.</p>
                 
                 {% if senders %}
-                <p style="color: #a991ff;">Messages from: 
+                <p>Messages from: 
                     {% for sender in senders %}
                     {{ sender.username }}{% if not forloop.last %}, {% endif %}
                     {% endfor %}
