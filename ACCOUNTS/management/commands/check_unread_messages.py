@@ -16,9 +16,8 @@ class Command(BaseCommand):
         request.META['SERVER_NAME'] = Site.objects.get_current().domain
         request.META['SERVER_PORT'] = '443'  # Assume HTTPS
         
-        # Get users with unread messages older than 30 seconds (for testing)
         # Change back to 5 minutes for production
-        thirty_seconds_ago = timezone.now() - timedelta(seconds=30)
+        thirty_seconds_ago = timezone.now() - timedelta(seconds=300)
         
         # Get distinct users who have unread messages
         users_with_unread = User.objects.filter(
