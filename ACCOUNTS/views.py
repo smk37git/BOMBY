@@ -31,6 +31,9 @@ import io
 import boto3
 from django.core.management import call_command
 import os
+from django.core.paginator import Paginator
+from .decorators import admin_required
+from datetime import datetime, timedelta
 
 # Signup Form
 def signup(request):
@@ -640,3 +643,111 @@ def bulk_delete_users(request):
     
     return redirect('ACCOUNTS:user_management')
 
+# Message Monitoring
+@login_required
+@user_passes_test(is_admin)
+def message_monitor(request):
+    """Admin view to monitor all user messages"""
+    
+    # Get filter parameters
+    start_date_str = request.GET.get('start_date', '')
+    end_date_str = request.GET.get('end_date', '')
+    user_filter = request.GET.get('user_filter', '')
+    content_filter = request.GET.get('content_filter', '')
+    read_status = request.GET.get('read_status', 'all')
+    
+    # Parse dates
+    try:
+        if start_date_str:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+        else:
+            # Default to 7 days ago
+            start_date = datetime.now() - timedelta(days=7)
+            
+        if end_date_str:
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
+            # Make end_date inclusive by setting it to end of day
+            end_date = end_date.replace(hour=23, minute=59, second=59)
+        else:
+            # Default to today
+            end_date = datetime.now()
+    except ValueError:
+        # If date parsing fails, use default values
+        start_date = datetime.now() - timedelta(days=7)
+        end_date = datetime.now()
+    
+    # Start with all messages
+    messages_query = Message.objects.select_related('sender', 'recipient', 'conversation').all()
+    
+    # Apply date filters
+    messages_query = messages_query.filter(created_at__range=[start_date, end_date])
+    
+    # Apply user filter
+    if user_filter:
+        messages_query = messages_query.filter(
+            Q(sender__username__icontains=user_filter) | 
+            Q(recipient__username__icontains=user_filter)
+        )
+    
+    # Apply content filter
+    if content_filter:
+        messages_query = messages_query.filter(content__icontains=content_filter)
+    
+    # Apply read status filter
+    if read_status == 'read':
+        messages_query = messages_query.filter(is_read=True)
+    elif read_status == 'unread':
+        messages_query = messages_query.filter(is_read=False)
+    
+    # Order by most recent first
+    messages_query = messages_query.order_by('-created_at')
+    
+    # Paginate results
+    paginator = Paginator(messages_query, 50)  # Show 50 messages per page
+    page = request.GET.get('page')
+    messages_list = paginator.get_page(page)
+    
+    context = {
+        'messages_list': messages_list,
+        'start_date': start_date,
+        'end_date': end_date,
+        'user_filter': user_filter,
+        'content_filter': content_filter,
+        'read_status': read_status,
+    }
+    
+    return render(request, 'ACCOUNTS/message_monitor.html', context)
+
+@login_required
+@user_passes_test(is_admin)
+def mark_message_read(request):
+    """AJAX endpoint to mark a message as read"""
+    if request.method == 'POST':
+        message_id = request.GET.get('message_id')
+        if not message_id:
+            return JsonResponse({'success': False, 'error': 'No message ID provided'})
+        
+        try:
+            message = Message.objects.get(id=message_id)
+            message.is_read = True
+            message.save()
+            return JsonResponse({'success': True})
+        except Message.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Message not found'})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+@login_required
+@user_passes_test(is_admin)
+def delete_messages(request):
+    """Endpoint to delete messages"""
+    if request.method == 'POST':
+        selected_messages = request.POST.get('selected_messages', '').split(',')
+        
+        if selected_messages and selected_messages[0]:  # Check if not empty string
+            deleted_count = Message.objects.filter(id__in=selected_messages).delete()[0]
+            messages.success(request, f"Successfully deleted {deleted_count} message(s).")
+        else:
+            messages.error(request, "No messages selected for deletion.")
+    
+    return redirect('ACCOUNTS:message_monitor')

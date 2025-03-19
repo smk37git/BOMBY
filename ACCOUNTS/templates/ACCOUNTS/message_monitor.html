@@ -1,0 +1,440 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/user_management.css' %}">
+    <link rel="stylesheet" href="{% static 'css/message_monitor.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% load tz %}
+
+{% block content %}
+<div class="profile-container message-monitor-container">
+    <div class="profile-header">
+        <h1 class="user_management-title">Message Monitor</h1>
+    </div>
+    
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="dashboard-layout">
+        <!-- Filter Panel -->
+        <div class="filter-panel">
+            <div class="panel-header">
+                <h3>Filters</h3>
+            </div>
+            
+            <form method="get" action="{% url 'ACCOUNTS:message_monitor' %}" id="filter-form">
+                <div class="filter-section">
+                    <h4>Date Range</h4>
+                    <div class="date-inputs">
+                        <div class="date-field">
+                            <input type="date" name="start_date" value="{{ start_date|date:'Y-m-d' }}" class="date-input">
+                        </div>
+                        <span class="date-separator">to</span>
+                        <div class="date-field">
+                            <input type="date" name="end_date" value="{{ end_date|date:'Y-m-d' }}" class="date-input">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4>User Filter</h4>
+                    <input type="text" name="user_filter" placeholder="Username" value="{{ user_filter }}" class="search-input">
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Content Search</h4>
+                    <input type="text" name="content_filter" placeholder="Search in messages" value="{{ content_filter }}" class="search-input">
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Show Only</h4>
+                    <select name="read_status" class="user-type-select">
+                        <option value="all" {% if read_status == 'all' %}selected{% endif %}>All Messages</option>
+                        <option value="unread" {% if read_status == 'unread' %}selected{% endif %}>Unread Only</option>
+                        <option value="read" {% if read_status == 'read' %}selected{% endif %}>Read Only</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="panel-action-button">Apply Filters</button>
+                <a href="{% url 'ACCOUNTS:message_monitor' %}" class="panel-action-button clear-btn">Clear Filters</a>
+            </form>
+        </div>
+        
+        <!-- Messages Table Section -->
+        <div class="message-table-container">
+            <div class="table-header">
+                <h2>User Messages</h2>
+                <div class="message-count">{{ messages_list|length }} messages found</div>
+            </div>
+            
+            <div class="message-actions-bar">
+                <div class="bulk-actions">
+                    <button id="mark-all-read-btn" class="action-button" disabled>Mark as Read</button>
+                    <button id="delete-selected-btn" class="action-button danger" disabled>Delete Selected</button>
+                </div>
+                <div class="search-controls">
+                    <input type="text" id="table-search" placeholder="Quick filter..." class="quick-search">
+                </div>
+            </div>
+            
+            <div class="messages-table-wrapper">
+                <table class="messages-table">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-column">
+                                <input type="checkbox" id="select-all-checkbox" title="Select All">
+                            </th>
+                            <th class="sender-column">Sender</th>
+                            <th class="recipient-column">Recipient</th>
+                            <th class="content-column">Content</th>
+                            <th class="timestamp-column">Timestamp</th>
+                            <th class="status-column">Status</th>
+                            <th class="actions-column">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for msg in messages_list %}
+                        <tr data-message-id="{{ msg.id }}" class="message-row {% if not msg.is_read %}unread-row{% endif %}">
+                            <td class="checkbox-column">
+                                <input type="checkbox" class="message-select-checkbox" data-message-id="{{ msg.id }}">
+                            </td>
+                            <td class="sender-column">
+                                <a href="{% url 'ACCOUNTS:user_profile' msg.sender.username %}" class="user-link sender-link">
+                                    {{ msg.sender.username }}
+                                </a>
+                            </td>
+                            <td class="recipient-column">
+                                <a href="{% url 'ACCOUNTS:user_profile' msg.recipient.username %}" class="user-link recipient-link">
+                                    {{ msg.recipient.username }}
+                                </a>
+                            </td>
+                            <td class="content-column">
+                                <div class="message-content">{{ msg.content }}</div>
+                            </td>
+                            <td class="timestamp-column">
+                                {{ msg.created_at|timezone:"America/Chicago"|date:"M d, Y, g:i a" }}
+                            </td>
+                            <td class="status-column">
+                                <span class="message-status {% if msg.is_read %}read{% else %}unread{% endif %}">
+                                    {% if msg.is_read %}Read{% else %}Unread{% endif %}
+                                </span>
+                            </td>
+                            <td class="actions-column">
+                                <button class="view-message-btn" data-message-id="{{ msg.id }}">View</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="no-results">No messages found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if messages_list.has_other_pages %}
+            <div class="pagination">
+                {% if messages_list.has_previous %}
+                    <a href="?page={{ messages_list.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">&laquo; Previous</a>
+                {% endif %}
+                
+                {% for num in messages_list.paginator.page_range %}
+                    {% if messages_list.number == num %}
+                        <span class="page-link active">{{ num }}</span>
+                    {% elif num > messages_list.number|add:'-3' and num < messages_list.number|add:'3' %}
+                        <a href="?page={{ num }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if messages_list.has_next %}
+                    <a href="?page={{ messages_list.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Next &raquo;</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Message View Modal -->
+    <div id="message-view-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 class="modal-title">Message Details</h3>
+            <div class="message-detail-content">
+                <div class="message-header">
+                    <div class="message-users">
+                        <div class="message-user sender">
+                            <strong>From:</strong> <span id="modal-sender"></span>
+                        </div>
+                        <div class="message-user recipient">
+                            <strong>To:</strong> <span id="modal-recipient"></span>
+                        </div>
+                    </div>
+                    <div class="message-date">
+                        <strong>Date:</strong> <span id="modal-date"></span>
+                    </div>
+                </div>
+                <div class="message-body" id="modal-content"></div>
+                
+                <div class="message-meta">
+                    <div class="message-status-container">
+                        <strong>Status:</strong> <span id="modal-status"></span>
+                    </div>
+                    <div class="admin-actions">
+                        <button id="delete-message-btn" class="action-button danger">Delete Message</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-confirmation-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 class="modal-title">Confirm Deletion</h3>
+            <p>Are you sure you want to delete the selected message(s)? This action cannot be undone.</p>
+            <form id="delete-messages-form" method="post" action="{% url 'ACCOUNTS:delete_messages' %}">
+                {% csrf_token %}
+                <input type="hidden" id="selected-messages-delete" name="selected_messages" value="">
+                <div class="form-actions">
+                    <button type="submit" class="action-button danger">Delete</button>
+                    <button type="button" class="action-button cancel" id="cancel-delete">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Elements
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        const messageCheckboxes = document.querySelectorAll('.message-select-checkbox');
+        const messageViewModal = document.getElementById('message-view-modal');
+        const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
+        const closeButtons = document.querySelectorAll('.close');
+        const cancelDeleteBtn = document.getElementById('cancel-delete');
+        const markAllReadBtn = document.getElementById('mark-all-read-btn');
+        const deleteSelectedBtn = document.getElementById('delete-selected-btn');
+        const tableSearch = document.getElementById('table-search');
+        
+        // Modal content elements
+        const modalSender = document.getElementById('modal-sender');
+        const modalRecipient = document.getElementById('modal-recipient');
+        const modalDate = document.getElementById('modal-date');
+        const modalContent = document.getElementById('modal-content');
+        const modalStatus = document.getElementById('modal-status');
+        const deleteMessageBtn = document.getElementById('delete-message-btn');
+        
+        // Quick search functionality
+        tableSearch.addEventListener('input', function() {
+            const searchText = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.message-row');
+            
+            rows.forEach(row => {
+                const sender = row.querySelector('.sender-column').textContent.toLowerCase();
+                const recipient = row.querySelector('.recipient-column').textContent.toLowerCase();
+                const content = row.querySelector('.content-column').textContent.toLowerCase();
+                
+                if (sender.includes(searchText) || recipient.includes(searchText) || content.includes(searchText)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+        
+        // Update bulk action buttons state
+        function updateBulkActionButtons() {
+            const checkedBoxes = document.querySelectorAll('.message-select-checkbox:checked');
+            markAllReadBtn.disabled = checkedBoxes.length === 0;
+            deleteSelectedBtn.disabled = checkedBoxes.length === 0;
+        }
+        
+        // View message handler
+        const viewButtons = document.querySelectorAll('.view-message-btn');
+        viewButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const messageId = this.dataset.messageId;
+                const row = document.querySelector(`tr[data-message-id="${messageId}"]`);
+                
+                const sender = row.querySelector('.sender-column').textContent.trim();
+                const recipient = row.querySelector('.recipient-column').textContent.trim();
+                const content = row.querySelector('.content-column').textContent.trim();
+                const date = row.querySelector('.timestamp-column').textContent.trim();
+                const status = row.querySelector('.message-status').textContent.trim();
+                
+                // Update modal content
+                modalSender.textContent = sender;
+                modalRecipient.textContent = recipient;
+                modalDate.textContent = date;
+                modalContent.textContent = content;
+                modalStatus.textContent = status;
+                
+                // Set delete button attribute
+                deleteMessageBtn.setAttribute('data-message-id', messageId);
+                
+                // Show modal
+                messageViewModal.style.display = 'block';
+                
+                // Mark as read if it wasn't already
+                if (row.classList.contains('unread-row')) {
+                    // AJAX call to mark as read
+                    fetch(`{% url 'ACCOUNTS:mark_message_read' %}?message_id=${messageId}`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken'),
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            row.classList.remove('unread-row');
+                            row.querySelector('.message-status').textContent = 'Read';
+                            row.querySelector('.message-status').classList.remove('unread');
+                            row.querySelector('.message-status').classList.add('read');
+                            modalStatus.textContent = 'Read';
+                        }
+                    });
+                }
+            });
+        });
+        
+        // Delete message handler
+        deleteMessageBtn.addEventListener('click', function() {
+            const messageId = this.dataset.messageId;
+            document.getElementById('selected-messages-delete').value = messageId;
+            messageViewModal.style.display = 'none';
+            deleteConfirmationModal.style.display = 'block';
+        });
+        
+        // Bulk delete handler
+        deleteSelectedBtn.addEventListener('click', function() {
+            const selectedMessageIds = Array.from(document.querySelectorAll('.message-select-checkbox:checked'))
+                .map(checkbox => checkbox.dataset.messageId)
+                .join(',');
+                
+            document.getElementById('selected-messages-delete').value = selectedMessageIds;
+            deleteConfirmationModal.style.display = 'block';
+        });
+        
+        // Bulk mark as read handler
+        markAllReadBtn.addEventListener('click', function() {
+            const selectedCheckboxes = document.querySelectorAll('.message-select-checkbox:checked');
+            const selectedMessageIds = Array.from(selectedCheckboxes)
+                .map(checkbox => checkbox.dataset.messageId);
+                
+            // Create promises array for all API calls
+            const markReadPromises = selectedMessageIds.map(id => 
+                fetch(`{% url 'ACCOUNTS:mark_message_read' %}?message_id=${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Content-Type': 'application/json'
+                    }
+                }).then(response => response.json())
+            );
+            
+            // Wait for all API calls to complete
+            Promise.all(markReadPromises).then(results => {
+                // Update UI for all successfully marked messages
+                results.forEach((result, index) => {
+                    if (result.success) {
+                        const messageId = selectedMessageIds[index];
+                        const row = document.querySelector(`tr[data-message-id="${messageId}"]`);
+                        
+                        // Only update if the row was previously unread
+                        if (row.classList.contains('unread-row')) {
+                            row.classList.remove('unread-row');
+                            row.querySelector('.message-status').textContent = 'Read';
+                            row.querySelector('.message-status').classList.remove('unread');
+                            row.querySelector('.message-status').classList.add('read');
+                        }
+                    }
+                });
+            });
+        });
+        
+        // Select/Deselect all checkboxes
+        selectAllCheckbox.addEventListener('change', function() {
+            messageCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkActionButtons();
+        });
+        
+        // Individual checkbox change handler
+        messageCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateBulkActionButtons();
+                
+                // Update select all checkbox state
+                const allSelected = Array.from(messageCheckboxes).every(cb => cb.checked);
+                const someSelected = Array.from(messageCheckboxes).some(cb => cb.checked);
+                
+                selectAllCheckbox.checked = allSelected;
+                selectAllCheckbox.indeterminate = someSelected && !allSelected;
+            });
+        });
+        
+        // Close modals
+        closeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                messageViewModal.style.display = 'none';
+                deleteConfirmationModal.style.display = 'none';
+            });
+        });
+        
+        cancelDeleteBtn.addEventListener('click', function() {
+            deleteConfirmationModal.style.display = 'none';
+        });
+        
+        // Close modal when clicking outside of it
+        window.addEventListener('click', function(event) {
+            if (event.target === messageViewModal) {
+                messageViewModal.style.display = 'none';
+            }
+            if (event.target === deleteConfirmationModal) {
+                deleteConfirmationModal.style.display = 'none';
+            }
+        });
+        
+        // Initialize button states
+        updateBulkActionButtons();
+        
+        // Helper function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+{% endblock %}
