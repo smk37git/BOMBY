@@ -38,13 +38,13 @@ class Command(BaseCommand):
                 continue
                 
             # Check if we've already sent an email in the last hour
-            last_hour = timezone.now() - timedelta(hours=1)
+            one_day_ago = timezone.now() - timedelta(hours=24)
             
             # Get or create notification tracking object
             notification, created = MessageNotification.objects.get_or_create(user=user)
             
             # Skip if we've already sent an email in the last hour
-            if notification.last_notified and notification.last_notified > last_hour:
+            if notification.last_notified and notification.last_notified > one_day_ago:
                 skipped += 1
                 continue
             
