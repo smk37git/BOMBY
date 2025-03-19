@@ -689,7 +689,7 @@
 .search-input:focus {
     outline: none;
     border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 0 0 0 2px rgba(158, 51, 230, 0.3);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
 }
 
 .search-button {

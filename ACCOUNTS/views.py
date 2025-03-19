@@ -29,6 +29,7 @@ from django.utils import timezone
 import json
 import io
 import boto3
+from django.core.management import call_command
 
 # Signup Form
 def signup(request):
@@ -426,6 +427,24 @@ def get_unread_count(request):
         return JsonResponse({'unread_count': unread_count})
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+# Check for unread messages for emails
+@csrf_exempt
+def run_message_check(request):
+    # Get token from request
+    request_token = request.headers.get('X-API-Key')
+    
+    # Get actual token from environment
+    actual_token = os.environ.get('SCHEDULER_API_KEY')
+    
+    # Validate token
+    if not request_token or request_token != actual_token:
+        return HttpResponse("Unauthorized", status=401)
+        
+    if request.method == 'POST':
+        call_command('check_unread_messages')
+        return HttpResponse("Command executed successfully", status=200)
+    return HttpResponse("Method not allowed", status=405)
+
 # Function to link order messages with the user messaging system
 @login_required
 def copy_order_message_to_inbox(request, order_id, message_id):
@@ -563,3 +582,4 @@ def bulk_delete_users(request):
             messages.success(request, f"Successfully deleted {deleted_count} users.")
     
     return redirect('ACCOUNTS:user_management')
+

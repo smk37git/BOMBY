@@ -6,6 +6,7 @@ from .validators import validate_clean_content
 from PIL import Image
 import io
 import json
+from django.conf import settings
 
 # Keep validate_image_size and validate_image_dimensions functions
 def validate_image_size(file):
@@ -158,3 +159,14 @@ class Conversation(models.Model):
     
     def other_participant(self, user):
         return self.participants.exclude(id=user.id).first()
+
+# Email for unread messages
+class MessageNotification(models.Model):
+    """
+    Tracks when unread message notifications were last sent to users
+    """
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='message_notification')
+    last_notified = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"Message notification for {self.user.username}"

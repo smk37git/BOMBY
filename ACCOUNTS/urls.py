@@ -57,4 +57,5 @@ urlpatterns = [
      path('messages/send/<int:user_id>/', views.send_message, name='send_message'),
      path('messages/unread-count/', views.get_unread_count, name='get_unread_count'),
      path('messages/order/<int:order_id>/message/<int:message_id>/', views.copy_order_message_to_inbox, name='copy_order_message'),
+     path('api/run-check/', views.run_message_check, name='run_message_check'),
 ]
