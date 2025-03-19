@@ -1,6 +1,13 @@
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import get_user_model
+from django.db.models import Count, Q
+from .decorators import admin_required
+from ACCOUNTS.models import Message
+from STORE.models import Order, Product, Review
+from MAIN.decorators import *
 
 # Create your views here.
 
@@ -52,3 +59,24 @@ def contact(request):
 # Portfolio View
 def portfolio(request):
     return render(request, 'PORTFOLIO/portfolio.html')
+
+# Admin Panel View
+@login_required
+@admin_required
+def admin_panel(request):
+    User = get_user_model()
+    
+    # Get statistics
+    user_count = User.objects.count()
+    order_count = Order.objects.count()
+    unread_message_count = Message.objects.filter(is_read=False).count()
+    product_count = Product.objects.count()
+    
+    context = {
+        'user_count': user_count,
+        'order_count': order_count,
+        'unread_message_count': unread_message_count,
+        'product_count': product_count,
+    }
+    
+    return render(request, 'MAIN/admin_panel.html', context)

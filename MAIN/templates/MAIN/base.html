@@ -65,6 +65,9 @@
                                 <span class="notification-count" id="messages-badge"></span>
                             </a>
                             <a href="{% url 'ACCOUNTS:edit_profile' %}">Edit Profile</a>
+                            {% if user.is_admin_user %}
+                            <a href="{% url 'admin_panel' %}">Admin Panel</a>
+                            {% endif %}
                             <form method="post" action="{% url 'ACCOUNTS:logout' %}">
                                 {% csrf_token %}
                                 <button type="submit">Logout</button>
