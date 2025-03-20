@@ -26,6 +26,7 @@ def store(request):
         Product.objects.get(id=1),  # Basic Package
         Product.objects.get(id=2),  # Standard Package
         Product.objects.get(id=3),  # Premium Package
+        Product.objects.get(id=4),  # Stream Store
         Product.objects.get(id=5),  # Basic Website
         Product.objects.get(id=6),  # E-commerce Website
         Product.objects.get(id=7),  # Custom Project
@@ -429,7 +430,8 @@ def stream_store_purchase(request):
     if user_can_access_stream_store(request.user):
         return redirect('STORE:stream_store')
         
-    return render(request, 'STORE/stream_store_purchase.html')
+    product = Product.objects.get(id=4)
+    return render(request, 'STORE/stream_store_purchase.html', {'product': product})
 
 @login_required
 def stream_asset_detail(request, asset_id):

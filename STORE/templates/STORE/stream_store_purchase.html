@@ -1,8 +1,10 @@
+
 {% extends 'MAIN/base.html' %}
 {% load static %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/store_item.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stream_store.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 {% endblock %}
 
@@ -24,59 +26,80 @@
         <!-- Left side: Gallery -->
         <div class="product-gallery-side">
             <div class="product-featured-image">
-                <img src="{% static 'images/stream_store.jpg' %}" alt="Stream Store Access" class="featured-image" id="featuredImage">
+                <img src="{% static 'images/1.jpg' %}" 
+                     alt="Basic Package" class="featured-image" id="featuredImage">
+            </div>
+            
+            <div class="gallery-thumbnails">
+                <!-- Thumbnails -->
+                <div class="thumbnail active" data-image="{% static 'images/1.jpg' %}">
+                    <img src="{% static 'images/1.jpg' %}" alt="Main Package View">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/2.jpg' %}">
+                    <img src="{% static 'images/2.jpg' %}" alt="Gallery Image 2">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/3.jpg' %}">
+                    <img src="{% static 'images/3.jpg' %}" alt="Gallery Image 3">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/4.jpg' %}">
+                    <img src="{% static 'images/4.jpg' %}" alt="Gallery Image 4">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/5.jpg' %}">
+                    <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 5">
+                </div>
             </div>
         </div>
         
         <!-- Right side: Product info -->
         <div class="product-card">
-            <h1 class="product-title">STREAM STORE ACCESS
-                <div class="product-status active">PREMIUM</div>
+            <h1 class="product-title">STREAM STORE
+                <div class="product-status {% if product.is_active %}active{% else %}inactive{% endif %}">
+                    {% if product.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                </div>
             </h1>
-            <hr class="page-divider">
+            <hr class="page-divider"></hr>
             
             <div class="product-features-container">
                 <div class="product-features">
-                  <h2>ACCESS TO:</h2>
+                  <h2>FEATURES:</h2>
                   <ul class="features-list">
                     <li>
                       <i class="fas fa-check-circle"></i>
-                      All Stream Overlays and Graphics
+                      Basic stream overlay
                     </li>
                     <li>
                       <i class="fas fa-check-circle"></i>
-                      Stream Alerts and Effects
+                      Simple alerts setup
                     </li>
                     <li>
                       <i class="fas fa-check-circle"></i>
-                      Animated Transitions
+                      Single scene design
                     </li>
                     <li>
                       <i class="fas fa-check-circle"></i>
-                      Future Assets (Added Regularly)
+                      1 minor revision
                     </li>
                   </ul>
                 </div>
                 
                 <div class="delivery-badge">
-                  <i class="fas fa-bolt"></i>
+                    <i class="fa-solid fa-bolt"></i>
                   <span>Instant Access</span>
                 </div>
             </div>
             
             <div class="product-purchase">
                 <div class="price-section">
-                    <div class="price-label">One-time payment:</div>
+                    <div class="price-label">Price:</div>
                     <div class="price-value">$10.00</div>
                 </div>
-                
                 <a href="{% url 'STORE:become_supporter' %}" class="purchase-btn">
                     GET ACCESS
                 </a>
             </div>
         </div>
     </div>
-    
+
     <!-- Description section -->
     <div class="product-description-section">
         <div class="product-card">
@@ -154,50 +177,23 @@
     </div>
 </div>
 
-<style>
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-    margin: 2rem 0;
-}
-
-.feature-item {
-    background: rgba(0, 0, 0, 0.3);
-    padding: 1.5rem;
-    border-radius: 10px;
-    text-align: center;
-    transition: transform 0.3s ease;
-}
-
-.feature-item:hover {
-    transform: translateY(-5px);
-}
-
-.feature-item i {
-    font-size: 2.5rem;
-    color: #a970ff;
-    margin-bottom: 1rem;
-}
-
-.feature-item h3 {
-    color: white;
-    margin-bottom: 0.5rem;
-}
-
-.feature-item p {
-    color: rgba(255, 255, 255, 0.8);
-}
-
-@media (max-width: 768px) {
-    .features-grid {
-        grid-template-columns: 1fr;
-    }
-}
-</style>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Image gallery functionality
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        const featuredImage = document.getElementById('featuredImage');
+        
+        thumbnails.forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                // Update featured image
+                featuredImage.src = this.dataset.image;
+                
+                // Update active thumbnail
+                thumbnails.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
         // FAQ dropdown functionality
         const faqItems = document.querySelectorAll('.faq-item');
         

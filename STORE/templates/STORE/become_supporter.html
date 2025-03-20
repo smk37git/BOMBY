@@ -1,0 +1,59 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/store_item.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="product-container">
+    <!-- Back link -->
+    <div class="product-navigation">
+        <a href="{% url 'STORE:store' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Store
+        </a>
+    </div>
+    
+    <div class="product-card" style="max-width: 600px; margin: 0 auto;">
+        <h1 class="product-title">BECOME A SUPPORTER</h1>
+        <hr class="page-divider">
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <p style="font-size: 1.2rem; margin-bottom: 20px;">Get full access to the Stream Store for just $10!</p>
+            
+            <div class="product-features" style="margin-bottom: 30px;">
+              <ul class="features-list" style="display: inline-block; text-align: left;">
+                <li>
+                  <i class="fas fa-check-circle"></i>
+                  Unlimited downloads from our Stream Asset library
+                </li>
+                <li>
+                  <i class="fas fa-check-circle"></i>
+                  Access to all future assets
+                </li>
+                <li>
+                  <i class="fas fa-check-circle"></i>
+                  One-time payment, lifetime access
+                </li>
+              </ul>
+            </div>
+            
+            <form method="post" style="margin-top: 30px;">
+                {% csrf_token %}
+                <button type="submit" class="purchase-btn">
+                    PAY $10 AND GET ACCESS
+                </button>
+            </form>
+            
+            <p style="margin-top: 20px; color: rgba(255,255,255,0.7); font-size: 0.9rem;">
+                <i class="fas fa-lock"></i> Secure payment processing
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
