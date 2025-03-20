@@ -3,6 +3,67 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/product_management.css' %}">
+    <style>
+        .media-item, .version-item {
+            border: 1px solid #2a2a2a;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background-color: rgba(30, 30, 30, 0.5);
+            position: relative;
+        }
+        
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #cc0000;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        .section-title {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        
+        .add-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 8px 15px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+        
+        .media-preview {
+            max-width: 100px;
+            max-height: 100px;
+            margin-top: 10px;
+            border-radius: 3px;
+        }
+        
+        .current-media {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .current-media-item {
+            position: relative;
+            border: 1px solid #444;
+            padding: 10px;
+            border-radius: 3px;
+            background-color: rgba(40, 40, 40, 0.5);
+        }
+    </style>
 {% endblock %}
 
 {% block background %}
@@ -41,23 +102,118 @@
             </div>
             
             <div class="form-group">
-                <label for="file_path">File Path</label>
-                <input type="text" id="file_path" name="file_path" value="{{ asset.file_path }}" readonly class="form-control">
-                <small>File path cannot be changed. To update the file, delete this asset and create a new one.</small>
+                <label for="price">Price ($)</label>
+                <input type="number" id="price" name="price" value="{{ asset.price }}" step="0.01" class="form-control">
             </div>
             
             <div class="form-group">
-                <label for="thumbnail">Update Thumbnail Image</label>
+                <label for="file_path">Main File Path</label>
+                <input type="text" id="file_path" name="file_path" value="{{ asset.file_path }}" readonly class="form-control">
+                <small>Main file path cannot be changed. You can add versions or delete this asset.</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="thumbnail">Update Main Thumbnail</label>
                 <input type="file" id="thumbnail" name="thumbnail" class="form-control">
                 <small>Leave empty to keep current thumbnail</small>
                 
-                {% if asset.thumbnail %}
-                <div class="current-thumbnail">
-                    <p>Current thumbnail:</p>
-                    <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}" style="max-width: 200px; max-height: 200px; margin-top: 10px;">
-                </div>
-                {% endif %}
+                {% for media in asset.media.all %}
+                    {% if media.is_thumbnail %}
+                        <div class="current-thumbnail">
+                            <p>Current thumbnail:</p>
+                            <img src="{{ media.file.url }}" alt="{{ asset.name }}" style="max-width: 200px; max-height: 200px; margin-top: 10px;">
+                        </div>
+                    {% endif %}
+                {% empty %}
+                    {% if asset.thumbnail %}
+                        <div class="current-thumbnail">
+                            <p>Current thumbnail:</p>
+                            <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}" style="max-width: 200px; max-height: 200px; margin-top: 10px;">
+                        </div>
+                    {% endif %}
+                {% endfor %}
             </div>
+            
+            <h3 class="section-title">Current Media</h3>
+            <div class="current-media">
+                {% for media in asset.media.all %}
+                    {% if not media.is_thumbnail %}
+                        <div class="current-media-item">
+                            <div>{{ media.get_type_display }} - Order: {{ media.order }}</div>
+                            {% if media.file %}
+                                <img src="{{ media.file.url }}" alt="{{ asset.name }} media" class="media-preview">
+                            {% endif %}
+                            <div>
+                                <label class="checkbox-container">
+                                    <input type="checkbox" name="remove_media" value="{{ media.id }}">
+                                    <span class="checkbox-label">Remove</span>
+                                </label>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            <h3 class="section-title">Add New Media</h3>
+            <div id="new-media-container">
+                <div class="media-item">
+                    <button type="button" class="remove-btn remove-media-btn">×</button>
+                    <div class="form-group">
+                        <label>Media Type</label>
+                        <select name="new_media_types" class="form-control">
+                            <option value="image">Image</option>
+                            <option value="video">Video</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Media File</label>
+                        <input type="file" name="new_media_files" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="add-media-btn" class="add-btn">Add Media</button>
+            
+            <h3 class="section-title">Current Versions</h3>
+            <div class="current-versions">
+                {% for version in asset.versions.all %}
+                    <div class="current-media-item">
+                        <div>{{ version.name }} ({{ version.get_type_display }})</div>
+                        <div>File: {{ version.file_path }}</div>
+                        <div>
+                            <label class="checkbox-container">
+                                <input type="checkbox" name="remove_version" value="{{ version.id }}">
+                                <span class="checkbox-label">Remove</span>
+                            </label>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No versions available</p>
+                {% endfor %}
+            </div>
+            
+            <h3 class="section-title">Add New Versions</h3>
+            <div id="new-versions-container">
+                <div class="version-item">
+                    <button type="button" class="remove-btn remove-version-btn">×</button>
+                    <div class="form-group">
+                        <label>Version Name</label>
+                        <input type="text" name="new_version_names" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Version Type</label>
+                        <select name="new_version_types" class="form-control">
+                            <option value="static">Static</option>
+                            <option value="animated">Animated</option>
+                            <option value="video">Video</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Version File</label>
+                        <input type="file" name="new_version_files" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="add-version-btn" class="add-btn">Add Version</button>
             
             <div class="form-group">
                 <label class="checkbox-container">
@@ -74,4 +230,103 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // New Media handling
+        const mediaContainer = document.getElementById('new-media-container');
+        const addMediaBtn = document.getElementById('add-media-btn');
+        
+        // Add initial event listeners for the remove buttons
+        document.querySelectorAll('.remove-media-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (mediaContainer.children.length > 1) {
+                    this.closest('.media-item').remove();
+                } else {
+                    this.closest('.media-item').querySelector('input[type="file"]').value = '';
+                }
+            });
+        });
+        
+        addMediaBtn.addEventListener('click', function() {
+            const newItem = document.createElement('div');
+            newItem.className = 'media-item';
+            newItem.innerHTML = `
+                <button type="button" class="remove-btn remove-media-btn">×</button>
+                <div class="form-group">
+                    <label>Media Type</label>
+                    <select name="new_media_types" class="form-control">
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Media File</label>
+                    <input type="file" name="new_media_files" class="form-control">
+                </div>
+            `;
+            mediaContainer.appendChild(newItem);
+            
+            // Add event listener to new remove button
+            newItem.querySelector('.remove-media-btn').addEventListener('click', function() {
+                if (mediaContainer.children.length > 1) {
+                    this.closest('.media-item').remove();
+                } else {
+                    this.closest('.media-item').querySelector('input[type="file"]').value = '';
+                }
+            });
+        });
+        
+        // New Version handling
+        const versionsContainer = document.getElementById('new-versions-container');
+        const addVersionBtn = document.getElementById('add-version-btn');
+        
+        // Add initial event listeners for the remove buttons
+        document.querySelectorAll('.remove-version-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (versionsContainer.children.length > 1) {
+                    this.closest('.version-item').remove();
+                } else {
+                    this.closest('.version-item').querySelector('input[type="text"]').value = '';
+                    this.closest('.version-item').querySelector('input[type="file"]').value = '';
+                }
+            });
+        });
+        
+        addVersionBtn.addEventListener('click', function() {
+            const newItem = document.createElement('div');
+            newItem.className = 'version-item';
+            newItem.innerHTML = `
+                <button type="button" class="remove-btn remove-version-btn">×</button>
+                <div class="form-group">
+                    <label>Version Name</label>
+                    <input type="text" name="new_version_names" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Version Type</label>
+                    <select name="new_version_types" class="form-control">
+                        <option value="static">Static</option>
+                        <option value="animated">Animated</option>
+                        <option value="video">Video</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Version File</label>
+                    <input type="file" name="new_version_files" class="form-control">
+                </div>
+            `;
+            versionsContainer.appendChild(newItem);
+            
+            // Add event listener to new remove button
+            newItem.querySelector('.remove-version-btn').addEventListener('click', function() {
+                if (versionsContainer.children.length > 1) {
+                    this.closest('.version-item').remove();
+                } else {
+                    this.closest('.version-item').querySelector('input[type="text"]').value = '';
+                    this.closest('.version-item').querySelector('input[type="file"]').value = '';
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

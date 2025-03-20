@@ -107,12 +107,46 @@ class StreamAsset(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
-    file_path = models.CharField(max_length=255)  # Path in bucket
+    file_path = models.CharField(max_length=255)  # Path to main file in bucket
     thumbnail = models.ImageField(upload_to='stream_assets/thumbnails/', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
         return self.name
+
+class AssetVersion(models.Model):
+    VERSION_TYPES = (
+        ('static', 'Static'),
+        ('animated', 'Animated'),
+        ('video', 'Video'),
+    )
+    
+    asset = models.ForeignKey(StreamAsset, on_delete=models.CASCADE, related_name='versions')
+    name = models.CharField(max_length=100)
+    type = models.CharField(max_length=20, choices=VERSION_TYPES)
+    file_path = models.CharField(max_length=255)  # Path in bucket
+    
+    def __str__(self):
+        return f"{self.asset.name} - {self.name}"
+
+class AssetMedia(models.Model):
+    MEDIA_TYPES = (
+        ('image', 'Image'),
+        ('video', 'Video'),
+    )
+    
+    asset = models.ForeignKey(StreamAsset, on_delete=models.CASCADE, related_name='media')
+    type = models.CharField(max_length=10, choices=MEDIA_TYPES)
+    file = models.ImageField(upload_to='stream_assets/media/', blank=True)  # For locally stored files
+    file_path = models.CharField(max_length=255, blank=True)  # For bucket-stored files
+    is_thumbnail = models.BooleanField(default=False)
+    order = models.PositiveIntegerField(default=0)  # For ordering in gallery
+    
+    class Meta:
+        ordering = ['order']
+    
+    def __str__(self):
+        return f"{self.asset.name} - Media {self.id}"
 
 class UserAsset(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

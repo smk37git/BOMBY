@@ -3,6 +3,45 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/product_management.css' %}">
+    <style>
+        .media-item, .version-item {
+            border: 1px solid #2a2a2a;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background-color: rgba(30, 30, 30, 0.5);
+            position: relative;
+        }
+        
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #cc0000;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        .section-title {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        
+        .add-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 8px 15px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+    </style>
 {% endblock %}
 
 {% block background %}
@@ -41,16 +80,64 @@
             </div>
             
             <div class="form-group">
-                <label for="asset_file">Asset File (ZIP)</label>
-                <input type="file" id="asset_file" name="asset_file" required class="form-control">
+                <label for="price">Price ($)</label>
+                <input type="number" id="price" name="price" step="0.01" value="0.00" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="asset_file">Main Asset File (ZIP)</label>
+                <input type="file" id="asset_file" name="main_file" required class="form-control">
                 <small>Upload a ZIP file containing all assets</small>
             </div>
             
             <div class="form-group">
-                <label for="thumbnail">Thumbnail Image</label>
+                <label for="thumbnail">Main Thumbnail Image</label>
                 <input type="file" id="thumbnail" name="thumbnail" class="form-control">
-                <small>Recommended size: 800x450px</small>
+                <small>This will be the primary image displayed</small>
             </div>
+            
+            <h3 class="section-title">Additional Media</h3>
+            <div id="media-container">
+                <div class="media-item">
+                    <button type="button" class="remove-btn remove-media-btn">×</button>
+                    <div class="form-group">
+                        <label>Media Type</label>
+                        <select name="media_types" class="form-control">
+                            <option value="image">Image</option>
+                            <option value="video">Video</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Media File</label>
+                        <input type="file" name="media_files" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="add-media-btn" class="add-btn">Add Media</button>
+            
+            <h3 class="section-title">Versions (Optional)</h3>
+            <div id="versions-container">
+                <div class="version-item">
+                    <button type="button" class="remove-btn remove-version-btn">×</button>
+                    <div class="form-group">
+                        <label>Version Name</label>
+                        <input type="text" name="version_names" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Version Type</label>
+                        <select name="version_types" class="form-control">
+                            <option value="static">Static</option>
+                            <option value="animated">Animated</option>
+                            <option value="video">Video</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Version File</label>
+                        <input type="file" name="version_files" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="add-version-btn" class="add-btn">Add Version</button>
             
             <div class="form-group">
                 <label class="checkbox-container">
@@ -67,4 +154,103 @@
         </form>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Media handling
+        const mediaContainer = document.getElementById('media-container');
+        const addMediaBtn = document.getElementById('add-media-btn');
+        
+        // Add initial event listeners for the remove buttons
+        document.querySelectorAll('.remove-media-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (mediaContainer.children.length > 1) {
+                    this.closest('.media-item').remove();
+                } else {
+                    alert('You need at least one media item');
+                }
+            });
+        });
+        
+        addMediaBtn.addEventListener('click', function() {
+            const newItem = document.createElement('div');
+            newItem.className = 'media-item';
+            newItem.innerHTML = `
+                <button type="button" class="remove-btn remove-media-btn">×</button>
+                <div class="form-group">
+                    <label>Media Type</label>
+                    <select name="media_types" class="form-control">
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Media File</label>
+                    <input type="file" name="media_files" class="form-control">
+                </div>
+            `;
+            mediaContainer.appendChild(newItem);
+            
+            // Add event listener to new remove button
+            newItem.querySelector('.remove-media-btn').addEventListener('click', function() {
+                if (mediaContainer.children.length > 1) {
+                    this.closest('.media-item').remove();
+                } else {
+                    alert('You need at least one media item');
+                }
+            });
+        });
+        
+        // Version handling
+        const versionsContainer = document.getElementById('versions-container');
+        const addVersionBtn = document.getElementById('add-version-btn');
+        
+        // Add initial event listeners for the remove buttons
+        document.querySelectorAll('.remove-version-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (versionsContainer.children.length > 1) {
+                    this.closest('.version-item').remove();
+                } else {
+                    this.closest('.version-item').querySelector('input[type="text"]').value = '';
+                    this.closest('.version-item').querySelector('input[type="file"]').value = '';
+                }
+            });
+        });
+        
+        addVersionBtn.addEventListener('click', function() {
+            const newItem = document.createElement('div');
+            newItem.className = 'version-item';
+            newItem.innerHTML = `
+                <button type="button" class="remove-btn remove-version-btn">×</button>
+                <div class="form-group">
+                    <label>Version Name</label>
+                    <input type="text" name="version_names" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Version Type</label>
+                    <select name="version_types" class="form-control">
+                        <option value="static">Static</option>
+                        <option value="animated">Animated</option>
+                        <option value="video">Video</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Version File</label>
+                    <input type="file" name="version_files" class="form-control">
+                </div>
+            `;
+            versionsContainer.appendChild(newItem);
+            
+            // Add event listener to new remove button
+            newItem.querySelector('.remove-version-btn').addEventListener('click', function() {
+                if (versionsContainer.children.length > 1) {
+                    this.closest('.version-item').remove();
+                } else {
+                    this.closest('.version-item').querySelector('input[type="text"]').value = '';
+                    this.closest('.version-item').querySelector('input[type="file"]').value = '';
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

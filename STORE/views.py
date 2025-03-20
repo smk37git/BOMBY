@@ -435,12 +435,16 @@ def stream_store_purchase(request):
 
 @login_required
 def stream_asset_detail(request, asset_id):
-    """Stream asset detail page"""
+    """Stream asset detail page with support for multiple media files and versions"""
     if not user_can_access_stream_store(request.user):
         messages.error(request, "This area requires client or supporter status")
         return redirect('STORE:stream_store_purchase')
         
     asset = get_object_or_404(StreamAsset, id=asset_id, is_active=True)
+    
+    # Make sure we prefetch the related media and versions for efficiency
+    asset.media.all()
+    asset.versions.all()
     
     return render(request, 'STORE/stream_asset.html', {
         'asset': asset
@@ -448,7 +452,7 @@ def stream_asset_detail(request, asset_id):
 
 @login_required
 def download_asset(request, asset_id):
-    """Download stream asset"""
+    """Download stream asset with support for different versions"""
     asset = get_object_or_404(StreamAsset, id=asset_id)
     
     # Check access permission
@@ -456,21 +460,35 @@ def download_asset(request, asset_id):
         messages.error(request, "You need client or supporter status to download assets")
         return redirect('STORE:stream_store_purchase')
     
+    # Get version if specified
+    version_id = request.GET.get('version_id', None)
+    
     try:
         from google.cloud import storage
         
         client = storage.Client()
         bucket = client.bucket('bomby-user-uploads')
-        blob = bucket.blob(asset.file_path)
+        
+        # Determine file path based on version
+        if version_id:
+            try:
+                version = asset.versions.get(id=version_id)
+                file_path = version.file_path
+            except AssetVersion.DoesNotExist:
+                file_path = asset.file_path
+        else:
+            file_path = asset.file_path
+        
+        blob = bucket.blob(file_path)
         
         # Check if file exists
         if not blob.exists():
-            messages.error(request, f"File not found: {asset.file_path}")
+            messages.error(request, f"File not found: {file_path}")
             return redirect('STORE:stream_asset_detail', asset_id=asset_id)
         
-        # Direct download (bypassing signed URL issues)
+        # Direct download
         content = blob.download_as_bytes()
-        filename = asset.file_path.split('/')[-1]
+        filename = file_path.split('/')[-1]
         
         response = HttpResponse(content, content_type='application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
@@ -522,43 +540,91 @@ def stream_asset_management(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def add_stream_asset(request):
-    """Admin view to add stream assets"""
+    """Admin view to add stream assets with multiple media files and versions"""
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description', '')
+        price = request.POST.get('price', 0.00)
         is_active = request.POST.get('is_active') == 'true'
-        asset_file = request.FILES.get('asset_file')
+        main_file = request.FILES.get('main_file')
         thumbnail = request.FILES.get('thumbnail')
         
-        if asset_file:
+        if main_file:
             # Save to Google Cloud Storage
-            file_path = f'stream_assets/{asset_file.name}'
+            file_path = f'stream_assets/{main_file.name}'
             
             # Create database record
             asset = StreamAsset(
                 name=name,
                 description=description,
+                price=price,
                 is_active=is_active,
                 file_path=file_path
             )
-            
-            if thumbnail:
-                asset.thumbnail = thumbnail
                 
             asset.save()
             
-            # Try to upload file to bucket
+            # Try to upload main file to bucket
             try:
                 from google.cloud import storage
                 
                 client = storage.Client()
                 bucket = client.bucket('bomby-user-uploads')
                 blob = bucket.blob(file_path)
-                blob.upload_from_file(asset_file)
-                messages.success(request, f"Asset '{name}' added successfully!")
+                blob.upload_from_file(main_file)
             except Exception as e:
-                messages.warning(request, f"Asset '{name}' added to database, but file upload issue: {str(e)}")
+                messages.warning(request, f"Asset '{name}' added to database, but main file upload issue: {str(e)}")
             
+            # Add thumbnail to media if provided
+            if thumbnail:
+                media = AssetMedia(
+                    asset=asset,
+                    type='image',
+                    file=thumbnail,
+                    is_thumbnail=True,
+                    order=0
+                )
+                media.save()
+            
+            # Process additional media files
+            media_files = request.FILES.getlist('media_files')
+            for i, media_file in enumerate(media_files):
+                media_type = request.POST.getlist('media_types')[i] if i < len(request.POST.getlist('media_types')) else 'image'
+                
+                media = AssetMedia(
+                    asset=asset,
+                    type=media_type,
+                    file=media_file,
+                    is_thumbnail=False,
+                    order=i+1
+                )
+                media.save()
+            
+            # Process versions if any
+            version_names = request.POST.getlist('version_names', [])
+            version_types = request.POST.getlist('version_types', [])
+            version_files = request.FILES.getlist('version_files', [])
+            
+            for i in range(min(len(version_names), len(version_types), len(version_files))):
+                version_file = version_files[i]
+                version_path = f'stream_assets/versions/{version_file.name}'
+                
+                version = AssetVersion(
+                    asset=asset,
+                    name=version_names[i],
+                    type=version_types[i],
+                    file_path=version_path
+                )
+                version.save()
+                
+                # Upload version file
+                try:
+                    blob = bucket.blob(version_path)
+                    blob.upload_from_file(version_file)
+                except Exception as e:
+                    messages.warning(request, f"Version '{version_names[i]}' added to database, but file upload issue: {str(e)}")
+            
+            messages.success(request, f"Asset '{name}' added successfully!")
             return redirect('STORE:stream_asset_management')
     
     return render(request, 'STORE/add_stream_asset.html')
@@ -566,28 +632,108 @@ def add_stream_asset(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def edit_stream_asset(request, asset_id):
-    """View for editing a stream asset"""
+    """View for editing a stream asset with multiple media and versions"""
     asset = get_object_or_404(StreamAsset, id=asset_id)
     
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description')
+        price = request.POST.get('price', asset.price)
         is_active = request.POST.get('is_active') == 'true'
-        thumbnail = request.FILES.get('thumbnail')
         
         asset.name = name
         asset.description = description
+        asset.price = price
         asset.is_active = is_active
-        
-        if thumbnail:
-            asset.thumbnail = thumbnail
-            
         asset.save()
+        
+        # Process thumbnail if a new one was uploaded
+        thumbnail = request.FILES.get('thumbnail')
+        if thumbnail:
+            # Delete old thumbnail if exists
+            AssetMedia.objects.filter(asset=asset, is_thumbnail=True).delete()
+            
+            # Create new thumbnail
+            media = AssetMedia(
+                asset=asset,
+                type='image',
+                file=thumbnail,
+                is_thumbnail=True,
+                order=0
+            )
+            media.save()
+        
+        # Handle removed media
+        removed_media = request.POST.getlist('remove_media', [])
+        for media_id in removed_media:
+            try:
+                media = AssetMedia.objects.get(id=media_id, asset=asset)
+                media.delete()
+            except AssetMedia.DoesNotExist:
+                pass
+        
+        # Add new media
+        media_files = request.FILES.getlist('new_media_files')
+        for i, media_file in enumerate(media_files):
+            media_type = request.POST.getlist('new_media_types')[i] if i < len(request.POST.getlist('new_media_types')) else 'image'
+            
+            # Get the next order value
+            next_order = AssetMedia.objects.filter(asset=asset).exclude(is_thumbnail=True).count() + 1
+            
+            media = AssetMedia(
+                asset=asset,
+                type=media_type,
+                file=media_file,
+                is_thumbnail=False,
+                order=next_order
+            )
+            media.save()
+        
+        # Handle removed versions
+        removed_versions = request.POST.getlist('remove_version', [])
+        for version_id in removed_versions:
+            try:
+                version = AssetVersion.objects.get(id=version_id, asset=asset)
+                version.delete()
+            except AssetVersion.DoesNotExist:
+                pass
+        
+        # Add new versions
+        version_names = request.POST.getlist('new_version_names', [])
+        version_types = request.POST.getlist('new_version_types', [])
+        version_files = request.FILES.getlist('new_version_files', [])
+        
+        for i in range(min(len(version_names), len(version_types), len(version_files))):
+            version_file = version_files[i]
+            version_path = f'stream_assets/versions/{version_file.name}'
+            
+            version = AssetVersion(
+                asset=asset,
+                name=version_names[i],
+                type=version_types[i],
+                file_path=version_path
+            )
+            version.save()
+            
+            # Upload version file
+            try:
+                from google.cloud import storage
+                
+                client = storage.Client()
+                bucket = client.bucket('bomby-user-uploads')
+                blob = bucket.blob(version_path)
+                blob.upload_from_file(version_file)
+            except Exception as e:
+                messages.warning(request, f"Version '{version_names[i]}' added to database, but file upload issue: {str(e)}")
         
         messages.success(request, f"Asset '{name}' updated successfully.")
         return redirect('STORE:stream_asset_management')
     
-    context = {'asset': asset}
+    context = {
+        'asset': asset,
+        'media': asset.media.all(),
+        'versions': asset.versions.all()
+    }
     return render(request, 'STORE/edit_stream_asset.html', context)
 
 @require_POST

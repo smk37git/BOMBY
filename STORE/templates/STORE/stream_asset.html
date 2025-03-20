@@ -4,6 +4,42 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/store_item.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        .version-selector {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(25, 25, 25, 0.5);
+            border-radius: 5px;
+        }
+        
+        .version-select {
+            padding: 8px;
+            width: 100%;
+            margin-top: 5px;
+            border-radius: 3px;
+            border: 1px solid #444;
+            background-color: #222;
+            color: white;
+        }
+        
+        /* Video thumbnail styling */
+        .thumbnail[data-media-type="video"] {
+            position: relative;
+        }
+        
+        .thumbnail[data-media-type="video"]::before {
+            content: '\f144';
+            font-family: 'Font Awesome 6 Free';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: white;
+            z-index: 10;
+            opacity: 0.8;
+        }
+    </style>
 {% endblock %}
 
 {% block background %}
@@ -20,32 +56,52 @@
     </div>
     
     <!-- Split layout for product -->
-    <!-- Split layout for product -->
     <div class="product-split">
         <!-- Left side: Gallery -->
         <div class="product-gallery-side">
             <div class="product-featured-image">
-                <img src="{% static 'images/1.jpg' %}" 
-                     alt="Basic Package" class="featured-image" id="featuredImage">
+                {% for media in asset.media.all %}
+                    {% if media.is_thumbnail or forloop.first %}
+                        {% if media.type == 'image' %}
+                            <img src="{{ media.file.url }}" 
+                                 alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                        {% elif media.type == 'video' %}
+                            <video src="{{ media.file.url }}" controls class="featured-image" id="featuredVideo" style="display: none;"></video>
+                            <img src="{{ media.file.url }}" 
+                                 alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                        {% endif %}
+                        {% break %}
+                    {% endif %}
+                {% empty %}
+                    {% if asset.thumbnail %}
+                        <img src="{{ asset.thumbnail.url }}" 
+                             alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                    {% else %}
+                        <img src="{% static 'images/placeholder.jpg' %}" 
+                             alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                    {% endif %}
+                {% endfor %}
             </div>
             
             <div class="gallery-thumbnails">
                 <!-- Thumbnails -->
-                <div class="thumbnail active" data-image="{% static 'images/1.jpg' %}">
-                    <img src="{% static 'images/1.jpg' %}" alt="Main Package View">
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/2.jpg' %}">
-                    <img src="{% static 'images/2.jpg' %}" alt="Gallery Image 2">
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/3.jpg' %}">
-                    <img src="{% static 'images/3.jpg' %}" alt="Gallery Image 3">
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/4.jpg' %}">
-                    <img src="{% static 'images/4.jpg' %}" alt="Gallery Image 4">
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/5.jpg' %}">
-                    <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 5">
-                </div>
+                {% for media in asset.media.all %}
+                    <div class="thumbnail {% if forloop.first %}active{% endif %}" 
+                         data-media-type="{{ media.type }}" 
+                         data-image="{{ media.file.url }}">
+                        <img src="{{ media.file.url }}" alt="{{ asset.name }} - Image {{ forloop.counter }}">
+                    </div>
+                {% empty %}
+                    {% if asset.thumbnail %}
+                        <div class="thumbnail active" data-image="{{ asset.thumbnail.url }}">
+                            <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
+                        </div>
+                    {% else %}
+                        <div class="thumbnail active" data-image="{% static 'images/placeholder.jpg' %}">
+                            <img src="{% static 'images/placeholder.jpg' %}" alt="Placeholder">
+                        </div>
+                    {% endif %}
+                {% endfor %}
             </div>
         </div>
         
@@ -57,6 +113,18 @@
                 </div>
             </h1>
             <hr class="page-divider"></hr>
+            
+            {% if asset.versions.exists %}
+            <div class="version-selector">
+                <label for="versionSelect">Version:</label>
+                <select id="versionSelect" class="version-select">
+                    <option value="">Default Version</option>
+                    {% for version in asset.versions.all %}
+                        <option value="{{ version.id }}">{{ version.name }} ({{ version.get_type_display }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
             
             <div class="product-features-container">
                 <div class="product-features">
@@ -86,12 +154,12 @@
             <div class="product-purchase">
                 <div class="price-section">
                     <div class="price-label">Price:</div>
-                    <div class="price-value">$10.00</div>
+                    <div class="price-value">${{ asset.price }}</div>
                     <div class="price-value-subtitle">
                         OR <span class="account-type client">CLIENT</span>
                     </div>
                 </div>
-                <a href="{% url 'STORE:become_supporter' %}" class="purchase-btn">
+                <a href="{% url 'STORE:download_asset' asset.id %}" class="purchase-btn" id="downloadBtn">
                     GET ACCESS
                 </a>
             </div>
@@ -169,6 +237,56 @@
                 }
             });
         });
+        
+        // Gallery functionality
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        const featuredImage = document.getElementById('featuredImage');
+        const featuredVideo = document.getElementById('featuredVideo');
+        
+        thumbnails.forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                // Set all thumbnails as inactive
+                thumbnails.forEach(t => t.classList.remove('active'));
+                
+                // Set this thumbnail as active
+                this.classList.add('active');
+                
+                // Update featured media based on type
+                const mediaType = this.dataset.mediaType;
+                const mediaSrc = this.dataset.image;
+                
+                if (mediaType === 'video' && featuredVideo) {
+                    // Show video, hide image
+                    featuredVideo.src = mediaSrc;
+                    featuredVideo.style.display = 'block';
+                    featuredImage.style.display = 'none';
+                    featuredVideo.load(); // Reload the video
+                } else {
+                    // Show image, hide video
+                    if (featuredVideo) featuredVideo.style.display = 'none';
+                    featuredImage.style.display = 'block';
+                    featuredImage.src = mediaSrc;
+                }
+            });
+        });
+        
+        // Version selector functionality
+        const versionSelect = document.getElementById('versionSelect');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        if (versionSelect && downloadBtn) {
+            versionSelect.addEventListener('change', function() {
+                // Update download button link to include selected version
+                const versionId = this.value;
+                const baseUrl = downloadBtn.href.split('?')[0];
+                
+                if (versionId) {
+                    downloadBtn.href = baseUrl + '?version_id=' + versionId;
+                } else {
+                    downloadBtn.href = baseUrl;
+                }
+            });
+        }
     });
 </script>
 {% endblock %}
