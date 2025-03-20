@@ -159,6 +159,52 @@
             margin-bottom: 10px;
             color: #a970ff;
         }
+
+        /* Layout adjustments */
+        .product-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .product-description-section {
+            margin-top: 0;
+        }
+
+        .product-purchase {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .purchase-btn {
+            min-width: 180px;
+        }
+
+        /* Remove price section */
+        .price-section {
+            display: none;
+        }
+
+        /* Make better use of space */
+        .product-gallery-side {
+            flex: 1.2;
+        }
+
+        .product-card {
+            flex: 0.8;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .product-split {
+                flex-direction: column;
+            }
+            
+            .product-gallery-side, 
+            .product-card {
+                width: 100%;
+            }
+        }
     </style>
 {% endblock %}
 
