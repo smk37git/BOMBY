@@ -377,259 +377,267 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // FAQ dropdown functionality
-        const faqItems = document.querySelectorAll('.faq-item');
+        // Global cache to store preloaded videos and thumbnails
+        window.videoCache = {};
         
-        faqItems.forEach(item => {
-            const question = item.querySelector('.faq-question');
+        // Immediately preload all videos
+        function preloadAllVideos() {
+            // First, identify all video sources
+            const videoSources = [];
             
-            question.addEventListener('click', function() {
-                // Toggle active class
-                item.classList.toggle('active');
-                
-                // Get the chevron container
-                const chevronContainer = this.querySelector('.chevron-container');
-                
-                // Toggle chevron direction
-                if(item.classList.contains('active')) {
-                    chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
-                } else {
-                    chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                }
+            // Get main featured video if any
+            const mainVideoContainer = document.getElementById('videoContainer');
+            if (mainVideoContainer) {
+                videoSources.push(mainVideoContainer.dataset.src);
+            }
+            
+            // Get all thumbnail videos
+            document.querySelectorAll('.thumbnail[data-media-type="video"]').forEach(thumb => {
+                videoSources.push(thumb.dataset.src);
             });
-        });
-        
-                        // Process video thumbnails in the gallery with staggered loading
-        const videoThumbnails = document.querySelectorAll('.thumbnail[data-media-type="video"]');
-        
-        // Process thumbnails sequentially with a small delay to avoid overwhelming the browser
-        function processNextThumbnail(index) {
-            if (index >= videoThumbnails.length) return;
             
-            const thumbElement = videoThumbnails[index];
-            const videoSrc = thumbElement.dataset.src;
-            const imgElement = thumbElement.querySelector('img');
-            
-            if (imgElement && videoSrc) {
-                const tempVideo = document.createElement('video');
-                tempVideo.style.display = 'none';
-                tempVideo.muted = true;
-                tempVideo.crossOrigin = 'anonymous';
+            // Now preload all videos and generate thumbnails
+            videoSources.forEach((src, index) => {
+                if (!src || window.videoCache[src]) return; // Skip if already cached
                 
-                // Set size constraints to minimize memory usage
-                tempVideo.width = 320; // Small logical size
-                tempVideo.preload = 'metadata';
+                const video = document.createElement('video');
+                video.muted = true;
+                video.preload = 'auto';
+                video.crossOrigin = 'anonymous';
+                video.style.display = 'none';
                 
+                // Add to cache first to prevent duplicate processing
+                window.videoCache[src] = {
+                    video: video,
+                    loaded: false,
+                    thumbnail: null
+                };
+                
+                // Set video attributes
                 const sourceElement = document.createElement('source');
-                sourceElement.src = videoSrc;
+                sourceElement.src = src;
                 sourceElement.type = 'video/mp4';
-                tempVideo.appendChild(sourceElement);
-                document.body.appendChild(tempVideo);
+                video.appendChild(sourceElement);
+                document.body.appendChild(video);
                 
-                generateVideoThumbnail(tempVideo, imgElement);
-                
-                // Clean up and process next thumbnail
-                tempVideo.addEventListener('seeked', function onSeeked() {
-                    // Clean up sooner
-                    setTimeout(() => {
-                        document.body.removeChild(tempVideo);
-                        // Process next thumbnail with slight delay
-                        setTimeout(() => processNextThumbnail(index + 1), 50);
-                    }, 100);
-                    tempVideo.removeEventListener('seeked', onSeeked);
+                // Generate thumbnail on metadata load (faster than waiting for full load)
+                video.addEventListener('loadeddata', function onDataLoaded() {
+                    // Generate thumbnail immediately
+                    video.currentTime = 0.1;
+                    
+                    video.addEventListener('seeked', function onSeeked() {
+                        // Create canvas and generate thumbnail
+                        const canvas = document.createElement('canvas');
+                        // Use small size for efficiency
+                        const scale = 0.5;
+                        canvas.width = video.videoWidth * scale;
+                        canvas.height = video.videoHeight * scale;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        try {
+                            // Save thumbnail to cache
+                            const dataURL = canvas.toDataURL('image/jpeg', 0.7);
+                            window.videoCache[src].thumbnail = dataURL;
+                            window.videoCache[src].loaded = true;
+                            
+                            // Apply thumbnail to all matching elements immediately
+                            applyThumbnailToMatchingElements(src, dataURL);
+                            
+                            // Remove event listener to prevent multiple executions
+                            video.removeEventListener('seeked', onSeeked);
+                        } catch(e) {
+                            console.error("Could not generate thumbnail", e);
+                        }
+                    });
+                    
+                    // Remove event listener
+                    video.removeEventListener('loadeddata', onDataLoaded);
                 });
                 
-                // Failsafe: if video fails to load, move to the next one
-                tempVideo.addEventListener('error', function() {
-                    if (document.body.contains(tempVideo)) {
-                        document.body.removeChild(tempVideo);
-                    }
-                    setTimeout(() => processNextThumbnail(index + 1), 50);
-                });
-            } else {
-                // Skip to next if current one cannot be processed
-                processNextThumbnail(index + 1);
-            }
-        }
-        
-        // Start processing the first thumbnail
-        if (videoThumbnails.length > 0) {
-            processNextThumbnail(0);
-        }
-        
-        // Function to handle video thumbnail generation
-        function generateVideoThumbnail(videoElement, thumbnailElement) {
-            // Lower quality thumbnails for faster generation
-            let quality = 0.5; // 50% quality for JPEG
-            
-            // Function to handle the seeked event
-            function onSeeked() {
-                // Create canvas and draw video frame
-                const canvas = document.createElement('canvas');
-                // Reduce thumbnail size for better performance
-                const scale = 0.5; // 50% of original size
-                canvas.width = videoElement.videoWidth * scale;
-                canvas.height = videoElement.videoHeight * scale;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
-                
-                // Set the frame as thumbnail
-                try {
-                    const dataURL = canvas.toDataURL('image/jpeg', quality);
-                    thumbnailElement.src = dataURL;
-                } catch(e) {
-                    console.error("Could not generate thumbnail", e);
-                    // Use placeholder if thumbnail generation fails
-                    thumbnailElement.src = "{% static 'images/placeholder.jpg' %}";
-                }
-                
-                // Remove the event listener to prevent multiple executions
-                videoElement.removeEventListener('seeked', onSeeked);
-            }
-            
-            // Set video to low resolution for faster loading
-            videoElement.preload = 'metadata';
-            
-            // Set current time to first frame (small offset to skip black frames)
-            videoElement.addEventListener('loadedmetadata', function() {
-                videoElement.currentTime = 0.1;
+                // Start loading
+                video.load();
             });
-            
-            // Add the seeked event listener
-            videoElement.addEventListener('seeked', onSeeked);
-            
-            // Load the video to trigger events
-            videoElement.load();
         }
         
-        // Generate video thumbnails
-        const preloadVideo = document.getElementById('preloadVideo');
-        const videoThumbnail = document.getElementById('videoThumbnail');
-        const videoContainer = document.getElementById('videoContainer');
-        
-        // If video elements exist, extract thumbnail
-        if (preloadVideo && videoThumbnail) {
-            generateVideoThumbnail(preloadVideo, videoThumbnail);
+        // Apply thumbnails to all matching elements
+        function applyThumbnailToMatchingElements(videoSrc, thumbnailSrc) {
+            // Apply to main video container
+            const mainContainer = document.getElementById('videoContainer');
+            if (mainContainer && mainContainer.dataset.src === videoSrc) {
+                const mainThumb = document.getElementById('videoThumbnail');
+                if (mainThumb) {
+                    mainThumb.src = thumbnailSrc;
+                    mainThumb.style.opacity = 1;
+                }
+            }
             
-            // Handle video play when container is clicked
+            // Apply to all matching gallery thumbnails
+            document.querySelectorAll(`.thumbnail[data-media-type="video"][data-src="${videoSrc}"] img`).forEach(img => {
+                img.src = thumbnailSrc;
+                img.style.opacity = 1;
+            });
+        }
+        
+        // Handle click on the video to play immediately
+        function setupVideoClickHandlers() {
+            // Main video container
+            const videoContainer = document.getElementById('videoContainer');
             if (videoContainer) {
                 videoContainer.addEventListener('click', function() {
                     const videoSrc = this.dataset.src;
-                    const videoElement = document.createElement('video');
-                    videoElement.setAttribute('controls', true);
-                    videoElement.setAttribute('autoplay', true);
-                    videoElement.className = 'featured-image';
-                    videoElement.src = videoSrc;
                     
-                    // Replace container with video
-                    this.parentNode.replaceChild(videoElement, this);
-                    videoElement.play();
-                });
-            }
-        }
-        
-        // Gallery functionality
-        const thumbnails = document.querySelectorAll('.thumbnail');
-        const featuredContainer = document.getElementById('featured-container');
-        
-        thumbnails.forEach(thumbnail => {
-            thumbnail.addEventListener('click', function() {
-                // Set all thumbnails as inactive
-                thumbnails.forEach(t => t.classList.remove('active'));
-                
-                // Set this thumbnail as active
-                this.classList.add('active');
-                
-                // Update featured media based on type
-                const mediaType = this.dataset.mediaType;
-                const mediaSrc = this.dataset.src;
-                
-                if (mediaType === 'video') {
-                    // Create video container with thumbnail and play button
-                    const videoContainer = document.createElement('div');
-                    videoContainer.className = 'video-container';
-                    videoContainer.id = 'videoContainer';
-                    videoContainer.dataset.src = mediaSrc;
-                    
-                    // Preload video for thumbnail extraction
-                    const preloadVideo = document.createElement('video');
-                    preloadVideo.id = 'preloadVideo';
-                    preloadVideo.style.display = 'none';
-                    const sourceElement = document.createElement('source');
-                    sourceElement.src = mediaSrc;
-                    sourceElement.type = 'video/mp4';
-                    preloadVideo.appendChild(sourceElement);
-                    
-                    // Add thumbnail placeholder
-                    const thumbnail = document.createElement('img');
-                    thumbnail.className = 'video-thumbnail';
-                    thumbnail.id = 'videoThumbnail';
-                    thumbnail.alt = 'Video thumbnail';
-                    
-                    // Add play overlay
-                    const playOverlay = document.createElement('div');
-                    playOverlay.className = 'play-overlay';
-                    playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
-                    
-                    // Assemble container
-                    videoContainer.appendChild(preloadVideo);
-                    videoContainer.appendChild(thumbnail);
-                    videoContainer.appendChild(playOverlay);
-                    
-                    // Replace content in featured container
-                    featuredContainer.innerHTML = '';
-                    featuredContainer.appendChild(videoContainer);
-                    
-                    // Extract thumbnail using the function
-                    generateVideoThumbnail(preloadVideo, thumbnail);
-                    
-                    // Set up click handler for playing the video
-                    videoContainer.addEventListener('click', function() {
+                    // If we've preloaded the video, use it
+                    if (window.videoCache[videoSrc] && window.videoCache[videoSrc].video) {
                         const videoElement = document.createElement('video');
                         videoElement.setAttribute('controls', true);
                         videoElement.setAttribute('autoplay', true);
                         videoElement.className = 'featured-image';
-                        videoElement.src = this.dataset.src;
+                        videoElement.src = videoSrc;
                         
                         // Replace container with video
-                        featuredContainer.innerHTML = '';
-                        featuredContainer.appendChild(videoElement);
+                        this.parentNode.replaceChild(videoElement, this);
                         videoElement.play();
-                    });
-                } else {
-                    // Create image element
-                    const imageElement = document.createElement('img');
-                    imageElement.src = mediaSrc;
-                    imageElement.alt = 'Featured image';
-                    imageElement.className = 'featured-image';
-                    imageElement.id = 'featuredImage';
-                    
-                    // Replace content in featured container
-                    featuredContainer.innerHTML = '';
-                    featuredContainer.appendChild(imageElement);
-                }
-            });
-        });
-        
-        // Version selector functionality
-        const versionSelect = document.getElementById('versionSelect');
-        const downloadBtn = document.getElementById('downloadBtn');
-        
-        if (versionSelect && downloadBtn) {
-            // Set initial version in download URL
-            if (versionSelect.options.length > 0) {
-                const initialVersion = versionSelect.options[0].value;
-                const baseUrl = downloadBtn.href.split('?')[0];
-                downloadBtn.href = baseUrl + '?version_id=' + initialVersion;
+                    }
+                });
             }
+        }
+        
+        // Handle thumbnail gallery functionality
+        function setupGalleryThumbnails() {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            const featuredContainer = document.getElementById('featured-container');
             
-            versionSelect.addEventListener('change', function() {
-                // Update download button link to include selected version
-                const versionId = this.value;
-                const baseUrl = downloadBtn.href.split('?')[0];
-                downloadBtn.href = baseUrl + '?version_id=' + versionId;
+            thumbnails.forEach(thumbnail => {
+                thumbnail.addEventListener('click', function() {
+                    // Update active state
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const mediaType = this.dataset.mediaType;
+                    const mediaSrc = this.dataset.src;
+                    
+                    if (mediaType === 'video') {
+                        // Create video container with preloaded thumbnail
+                        const videoContainer = document.createElement('div');
+                        videoContainer.className = 'video-container';
+                        videoContainer.id = 'videoContainer';
+                        videoContainer.dataset.src = mediaSrc;
+                        
+                        // Create thumbnail image
+                        const thumbnail = document.createElement('img');
+                        thumbnail.className = 'video-thumbnail';
+                        thumbnail.id = 'videoThumbnail';
+                        thumbnail.alt = 'Video thumbnail';
+                        
+                        // Use cached thumbnail if available
+                        if (window.videoCache[mediaSrc] && window.videoCache[mediaSrc].thumbnail) {
+                            thumbnail.src = window.videoCache[mediaSrc].thumbnail;
+                            thumbnail.style.opacity = 1;
+                        }
+                        
+                        // Add play overlay
+                        const playOverlay = document.createElement('div');
+                        playOverlay.className = 'play-overlay';
+                        playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
+                        
+                        // Assemble container
+                        videoContainer.appendChild(thumbnail);
+                        videoContainer.appendChild(playOverlay);
+                        
+                        // Replace content in featured container
+                        featuredContainer.innerHTML = '';
+                        featuredContainer.appendChild(videoContainer);
+                        
+                        // Set up click handler for playing the video
+                        videoContainer.addEventListener('click', function() {
+                            const videoElement = document.createElement('video');
+                            videoElement.setAttribute('controls', true);
+                            videoElement.setAttribute('autoplay', true);
+                            videoElement.className = 'featured-image';
+                            videoElement.src = this.dataset.src;
+                            
+                            // Replace container with video
+                            featuredContainer.innerHTML = '';
+                            featuredContainer.appendChild(videoElement);
+                            videoElement.play();
+                        });
+                    } else {
+                        // Handle image content
+                        const imageElement = document.createElement('img');
+                        imageElement.src = mediaSrc;
+                        imageElement.alt = 'Featured image';
+                        imageElement.className = 'featured-image';
+                        imageElement.id = 'featuredImage';
+                        
+                        featuredContainer.innerHTML = '';
+                        featuredContainer.appendChild(imageElement);
+                    }
+                });
             });
         }
+        
+        // Version selector functionality
+        function setupVersionSelector() {
+            const versionSelect = document.getElementById('versionSelect');
+            const downloadBtn = document.getElementById('downloadBtn');
+            
+            if (versionSelect && downloadBtn) {
+                // Set initial version in download URL
+                if (versionSelect.options.length > 0) {
+                    const initialVersion = versionSelect.options[0].value;
+                    const baseUrl = downloadBtn.href.split('?')[0];
+                    downloadBtn.href = baseUrl + '?version_id=' + initialVersion;
+                }
+                
+                versionSelect.addEventListener('change', function() {
+                    // Update download button link to include selected version
+                    const versionId = this.value;
+                    const baseUrl = downloadBtn.href.split('?')[0];
+                    downloadBtn.href = baseUrl + '?version_id=' + versionId;
+                });
+            }
+        }
+        
+        // FAQ functionality
+        function setupFAQHandlers() {
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                
+                question.addEventListener('click', function() {
+                    // Toggle active class
+                    item.classList.toggle('active');
+                    
+                    // Get the chevron container
+                    const chevronContainer = this.querySelector('.chevron-container');
+                    
+                    // Toggle chevron direction
+                    if(item.classList.contains('active')) {
+                        chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                    } else {
+                        chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                    }
+                });
+            });
+        }
+        
+        // Initialize everything
+        function init() {
+            // Set up event handlers
+            setupFAQHandlers();
+            setupVideoClickHandlers();
+            setupGalleryThumbnails();
+            setupVersionSelector();
+            
+            // Start preloading videos immediately
+            preloadAllVideos();
+        }
+        
+        // Start initialization
+        init();
     });
 </script>
 {% endblock %}
