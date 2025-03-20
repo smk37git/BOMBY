@@ -39,21 +39,11 @@
                             <div class="window-title">{{ asset.name }}</div>
                         </div>
                         <div class="window-content">
-                            {% for media in asset.media.all %}
-                                {% if media.is_thumbnail %}
-                                    <img src="{{ media.file.url }}" alt="{{ asset.name }}">
-                                    {% break %}
-                                {% endif %}
-                                {% if forloop.first %}
-                                    <img src="{{ media.file.url }}" alt="{{ asset.name }}">
-                                {% endif %}
-                            {% empty %}
-                                {% if asset.thumbnail %}
-                                    <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
-                                {% else %}
-                                    <img src="{% static 'images/asset-placeholder.jpg' %}" alt="{{ asset.name }}">
-                                {% endif %}
-                            {% endfor %}
+                            {% if asset.thumbnail %}
+                                <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
+                            {% else %}
+                                <img src="{% static 'images/asset-placeholder.jpg' %}" alt="{{ asset.name }}">
+                            {% endif %}
                         </div>
                         <div class="window-footer">
                             <div class="product-status-asset active">DOWNLOADABLE</div>
