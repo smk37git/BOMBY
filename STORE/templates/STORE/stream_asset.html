@@ -399,6 +399,43 @@
             });
         });
         
+        // Function to handle video thumbnail generation
+        function generateVideoThumbnail(videoElement, thumbnailElement) {
+            // Function to handle the seeked event
+            function onSeeked() {
+                // Create canvas and draw video frame
+                const canvas = document.createElement('canvas');
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                
+                // Set the frame as thumbnail
+                try {
+                    const dataURL = canvas.toDataURL('image/jpeg');
+                    thumbnailElement.src = dataURL;
+                } catch(e) {
+                    console.error("Could not generate thumbnail", e);
+                    // Use placeholder if thumbnail generation fails
+                    thumbnailElement.src = "{% static 'images/placeholder.jpg' %}";
+                }
+                
+                // Remove the event listener to prevent multiple executions
+                videoElement.removeEventListener('seeked', onSeeked);
+            }
+            
+            // Set current time to first frame
+            videoElement.addEventListener('loadeddata', function() {
+                videoElement.currentTime = 0.1;
+            });
+            
+            // Add the seeked event listener
+            videoElement.addEventListener('seeked', onSeeked);
+            
+            // Load the video to trigger events
+            videoElement.load();
+        }
+        
         // Generate video thumbnails
         const preloadVideo = document.getElementById('preloadVideo');
         const videoThumbnail = document.getElementById('videoThumbnail');
@@ -406,29 +443,7 @@
         
         // If video elements exist, extract thumbnail
         if (preloadVideo && videoThumbnail) {
-            preloadVideo.addEventListener('loadeddata', function() {
-                // Set current time to first frame
-                preloadVideo.currentTime = 0.1;
-            });
-            
-            preloadVideo.addEventListener('seeked', function() {
-                // Create canvas and draw video frame
-                const canvas = document.createElement('canvas');
-                canvas.width = preloadVideo.videoWidth;
-                canvas.height = preloadVideo.videoHeight;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(preloadVideo, 0, 0, canvas.width, canvas.height);
-                
-                // Set the frame as thumbnail
-                try {
-                    const dataURL = canvas.toDataURL('image/jpeg');
-                    videoThumbnail.src = dataURL;
-                } catch(e) {
-                    console.error("Could not generate thumbnail", e);
-                    // Use placeholder if thumbnail generation fails
-                    videoThumbnail.src = "{% static 'images/placeholder.jpg' %}";
-                }
-            });
+            generateVideoThumbnail(preloadVideo, videoThumbnail);
             
             // Handle video play when container is clicked
             if (videoContainer) {
@@ -467,16 +482,22 @@
                     // Create video container with thumbnail and play button
                     const videoContainer = document.createElement('div');
                     videoContainer.className = 'video-container';
+                    videoContainer.id = 'videoContainer';
                     videoContainer.dataset.src = mediaSrc;
                     
                     // Preload video for thumbnail extraction
                     const preloadVideo = document.createElement('video');
+                    preloadVideo.id = 'preloadVideo';
                     preloadVideo.style.display = 'none';
-                    preloadVideo.innerHTML = `<source src="${mediaSrc}" type="video/mp4">`;
+                    const sourceElement = document.createElement('source');
+                    sourceElement.src = mediaSrc;
+                    sourceElement.type = 'video/mp4';
+                    preloadVideo.appendChild(sourceElement);
                     
                     // Add thumbnail placeholder
                     const thumbnail = document.createElement('img');
                     thumbnail.className = 'video-thumbnail';
+                    thumbnail.id = 'videoThumbnail';
                     thumbnail.alt = 'Video thumbnail';
                     
                     // Add play overlay
@@ -493,29 +514,8 @@
                     featuredContainer.innerHTML = '';
                     featuredContainer.appendChild(videoContainer);
                     
-                    // Extract thumbnail
-                    preloadVideo.addEventListener('loadeddata', function() {
-                        this.currentTime = 0.1;
-                    });
-                    
-                    preloadVideo.addEventListener('seeked', function() {
-                        // Create canvas and draw video frame
-                        const canvas = document.createElement('canvas');
-                        canvas.width = this.videoWidth;
-                        canvas.height = this.videoHeight;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(this, 0, 0, canvas.width, canvas.height);
-                        
-                        // Set the frame as thumbnail
-                        try {
-                            const dataURL = canvas.toDataURL('image/jpeg');
-                            thumbnail.src = dataURL;
-                        } catch(e) {
-                            console.error("Could not generate thumbnail", e);
-                            // Use a media image as fallback
-                            thumbnail.src = mediaSrc;
-                        }
-                    });
+                    // Extract thumbnail using the function
+                    generateVideoThumbnail(preloadVideo, thumbnail);
                     
                     // Set up click handler for playing the video
                     videoContainer.addEventListener('click', function() {
@@ -530,9 +530,6 @@
                         featuredContainer.appendChild(videoElement);
                         videoElement.play();
                     });
-                    
-                    // Load the video to trigger thumbnail generation
-                    preloadVideo.load();
                 } else {
                     // Create image element
                     const imageElement = document.createElement('img');
