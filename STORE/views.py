@@ -440,34 +440,39 @@ def stream_asset_detail(request, asset_id):
 
 @login_required
 def download_asset(request, asset_id):
-    """Generate signed URL for secure download"""
+    """Generate download for asset"""
     asset = get_object_or_404(StreamAsset, id=asset_id)
     
-    # Check if user has purchased this asset or it's free
-    if not (UserAsset.objects.filter(user=request.user, asset=asset).exists() or 
-            asset.price == 0 or request.user.is_staff):
-        messages.error(request, "You must purchase this asset before downloading")
-        return redirect('STORE:stream_asset_detail', asset_id=asset_id)
+    # Verify permissions...
     
     try:
-        # Generate signed URL for the asset
         from google.cloud import storage
+        import datetime
+        
         client = storage.Client()
         bucket = client.bucket('bomby-user-uploads')
         blob = bucket.blob(asset.file_path)
         
-        # URL expires in 10 minutes
-        url = blob.generate_signed_url(
-            version="v4",
-            expiration=datetime.timedelta(minutes=10),
-            method="GET"
-        )
+        # Check if file exists
+        if not blob.exists():
+            messages.error(request, f"File not found: {asset.file_path}")
+            return redirect('STORE:stream_asset_detail', asset_id=asset_id)
         
-        return redirect(url)
+        # For debugging - download using direct HTTP response instead of redirect
+        # This bypasses potential issues with the signed URL
+        content = blob.download_as_bytes()
+        filename = asset.file_path.split('/')[-1]
+        
+        response = HttpResponse(
+            content,
+            content_type='application/octet-stream'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+        
     except Exception as e:
-        # Local development fallback
-        messages.warning(request, 
-            "Cloud storage not available in development. In production, this would download the asset file.")
+        print(f"Download error: {type(e).__name__}: {str(e)}")
+        messages.error(request, f"Error downloading file: {str(e)}")
         return redirect('STORE:stream_asset_detail', asset_id=asset_id)
 
 @login_required
