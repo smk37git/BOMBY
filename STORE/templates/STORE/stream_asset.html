@@ -2,102 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/store_item.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        .version-select {
-            padding: 10px 15px;
-            width: 100%;
-            margin-top: 5px;
-            border-radius: 8px;
-            border: 2px solid #444;
-            background-color: #222;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 500;
-            cursor: pointer;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 15px top 50%;
-            background-size: 12px auto;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .version-select:hover {
-            border-color: #a970ff;
-            box-shadow: 0 4px 12px rgba(169, 112, 255, 0.3);
-        }
-
-        .version-select:focus {
-            outline: none;
-            border-color: #a970ff;
-            box-shadow: 0 0 0 3px rgba(169, 112, 255, 0.3);
-        }
-
-        .version-selector {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: rgba(25, 25, 25, 0.6);
-            border-radius: 10px;
-            border: 1px solid #333;
-        }
-
-        .version-selector label {
-            font-weight: bold;
-            color: #a970ff;
-            display: block;
-            margin-bottom: 5px;
-            font-size: 1.1rem;
-        }
-        
-        /* Video thumbnail styling */
-        .video-thumbnail {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-
-        .video-thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .play-icon {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.3);
-        }
-
-        .play-icon i {
-            font-size: 2rem;
-            color: white;
-            opacity: 0.9;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        .thumbnail[data-media-type="video"] {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .thumbnail[data-media-type="video"]:hover .play-icon {
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-
-        .thumbnail[data-media-type="video"]:hover .play-icon i {
-            transform: scale(1.1);
-            opacity: 1;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/store.css' %}">
 {% endblock %}
 
 {% block background %}
@@ -105,274 +10,93 @@
 {% endblock %}
 
 {% block content %}
-<div class="product-container">
-    <!-- Back link -->
-    <div class="product-navigation">
-        <a href="{% url 'STORE:stream_store' %}" class="back-link">
-            <i class="fas fa-arrow-left"></i> Back to Stream Store
-        </a>
-    </div>
-    
-    <!-- Split layout for product -->
-    <div class="product-split">
-        <!-- Left side: Gallery -->
-        <div class="product-gallery-side">
-            <div class="product-featured-image">
-                {% for media in asset.media.all %}
-                    {% if media.is_thumbnail or forloop.first %}
-                        {% if media.type == 'image' %}
-                            <img src="{{ media.file.url }}" 
-                                 alt="{{ asset.name }}" class="featured-image" id="featuredImage">
-                        {% elif media.type == 'video' %}
-                            <video src="{{ media.file.url }}" controls class="featured-image" id="featuredVideo"></video>
-                            <img src="{{ media.file.url }}" 
-                                 alt="{{ asset.name }}" class="featured-image" id="featuredImage" style="display: none;">
-                        {% endif %}
-                        {% comment %}We only want to display the first matching media{% endcomment %}
-                        
-                    {% endif %}
-                {% empty %}
-                    {% if asset.thumbnail %}
-                        <img src="{{ asset.thumbnail.url }}" 
-                             alt="{{ asset.name }}" class="featured-image" id="featuredImage">
-                    {% else %}
-                        <img src="{% static 'images/placeholder.jpg' %}" 
-                             alt="{{ asset.name }}" class="featured-image" id="featuredImage">
-                    {% endif %}
-                {% endfor %}
-            </div>
-            
-            <div class="gallery-thumbnails">
-                <!-- Thumbnails -->
-                {% for media in asset.media.all %}
-                    <div class="thumbnail {% if forloop.first %}active{% endif %}" 
-                         data-media-type="{{ media.type }}" 
-                         data-image="{{ media.file.url }}">
-                        {% if media.type == 'image' %}
-                            <img src="{{ media.file.url }}" alt="{{ asset.name }} - Image {{ forloop.counter }}">
-                        {% elif media.type == 'video' %}
-                            <!-- Video thumbnail with play icon overlay -->
-                            <div class="video-thumbnail">
-                                <img src="{{ media.file.url }}" alt="{{ asset.name }} - Video {{ forloop.counter }}">
-                                <div class="play-icon">
-                                    <i class="fas fa-play-circle"></i>
-                                </div>
-                            </div>
-                        {% endif %}
-                    </div>
-                {% empty %}
-                    {% if asset.thumbnail %}
-                        <div class="thumbnail active" data-image="{{ asset.thumbnail.url }}">
-                            <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
-                        </div>
-                    {% else %}
-                        <div class="thumbnail active" data-image="{% static 'images/placeholder.jpg' %}">
-                            <img src="{% static 'images/placeholder.jpg' %}" alt="Placeholder">
-                        </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
+    <header class="store-hero">
+        <div class="hero-content">
+            <h1 class="main-title">STREAM ASSETS</h1>
+            <p class="subtitle">OVERLAYS, ALERTS & GRAPHICS</p>
+        </div>
+    </header>
+
+    <!-- Stream Assets Section -->
+    <section class="store-section" id="stream-assets">
+        <div class="section-header">
+            <h2 class="section-title">STREAM OVERLAYS</h2>
+            <div class="section-separator-right"></div>
         </div>
         
-        <!-- Right side: Product info -->
-        <div class="product-card">
-            <h1 class="product-title">{{ asset.name }}
-                <div class="product-status {% if asset.is_active %}active{% else %}inactive{% endif %}">
-                    {% if asset.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
-                </div>
-            </h1>
-            <hr class="page-divider"></hr>
-            
-            {% if asset.versions.exists %}
-            <div class="version-selector">
-                <label for="versionSelect">Version:</label>
-                <select id="versionSelect" class="version-select">
-                    {% for version in asset.versions.all %}
-                        <option value="{{ version.id }}" {% if forloop.first %}selected{% endif %}>
-                            {{ version.get_type_display }}
-                        </option>
-                    {% endfor %}
-                </select>
-            </div>
-            {% endif %}
-            
-            <div class="product-features-container">
-                <div class="product-features">
-                  <h2>FEATURES:</h2>
-                  <ul class="features-list">
-                    <li>
-                      <i class="fas fa-check-circle"></i>
-                        Overlay Files in ZIP format
-                    </li>
-                    <li>
-                      <i class="fas fa-check-circle"></i>
-                        Compatible with OBS
-                    </li>
-                    <li>
-                      <i class="fas fa-check-circle"></i>
-                        Personal Use License
-                    </li>
-                  </ul>
-                </div>
-                
-                <div class="delivery-badge">
-                    <i class="fa-solid fa-bolt"></i>
-                  <span>Instant Access</span>
-                </div>
-            </div>
-            
-            <div class="product-purchase">
-                <div class="price-section">
-                    <div class="price-label">Price:</div>
-                    <div class="price-value">${{ asset.price }}</div>
-                    <div class="price-value-subtitle">
-                        OR <span class="account-type client">CLIENT</span>
+        <div class="products-grid">
+            {% for asset in assets %}
+            {% if asset.is_active %}
+            <div class="product-item" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}00">
+                <a href="{% url 'STORE:stream_asset_detail' asset.id %}" class="product-link">
+                    <div class="window">
+                        <div class="window-header">
+                            <div class="window-controls">
+                                <div class="control red"></div>
+                                <div class="control yellow"></div>
+                                <div class="control green"></div>
+                            </div>
+                            <div class="window-title">{{ asset.name }}</div>
+                        </div>
+                        <div class="window-content">
+                            {% with thumb_found=False %}
+                                {% for media in asset.media.all %}
+                                    {% if media.is_thumbnail and not thumb_found %}
+                                        <img src="{{ media.file.url }}" alt="{{ asset.name }}">
+                                        {% with thumb_found=True %}{% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if not thumb_found %}
+                                    {% for media in asset.media.all %}
+                                        {% if forloop.first %}
+                                            <img src="{{ media.file.url }}" alt="{{ asset.name }}">
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                                
+                                {% if asset.media.count == 0 %}
+                                    {% if asset.thumbnail %}
+                                        <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
+                                    {% else %}
+                                        <img src="{% static 'images/asset-placeholder.jpg' %}" alt="{{ asset.name }}">
+                                    {% endif %}
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="window-footer">
+                            <div class="product-status-asset active">DOWNLOADABLE</div>
+                        </div>
                     </div>
-                </div>
-                <a href="{% url 'STORE:download_asset' asset.id %}" class="purchase-btn" id="downloadBtn">
-                    GET ACCESS
                 </a>
             </div>
-        </div>
-    </div>
-    
-    <!-- Description section -->
-    <div class="product-description-section">
-        <div class="product-card">
-            <div class="product-description">
-                <h2 class="heading-with-line">DESCRIPTION</h2>
-                <p>{{ asset.description|linebreaks }}</p>
-
-                <h2 class="heading-with-line">USAGE INSTRUCTIONS</h2>
-                <div class="faq-container">
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <div class="chevron-container">
-                                <i class="fas fa-chevron-right"></i>
-                            </div>
-                            <span>How to install these overlays?</span>
-                        </div>
-                        <div class="faq-answer">
-                            Download the ZIP file, extract contents to a folder on your computer. In OBS, add a new Browser source and point it to the extracted HTML file, or add the images as Image sources.
-                        </div>
-                    </div>
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <div class="chevron-container">
-                                <i class="fas fa-chevron-right"></i>
-                            </div>
-                            <span>Can I customize these assets?</span>
-                        </div>
-                        <div class="faq-answer">
-                            Yes! All assets come with editable files. You can modify colors, text, and other elements to match your brand.
-                        </div>
-                    </div>
-                    <div class="faq-item">
-                        <div class="faq-question">
-                            <div class="chevron-container">
-                                <i class="fas fa-chevron-right"></i>
-                            </div>
-                            <span>What software do I need?</span>
-                        </div>
-                        <div class="faq-answer">
-                            You'll need OBS Studio or similar streaming software. For customization, depending on the asset, you might need a graphics editor like GIMP (free) or Adobe Photoshop.
-                        </div>
-                    </div>
-                </div>
+            {% endif %}
+            {% empty %}
+            <div class="no-assets-message">
+                <p>No stream assets available yet. Check back soon!</p>
             </div>
+            {% endfor %}
         </div>
-    </div>
-</div>
+    </section>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // FAQ dropdown functionality
-        const faqItems = document.querySelectorAll('.faq-item');
-        
-        faqItems.forEach(item => {
-            const question = item.querySelector('.faq-question');
-            
-            question.addEventListener('click', function() {
-                // Toggle active class
-                item.classList.toggle('active');
-                
-                // Get the chevron container
-                const chevronContainer = this.querySelector('.chevron-container');
-                
-                // Toggle chevron direction
-                if(item.classList.contains('active')) {
-                    chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
-                } else {
-                    chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                }
-            });
+    <!-- Become a supporter section (only for non-supporters) -->
+    {% if not request.user.is_supporter and not request.user.is_client %}
+    <section class="contact-cta">
+        <div class="cta-content">
+            <h2>BECOME A SUPPORTER</h2>
+            <p>Get access to all stream assets and more features for just $10!</p>
+            <a href="{% url 'STORE:become_supporter' %}" class="cta-button">UPGRADE NOW</a>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            offset: 100,
+            once: true
         });
-        
-        // Gallery functionality
-        const thumbnails = document.querySelectorAll('.thumbnail');
-        const featuredImage = document.getElementById('featuredImage');
-        const featuredVideo = document.getElementById('featuredVideo');
-        
-        thumbnails.forEach(thumbnail => {
-            thumbnail.addEventListener('click', function() {
-                // Set all thumbnails as inactive
-                thumbnails.forEach(t => t.classList.remove('active'));
-                
-                // Set this thumbnail as active
-                this.classList.add('active');
-                
-                // Update featured media based on type
-                const mediaType = this.dataset.mediaType;
-                const mediaSrc = this.dataset.image;
-                
-                if (mediaType === 'video') {
-                    // Create or update the video element
-                    let featuredVideo = document.getElementById('featuredVideo');
-                    if (!featuredVideo) {
-                        featuredVideo = document.createElement('video');
-                        featuredVideo.id = 'featuredVideo';
-                        featuredVideo.className = 'featured-image';
-                        featuredVideo.controls = true;
-                        document.querySelector('.product-featured-image').appendChild(featuredVideo);
-                    }
-                    
-                    // Show video, hide image
-                    featuredVideo.src = mediaSrc;
-                    featuredVideo.style.display = 'block';
-                    if (featuredImage) featuredImage.style.display = 'none';
-                    featuredVideo.load();
-                    featuredVideo.play();
-                } else {
-                    // Show image, hide video
-                    const featuredVideo = document.getElementById('featuredVideo');
-                    if (featuredVideo) featuredVideo.style.display = 'none';
-                    if (featuredImage) {
-                        featuredImage.style.display = 'block';
-                        featuredImage.src = mediaSrc;
-                    }
-                }
-            });
-        });
-        
-        // Version selector functionality
-        const versionSelect = document.getElementById('versionSelect');
-        const downloadBtn = document.getElementById('downloadBtn');
-        
-        if (versionSelect && downloadBtn) {
-            // Set initial version in download URL
-            if (versionSelect.options.length > 0) {
-                const initialVersion = versionSelect.options[0].value;
-                const baseUrl = downloadBtn.href.split('?')[0];
-                downloadBtn.href = baseUrl + '?version_id=' + initialVersion;
-            }
-            
-            versionSelect.addEventListener('change', function() {
-                // Update download button link to include selected version
-                const versionId = this.value;
-                const baseUrl = downloadBtn.href.split('?')[0];
-                downloadBtn.href = baseUrl + '?version_id=' + versionId;
-            });
-        }
-    });
-</script>
+    </script>
 {% endblock %}
