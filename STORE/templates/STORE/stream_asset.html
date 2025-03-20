@@ -398,6 +398,34 @@
                 }
             });
         });
+
+        // Process all video thumbnails in the gallery on page load
+        const videoThumbnails = document.querySelectorAll('.thumbnail[data-media-type="video"]');
+        videoThumbnails.forEach(thumbElement => {
+            const videoSrc = thumbElement.dataset.src;
+            const imgElement = thumbElement.querySelector('img');
+            
+            if (imgElement && videoSrc) {
+                const tempVideo = document.createElement('video');
+                tempVideo.style.display = 'none';
+                const sourceElement = document.createElement('source');
+                sourceElement.src = videoSrc;
+                sourceElement.type = 'video/mp4';
+                tempVideo.appendChild(sourceElement);
+                document.body.appendChild(tempVideo);
+                
+                generateVideoThumbnail(tempVideo, imgElement);
+                
+                // Remove the temp video after processing
+                tempVideo.addEventListener('seeked', function onSeeked() {
+                    // Allow time for the thumbnail to be generated
+                    setTimeout(() => {
+                        document.body.removeChild(tempVideo);
+                    }, 1000);
+                    tempVideo.removeEventListener('seeked', onSeeked);
+                });
+            }
+        });
         
         // Function to handle video thumbnail generation
         function generateVideoThumbnail(videoElement, thumbnailElement) {
