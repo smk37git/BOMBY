@@ -409,6 +409,7 @@ def admin_change_order_status(request):
     return redirect('STORE:order_management')
 
 # Stream Store Views
+# Stream Store Views
 def user_can_access_stream_store(user):
     """Check if user can access stream store"""
     return user.is_authenticated and (user.is_client or user.is_supporter or user.is_staff)
@@ -417,37 +418,44 @@ def user_can_access_stream_store(user):
 def stream_store(request):
     """Stream store view with access control"""
     if not user_can_access_stream_store(request.user):
-        messages.error(request, "This area requires client or supporter status")
-        return redirect('STORE:store')
+        return redirect('STORE:stream_store_purchase')
         
     assets = StreamAsset.objects.filter(is_active=True)
     return render(request, 'STORE/stream_store.html', {'assets': assets})
+
+@login_required
+def stream_store_purchase(request):
+    """Page for purchasing stream store access"""
+    if user_can_access_stream_store(request.user):
+        return redirect('STORE:stream_store')
+        
+    return render(request, 'STORE/stream_store_purchase.html')
 
 @login_required
 def stream_asset_detail(request, asset_id):
     """Stream asset detail page"""
     if not user_can_access_stream_store(request.user):
         messages.error(request, "This area requires client or supporter status")
-        return redirect('STORE:store')
+        return redirect('STORE:stream_store_purchase')
         
     asset = get_object_or_404(StreamAsset, id=asset_id, is_active=True)
-    has_purchased = UserAsset.objects.filter(user=request.user, asset=asset).exists()
     
     return render(request, 'STORE/stream_asset.html', {
-        'asset': asset,
-        'has_purchased': has_purchased
+        'asset': asset
     })
 
 @login_required
 def download_asset(request, asset_id):
-    """Generate download for asset"""
+    """Download stream asset"""
     asset = get_object_or_404(StreamAsset, id=asset_id)
     
-    # Verify permissions...
+    # Check access permission
+    if not user_can_access_stream_store(request.user):
+        messages.error(request, "You need client or supporter status to download assets")
+        return redirect('STORE:stream_store_purchase')
     
     try:
         from google.cloud import storage
-        import datetime
         
         client = storage.Client()
         bucket = client.bucket('bomby-user-uploads')
@@ -458,42 +466,18 @@ def download_asset(request, asset_id):
             messages.error(request, f"File not found: {asset.file_path}")
             return redirect('STORE:stream_asset_detail', asset_id=asset_id)
         
-        # For debugging - download using direct HTTP response instead of redirect
-        # This bypasses potential issues with the signed URL
+        # Direct download (bypassing signed URL issues)
         content = blob.download_as_bytes()
         filename = asset.file_path.split('/')[-1]
         
-        response = HttpResponse(
-            content,
-            content_type='application/octet-stream'
-        )
+        response = HttpResponse(content, content_type='application/octet-stream')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
         
     except Exception as e:
         print(f"Download error: {type(e).__name__}: {str(e)}")
-        messages.error(request, f"Error downloading file: {str(e)}")
+        messages.error(request, "Error downloading file. Please try again later.")
         return redirect('STORE:stream_asset_detail', asset_id=asset_id)
-
-@login_required
-def purchase_asset(request, asset_id):
-    """Purchase a stream asset"""
-    if not user_can_access_stream_store(request.user):
-        messages.error(request, "This area requires client or supporter status")
-        return redirect('STORE:store')
-        
-    asset = get_object_or_404(StreamAsset, id=asset_id, is_active=True)
-    
-    # Check if already purchased
-    if UserAsset.objects.filter(user=request.user, asset=asset).exists():
-        messages.info(request, "You've already purchased this asset!")
-        return redirect('STORE:stream_asset_detail', asset_id=asset_id)
-    
-    # Create purchase record
-    UserAsset.objects.create(user=request.user, asset=asset)
-    messages.success(request, f"Successfully purchased {asset.name}!")
-    
-    return redirect('STORE:stream_asset_detail', asset_id=asset_id)
 
 @login_required
 def become_supporter(request):
@@ -503,8 +487,7 @@ def become_supporter(request):
         return redirect('STORE:stream_store')
     
     if request.method == 'POST':
-        # Process payment (simplified)
-        # In real implementation, integrate with payment gateway
+        # Process payment would go here in production
         
         # Update user role
         request.user.promote_to_supporter()
@@ -513,13 +496,33 @@ def become_supporter(request):
     
     return render(request, 'STORE/become_supporter.html')
 
+# Stream Asset Management (Admin)
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def stream_asset_management(request):
+    """Admin view for managing stream assets"""
+    search_query = request.GET.get('search', '')
+    
+    if search_query:
+        assets = StreamAsset.objects.filter(name__icontains=search_query)
+    else:
+        assets = StreamAsset.objects.all().order_by('-created_at')
+    
+    context = {
+        'assets': assets,
+        'search_query': search_query
+    }
+    
+    response = render(request, 'STORE/stream_asset_management.html', context)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    return response
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def add_stream_asset(request):
     """Admin view to add stream assets"""
     if request.method == 'POST':
         name = request.POST.get('name')
-        price = request.POST.get('price', 0)
         description = request.POST.get('description', '')
         is_active = request.POST.get('is_active') == 'true'
         asset_file = request.FILES.get('asset_file')
@@ -532,7 +535,6 @@ def add_stream_asset(request):
             # Create database record
             asset = StreamAsset(
                 name=name,
-                price=price,
                 description=description,
                 is_active=is_active,
                 file_path=file_path
@@ -545,24 +547,85 @@ def add_stream_asset(request):
             
             # Try to upload file to bucket
             try:
-                from google.auth.exceptions import DefaultCredentialsError
                 from google.cloud import storage
                 
                 client = storage.Client()
                 bucket = client.bucket('bomby-user-uploads')
                 blob = bucket.blob(file_path)
                 blob.upload_from_file(asset_file)
-                messages.success(request, f"Asset '{name}' added and uploaded successfully!")
-            except DefaultCredentialsError:
-                # For local development, just save the record
-                messages.warning(request, f"Asset '{name}' added to database, but file upload skipped (no cloud credentials)")
+                messages.success(request, f"Asset '{name}' added successfully!")
             except Exception as e:
-                # Log but continue
-                messages.warning(request, f"Asset '{name}' added to database, but file upload failed: {str(e)}")
+                messages.warning(request, f"Asset '{name}' added to database, but file upload issue: {str(e)}")
             
-            return redirect('STORE:stream_store')
+            return redirect('STORE:stream_asset_management')
     
     return render(request, 'STORE/add_stream_asset.html')
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def edit_stream_asset(request, asset_id):
+    """View for editing a stream asset"""
+    asset = get_object_or_404(StreamAsset, id=asset_id)
+    
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        is_active = request.POST.get('is_active') == 'true'
+        thumbnail = request.FILES.get('thumbnail')
+        
+        asset.name = name
+        asset.description = description
+        asset.is_active = is_active
+        
+        if thumbnail:
+            asset.thumbnail = thumbnail
+            
+        asset.save()
+        
+        messages.success(request, f"Asset '{name}' updated successfully.")
+        return redirect('STORE:stream_asset_management')
+    
+    context = {'asset': asset}
+    return render(request, 'STORE/edit_stream_asset.html', context)
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def bulk_change_asset_status(request):
+    """Change status for multiple assets at once"""
+    selected_assets = request.POST.get('selected_assets', '')
+    new_status = request.POST.get('status') == 'true'
+    
+    if selected_assets:
+        asset_ids = [int(id) for id in selected_assets.split(',')]
+        
+        # Update all selected assets
+        StreamAsset.objects.filter(id__in=asset_ids).update(is_active=new_status)
+        
+        status_text = 'active' if new_status else 'inactive'
+        messages.success(request, f"{len(asset_ids)} asset{'s' if len(asset_ids) > 1 else ''} set to {status_text}.")
+    
+    return redirect('STORE:stream_asset_management')
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def delete_stream_assets(request):
+    """Delete selected assets"""
+    selected_assets = request.POST.get('selected_assets', '')
+    
+    if selected_assets:
+        asset_ids = [int(id) for id in selected_assets.split(',')]
+        
+        # Count before deletion for message
+        count = len(asset_ids)
+        
+        # Delete assets
+        StreamAsset.objects.filter(id__in=asset_ids).delete()
+        
+        messages.success(request, f"{count} asset{'s' if count > 1 else ''} deleted successfully.")
+    
+    return redirect('STORE:stream_asset_management')
 
 # Admin Views
 @require_POST

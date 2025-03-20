@@ -16,11 +16,10 @@ urlpatterns = [
 
     # Stream Store pages
     path('stream-store/', views.stream_store, name='stream_store'),
+    path('stream-store/purchase/', views.stream_store_purchase, name='stream_store_purchase'),
     path('stream-asset/<int:asset_id>/', views.stream_asset_detail, name='stream_asset_detail'),
-    path('stream-asset/<int:asset_id>/purchase/', views.purchase_asset, name='purchase_asset'),
     path('stream-asset/<int:asset_id>/download/', views.download_asset, name='download_asset'),
     path('become-supporter/', views.become_supporter, name='become_supporter'),
-    path('admin/add-stream-asset/', views.add_stream_asset, name='add_stream_asset'),
     
     # Website building pages
     path('basic-website/', views.basic_website, name='basic_website'),
@@ -46,6 +45,13 @@ urlpatterns = [
     path('admin/products/bulk-status-change/', views.bulk_change_product_status, name='bulk_change_product_status'),
     path('products/create/', views.create_product, name='create_product'),
     path('products/delete/', views.delete_products, name='delete_products'),
+
+    # Stream Asset Management
+    path('admin/stream-assets/', views.stream_asset_management, name='stream_asset_management'),
+    path('admin/stream-assets/add/', views.add_stream_asset, name='add_stream_asset'),
+    path('admin/stream-assets/edit/<int:asset_id>/', views.edit_stream_asset, name='edit_stream_asset'),
+    path('admin/stream-assets/bulk-status-change/', views.bulk_change_asset_status, name='bulk_change_asset_status'),
+    path('admin/stream-assets/delete/', views.delete_stream_assets, name='delete_stream_assets'),
 
     # Order Management
     path('admin/orders/', views.order_management, name='order_management'),
