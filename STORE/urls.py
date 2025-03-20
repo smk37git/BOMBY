@@ -13,6 +13,14 @@ urlpatterns = [
     path('premium-package/', views.premium_package, name='premium_package'),
     path('stream-setup/', views.stream_setup, name='stream_setup'),
     path('stream-store/', views.stream_store, name='stream_store'),
+
+    # Stream Store pages
+    path('stream-store/', views.stream_store, name='stream_store'),
+    path('stream-asset/<int:asset_id>/', views.stream_asset_detail, name='stream_asset_detail'),
+    path('stream-asset/<int:asset_id>/purchase/', views.purchase_asset, name='purchase_asset'),
+    path('stream-asset/<int:asset_id>/download/', views.download_asset, name='download_asset'),
+    path('become-supporter/', views.become_supporter, name='become_supporter'),
+    path('admin/add-stream-asset/', views.add_stream_asset, name='add_stream_asset'),
     
     # Website building pages
     path('basic-website/', views.basic_website, name='basic_website'),

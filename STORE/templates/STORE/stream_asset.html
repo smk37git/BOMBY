@@ -1,0 +1,171 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/store_item.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="product-container">
+    <!-- Back link -->
+    <div class="product-navigation">
+        <a href="{% url 'STORE:stream_store' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Stream Store
+        </a>
+    </div>
+    
+    <!-- Split layout for product -->
+    <div class="product-split">
+        <!-- Left side: Gallery -->
+        <div class="product-gallery-side">
+            <div class="product-featured-image">
+                {% if asset.thumbnail %}
+                    <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                {% else %}
+                    <img src="{% static 'images/asset-placeholder.jpg' %}" alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Right side: Product info -->
+        <div class="product-card">
+            <h1 class="product-title">{{ asset.name }}
+                <div class="product-status {% if asset.is_active %}active{% else %}inactive{% endif %}">
+                    {% if asset.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                </div>
+            </h1>
+            <hr class="page-divider">
+            
+            <div class="product-features-container">
+                <div class="product-features">
+                  <h2>INCLUDES:</h2>
+                  <ul class="features-list">
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      Overlay files in ZIP format
+                    </li>
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      Installation instructions
+                    </li>
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      Compatible with OBS
+                    </li>
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      Personal use license
+                    </li>
+                  </ul>
+                </div>
+                
+                <div class="delivery-badge">
+                  <i class="fas fa-download"></i>
+                  <span>Instant Download</span>
+                </div>
+            </div>
+            
+            <div class="product-purchase">
+                <div class="price-section">
+                    <div class="price-label">Price:</div>
+                    <div class="price-value">
+                        {% if asset.price > 0 %}
+                            ${{ asset.price }}
+                        {% else %}
+                            FREE
+                        {% endif %}
+                    </div>
+                </div>
+                
+                {% if has_purchased or asset.price == 0 %}
+                    <a href="{% url 'STORE:download_asset' asset.id %}" class="purchase-btn">
+                        <i class="fas fa-download"></i> DOWNLOAD NOW
+                    </a>
+                {% else %}
+                    <a href="{% url 'STORE:purchase_asset' asset.id %}" class="purchase-btn">
+                        GET ACCESS
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Description section -->
+    <div class="product-description-section">
+        <div class="product-card">
+            <div class="product-description">
+                <h2 class="heading-with-line">DESCRIPTION</h2>
+                <p>{{ asset.description|linebreaks }}</p>
+
+                <h2 class="heading-with-line">USAGE INSTRUCTIONS</h2>
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>How to install these overlays?</span>
+                        </div>
+                        <div class="faq-answer">
+                            Download the ZIP file, extract contents to a folder on your computer. In OBS, add a new Browser source and point it to the extracted HTML file, or add the images as Image sources.
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>Can I customize these assets?</span>
+                        </div>
+                        <div class="faq-answer">
+                            Yes! All assets come with editable files. You can modify colors, text, and other elements to match your brand.
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>What software do I need?</span>
+                        </div>
+                        <div class="faq-answer">
+                            You'll need OBS Studio or similar streaming software. For customization, depending on the asset, you might need a graphics editor like GIMP (free) or Adobe Photoshop.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // FAQ dropdown functionality
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            
+            question.addEventListener('click', function() {
+                // Toggle active class
+                item.classList.toggle('active');
+                
+                // Get the chevron container
+                const chevronContainer = this.querySelector('.chevron-container');
+                
+                // Toggle chevron direction
+                if(item.classList.contains('active')) {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                } else {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

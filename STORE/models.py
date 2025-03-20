@@ -100,3 +100,24 @@ class Review(models.Model):
     rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+# Stream Store Models
+class StreamAsset(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=8, decimal_places=2, default=0.00)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    file_path = models.CharField(max_length=255)  # Path in bucket
+    thumbnail = models.ImageField(upload_to='stream_assets/thumbnails/', blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.name
+
+class UserAsset(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    asset = models.ForeignKey(StreamAsset, on_delete=models.CASCADE)
+    purchased_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('user', 'asset')

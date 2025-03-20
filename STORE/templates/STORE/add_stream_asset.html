@@ -1,0 +1,54 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/store.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Add Stream Asset</h1>
+    
+    <form method="post" enctype="multipart/form-data" class="admin-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="name">Asset Name</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="price">Price ($)</label>
+            <input type="number" id="price" name="price" min="0" step="0.01" value="0">
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="5"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="asset_file">Asset File (ZIP)</label>
+            <input type="file" id="asset_file" name="asset_file" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="thumbnail">Thumbnail Image</label>
+            <input type="file" id="thumbnail" name="thumbnail">
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" name="is_active" value="true" checked>
+                Active
+            </label>
+        </div>
+        
+        <button type="submit" class="btn">Add Asset</button>
+    </form>
+</div>
+{% endblock %}

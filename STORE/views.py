@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.urls import reverse
 from django.http import HttpResponseForbidden, JsonResponse
@@ -12,6 +11,10 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
 import json
+from django.http import HttpResponse
+from google.cloud import storage
+import datetime
+from .models import StreamAsset, UserAsset
 from .utils.email_utils import (
     send_pending_order_email,
     send_in_progress_order_email, 
@@ -404,6 +407,157 @@ def admin_change_order_status(request):
         )
     
     return redirect('STORE:order_management')
+
+# Stream Store Views
+def user_can_access_stream_store(user):
+    """Check if user can access stream store"""
+    return user.is_authenticated and (user.is_client or user.is_supporter or user.is_staff)
+
+@login_required
+def stream_store(request):
+    """Stream store view with access control"""
+    if not user_can_access_stream_store(request.user):
+        messages.error(request, "This area requires client or supporter status")
+        return redirect('STORE:store')
+        
+    assets = StreamAsset.objects.filter(is_active=True)
+    return render(request, 'STORE/stream_store.html', {'assets': assets})
+
+@login_required
+def stream_asset_detail(request, asset_id):
+    """Stream asset detail page"""
+    if not user_can_access_stream_store(request.user):
+        messages.error(request, "This area requires client or supporter status")
+        return redirect('STORE:store')
+        
+    asset = get_object_or_404(StreamAsset, id=asset_id, is_active=True)
+    has_purchased = UserAsset.objects.filter(user=request.user, asset=asset).exists()
+    
+    return render(request, 'STORE/stream_asset.html', {
+        'asset': asset,
+        'has_purchased': has_purchased
+    })
+
+@login_required
+def download_asset(request, asset_id):
+    """Generate signed URL for secure download"""
+    asset = get_object_or_404(StreamAsset, id=asset_id)
+    
+    # Check if user has purchased this asset or it's free
+    if not (UserAsset.objects.filter(user=request.user, asset=asset).exists() or 
+            asset.price == 0 or request.user.is_staff):
+        messages.error(request, "You must purchase this asset before downloading")
+        return redirect('STORE:stream_asset_detail', asset_id=asset_id)
+    
+    try:
+        # Generate signed URL for the asset
+        from google.cloud import storage
+        client = storage.Client()
+        bucket = client.bucket('bomby-user-uploads')
+        blob = bucket.blob(asset.file_path)
+        
+        # URL expires in 10 minutes
+        url = blob.generate_signed_url(
+            version="v4",
+            expiration=datetime.timedelta(minutes=10),
+            method="GET"
+        )
+        
+        return redirect(url)
+    except Exception as e:
+        # Local development fallback
+        messages.warning(request, 
+            "Cloud storage not available in development. In production, this would download the asset file.")
+        return redirect('STORE:stream_asset_detail', asset_id=asset_id)
+
+@login_required
+def purchase_asset(request, asset_id):
+    """Purchase a stream asset"""
+    if not user_can_access_stream_store(request.user):
+        messages.error(request, "This area requires client or supporter status")
+        return redirect('STORE:store')
+        
+    asset = get_object_or_404(StreamAsset, id=asset_id, is_active=True)
+    
+    # Check if already purchased
+    if UserAsset.objects.filter(user=request.user, asset=asset).exists():
+        messages.info(request, "You've already purchased this asset!")
+        return redirect('STORE:stream_asset_detail', asset_id=asset_id)
+    
+    # Create purchase record
+    UserAsset.objects.create(user=request.user, asset=asset)
+    messages.success(request, f"Successfully purchased {asset.name}!")
+    
+    return redirect('STORE:stream_asset_detail', asset_id=asset_id)
+
+@login_required
+def become_supporter(request):
+    """Allow users to pay $10 to become supporters"""
+    if request.user.is_supporter:
+        messages.info(request, "You are already a supporter!")
+        return redirect('STORE:stream_store')
+    
+    if request.method == 'POST':
+        # Process payment (simplified)
+        # In real implementation, integrate with payment gateway
+        
+        # Update user role
+        request.user.promote_to_supporter()
+        messages.success(request, "You are now a supporter with access to the Stream Store!")
+        return redirect('STORE:stream_store')
+    
+    return render(request, 'STORE/become_supporter.html')
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def add_stream_asset(request):
+    """Admin view to add stream assets"""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        price = request.POST.get('price', 0)
+        description = request.POST.get('description', '')
+        is_active = request.POST.get('is_active') == 'true'
+        asset_file = request.FILES.get('asset_file')
+        thumbnail = request.FILES.get('thumbnail')
+        
+        if asset_file:
+            # Save to Google Cloud Storage
+            file_path = f'stream_assets/{asset_file.name}'
+            
+            # Create database record
+            asset = StreamAsset(
+                name=name,
+                price=price,
+                description=description,
+                is_active=is_active,
+                file_path=file_path
+            )
+            
+            if thumbnail:
+                asset.thumbnail = thumbnail
+                
+            asset.save()
+            
+            # Try to upload file to bucket
+            try:
+                from google.auth.exceptions import DefaultCredentialsError
+                from google.cloud import storage
+                
+                client = storage.Client()
+                bucket = client.bucket('bomby-user-uploads')
+                blob = bucket.blob(file_path)
+                blob.upload_from_file(asset_file)
+                messages.success(request, f"Asset '{name}' added and uploaded successfully!")
+            except DefaultCredentialsError:
+                # For local development, just save the record
+                messages.warning(request, f"Asset '{name}' added to database, but file upload skipped (no cloud credentials)")
+            except Exception as e:
+                # Log but continue
+                messages.warning(request, f"Asset '{name}' added to database, but file upload failed: {str(e)}")
+            
+            return redirect('STORE:stream_store')
+    
+    return render(request, 'STORE/add_stream_asset.html')
 
 # Admin Views
 @require_POST

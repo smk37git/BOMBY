@@ -1,1 +1,90 @@
-<div>Hello World</div>
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/store.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+    <header class="store-hero">
+        <div class="hero-content">
+            <h1 class="main-title">STREAM ASSETS</h1>
+            <p class="subtitle">OVERLAYS, ALERTS & GRAPHICS</p>
+        </div>
+    </header>
+
+    <!-- Stream Assets Section -->
+    <section class="store-section" id="stream-assets">
+        <div class="section-header">
+            <h2 class="section-title">STREAM OVERLAYS</h2>
+            <div class="section-separator-right"></div>
+        </div>
+        
+        <div class="products-grid">
+            {% for asset in assets %}
+            {% if asset.is_active %}
+            <div class="product-item" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}00">
+                <a href="{% url 'STORE:stream_asset_detail' asset.id %}" class="product-link">
+                    <div class="window">
+                        <div class="window-header">
+                            <div class="window-controls">
+                                <div class="control red"></div>
+                                <div class="control yellow"></div>
+                                <div class="control green"></div>
+                            </div>
+                            <div class="window-title">{{ asset.name }}</div>
+                        </div>
+                        <div class="window-content">
+                            {% if asset.thumbnail %}
+                                <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
+                            {% else %}
+                                <img src="{% static 'images/asset-placeholder.jpg' %}" alt="{{ asset.name }}">
+                            {% endif %}
+                        </div>
+                        <div class="window-footer">
+                            <div class="product-status active">DOWNLOADABLE</div>
+                            <div class="product-price">
+                                {% if asset.price > 0 %}
+                                    ${{ asset.price }}
+                                {% else %}
+                                    FREE
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endif %}
+            {% empty %}
+            <div class="no-assets-message">
+                <p>No stream assets available yet. Check back soon!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Become a supporter section (only for non-supporters) -->
+    {% if not request.user.is_supporter and not request.user.is_client %}
+    <section class="contact-cta">
+        <div class="cta-content">
+            <h2>BECOME A SUPPORTER</h2>
+            <p>Get access to all stream assets and more features for just $10!</p>
+            <a href="{% url 'STORE:become_supporter' %}" class="cta-button">UPGRADE NOW</a>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- AOS Animation -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            offset: 100,
+            once: true
+        });
+    </script>
+{% endblock %}
