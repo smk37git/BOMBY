@@ -14,7 +14,7 @@ import json
 from django.http import HttpResponse
 from google.cloud import storage
 import datetime
-from .models import StreamAsset, UserAsset
+from .models import StreamAsset, UserAsset, AssetVersion, AssetMedia
 from .utils.email_utils import (
     send_pending_order_email,
     send_in_progress_order_email, 

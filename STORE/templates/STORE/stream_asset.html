@@ -70,7 +70,8 @@
                             <img src="{{ media.file.url }}" 
                                  alt="{{ asset.name }}" class="featured-image" id="featuredImage">
                         {% endif %}
-                        {% break %}
+                        {% comment %}We only want to display the first matching media{% endcomment %}
+                        
                     {% endif %}
                 {% empty %}
                     {% if asset.thumbnail %}
