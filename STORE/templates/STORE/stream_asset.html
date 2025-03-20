@@ -97,6 +97,20 @@
             transform: scale(1.1);
             opacity: 1;
         }
+        
+        .video-placeholder {
+            background-color: #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+        }
+        
+        .video-placeholder i {
+            font-size: 40px;
+            color: #a970ff;
+        }
     </style>
 {% endblock %}
 
@@ -124,12 +138,13 @@
                             <img src="{{ media.file.url }}" 
                                  alt="{{ asset.name }}" class="featured-image" id="featuredImage">
                         {% elif media.type == 'video' %}
-                            <video src="{{ media.file.url }}" controls class="featured-image" id="featuredVideo"></video>
-                            <img src="{{ media.file.url }}" 
-                                 alt="{{ asset.name }}" class="featured-image" id="featuredImage" style="display: none;">
+                            <video src="{{ media.file.url }}" controls class="featured-image" id="featuredVideo" poster="{{ media.file.url }}"></video>
+                            <div class="featured-image" id="featuredPlaceholder" style="display: none;">
+                                <div class="video-placeholder">
+                                    <i class="fas fa-video"></i>
+                                </div>
+                            </div>
                         {% endif %}
-                        {% comment %}We only want to display the first matching media{% endcomment %}
-                        
                     {% endif %}
                 {% empty %}
                     {% if asset.thumbnail %}
@@ -153,7 +168,9 @@
                         {% elif media.type == 'video' %}
                             <!-- Video thumbnail with play icon overlay -->
                             <div class="video-thumbnail">
-                                <img src="{{ media.file.url }}" alt="{{ asset.name }} - Video {{ forloop.counter }}">
+                                <div class="video-placeholder">
+                                    <i class="fas fa-play"></i>
+                                </div>
                                 <div class="play-icon">
                                     <i class="fas fa-play-circle"></i>
                                 </div>
@@ -311,7 +328,20 @@
         // Gallery functionality
         const thumbnails = document.querySelectorAll('.thumbnail');
         const featuredImage = document.getElementById('featuredImage');
-        const featuredVideo = document.getElementById('featuredVideo');
+        let featuredVideo = document.getElementById('featuredVideo');
+        const featuredPlaceholder = document.getElementById('featuredPlaceholder');
+        
+        // Function to create or get the video element
+        function getVideoElement() {
+            if (!featuredVideo) {
+                featuredVideo = document.createElement('video');
+                featuredVideo.id = 'featuredVideo';
+                featuredVideo.className = 'featured-image';
+                featuredVideo.controls = true;
+                document.querySelector('.product-featured-image').appendChild(featuredVideo);
+            }
+            return featuredVideo;
+        }
         
         thumbnails.forEach(thumbnail => {
             thumbnail.addEventListener('click', function() {
@@ -326,26 +356,41 @@
                 const mediaSrc = this.dataset.image;
                 
                 if (mediaType === 'video') {
-                    // Create or update the video element
-                    let featuredVideo = document.getElementById('featuredVideo');
-                    if (!featuredVideo) {
-                        featuredVideo = document.createElement('video');
-                        featuredVideo.id = 'featuredVideo';
-                        featuredVideo.className = 'featured-image';
-                        featuredVideo.controls = true;
-                        document.querySelector('.product-featured-image').appendChild(featuredVideo);
-                    }
+                    // Get or create video element
+                    const videoEl = getVideoElement();
                     
-                    // Show video, hide image
-                    featuredVideo.src = mediaSrc;
-                    featuredVideo.style.display = 'block';
+                    // Show video, hide image and placeholder
+                    videoEl.src = mediaSrc;
+                    videoEl.style.display = 'block';
+                    
                     if (featuredImage) featuredImage.style.display = 'none';
-                    featuredVideo.load();
-                    featuredVideo.play();
+                    if (featuredPlaceholder) featuredPlaceholder.style.display = 'none';
+                    
+                    // Load and play the video
+                    videoEl.load();
+                    
+                    // Add event listener to show first frame
+                    videoEl.addEventListener('loadeddata', function() {
+                        if (videoEl.readyState >= 2) { // At least HAVE_CURRENT_DATA
+                            videoEl.currentTime = 0.1; // Set to first frame
+                            videoEl.pause();
+                        }
+                    });
+                    
+                    // Try to get a poster frame by seeking to the first frame
+                    setTimeout(() => {
+                        videoEl.play().then(() => {
+                            videoEl.pause();
+                        }).catch(() => {
+                            // If autoplay fails, just show the video element
+                            console.log("Autoplay failed");
+                        });
+                    }, 100);
                 } else {
-                    // Show image, hide video
-                    const featuredVideo = document.getElementById('featuredVideo');
+                    // Show image, hide video and placeholder
                     if (featuredVideo) featuredVideo.style.display = 'none';
+                    if (featuredPlaceholder) featuredPlaceholder.style.display = 'none';
+                    
                     if (featuredImage) {
                         featuredImage.style.display = 'block';
                         featuredImage.src = mediaSrc;

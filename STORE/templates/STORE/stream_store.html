@@ -42,7 +42,7 @@
                             {% if asset.thumbnail %}
                                 <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
                             {% else %}
-                                <img src="{% static 'images/asset-placeholder.jpg' %}" alt="{{ asset.name }}">
+                                <img src="{% static 'images/placeholder.jpg' %}" alt="{{ asset.name }}">
                             {% endif %}
                         </div>
                         <div class="window-footer">
