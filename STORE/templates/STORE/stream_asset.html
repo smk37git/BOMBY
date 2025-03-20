@@ -52,20 +52,24 @@
             font-size: 1.1rem;
         }
         
-        /* Video thumbnail styling */
-        .video-thumbnail {
+        /* Video styling */
+        .video-container {
             position: relative;
             width: 100%;
             height: 100%;
+            background-color: #1a1a1a;
+            overflow: hidden;
+            cursor: pointer;
         }
-
-        .video-thumbnail img {
+        
+        .video-thumbnail {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            transition: transform 0.3s ease;
         }
-
-        .play-icon {
+        
+        .play-overlay {
             position: absolute;
             top: 0;
             left: 0;
@@ -74,41 +78,85 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: rgba(0, 0, 0, 0.3);
-        }
-
-        .play-icon i {
-            font-size: 2rem;
-            color: white;
-            opacity: 0.9;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        }
-
-        .thumbnail[data-media-type="video"] {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .thumbnail[data-media-type="video"]:hover .play-icon {
             background-color: rgba(0, 0, 0, 0.4);
-        }
-
-        .thumbnail[data-media-type="video"]:hover .play-icon i {
-            transform: scale(1.1);
-            opacity: 1;
+            transition: background-color 0.3s ease;
         }
         
-        .video-placeholder {
-            background-color: #1a1a1a;
+        .play-button {
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100%;
-            width: 100%;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: rgba(169, 112, 255, 0.8);
+            color: white;
+            font-size: 24px;
+            transition: transform 0.3s ease, background-color 0.3s ease;
         }
         
-        .video-placeholder i {
-            font-size: 40px;
+        .video-container:hover .play-overlay {
+            background-color: rgba(0, 0, 0, 0.3);
+        }
+        
+        .video-container:hover .play-button {
+            transform: scale(1.1);
+            background-color: rgba(169, 112, 255, 1);
+        }
+        
+        /* Video thumbnails in gallery */
+        .gallery-thumbnails .thumbnail[data-media-type="video"] {
+            position: relative;
+        }
+        
+        .gallery-thumbnails .thumbnail[data-media-type="video"]::after {
+            content: '\f144';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: #a970ff;
+            z-index: 2;
+        }
+        
+        .gallery-thumbnails .thumbnail[data-media-type="video"]::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 1;
+        }
+        
+        /* Gallery improvements */
+        .thumbnail.active {
+            border-color: #a970ff !important;
+            box-shadow: 0 0 15px rgba(169, 112, 255, 0.5) !important;
+        }
+        
+        /* Asset placeholder */
+        .asset-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #1a1a1a;
+            color: white;
+            font-size: 1.2rem;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .asset-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 10px;
             color: #a970ff;
         }
     </style>
@@ -131,28 +179,36 @@
     <div class="product-split">
         <!-- Left side: Gallery -->
         <div class="product-gallery-side">
-            <div class="product-featured-image">
+            <div class="product-featured-image" id="featured-container">
                 {% for media in asset.media.all %}
                     {% if media.is_thumbnail or forloop.first %}
                         {% if media.type == 'image' %}
                             <img src="{{ media.file.url }}" 
                                  alt="{{ asset.name }}" class="featured-image" id="featuredImage">
                         {% elif media.type == 'video' %}
-                            <video src="{{ media.file.url }}" controls class="featured-image" id="featuredVideo" poster="{{ media.file.url }}"></video>
-                            <div class="featured-image" id="featuredPlaceholder" style="display: none;">
-                                <div class="video-placeholder">
-                                    <i class="fas fa-video"></i>
+                            <div class="video-container" id="videoContainer" data-src="{{ media.file.url }}">
+                                <video id="preloadVideo" style="display:none">
+                                    <source src="{{ media.file.url }}" type="video/mp4">
+                                </video>
+                                <img src="" alt="{{ asset.name }}" class="video-thumbnail" id="videoThumbnail">
+                                <div class="play-overlay">
+                                    <div class="play-button">
+                                        <i class="fas fa-play"></i>
+                                    </div>
                                 </div>
                             </div>
                         {% endif %}
+                        {% break %}
                     {% endif %}
                 {% empty %}
                     {% if asset.thumbnail %}
                         <img src="{{ asset.thumbnail.url }}" 
                              alt="{{ asset.name }}" class="featured-image" id="featuredImage">
                     {% else %}
-                        <img src="{% static 'images/placeholder.jpg' %}" 
-                             alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                        <div class="asset-placeholder">
+                            <i class="fas fa-file-image"></i>
+                            <span>{{ asset.name }}</span>
+                        </div>
                     {% endif %}
                 {% endfor %}
             </div>
@@ -162,28 +218,16 @@
                 {% for media in asset.media.all %}
                     <div class="thumbnail {% if forloop.first %}active{% endif %}" 
                          data-media-type="{{ media.type }}" 
-                         data-image="{{ media.file.url }}">
-                        {% if media.type == 'image' %}
-                            <img src="{{ media.file.url }}" alt="{{ asset.name }} - Image {{ forloop.counter }}">
-                        {% elif media.type == 'video' %}
-                            <!-- Video thumbnail with play icon overlay -->
-                            <div class="video-thumbnail">
-                                <div class="video-placeholder">
-                                    <i class="fas fa-play"></i>
-                                </div>
-                                <div class="play-icon">
-                                    <i class="fas fa-play-circle"></i>
-                                </div>
-                            </div>
-                        {% endif %}
+                         data-src="{{ media.file.url }}">
+                        <img src="{{ media.file.url }}" alt="{{ asset.name }} - Image {{ forloop.counter }}">
                     </div>
                 {% empty %}
                     {% if asset.thumbnail %}
-                        <div class="thumbnail active" data-image="{{ asset.thumbnail.url }}">
+                        <div class="thumbnail active" data-src="{{ asset.thumbnail.url }}" data-media-type="image">
                             <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
                         </div>
                     {% else %}
-                        <div class="thumbnail active" data-image="{% static 'images/placeholder.jpg' %}">
+                        <div class="thumbnail active" data-src="{% static 'images/placeholder.jpg' %}" data-media-type="image">
                             <img src="{% static 'images/placeholder.jpg' %}" alt="Placeholder">
                         </div>
                     {% endif %}
@@ -325,23 +369,57 @@
             });
         });
         
+        // Generate video thumbnails
+        const preloadVideo = document.getElementById('preloadVideo');
+        const videoThumbnail = document.getElementById('videoThumbnail');
+        const videoContainer = document.getElementById('videoContainer');
+        
+        // If video elements exist, extract thumbnail
+        if (preloadVideo && videoThumbnail) {
+            preloadVideo.addEventListener('loadeddata', function() {
+                // Set current time to first frame
+                preloadVideo.currentTime = 0.1;
+            });
+            
+            preloadVideo.addEventListener('seeked', function() {
+                // Create canvas and draw video frame
+                const canvas = document.createElement('canvas');
+                canvas.width = preloadVideo.videoWidth;
+                canvas.height = preloadVideo.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(preloadVideo, 0, 0, canvas.width, canvas.height);
+                
+                // Set the frame as thumbnail
+                try {
+                    const dataURL = canvas.toDataURL('image/jpeg');
+                    videoThumbnail.src = dataURL;
+                } catch(e) {
+                    console.error("Could not generate thumbnail", e);
+                    // Use placeholder if thumbnail generation fails
+                    videoThumbnail.src = "{% static 'images/placeholder.jpg' %}";
+                }
+            });
+            
+            // Handle video play when container is clicked
+            if (videoContainer) {
+                videoContainer.addEventListener('click', function() {
+                    const videoSrc = this.dataset.src;
+                    const videoElement = document.createElement('video');
+                    videoElement.setAttribute('controls', true);
+                    videoElement.setAttribute('autoplay', true);
+                    videoElement.className = 'featured-image';
+                    videoElement.src = videoSrc;
+                    
+                    // Replace container with video
+                    this.parentNode.replaceChild(videoElement, this);
+                    videoElement.play();
+                });
+            }
+        }
+        
         // Gallery functionality
         const thumbnails = document.querySelectorAll('.thumbnail');
-        const featuredImage = document.getElementById('featuredImage');
-        let featuredVideo = document.getElementById('featuredVideo');
-        const featuredPlaceholder = document.getElementById('featuredPlaceholder');
-        
-        // Function to create or get the video element
-        function getVideoElement() {
-            if (!featuredVideo) {
-                featuredVideo = document.createElement('video');
-                featuredVideo.id = 'featuredVideo';
-                featuredVideo.className = 'featured-image';
-                featuredVideo.controls = true;
-                document.querySelector('.product-featured-image').appendChild(featuredVideo);
-            }
-            return featuredVideo;
-        }
+        const featuredContainer = document.getElementById('featured-container');
         
         thumbnails.forEach(thumbnail => {
             thumbnail.addEventListener('click', function() {
@@ -353,48 +431,89 @@
                 
                 // Update featured media based on type
                 const mediaType = this.dataset.mediaType;
-                const mediaSrc = this.dataset.image;
+                const mediaSrc = this.dataset.src;
                 
                 if (mediaType === 'video') {
-                    // Get or create video element
-                    const videoEl = getVideoElement();
+                    // Create video container with thumbnail and play button
+                    const videoContainer = document.createElement('div');
+                    videoContainer.className = 'video-container';
+                    videoContainer.dataset.src = mediaSrc;
                     
-                    // Show video, hide image and placeholder
-                    videoEl.src = mediaSrc;
-                    videoEl.style.display = 'block';
+                    // Preload video for thumbnail extraction
+                    const preloadVideo = document.createElement('video');
+                    preloadVideo.style.display = 'none';
+                    preloadVideo.innerHTML = `<source src="${mediaSrc}" type="video/mp4">`;
                     
-                    if (featuredImage) featuredImage.style.display = 'none';
-                    if (featuredPlaceholder) featuredPlaceholder.style.display = 'none';
+                    // Add thumbnail placeholder
+                    const thumbnail = document.createElement('img');
+                    thumbnail.className = 'video-thumbnail';
+                    thumbnail.alt = 'Video thumbnail';
                     
-                    // Load and play the video
-                    videoEl.load();
+                    // Add play overlay
+                    const playOverlay = document.createElement('div');
+                    playOverlay.className = 'play-overlay';
+                    playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
                     
-                    // Add event listener to show first frame
-                    videoEl.addEventListener('loadeddata', function() {
-                        if (videoEl.readyState >= 2) { // At least HAVE_CURRENT_DATA
-                            videoEl.currentTime = 0.1; // Set to first frame
-                            videoEl.pause();
+                    // Assemble container
+                    videoContainer.appendChild(preloadVideo);
+                    videoContainer.appendChild(thumbnail);
+                    videoContainer.appendChild(playOverlay);
+                    
+                    // Replace content in featured container
+                    featuredContainer.innerHTML = '';
+                    featuredContainer.appendChild(videoContainer);
+                    
+                    // Extract thumbnail
+                    preloadVideo.addEventListener('loadeddata', function() {
+                        this.currentTime = 0.1;
+                    });
+                    
+                    preloadVideo.addEventListener('seeked', function() {
+                        // Create canvas and draw video frame
+                        const canvas = document.createElement('canvas');
+                        canvas.width = this.videoWidth;
+                        canvas.height = this.videoHeight;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(this, 0, 0, canvas.width, canvas.height);
+                        
+                        // Set the frame as thumbnail
+                        try {
+                            const dataURL = canvas.toDataURL('image/jpeg');
+                            thumbnail.src = dataURL;
+                        } catch(e) {
+                            console.error("Could not generate thumbnail", e);
+                            // Use a media image as fallback
+                            thumbnail.src = mediaSrc;
                         }
                     });
                     
-                    // Try to get a poster frame by seeking to the first frame
-                    setTimeout(() => {
-                        videoEl.play().then(() => {
-                            videoEl.pause();
-                        }).catch(() => {
-                            // If autoplay fails, just show the video element
-                            console.log("Autoplay failed");
-                        });
-                    }, 100);
-                } else {
-                    // Show image, hide video and placeholder
-                    if (featuredVideo) featuredVideo.style.display = 'none';
-                    if (featuredPlaceholder) featuredPlaceholder.style.display = 'none';
+                    // Set up click handler for playing the video
+                    videoContainer.addEventListener('click', function() {
+                        const videoElement = document.createElement('video');
+                        videoElement.setAttribute('controls', true);
+                        videoElement.setAttribute('autoplay', true);
+                        videoElement.className = 'featured-image';
+                        videoElement.src = this.dataset.src;
+                        
+                        // Replace container with video
+                        featuredContainer.innerHTML = '';
+                        featuredContainer.appendChild(videoElement);
+                        videoElement.play();
+                    });
                     
-                    if (featuredImage) {
-                        featuredImage.style.display = 'block';
-                        featuredImage.src = mediaSrc;
-                    }
+                    // Load the video to trigger thumbnail generation
+                    preloadVideo.load();
+                } else {
+                    // Create image element
+                    const imageElement = document.createElement('img');
+                    imageElement.src = mediaSrc;
+                    imageElement.alt = 'Featured image';
+                    imageElement.className = 'featured-image';
+                    imageElement.id = 'featuredImage';
+                    
+                    // Replace content in featured container
+                    featuredContainer.innerHTML = '';
+                    featuredContainer.appendChild(imageElement);
                 }
             });
         });

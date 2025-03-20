@@ -39,10 +39,24 @@
                             <div class="window-title">{{ asset.name }}</div>
                         </div>
                         <div class="window-content">
-                            {% if asset.thumbnail %}
-                                <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
-                            {% else %}
-                                <img src="{% static 'images/placeholder.jpg' %}" alt="{{ asset.name }}">
+                            <!-- Try to find media with thumbnail flag first -->
+                            {% for media in asset.media.all %}
+                                {% if media.is_thumbnail %}
+                                    <img src="{{ media.file.url }}" alt="{{ asset.name }}">
+                                    {% break %}
+                                {% endif %}
+                            {% endfor %}
+
+                            <!-- If no thumbnail media found, use the legacy thumbnail -->
+                            {% if not asset.media.filter(is_thumbnail=True).exists %}
+                                {% if asset.thumbnail %}
+                                    <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
+                                {% else %}
+                                    <div class="asset-placeholder">
+                                        <i class="fas fa-file-image"></i>
+                                        <span>{{ asset.name }}</span>
+                                    </div>
+                                {% endif %}
                             {% endif %}
                         </div>
                         <div class="window-footer">

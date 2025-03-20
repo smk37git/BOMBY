@@ -537,6 +537,7 @@ def stream_asset_management(request):
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
 
+
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def add_stream_asset(request):
@@ -552,7 +553,7 @@ def add_stream_asset(request):
             main_file = request.FILES.get('asset_file')  # For backward compatibility
         
         if main_file:
-            # Save to Google Cloud Storage
+            # Save to Google Cloud Storage - use the correct path structure
             file_path = f'stream_assets/{main_file.name}'
             
             # Create database record
@@ -577,26 +578,36 @@ def add_stream_asset(request):
             # Process thumbnail
             thumbnail = request.FILES.get('thumbnail')
             if thumbnail:
-                # Create thumbnail media
+                # Create thumbnail media with correct path
+                thumbnail_path = f'stream_assets/thumbnails/{thumbnail.name}'
+                
                 media = AssetMedia(
                     asset=asset,
                     type='image',
                     file=thumbnail,
+                    file_path=thumbnail_path,
                     is_thumbnail=True,
                     order=0
                 )
                 media.save()
                 
+                # Upload to the correct path in bucket
+                try:
+                    blob = bucket.blob(thumbnail_path)
+                    blob.upload_from_file(thumbnail)
+                except Exception as e:
+                    messages.warning(request, f"Thumbnail added to database, but upload issue: {str(e)}")
+                
                 # For backward compatibility, also set the thumbnail field
                 asset.thumbnail = thumbnail
                 asset.save()
             
-            # Process additional media files - getlist handles multiple files with same name
+            # Process additional media files
             media_files = request.FILES.getlist('media_files')
             media_types = request.POST.getlist('media_types')
             
             for i, media_file in enumerate(media_files):
-                # Determine media type based on file extension if not specified
+                # Determine media type
                 if i < len(media_types) and media_types[i]:
                     media_type = media_types[i]
                 else:
@@ -607,14 +618,25 @@ def add_stream_asset(request):
                     else:
                         media_type = 'image'
                 
+                # Store in the correct path
+                media_path = f'stream_assets/media/{media_file.name}'
+                
                 media = AssetMedia(
                     asset=asset,
                     type=media_type,
                     file=media_file,
+                    file_path=media_path,
                     is_thumbnail=False,
                     order=i+1
                 )
                 media.save()
+                
+                # Upload to the correct path in bucket
+                try:
+                    blob = bucket.blob(media_path)
+                    blob.upload_from_file(media_file)
+                except Exception as e:
+                    messages.warning(request, f"Media file added to database, but upload issue: {str(e)}")
             
             # Process versions
             version_names = request.POST.getlist('version_names')
