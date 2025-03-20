@@ -39,25 +39,33 @@
                             <div class="window-title">{{ asset.name }}</div>
                         </div>
                         <div class="window-content">
-                            <!-- Try to find media with thumbnail flag first -->
-                            {% for media in asset.media.all %}
-                                {% if media.is_thumbnail %}
-                                    <img src="{{ media.file.url }}" alt="{{ asset.name }}">
-                                    {% break %}
+                            {% with thumbnail_found=False %}
+                                {% for media in asset.media.all %}
+                                    {% if media.is_thumbnail and not thumbnail_found %}
+                                        <img src="{{ media.file.url }}" alt="{{ asset.name }}">
+                                        {% with thumbnail_found=True %}{% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if not thumbnail_found %}
+                                    {% for media in asset.media.all %}
+                                        {% if forloop.first %}
+                                            <img src="{{ media.file.url }}" alt="{{ asset.name }}">
+                                        {% endif %}
+                                    {% endfor %}
                                 {% endif %}
-                            {% endfor %}
-
-                            <!-- If no thumbnail media found, use the legacy thumbnail -->
-                            {% if not asset.media.filter(is_thumbnail=True).exists %}
-                                {% if asset.thumbnail %}
-                                    <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
-                                {% else %}
-                                    <div class="asset-placeholder">
-                                        <i class="fas fa-file-image"></i>
-                                        <span>{{ asset.name }}</span>
-                                    </div>
+                                
+                                {% if asset.media.count == 0 %}
+                                    {% if asset.thumbnail %}
+                                        <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}">
+                                    {% else %}
+                                        <div class="asset-placeholder">
+                                            <i class="fas fa-file-image"></i>
+                                            <span>{{ asset.name }}</span>
+                                        </div>
+                                    {% endif %}
                                 {% endif %}
-                            {% endif %}
+                            {% endwith %}
                         </div>
                         <div class="window-footer">
                             <div class="product-status-asset active">DOWNLOADABLE</div>

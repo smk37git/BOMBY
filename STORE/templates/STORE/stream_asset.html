@@ -180,37 +180,67 @@
         <!-- Left side: Gallery -->
         <div class="product-gallery-side">
             <div class="product-featured-image" id="featured-container">
-                {% for media in asset.media.all %}
-                    {% if media.is_thumbnail or forloop.first %}
-                        {% if media.type == 'image' %}
-                            <img src="{{ media.file.url }}" 
-                                 alt="{{ asset.name }}" class="featured-image" id="featuredImage">
-                        {% elif media.type == 'video' %}
-                            <div class="video-container" id="videoContainer" data-src="{{ media.file.url }}">
-                                <video id="preloadVideo" style="display:none">
-                                    <source src="{{ media.file.url }}" type="video/mp4">
-                                </video>
-                                <img src="" alt="{{ asset.name }}" class="video-thumbnail" id="videoThumbnail">
-                                <div class="play-overlay">
-                                    <div class="play-button">
-                                        <i class="fas fa-play"></i>
+                {% with thumbnail_media=False %}
+                    {% for media in asset.media.all %}
+                        {% if media.is_thumbnail and not thumbnail_media %}
+                            {% if media.type == 'image' %}
+                                <img src="{{ media.file.url }}" 
+                                     alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                            {% elif media.type == 'video' %}
+                                <div class="video-container" id="videoContainer" data-src="{{ media.file.url }}">
+                                    <video id="preloadVideo" style="display:none">
+                                        <source src="{{ media.file.url }}" type="video/mp4">
+                                    </video>
+                                    <img src="" alt="{{ asset.name }}" class="video-thumbnail" id="videoThumbnail">
+                                    <div class="play-overlay">
+                                        <div class="play-button">
+                                            <i class="fas fa-play"></i>
+                                        </div>
                                     </div>
                                 </div>
+                            {% endif %}
+                            {% with thumbnail_media=True %}{% endwith %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if not thumbnail_media %}
+                        {% with first_media=False %}
+                            {% for media in asset.media.all %}
+                                {% if forloop.first and not first_media %}
+                                    {% if media.type == 'image' %}
+                                        <img src="{{ media.file.url }}" 
+                                             alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                                    {% elif media.type == 'video' %}
+                                        <div class="video-container" id="videoContainer" data-src="{{ media.file.url }}">
+                                            <video id="preloadVideo" style="display:none">
+                                                <source src="{{ media.file.url }}" type="video/mp4">
+                                            </video>
+                                            <img src="" alt="{{ asset.name }}" class="video-thumbnail" id="videoThumbnail">
+                                            <div class="play-overlay">
+                                                <div class="play-button">
+                                                    <i class="fas fa-play"></i>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% with first_media=True %}{% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                        {% endwith %}
+                    {% endif %}
+                    
+                    {% if asset.media.count == 0 %}
+                        {% if asset.thumbnail %}
+                            <img src="{{ asset.thumbnail.url }}" 
+                                 alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                        {% else %}
+                            <div class="asset-placeholder">
+                                <i class="fas fa-file-image"></i>
+                                <span>{{ asset.name }}</span>
                             </div>
                         {% endif %}
-                        {% break %}
                     {% endif %}
-                {% empty %}
-                    {% if asset.thumbnail %}
-                        <img src="{{ asset.thumbnail.url }}" 
-                             alt="{{ asset.name }}" class="featured-image" id="featuredImage">
-                    {% else %}
-                        <div class="asset-placeholder">
-                            <i class="fas fa-file-image"></i>
-                            <span>{{ asset.name }}</span>
-                        </div>
-                    {% endif %}
-                {% endfor %}
+                {% endwith %}
             </div>
             
             <div class="gallery-thumbnails">
