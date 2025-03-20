@@ -802,7 +802,7 @@ def bulk_change_asset_status(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def delete_stream_assets(request):
-    """Delete selected assets"""
+    """Delete selected assets and their files from storage bucket"""
     selected_assets = request.POST.get('selected_assets', '')
     
     if selected_assets:
@@ -811,10 +811,55 @@ def delete_stream_assets(request):
         # Count before deletion for message
         count = len(asset_ids)
         
-        # Delete assets
-        StreamAsset.objects.filter(id__in=asset_ids).delete()
-        
-        messages.success(request, f"{count} asset{'s' if count > 1 else ''} deleted successfully.")
+        try:
+            # Connect to Google Cloud Storage
+            client = storage.Client()
+            bucket = client.bucket('bomby-user-uploads')
+            
+            # Fetch assets before deletion to get file paths
+            assets_to_delete = StreamAsset.objects.filter(id__in=asset_ids).prefetch_related('media', 'versions')
+            
+            for asset in assets_to_delete:
+                # Delete main asset file
+                if asset.file_path:
+                    blob = bucket.blob(asset.file_path)
+                    if blob.exists():
+                        blob.delete()
+                
+                # Delete thumbnail file if present
+                if asset.thumbnail:
+                    thumbnail_path = f'stream_assets/thumbnails/{os.path.basename(asset.thumbnail.name)}'
+                    blob = bucket.blob(thumbnail_path)
+                    if blob.exists():
+                        blob.delete()
+                
+                # Delete media files
+                for media in asset.media.all():
+                    if media.file_path:
+                        blob = bucket.blob(media.file_path)
+                        if blob.exists():
+                            blob.delete()
+                
+                # Delete version files
+                for version in asset.versions.all():
+                    if version.file_path:
+                        blob = bucket.blob(version.file_path)
+                        if blob.exists():
+                            blob.delete()
+            
+            # Now delete the database records
+            StreamAsset.objects.filter(id__in=asset_ids).delete()
+            
+            messages.success(request, f"{count} asset{'s' if count > 1 else ''} and associated files deleted successfully.")
+            
+        except Exception as e:
+            # Log the error but still try to delete database records
+            print(f"Error deleting files from storage: {str(e)}")
+            StreamAsset.objects.filter(id__in=asset_ids).delete()
+            messages.warning(
+                request, 
+                f"{count} asset{'s' if count > 1 else ''} deleted from database, but some storage files may remain."
+            )
     
     return redirect('STORE:stream_asset_management')
 

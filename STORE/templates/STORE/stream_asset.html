@@ -167,6 +167,40 @@
             gap: 20px;
         }
 
+        .product-features-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(30, 30, 30, 0.6);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .product-features {
+            flex: 1;
+        }
+
+        .delivery-badge {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #6b46c1 0%, #9f7aea 100%);
+            border-radius: 10px;
+            color: white;
+            margin-left: 15px;
+            min-width: 150px;
+            box-shadow: 0 4px 12px rgba(107, 70, 193, 0.3);
+        }
+
+        .delivery-badge i {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
         .product-description-section {
             margin-top: 0;
         }
@@ -177,7 +211,18 @@
         }
 
         .purchase-btn {
-            min-width: 180px;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            background: linear-gradient(90deg, #9f7aea 0%, #6b46c1 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(107, 70, 193, 0.3);
+        }
+
+        .purchase-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(107, 70, 193, 0.4);
         }
 
         /* Remove price section */
@@ -192,6 +237,20 @@
 
         .product-card {
             flex: 0.8;
+        }
+
+        .product-title {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .features-list li {
+            margin-bottom: 8px;
+        }
+
+        .features-list i {
+            color: #a970ff;
+            margin-right: 8px;
         }
 
         /* Responsive adjustments */
