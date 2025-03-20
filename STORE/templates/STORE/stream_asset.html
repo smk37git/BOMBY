@@ -89,7 +89,7 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background-color: rgba(169, 112, 255, 0.8);
+            background-color: rgba(255, 255, 255, 0.8);
             color: white;
             font-size: 24px;
             transition: transform 0.3s ease, background-color 0.3s ease;
@@ -101,7 +101,7 @@
         
         .video-container:hover .play-button {
             transform: scale(1.1);
-            background-color: rgba(169, 112, 255, 1);
+            background-color: rgb(255, 255, 255);
         }
         
         /* Video thumbnails in gallery */
@@ -118,7 +118,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-size: 20px;
-            color: #a970ff;
+            color: #ffffff;
             z-index: 2;
         }
         
@@ -135,7 +135,7 @@
         
         /* Gallery improvements */
         .thumbnail.active {
-            border-color: #a970ff !important;
+            border-color: #ffffff !important;
             box-shadow: 0 0 15px rgba(169, 112, 255, 0.5) !important;
         }
         
@@ -398,16 +398,28 @@
                 }
             });
         });
-
-        // Process all video thumbnails in the gallery on page load
+        
+                        // Process video thumbnails in the gallery with staggered loading
         const videoThumbnails = document.querySelectorAll('.thumbnail[data-media-type="video"]');
-        videoThumbnails.forEach(thumbElement => {
+        
+        // Process thumbnails sequentially with a small delay to avoid overwhelming the browser
+        function processNextThumbnail(index) {
+            if (index >= videoThumbnails.length) return;
+            
+            const thumbElement = videoThumbnails[index];
             const videoSrc = thumbElement.dataset.src;
             const imgElement = thumbElement.querySelector('img');
             
             if (imgElement && videoSrc) {
                 const tempVideo = document.createElement('video');
                 tempVideo.style.display = 'none';
+                tempVideo.muted = true;
+                tempVideo.crossOrigin = 'anonymous';
+                
+                // Set size constraints to minimize memory usage
+                tempVideo.width = 320; // Small logical size
+                tempVideo.preload = 'metadata';
+                
                 const sourceElement = document.createElement('source');
                 sourceElement.src = videoSrc;
                 sourceElement.type = 'video/mp4';
@@ -416,31 +428,54 @@
                 
                 generateVideoThumbnail(tempVideo, imgElement);
                 
-                // Remove the temp video after processing
+                // Clean up and process next thumbnail
                 tempVideo.addEventListener('seeked', function onSeeked() {
-                    // Allow time for the thumbnail to be generated
+                    // Clean up sooner
                     setTimeout(() => {
                         document.body.removeChild(tempVideo);
-                    }, 1000);
+                        // Process next thumbnail with slight delay
+                        setTimeout(() => processNextThumbnail(index + 1), 50);
+                    }, 100);
                     tempVideo.removeEventListener('seeked', onSeeked);
                 });
+                
+                // Failsafe: if video fails to load, move to the next one
+                tempVideo.addEventListener('error', function() {
+                    if (document.body.contains(tempVideo)) {
+                        document.body.removeChild(tempVideo);
+                    }
+                    setTimeout(() => processNextThumbnail(index + 1), 50);
+                });
+            } else {
+                // Skip to next if current one cannot be processed
+                processNextThumbnail(index + 1);
             }
-        });
+        }
+        
+        // Start processing the first thumbnail
+        if (videoThumbnails.length > 0) {
+            processNextThumbnail(0);
+        }
         
         // Function to handle video thumbnail generation
         function generateVideoThumbnail(videoElement, thumbnailElement) {
+            // Lower quality thumbnails for faster generation
+            let quality = 0.5; // 50% quality for JPEG
+            
             // Function to handle the seeked event
             function onSeeked() {
                 // Create canvas and draw video frame
                 const canvas = document.createElement('canvas');
-                canvas.width = videoElement.videoWidth;
-                canvas.height = videoElement.videoHeight;
+                // Reduce thumbnail size for better performance
+                const scale = 0.5; // 50% of original size
+                canvas.width = videoElement.videoWidth * scale;
+                canvas.height = videoElement.videoHeight * scale;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
                 
                 // Set the frame as thumbnail
                 try {
-                    const dataURL = canvas.toDataURL('image/jpeg');
+                    const dataURL = canvas.toDataURL('image/jpeg', quality);
                     thumbnailElement.src = dataURL;
                 } catch(e) {
                     console.error("Could not generate thumbnail", e);
@@ -452,8 +487,11 @@
                 videoElement.removeEventListener('seeked', onSeeked);
             }
             
-            // Set current time to first frame
-            videoElement.addEventListener('loadeddata', function() {
+            // Set video to low resolution for faster loading
+            videoElement.preload = 'metadata';
+            
+            // Set current time to first frame (small offset to skip black frames)
+            videoElement.addEventListener('loadedmetadata', function() {
                 videoElement.currentTime = 0.1;
             });
             
