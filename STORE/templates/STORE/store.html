@@ -144,6 +144,9 @@
                             <div class="product-status {% if products.3.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.3.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
+                            <div class="account-type client">CLIENT</div>
+                            <p style="margin: 0 -75px;">OR</p>
+                            <div class="product-price">${{ products.3.price|default:"10" }}</div>
                         </div>
                     </div>
                 </a>

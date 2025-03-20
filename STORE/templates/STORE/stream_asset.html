@@ -20,15 +20,32 @@
     </div>
     
     <!-- Split layout for product -->
+    <!-- Split layout for product -->
     <div class="product-split">
         <!-- Left side: Gallery -->
         <div class="product-gallery-side">
             <div class="product-featured-image">
-                {% if asset.thumbnail %}
-                    <img src="{{ asset.thumbnail.url }}" alt="{{ asset.name }}" class="featured-image" id="featuredImage">
-                {% else %}
-                    <img src="{% static 'images/asset-placeholder.jpg' %}" alt="{{ asset.name }}" class="featured-image" id="featuredImage">
-                {% endif %}
+                <img src="{% static 'images/1.jpg' %}" 
+                     alt="Basic Package" class="featured-image" id="featuredImage">
+            </div>
+            
+            <div class="gallery-thumbnails">
+                <!-- Thumbnails -->
+                <div class="thumbnail active" data-image="{% static 'images/1.jpg' %}">
+                    <img src="{% static 'images/1.jpg' %}" alt="Main Package View">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/2.jpg' %}">
+                    <img src="{% static 'images/2.jpg' %}" alt="Gallery Image 2">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/3.jpg' %}">
+                    <img src="{% static 'images/3.jpg' %}" alt="Gallery Image 3">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/4.jpg' %}">
+                    <img src="{% static 'images/4.jpg' %}" alt="Gallery Image 4">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/5.jpg' %}">
+                    <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 5">
+                </div>
             </div>
         </div>
         
@@ -39,58 +56,44 @@
                     {% if asset.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                 </div>
             </h1>
-            <hr class="page-divider">
+            <hr class="page-divider"></hr>
             
             <div class="product-features-container">
                 <div class="product-features">
-                  <h2>INCLUDES:</h2>
+                  <h2>FEATURES:</h2>
                   <ul class="features-list">
                     <li>
                       <i class="fas fa-check-circle"></i>
-                      Overlay files in ZIP format
+                        Overlay Files in ZIP format
                     </li>
                     <li>
                       <i class="fas fa-check-circle"></i>
-                      Installation instructions
+                        Compatible with OBS
                     </li>
                     <li>
                       <i class="fas fa-check-circle"></i>
-                      Compatible with OBS
-                    </li>
-                    <li>
-                      <i class="fas fa-check-circle"></i>
-                      Personal use license
+                        Personal Use License
                     </li>
                   </ul>
                 </div>
                 
                 <div class="delivery-badge">
-                  <i class="fas fa-download"></i>
-                  <span>Instant Download</span>
+                    <i class="fa-solid fa-bolt"></i>
+                  <span>Instant Access</span>
                 </div>
             </div>
             
             <div class="product-purchase">
                 <div class="price-section">
                     <div class="price-label">Price:</div>
-                    <div class="price-value">
-                        {% if asset.price > 0 %}
-                            ${{ asset.price }}
-                        {% else %}
-                            FREE
-                        {% endif %}
+                    <div class="price-value">$10.00</div>
+                    <div class="price-value-subtitle">
+                        OR <span class="account-type client">CLIENT</span>
                     </div>
                 </div>
-                
-                {% if has_purchased or asset.price == 0 %}
-                    <a href="{% url 'STORE:download_asset' asset.id %}" class="purchase-btn">
-                        <i class="fas fa-download"></i> DOWNLOAD NOW
-                    </a>
-                {% else %}
-                    <a href="{% url 'STORE:purchase_asset' asset.id %}" class="purchase-btn">
-                        GET ACCESS
-                    </a>
-                {% endif %}
+                <a href="{% url 'STORE:become_supporter' %}" class="purchase-btn">
+                    GET ACCESS
+                </a>
             </div>
         </div>
     </div>
