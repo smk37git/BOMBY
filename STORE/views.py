@@ -547,7 +547,9 @@ def add_stream_asset(request):
         price = request.POST.get('price', 0.00)
         is_active = request.POST.get('is_active') == 'true'
         main_file = request.FILES.get('main_file')
-        thumbnail = request.FILES.get('thumbnail')
+        
+        if not main_file and request.FILES.get('asset_file'):
+            main_file = request.FILES.get('asset_file')  # For backward compatibility
         
         if main_file:
             # Save to Google Cloud Storage
@@ -561,13 +563,10 @@ def add_stream_asset(request):
                 is_active=is_active,
                 file_path=file_path
             )
-                
             asset.save()
             
             # Try to upload main file to bucket
             try:
-                from google.cloud import storage
-                
                 client = storage.Client()
                 bucket = client.bucket('bomby-user-uploads')
                 blob = bucket.blob(file_path)
@@ -575,8 +574,10 @@ def add_stream_asset(request):
             except Exception as e:
                 messages.warning(request, f"Asset '{name}' added to database, but main file upload issue: {str(e)}")
             
-            # Add thumbnail to media if provided
+            # Process thumbnail
+            thumbnail = request.FILES.get('thumbnail')
             if thumbnail:
+                # Create thumbnail media
                 media = AssetMedia(
                     asset=asset,
                     type='image',
@@ -585,11 +586,26 @@ def add_stream_asset(request):
                     order=0
                 )
                 media.save()
+                
+                # For backward compatibility, also set the thumbnail field
+                asset.thumbnail = thumbnail
+                asset.save()
             
-            # Process additional media files
+            # Process additional media files - getlist handles multiple files with same name
             media_files = request.FILES.getlist('media_files')
+            media_types = request.POST.getlist('media_types')
+            
             for i, media_file in enumerate(media_files):
-                media_type = request.POST.getlist('media_types')[i] if i < len(request.POST.getlist('media_types')) else 'image'
+                # Determine media type based on file extension if not specified
+                if i < len(media_types) and media_types[i]:
+                    media_type = media_types[i]
+                else:
+                    # Check file extension
+                    file_ext = os.path.splitext(media_file.name)[1].lower()
+                    if file_ext in ['.mp4', '.webm', '.mov', '.avi']:
+                        media_type = 'video'
+                    else:
+                        media_type = 'image'
                 
                 media = AssetMedia(
                     asset=asset,
@@ -600,12 +616,15 @@ def add_stream_asset(request):
                 )
                 media.save()
             
-            # Process versions if any
-            version_names = request.POST.getlist('version_names', [])
-            version_types = request.POST.getlist('version_types', [])
-            version_files = request.FILES.getlist('version_files', [])
+            # Process versions
+            version_names = request.POST.getlist('version_names')
+            version_types = request.POST.getlist('version_types')
+            version_files = request.FILES.getlist('version_files')
             
             for i in range(min(len(version_names), len(version_types), len(version_files))):
+                if not version_names[i]:  # Skip if no name provided
+                    continue
+                    
                 version_file = version_files[i]
                 version_path = f'stream_assets/versions/{version_file.name}'
                 
@@ -626,6 +645,8 @@ def add_stream_asset(request):
             
             messages.success(request, f"Asset '{name}' added successfully!")
             return redirect('STORE:stream_asset_management')
+        else:
+            messages.error(request, "You must provide a main asset file")
     
     return render(request, 'STORE/add_stream_asset.html')
 

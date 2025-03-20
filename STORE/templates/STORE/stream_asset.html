@@ -66,9 +66,9 @@
                             <img src="{{ media.file.url }}" 
                                  alt="{{ asset.name }}" class="featured-image" id="featuredImage">
                         {% elif media.type == 'video' %}
-                            <video src="{{ media.file.url }}" controls class="featured-image" id="featuredVideo" style="display: none;"></video>
+                            <video src="{{ media.file.url }}" controls class="featured-image" id="featuredVideo"></video>
                             <img src="{{ media.file.url }}" 
-                                 alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                                 alt="{{ asset.name }}" class="featured-image" id="featuredImage" style="display: none;">
                         {% endif %}
                         {% comment %}We only want to display the first matching media{% endcomment %}
                         
@@ -119,9 +119,8 @@
             <div class="version-selector">
                 <label for="versionSelect">Version:</label>
                 <select id="versionSelect" class="version-select">
-                    <option value="">Default Version</option>
                     {% for version in asset.versions.all %}
-                        <option value="{{ version.id }}">{{ version.name }} ({{ version.get_type_display }})</option>
+                        <option value="{{ version.id }}" {% if forloop.first %}selected{% endif %}>{{ version.name }} ({{ version.get_type_display }})</option>
                     {% endfor %}
                 </select>
             </div>
@@ -256,14 +255,26 @@
                 const mediaType = this.dataset.mediaType;
                 const mediaSrc = this.dataset.image;
                 
-                if (mediaType === 'video' && featuredVideo) {
+                if (mediaType === 'video') {
+                    // Create new video element if it doesn't exist
+                    let featuredVideo = document.getElementById('featuredVideo');
+                    if (!featuredVideo) {
+                        featuredVideo = document.createElement('video');
+                        featuredVideo.id = 'featuredVideo';
+                        featuredVideo.className = 'featured-image';
+                        featuredVideo.controls = true;
+                        document.querySelector('.product-featured-image').appendChild(featuredVideo);
+                    }
+                    
                     // Show video, hide image
                     featuredVideo.src = mediaSrc;
                     featuredVideo.style.display = 'block';
                     featuredImage.style.display = 'none';
                     featuredVideo.load(); // Reload the video
+                    featuredVideo.play(); // Autoplay the video
                 } else {
                     // Show image, hide video
+                    const featuredVideo = document.getElementById('featuredVideo');
                     if (featuredVideo) featuredVideo.style.display = 'none';
                     featuredImage.style.display = 'block';
                     featuredImage.src = mediaSrc;
@@ -276,16 +287,18 @@
         const downloadBtn = document.getElementById('downloadBtn');
         
         if (versionSelect && downloadBtn) {
+            // Set initial version in download URL
+            if (versionSelect.options.length > 0) {
+                const initialVersion = versionSelect.options[0].value;
+                const baseUrl = downloadBtn.href.split('?')[0];
+                downloadBtn.href = baseUrl + '?version_id=' + initialVersion;
+            }
+            
             versionSelect.addEventListener('change', function() {
                 // Update download button link to include selected version
                 const versionId = this.value;
                 const baseUrl = downloadBtn.href.split('?')[0];
-                
-                if (versionId) {
-                    downloadBtn.href = baseUrl + '?version_id=' + versionId;
-                } else {
-                    downloadBtn.href = baseUrl;
-                }
+                downloadBtn.href = baseUrl + '?version_id=' + versionId;
             });
         }
     });
