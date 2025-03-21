@@ -18,6 +18,7 @@ if [ -d "/app/media" ]; then
   echo "Preparing media directories..."
   # Create necessary directories
   mkdir -p /app/media/profile_pictures
+  mkdir -p /app/media/chunk_uploads
   
   # Make sure the directories are writable
   chmod -R 777 /app/media
@@ -33,5 +34,5 @@ python manage.py migrate
 
 python manage.py collectstatic --noinput --clear
 
-# Start the server
-gunicorn mywebsite.wsgi:application --bind 0.0.0.0:$PORT
+# Start the server with increased timeout for large uploads
+gunicorn mywebsite.wsgi:application --bind 0.0.0.0:$PORT --timeout 300 --max-request-line 8190

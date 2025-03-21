@@ -68,8 +68,9 @@ DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\
 AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
 SENDGRID_API_KEY=sendgrid-api-key:latest,\
-DEFAULT_FROM_EMAIL=default-from-email:latest"
-  --memory 512Mi \
+DEFAULT_FROM_EMAIL=default-from-email:latest" \
+  --memory 1Gi \
+  --max-request-timeout=30m \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
 echo "Deployment complete! Your website should be available soon at the URL above."
