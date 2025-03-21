@@ -239,7 +239,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Initialize chunked uploader
         const uploader = new ChunkedUploader({
-            chunkSize: 512 * 1024, // 512KB chunks for better reliability
+            chunkSize: 1024 * 1024, // 512KB chunks for better reliability
             concurrentUploads: 2,
             onProgress: function(progress) {
                 // Update progress bar for the correct file
