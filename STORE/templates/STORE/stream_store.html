@@ -42,7 +42,11 @@
                             {% with thumbnail_found=False %}
                                 {% for media in asset.media.all %}
                                     {% if media.is_thumbnail and not thumbnail_found %}
-                                        <img src="{{ media.file.url }}" alt="{{ asset.name }}">
+                                        {% if media.file %}
+                                            <img src="{{ media.file.url }}" alt="{{ asset.name }}">
+                                        {% elif media.file_path %}
+                                            <img src="/media/{{ media.file_path }}" alt="{{ asset.name }}">
+                                        {% endif %}
                                         {% with thumbnail_found=True %}{% endwith %}
                                     {% endif %}
                                 {% endfor %}
@@ -50,7 +54,11 @@
                                 {% if not thumbnail_found %}
                                     {% for media in asset.media.all %}
                                         {% if forloop.first %}
-                                            <img src="{{ media.file.url }}" alt="{{ asset.name }}">
+                                            {% if media.file %}
+                                                <img src="{{ media.file.url }}" alt="{{ asset.name }}">
+                                            {% elif media.file_path %}
+                                                <img src="/media/{{ media.file_path }}" alt="{{ asset.name }}">
+                                            {% endif %}
                                         {% endif %}
                                     {% endfor %}
                                 {% endif %}

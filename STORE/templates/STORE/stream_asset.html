@@ -29,12 +29,15 @@
                     {% for media in asset.media.all %}
                         {% if media.is_thumbnail and not thumbnail_media %}
                             {% if media.type == 'image' %}
-                                <img src="{{ media.file.url }}" 
-                                     alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                                {% if media.file %}
+                                    <img src="{{ media.file.url }}" alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                                {% elif media.file_path %}
+                                    <img src="/media/{{ media.file_path }}" alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                                {% endif %}
                             {% elif media.type == 'video' %}
-                                <div class="video-container" id="videoContainer" data-src="{{ media.file.url }}">
+                                <div class="video-container" id="videoContainer" data-src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}/media/{{ media.file_path }}{% endif %}">
                                     <video id="preloadVideo" style="display:none">
-                                        <source src="{{ media.file.url }}" type="video/mp4">
+                                        <source src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}/media/{{ media.file_path }}{% endif %}" type="video/mp4">
                                     </video>
                                     <img src="" alt="{{ asset.name }}" class="video-thumbnail" id="videoThumbnail">
                                     <div class="play-overlay">
@@ -53,12 +56,15 @@
                             {% for media in asset.media.all %}
                                 {% if forloop.first and not first_media %}
                                     {% if media.type == 'image' %}
-                                        <img src="{{ media.file.url }}" 
-                                             alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                                        {% if media.file %}
+                                            <img src="{{ media.file.url }}" alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                                        {% elif media.file_path %}
+                                            <img src="/media/{{ media.file_path }}" alt="{{ asset.name }}" class="featured-image" id="featuredImage">
+                                        {% endif %}
                                     {% elif media.type == 'video' %}
-                                        <div class="video-container" id="videoContainer" data-src="{{ media.file.url }}">
+                                        <div class="video-container" id="videoContainer" data-src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}/media/{{ media.file_path }}{% endif %}">
                                             <video id="preloadVideo" style="display:none">
-                                                <source src="{{ media.file.url }}" type="video/mp4">
+                                                <source src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}/media/{{ media.file_path }}{% endif %}" type="video/mp4">
                                             </video>
                                             <img src="" alt="{{ asset.name }}" class="video-thumbnail" id="videoThumbnail">
                                             <div class="play-overlay">
@@ -93,8 +99,12 @@
                 {% for media in asset.media.all %}
                     <div class="thumbnail {% if forloop.first %}active{% endif %}" 
                          data-media-type="{{ media.type }}" 
-                         data-src="{{ media.file.url }}">
-                        <img src="{{ media.file.url }}" alt="{{ asset.name }} - Image {{ forloop.counter }}">
+                         data-src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}/media/{{ media.file_path }}{% endif %}">
+                        {% if media.file %}
+                            <img src="{{ media.file.url }}" alt="{{ asset.name }} - Image {{ forloop.counter }}">
+                        {% elif media.file_path %}
+                            <img src="/media/{{ media.file_path }}" alt="{{ asset.name }} - Image {{ forloop.counter }}">
+                        {% endif %}
                     </div>
                 {% empty %}
                     {% if asset.thumbnail %}
