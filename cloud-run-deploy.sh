@@ -56,6 +56,10 @@ gcloud run deploy $SERVICE_NAME \
   --platform managed \
   --region $REGION \
   --allow-unauthenticated \
+  --startup-cpu-boost \
+  --cpu 1 \
+  --memory 1Gi \
+  --timeout 30m \
   --mount type=cloud-storage,bucket=$BUCKET_NAME,path=/app/media \
   --set-env-vars="DEBUG=False,\
 ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,\
@@ -69,8 +73,6 @@ AWS_ACCESS_KEY_ID=aws-access-key:latest,\
 AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
 SENDGRID_API_KEY=sendgrid-api-key:latest,\
 DEFAULT_FROM_EMAIL=default-from-email:latest" \
-  --memory 1Gi \
-  --max-request-timeout=30m \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
 echo "Deployment complete! Your website should be available soon at the URL above."
