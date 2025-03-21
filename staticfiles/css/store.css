@@ -302,6 +302,22 @@
     border: 1px solid #e74c3c;
 }
 
+/* Product Asset Status */
+.product-status-asset {
+    margin: auto;
+    font-size: 0.8rem;
+    font-weight: bold;
+    padding: 0.3rem 0.8rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.product-status-asset.active {
+    background-color: rgba(39, 174, 96, 0.2);
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+}
+
 .product-price {
     font-size: 1.2rem;
     font-weight: bold;
@@ -518,6 +534,24 @@
     transform: translateY(-3px);
     background: linear-gradient(45deg, #9e33e6, #505ed7);
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+/* Stream Store Client */
+.account-type {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-size: 200% auto;
+    transition: 0.5s;
+    color: white;
+}
+
+.account-type.client {
+    background-image: linear-gradient(45deg, #c833e6, #d75050, #e695fd);
 }
 
 /* AOS animation defaults */
