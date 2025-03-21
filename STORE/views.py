@@ -20,6 +20,9 @@ from .utils.email_utils import (
     send_in_progress_order_email, 
     send_completed_order_email
 )
+import os
+import uuid
+from django.conf import settings
 
 def store(request):
     products = [
@@ -541,129 +544,75 @@ def stream_asset_management(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def add_stream_asset(request):
-    """Admin view to add stream assets with multiple media files and versions"""
+    """Admin view to add stream assets with multiple media files and versions using chunked uploads"""
     if request.method == 'POST':
         name = request.POST.get('name')
         description = request.POST.get('description', '')
         price = request.POST.get('price', 0.00)
         is_active = request.POST.get('is_active') == 'true'
-        main_file = request.FILES.get('main_file')
         
-        if not main_file and request.FILES.get('asset_file'):
-            main_file = request.FILES.get('asset_file')  # For backward compatibility
+        # Get file paths from hidden inputs instead of actual files
+        main_file_path = request.POST.get('main_file_path')
+        thumbnail_path = request.POST.get('thumbnail_path')
         
-        if main_file:
-            # Save to Google Cloud Storage - use the correct path structure
-            file_path = f'stream_assets/{main_file.name}'
-            
+        if main_file_path:
             # Create database record
             asset = StreamAsset(
                 name=name,
                 description=description,
                 price=price,
                 is_active=is_active,
-                file_path=file_path
+                file_path=main_file_path
             )
             asset.save()
             
-            # Try to upload main file to bucket
-            try:
-                client = storage.Client()
-                bucket = client.bucket('bomby-user-uploads')
-                blob = bucket.blob(file_path)
-                blob.upload_from_file(main_file)
-            except Exception as e:
-                messages.warning(request, f"Asset '{name}' added to database, but main file upload issue: {str(e)}")
-            
             # Process thumbnail
-            thumbnail = request.FILES.get('thumbnail')
-            if thumbnail:
-                # Create thumbnail media with correct path
-                thumbnail_path = f'stream_assets/thumbnails/{thumbnail.name}'
-                
+            if thumbnail_path:
                 media = AssetMedia(
                     asset=asset,
                     type='image',
-                    file=thumbnail,
                     file_path=thumbnail_path,
                     is_thumbnail=True,
                     order=0
                 )
                 media.save()
-                
-                # Upload to the correct path in bucket
-                try:
-                    blob = bucket.blob(thumbnail_path)
-                    blob.upload_from_file(thumbnail)
-                except Exception as e:
-                    messages.warning(request, f"Thumbnail added to database, but upload issue: {str(e)}")
-                
-                # For backward compatibility, also set the thumbnail field
-                asset.thumbnail = thumbnail
-                asset.save()
             
             # Process additional media files
-            media_files = request.FILES.getlist('media_files')
-            media_types = request.POST.getlist('media_types')
+            media_types = request.POST.getlist('media_types[]', [])
+            media_file_paths = request.POST.getlist('media_file_paths[]', [])
             
-            for i, media_file in enumerate(media_files):
+            for i, media_path in enumerate(media_file_paths):
+                if not media_path:  # Skip empty paths
+                    continue
+                    
                 # Determine media type
-                if i < len(media_types) and media_types[i]:
-                    media_type = media_types[i]
-                else:
-                    # Check file extension
-                    file_ext = os.path.splitext(media_file.name)[1].lower()
-                    if file_ext in ['.mp4', '.webm', '.mov', '.avi']:
-                        media_type = 'video'
-                    else:
-                        media_type = 'image'
-                
-                # Store in the correct path
-                media_path = f'stream_assets/media/{media_file.name}'
+                media_type = media_types[i] if i < len(media_types) else 'image'
                 
                 media = AssetMedia(
                     asset=asset,
                     type=media_type,
-                    file=media_file,
                     file_path=media_path,
                     is_thumbnail=False,
                     order=i+1
                 )
                 media.save()
-                
-                # Upload to the correct path in bucket
-                try:
-                    blob = bucket.blob(media_path)
-                    blob.upload_from_file(media_file)
-                except Exception as e:
-                    messages.warning(request, f"Media file added to database, but upload issue: {str(e)}")
             
             # Process versions
-            version_names = request.POST.getlist('version_names')
-            version_types = request.POST.getlist('version_types')
-            version_files = request.FILES.getlist('version_files')
+            version_names = request.POST.getlist('version_names[]', [])
+            version_types = request.POST.getlist('version_types[]', [])
+            version_file_paths = request.POST.getlist('version_file_paths[]', [])
             
-            for i in range(min(len(version_names), len(version_types), len(version_files))):
-                if not version_names[i]:  # Skip if no name provided
+            for i in range(min(len(version_names), len(version_types), len(version_file_paths))):
+                if not version_file_paths[i]:  # Skip empty paths
                     continue
                     
-                version_file = version_files[i]
-                version_path = f'stream_assets/versions/{version_file.name}'
-                
                 version = AssetVersion(
                     asset=asset,
                     name=version_names[i],
                     type=version_types[i],
-                    file_path=version_path
+                    file_path=version_file_paths[i]
                 )
                 version.save()
-                
-                # Upload version file
-                try:
-                    blob = bucket.blob(version_path)
-                    blob.upload_from_file(version_file)
-                except Exception as e:
-                    messages.warning(request, f"Version '{version_names[i]}' added to database, but file upload issue: {str(e)}")
             
             messages.success(request, f"Asset '{name}' added successfully!")
             return redirect('STORE:stream_asset_management')
@@ -671,6 +620,148 @@ def add_stream_asset(request):
             messages.error(request, "You must provide a main asset file")
     
     return render(request, 'STORE/add_stream_asset.html')
+
+CHUNK_UPLOAD_DIR = os.path.join(settings.MEDIA_ROOT, 'chunk_uploads')
+os.makedirs(CHUNK_UPLOAD_DIR, exist_ok=True)
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def handle_chunked_upload(request):
+    """Handle chunked file uploads"""
+    action = request.POST.get('action')
+    upload_id = request.POST.get('upload_id')
+    
+    if action == 'init':
+        # Initialize a new upload
+        filename = request.POST.get('filename')
+        filesize = request.POST.get('filesize')
+        filetype = request.POST.get('filetype')
+        
+        # Create a directory for this upload
+        upload_dir = os.path.join(CHUNK_UPLOAD_DIR, upload_id)
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Store metadata
+        metadata = {
+            'filename': filename,
+            'filesize': filesize,
+            'filetype': filetype,
+            'chunks_received': 0,
+            'total_chunks': 0
+        }
+        
+        with open(os.path.join(upload_dir, 'metadata.json'), 'w') as f:
+            json.dump(metadata, f)
+        
+        return JsonResponse({
+            'uploadId': upload_id,
+            'status': 'initialized'
+        })
+        
+    elif action == 'upload':
+        # Handle chunk upload
+        chunk_index = int(request.POST.get('chunk_index'))
+        total_chunks = int(request.POST.get('total_chunks'))
+        chunk = request.FILES.get('chunk')
+        
+        # Get the upload directory
+        upload_dir = os.path.join(CHUNK_UPLOAD_DIR, upload_id)
+        
+        # Update metadata
+        metadata_path = os.path.join(upload_dir, 'metadata.json')
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+        
+        metadata['total_chunks'] = total_chunks
+        metadata['chunks_received'] += 1
+        
+        # Save the chunk
+        chunk_path = os.path.join(upload_dir, f"chunk_{chunk_index}")
+        with open(chunk_path, 'wb') as f:
+            for chunk_data in chunk.chunks():
+                f.write(chunk_data)
+        
+        # Update metadata
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f)
+        
+        return JsonResponse({
+            'uploadId': upload_id,
+            'status': 'chunk_received',
+            'chunk_index': chunk_index,
+            'total_chunks': total_chunks
+        })
+        
+    elif action == 'finalize':
+        # Combine chunks and finalize the upload
+        filename = request.POST.get('filename')
+        upload_dir = os.path.join(CHUNK_UPLOAD_DIR, upload_id)
+        
+        # Read metadata
+        with open(os.path.join(upload_dir, 'metadata.json'), 'r') as f:
+            metadata = json.load(f)
+        
+        # Check if all chunks are received
+        if metadata['chunks_received'] != metadata['total_chunks']:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Not all chunks received'
+            }, status=400)
+        
+        # Combine chunks into a single file
+        full_file_path = os.path.join(upload_dir, filename)
+        with open(full_file_path, 'wb') as output_file:
+            for i in range(metadata['total_chunks']):
+                chunk_path = os.path.join(upload_dir, f"chunk_{i}")
+                with open(chunk_path, 'rb') as chunk_file:
+                    output_file.write(chunk_file.read())
+        
+        # For stream assets, upload to GCS bucket
+        file_path = ""
+        try:
+            # Determine destination path based on file type
+            if filename.lower().endswith(('.mp4', '.webm', '.mov', '.avi')):
+                destination = f"stream_assets/media/{filename}"
+            elif filename.lower().endswith('.zip'):
+                destination = f"stream_assets/{filename}"
+            else:
+                # Default for images and other files
+                destination = f"stream_assets/media/{filename}"
+            
+            # Upload to Google Cloud Storage
+            client = storage.Client()
+            bucket = client.bucket('bomby-user-uploads')
+            blob = bucket.blob(destination)
+            
+            # Upload the combined file
+            blob.upload_from_filename(full_file_path)
+            
+            file_path = destination
+        except Exception as e:
+            # Log the error but don't fail the request
+            print(f"GCS Upload error: {str(e)}")
+            return JsonResponse({
+                'status': 'error',
+                'message': f'Failed to upload to storage: {str(e)}'
+            }, status=500)
+        
+        # Cleanup: Delete the temp directory after successful upload
+        # This is optional - you may want to keep files for debugging
+        import shutil
+        shutil.rmtree(upload_dir)
+        
+        return JsonResponse({
+            'status': 'complete',
+            'file_path': file_path,
+            'filename': filename
+        })
+    
+    # Invalid action
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid action'
+    }, status=400)
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)

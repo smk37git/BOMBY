@@ -52,6 +52,7 @@ urlpatterns = [
     path('admin/stream-assets/edit/<int:asset_id>/', views.edit_stream_asset, name='edit_stream_asset'),
     path('admin/stream-assets/bulk-status-change/', views.bulk_change_asset_status, name='bulk_change_asset_status'),
     path('admin/stream-assets/delete/', views.delete_stream_assets, name='delete_stream_assets'),
+    path('upload/chunk/', views.handle_chunked_upload, name='handle_chunked_upload'),
 
     # Order Management
     path('admin/orders/', views.order_management, name='order_management'),
