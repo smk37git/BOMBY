@@ -41,6 +41,32 @@
             margin-bottom: 20px;
             cursor: pointer;
         }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #2a2a2a;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #28a745;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .upload-status {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .hidden-input {
+            display: none;
+        }
     </style>
 {% endblock %}
 
@@ -66,7 +92,7 @@
     {% endif %}
     
     <div class="profile-section">
-        <form method="post" enctype="multipart/form-data" class="admin-form">
+        <form method="post" enctype="multipart/form-data" class="admin-form" id="asset-form">
             {% csrf_token %}
             
             <div class="form-group">
@@ -79,18 +105,28 @@
                 <textarea id="description" name="description" rows="5" class="form-control"></textarea>
             </div>
             
-            <!-- Price field removed -->
+            <!-- Price field hidden -->
             <input type="hidden" id="price" name="price" value="0.00">
             
             <div class="form-group">
                 <label for="asset_file">Main Asset File (ZIP)</label>
-                <input type="file" id="asset_file" name="main_file" required class="form-control">
+                <input type="file" id="asset_file" class="form-control file-input">
+                <input type="hidden" name="main_file_path" id="main_file_path">
+                <div class="progress-bar" id="main-file-progress">
+                    <div class="progress-bar-fill"></div>
+                </div>
+                <div class="upload-status" id="main-file-status">Ready to upload</div>
                 <small>Upload a ZIP file containing all assets</small>
             </div>
             
             <div class="form-group">
                 <label for="thumbnail">Main Thumbnail Image</label>
-                <input type="file" id="thumbnail" name="thumbnail" class="form-control">
+                <input type="file" id="thumbnail" class="form-control file-input">
+                <input type="hidden" name="thumbnail_path" id="thumbnail_path">
+                <div class="progress-bar" id="thumbnail-progress">
+                    <div class="progress-bar-fill"></div>
+                </div>
+                <div class="upload-status" id="thumbnail-status">Ready to upload</div>
                 <small>This will be the primary image displayed</small>
             </div>
             
@@ -100,14 +136,19 @@
                     <button type="button" class="remove-btn remove-media-btn">×</button>
                     <div class="form-group">
                         <label>Media Type</label>
-                        <select name="media_types" class="form-control">
+                        <select name="media_types[]" class="form-control media-type-select">
                             <option value="image">Image</option>
                             <option value="video">Video</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Media File</label>
-                        <input type="file" name="media_files" class="form-control">
+                        <input type="file" class="form-control file-input media-file-input">
+                        <input type="hidden" name="media_file_paths[]" class="media-file-path">
+                        <div class="progress-bar media-progress">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                        <div class="upload-status media-status">Ready to upload</div>
                     </div>
                 </div>
             </div>
@@ -117,11 +158,11 @@
             <div id="versions-container">
                 <div class="version-item">
                     <button type="button" class="remove-btn remove-version-btn">×</button>
-                    <!-- Version Name field removed -->
-                    <input type="hidden" name="version_names" value="Default">
+                    <!-- Version Name field hidden -->
+                    <input type="hidden" name="version_names[]" value="Default">
                     <div class="form-group">
                         <label>Version Type</label>
-                        <select name="version_types" class="form-control">
+                        <select name="version_types[]" class="form-control version-type-select">
                             <option value="static">Static</option>
                             <option value="animated">Animated</option>
                             <option value="video">Video</option>
@@ -129,7 +170,12 @@
                     </div>
                     <div class="form-group">
                         <label>Version File</label>
-                        <input type="file" name="version_files" class="form-control">
+                        <input type="file" class="form-control file-input version-file-input">
+                        <input type="hidden" name="version_file_paths[]" class="version-file-path">
+                        <div class="progress-bar version-progress">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                        <div class="upload-status version-status">Ready to upload</div>
                     </div>
                 </div>
             </div>
@@ -145,14 +191,60 @@
             
             <div class="form-actions">
                 <a href="{% url 'STORE:stream_asset_management' %}" class="action-button cancel">Cancel</a>
-                <button type="submit" class="action-button">Add Asset</button>
+                <button type="button" id="submit-form" class="action-button">Add Asset</button>
             </div>
         </form>
     </div>
 </div>
 
+<!-- Load the chunked uploader script -->
+<script src="{% static 'js/chunked-upload.js' %}"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize chunked uploader
+        const uploader = new ChunkedUploader({
+            chunkSize: 512 * 1024, // 512KB chunks for better reliability
+            concurrentUploads: 2,
+            onProgress: function(progress) {
+                // Update progress bar for the correct file
+                const { uploadId, filename, percentage } = progress;
+                const progressBar = document.querySelector(`[data-upload-id="${uploadId}"]`);
+                if (progressBar) {
+                    const fill = progressBar.querySelector('.progress-bar-fill');
+                    const status = progressBar.nextElementSibling;
+                    fill.style.width = `${percentage}%`;
+                    status.textContent = `Uploading: ${percentage}%`;
+                }
+            },
+            onComplete: function(result, filename) {
+                // Handle successful upload - store file path in hidden input
+                const { file_path, status } = result;
+                if (status === 'complete') {
+                    const fileInput = document.querySelector(`[data-filename="${filename}"]`);
+                    if (fileInput) {
+                        const pathInput = fileInput.nextElementSibling;
+                        const progressBar = fileInput.nextElementSibling.nextElementSibling;
+                        const statusText = progressBar.nextElementSibling;
+                        
+                        pathInput.value = file_path;
+                        statusText.textContent = 'Upload complete';
+                        statusText.style.color = '#28a745';
+                    }
+                }
+            },
+            onError: function(error, filename) {
+                // Handle upload error
+                const fileInput = document.querySelector(`[data-filename="${filename}"]`);
+                if (fileInput) {
+                    const statusText = fileInput.nextElementSibling.nextElementSibling.nextElementSibling;
+                    statusText.textContent = `Error: ${error.message}`;
+                    statusText.style.color = '#cc0000';
+                }
+                console.error('Upload error:', error);
+            }
+        });
+        
         // Media handling
         const mediaContainer = document.getElementById('media-container');
         const addMediaBtn = document.getElementById('add-media-btn');
@@ -175,14 +267,19 @@
                 <button type="button" class="remove-btn remove-media-btn">×</button>
                 <div class="form-group">
                     <label>Media Type</label>
-                    <select name="media_types" class="form-control">
+                    <select name="media_types[]" class="form-control media-type-select">
                         <option value="image">Image</option>
                         <option value="video">Video</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label>Media File</label>
-                    <input type="file" name="media_files" class="form-control">
+                    <input type="file" class="form-control file-input media-file-input">
+                    <input type="hidden" name="media_file_paths[]" class="media-file-path">
+                    <div class="progress-bar media-progress">
+                        <div class="progress-bar-fill"></div>
+                    </div>
+                    <div class="upload-status media-status">Ready to upload</div>
                 </div>
             `;
             mediaContainer.appendChild(newItem);
@@ -195,6 +292,9 @@
                     alert('You need at least one media item');
                 }
             });
+            
+            // Add file input event listener
+            setupFileUploadListeners(newItem.querySelector('.media-file-input'));
         });
         
         // Version handling
@@ -218,10 +318,10 @@
             newItem.className = 'version-item';
             newItem.innerHTML = `
                 <button type="button" class="remove-btn remove-version-btn">×</button>
-                <input type="hidden" name="version_names" value="Default">
+                <input type="hidden" name="version_names[]" value="Default">
                 <div class="form-group">
                     <label>Version Type</label>
-                    <select name="version_types" class="form-control">
+                    <select name="version_types[]" class="form-control version-type-select">
                         <option value="static">Static</option>
                         <option value="animated">Animated</option>
                         <option value="video">Video</option>
@@ -229,7 +329,12 @@
                 </div>
                 <div class="form-group">
                     <label>Version File</label>
-                    <input type="file" name="version_files" class="form-control">
+                    <input type="file" class="form-control file-input version-file-input">
+                    <input type="hidden" name="version_file_paths[]" class="version-file-path">
+                    <div class="progress-bar version-progress">
+                        <div class="progress-bar-fill"></div>
+                    </div>
+                    <div class="upload-status version-status">Ready to upload</div>
                 </div>
             `;
             versionsContainer.appendChild(newItem);
@@ -243,6 +348,98 @@
                     this.closest('.version-item').querySelector('input[type="file"]').value = '';
                 }
             });
+            
+            // Add file input event listener
+            setupFileUploadListeners(newItem.querySelector('.version-file-input'));
+        });
+        
+        // Setup file upload handlers for all file inputs
+        function setupFileUploadListeners(fileInput) {
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    
+                    // Set data attributes for tracking
+                    this.setAttribute('data-filename', file.name);
+                    
+                    // Show progress bar
+                    let progressBar;
+                    let statusText;
+                    
+                    if (this.id === 'asset_file') {
+                        progressBar = document.getElementById('main-file-progress');
+                        statusText = document.getElementById('main-file-status');
+                    } else if (this.id === 'thumbnail') {
+                        progressBar = document.getElementById('thumbnail-progress');
+                        statusText = document.getElementById('thumbnail-status');
+                    } else if (this.classList.contains('media-file-input')) {
+                        progressBar = this.closest('.form-group').querySelector('.media-progress');
+                        statusText = this.closest('.form-group').querySelector('.media-status');
+                    } else if (this.classList.contains('version-file-input')) {
+                        progressBar = this.closest('.form-group').querySelector('.version-progress');
+                        statusText = this.closest('.form-group').querySelector('.version-status');
+                    }
+                    
+                    progressBar.style.display = 'block';
+                    
+                    // Generate unique upload ID
+                    const uploadId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                    progressBar.setAttribute('data-upload-id', uploadId);
+                    
+                    // Determine file type for metadata
+                    let fileType = 'other';
+                    if (this.classList.contains('media-file-input')) {
+                        const select = this.closest('.media-item').querySelector('.media-type-select');
+                        fileType = select ? select.value : 'image';
+                    } else if (this.classList.contains('version-file-input')) {
+                        const select = this.closest('.version-item').querySelector('.version-type-select');
+                        fileType = select ? select.value : 'static';
+                    } else if (this.id === 'asset_file') {
+                        fileType = 'main';
+                    } else if (this.id === 'thumbnail') {
+                        fileType = 'thumbnail';
+                    }
+                    
+                    // Start upload
+                    statusText.textContent = 'Starting upload...';
+                    uploader.uploadFile(file, { type: fileType })
+                        .then(uploadId => {
+                            // Upload started successfully
+                            console.log(`Upload started with ID: ${uploadId}`);
+                        })
+                        .catch(error => {
+                            // Error starting the upload
+                            statusText.textContent = `Upload failed to start: ${error.message}`;
+                            statusText.style.color = '#cc0000';
+                            console.error('Error starting upload:', error);
+                        });
+                }
+            });
+        }
+        
+        // Set up initial file inputs
+        document.querySelectorAll('.file-input').forEach(setupFileUploadListeners);
+        
+        // Handle form submission
+        document.getElementById('submit-form').addEventListener('click', function() {
+            // Check if all uploads are complete
+            const incomplete = Array.from(document.querySelectorAll('.upload-status')).some(
+                status => status.textContent.includes('Uploading')
+            );
+            
+            if (incomplete) {
+                alert('Please wait for all uploads to complete before submitting');
+                return;
+            }
+            
+            // Check if main asset file is uploaded
+            if (!document.getElementById('main_file_path').value) {
+                alert('You must upload a main asset file');
+                return;
+            }
+            
+            // Submit the form
+            document.getElementById('asset-form').submit();
         });
     });
 </script>
