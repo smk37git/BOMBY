@@ -121,7 +121,11 @@
                     {% if media.is_thumbnail %}
                         <div class="current-thumbnail">
                             <p>Current thumbnail:</p>
-                            <img src="{{ media.file.url }}" alt="{{ asset.name }}" style="max-width: 200px; max-height: 200px; margin-top: 10px;">
+                            {% if media.file %}
+                                <img src="{{ media.file.url }}" alt="{{ asset.name }}" style="max-width: 200px; max-height: 200px; margin-top: 10px;">
+                            {% elif media.file_path %}
+                                <img src="/media/{{ media.file_path }}" alt="{{ asset.name }}" style="max-width: 200px; max-height: 200px; margin-top: 10px;">
+                            {% endif %}
                         </div>
                     {% endif %}
                 {% empty %}
@@ -142,6 +146,8 @@
                             <div>{{ media.get_type_display }} - Order: {{ media.order }}</div>
                             {% if media.file %}
                                 <img src="{{ media.file.url }}" alt="{{ asset.name }} media" class="media-preview">
+                            {% elif media.file_path %}
+                                <img src="/media/{{ media.file_path }}" alt="{{ asset.name }} media" class="media-preview">
                             {% endif %}
                             <div>
                                 <label class="checkbox-container">

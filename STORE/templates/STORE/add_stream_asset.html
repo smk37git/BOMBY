@@ -67,6 +67,16 @@
         .hidden-input {
             display: none;
         }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .checkbox-container input[type="checkbox"] {
+            margin-right: 8px;
+        }
     </style>
 {% endblock %}
 
@@ -119,6 +129,29 @@
                 <small>Upload a ZIP file containing all assets</small>
             </div>
             
+            <!-- Version checkboxes for main file -->
+            <div class="form-group">
+                <label>Use main file as:</label>
+                <div>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="use_as_static" id="use_as_static" value="true" checked>
+                        <span class="checkbox-label">Static version</span>
+                    </label>
+                </div>
+                <div>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="use_as_animated" id="use_as_animated" value="true">
+                        <span class="checkbox-label">Animated version</span>
+                    </label>
+                </div>
+                <div>
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="use_as_video" id="use_as_video" value="true">
+                        <span class="checkbox-label">Video version</span>
+                    </label>
+                </div>
+            </div>
+            
             <div class="form-group">
                 <label for="thumbnail">Main Thumbnail Image</label>
                 <input type="file" id="thumbnail" class="form-control file-input">
@@ -154,12 +187,14 @@
             </div>
             <button type="button" id="add-media-btn" class="add-btn">Add Media</button>
             
-            <h3 class="section-title">Versions (Optional)</h3>
+            <h3 class="section-title">Additional Versions (Optional)</h3>
             <div id="versions-container">
                 <div class="version-item">
                     <button type="button" class="remove-btn remove-version-btn">×</button>
-                    <!-- Version Name field hidden -->
-                    <input type="hidden" name="version_names[]" value="Default">
+                    <div class="form-group">
+                        <label>Version Name</label>
+                        <input type="text" name="version_names[]" value="Custom" class="form-control">
+                    </div>
                     <div class="form-group">
                         <label>Version Type</label>
                         <select name="version_types[]" class="form-control version-type-select">
@@ -318,7 +353,10 @@
             newItem.className = 'version-item';
             newItem.innerHTML = `
                 <button type="button" class="remove-btn remove-version-btn">×</button>
-                <input type="hidden" name="version_names[]" value="Default">
+                <div class="form-group">
+                    <label>Version Name</label>
+                    <input type="text" name="version_names[]" value="Custom" class="form-control">
+                </div>
                 <div class="form-group">
                     <label>Version Type</label>
                     <select name="version_types[]" class="form-control version-type-select">

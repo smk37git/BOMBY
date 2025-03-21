@@ -597,7 +597,35 @@ def add_stream_asset(request):
                 )
                 media.save()
             
-            # Process versions
+            # Process versions based on checkboxes for main file
+            if request.POST.get('use_as_static') == 'true':
+                version = AssetVersion(
+                    asset=asset,
+                    name='Static',
+                    type='static',
+                    file_path=main_file_path  # Reuse the main file
+                )
+                version.save()
+                
+            if request.POST.get('use_as_animated') == 'true':
+                version = AssetVersion(
+                    asset=asset,
+                    name='Animated',
+                    type='animated',
+                    file_path=main_file_path  # Reuse the main file
+                )
+                version.save()
+                
+            if request.POST.get('use_as_video') == 'true':
+                version = AssetVersion(
+                    asset=asset,
+                    name='Video',
+                    type='video',
+                    file_path=main_file_path  # Reuse the main file
+                )
+                version.save()
+            
+            # Process additional versions
             version_names = request.POST.getlist('version_names[]', [])
             version_types = request.POST.getlist('version_types[]', [])
             version_file_paths = request.POST.getlist('version_file_paths[]', [])
