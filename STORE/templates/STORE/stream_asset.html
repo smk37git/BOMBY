@@ -40,6 +40,9 @@
                                         <source src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}/media/{{ media.file_path }}{% endif %}" type="video/mp4">
                                     </video>
                                     <img src="" alt="{{ asset.name }}" class="video-thumbnail" id="videoThumbnail">
+                                    <div class="placeholder-icon">
+                                        <i class="fas fa-film"></i>
+                                    </div>
                                     <div class="play-overlay">
                                         <div class="play-button">
                                             <i class="fas fa-play"></i>
@@ -67,6 +70,9 @@
                                                 <source src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}/media/{{ media.file_path }}{% endif %}" type="video/mp4">
                                             </video>
                                             <img src="" alt="{{ asset.name }}" class="video-thumbnail" id="videoThumbnail">
+                                            <div class="placeholder-icon">
+                                                <i class="fas fa-film"></i>
+                                            </div>
                                             <div class="play-overlay">
                                                 <div class="play-button">
                                                     <i class="fas fa-play"></i>
@@ -104,6 +110,11 @@
                             <img src="{{ media.file.url }}" alt="{{ asset.name }} - Image {{ forloop.counter }}">
                         {% elif media.file_path %}
                             <img src="/media/{{ media.file_path }}" alt="{{ asset.name }} - Image {{ forloop.counter }}">
+                        {% endif %}
+                        {% if media.type == 'video' %}
+                        <div class="placeholder-icon">
+                            <i class="fas fa-film"></i>
+                        </div>
                         {% endif %}
                     </div>
                 {% empty %}
@@ -325,6 +336,12 @@
                 if (mainThumb) {
                     mainThumb.src = thumbnailSrc;
                     mainThumb.style.opacity = 1;
+                    
+                    // Hide placeholder icon when thumbnail is loaded
+                    const placeholderIcon = mainContainer.querySelector('.placeholder-icon');
+                    if (placeholderIcon) {
+                        placeholderIcon.style.display = 'none';
+                    }
                 }
             }
             
@@ -332,6 +349,15 @@
             document.querySelectorAll(`.thumbnail[data-media-type="video"][data-src="${videoSrc}"] img`).forEach(img => {
                 img.src = thumbnailSrc;
                 img.style.opacity = 1;
+                
+                // Hide placeholder icon in thumbnail
+                const thumbItem = img.closest('.thumbnail');
+                if (thumbItem) {
+                    const placeholderIcon = thumbItem.querySelector('.placeholder-icon');
+                    if (placeholderIcon) {
+                        placeholderIcon.style.display = 'none';
+                    }
+                }
             });
         }
         
@@ -386,10 +412,16 @@
                         thumbnail.id = 'videoThumbnail';
                         thumbnail.alt = 'Video thumbnail';
                         
+                        // Add placeholder icon
+                        const placeholderIcon = document.createElement('div');
+                        placeholderIcon.className = 'placeholder-icon';
+                        placeholderIcon.innerHTML = '<i class="fas fa-film"></i>';
+                        
                         // Use cached thumbnail if available
                         if (window.videoCache[mediaSrc] && window.videoCache[mediaSrc].thumbnail) {
                             thumbnail.src = window.videoCache[mediaSrc].thumbnail;
                             thumbnail.style.opacity = 1;
+                            placeholderIcon.style.display = 'none';
                         }
                         
                         // Add play overlay
@@ -399,6 +431,7 @@
                         
                         // Assemble container
                         videoContainer.appendChild(thumbnail);
+                        videoContainer.appendChild(placeholderIcon);
                         videoContainer.appendChild(playOverlay);
                         
                         // Replace content in featured container
@@ -481,6 +514,31 @@
         
         // Initialize everything
         function init() {
+            // Add default styling for video thumbnails
+            const style = document.createElement('style');
+            style.textContent = `
+                .video-thumbnail {
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                }
+                .placeholder-icon {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 36px;
+                    color: rgba(255, 255, 255, 0.5);
+                    z-index: 1;
+                }
+                .video-container {
+                    background: linear-gradient(45deg, #333333, #222222);
+                }
+                .thumbnail[data-media-type="video"] {
+                    background: linear-gradient(45deg, #333333, #222222);
+                }
+            `;
+            document.head.appendChild(style);
+            
             // Set up event handlers
             setupFAQHandlers();
             setupVideoClickHandlers();
