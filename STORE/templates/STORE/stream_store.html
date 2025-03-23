@@ -27,7 +27,7 @@
         <div class="products-grid">
             {% for asset in assets %}
             {% if asset.is_active %}
-            <div class="product-item" data-aos="fade-up" data-aos-delay="{{ forloop.counter0 }}00">
+            <div class="product-item">
                 <a href="{% url 'STORE:stream_asset_detail' asset.id %}" class="product-link">
                     <div class="window">
                         <div class="window-header">
@@ -100,14 +100,4 @@
         </div>
     </section>
     {% endif %}
-
-    <!-- AOS Animation -->
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-        AOS.init({
-            duration: 800,
-            offset: 100,
-            once: true
-        });
-    </script>
 {% endblock %}
