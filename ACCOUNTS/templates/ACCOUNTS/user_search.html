@@ -35,7 +35,15 @@
                         
                         <div class="user-details">
                             <div class="user-username">{{ user.username }}</div>
-                            <div class="user-account-type {{ user.user_type|lower }}">{{ user.get_user_type_display }}</div>
+                            {% if user.is_staff %}
+                                <div class="user-account-type admin">Administrator</div>
+                            {% elif user.is_client %}
+                                <div class="user-account-type client">Client</div>
+                            {% elif user.is_supporter %}
+                                <div class="user-account-type supporter">Supporter</div>
+                            {% else %}
+                                <div class="user-account-type member">Member</div>
+                            {% endif %}
                         </div>
                     </div>
                     

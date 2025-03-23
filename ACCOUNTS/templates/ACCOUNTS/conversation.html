@@ -69,7 +69,18 @@
                 {% else %}
                 <div class="avatar-placeholder">{{ other_user.username|first }}</div>
                 {% endif %}
-                <h2>{{ other_user.username }}</h2>
+                <div class="user-info">
+                    <h2>{{ other_user.username }}</h2>
+                    {% if other_user.is_staff %}
+                        <div class="user-account-type admin">Administrator</div>
+                    {% elif other_user.is_client %}
+                        <div class="user-account-type client">Client</div>
+                    {% elif other_user.is_supporter %}
+                        <div class="user-account-type supporter">Supporter</div>
+                    {% else %}
+                        <div class="user-account-type member">Member</div>
+                    {% endif %}
+                </div>
             </div>
             
             <div class="chat-messages" id="chat-messages">
@@ -173,6 +184,23 @@
                 console.error('Error converting date:', e, dateString);
                 return dateString;
             }
+        }
+
+        // Send with enter key
+        const textarea = document.querySelector('.message-input-container textarea');
+        if (textarea) {
+            textarea.addEventListener('keydown', function(e) {
+                // Submit form on Enter without Shift
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Prevent newline
+                    const form = document.getElementById('message-form');
+                    
+                    // Only submit if there is content
+                    if (this.value.trim() !== '') {
+                        form.dispatchEvent(new Event('submit'));
+                    }
+                }
+            });
         }
         
         // Function to format just time (for message timestamps)
