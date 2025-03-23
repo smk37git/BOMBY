@@ -235,128 +235,126 @@
         // Global cache to store preloaded videos and thumbnails
         window.videoCache = {};
         
-        // Immediately preload all videos
-        function preloadAllVideos() {
-            // First, identify all video sources
-            const videoSources = [];
-            
-            // Get main featured video if any
+        // Preload and display the primary video immediately
+        function loadFirstVideoImmediately() {
             const mainVideoContainer = document.getElementById('videoContainer');
-            if (mainVideoContainer) {
-                videoSources.push(mainVideoContainer.dataset.src);
-            }
+            if (!mainVideoContainer) return;
             
-            // Get all thumbnail videos
-            document.querySelectorAll('.thumbnail[data-media-type="video"]').forEach(thumb => {
-                videoSources.push(thumb.dataset.src);
-            });
+            const videoSrc = mainVideoContainer.dataset.src;
+            if (!videoSrc) return;
             
-            // Now preload all videos and generate thumbnails
-            videoSources.forEach((src, index) => {
-                if (!src || window.videoCache[src]) return; // Skip if already cached
-                
-                const video = document.createElement('video');
-                video.muted = true;
-                video.preload = 'auto';
-                video.crossOrigin = 'anonymous';
-                video.style.display = 'none';
-                
-                // Add to cache first to prevent duplicate processing
-                window.videoCache[src] = {
-                    video: video,
-                    loaded: false,
-                    thumbnail: null
-                };
-                
-                // Set video attributes
-                const sourceElement = document.createElement('source');
-                sourceElement.src = src;
-                sourceElement.type = 'video/mp4';
-                video.appendChild(sourceElement);
-                document.body.appendChild(video);
-                
-                // Generate thumbnail on metadata load (faster than waiting for full load)
-                video.addEventListener('loadeddata', function onDataLoaded() {
-                    // Generate thumbnail immediately
-                    video.currentTime = 0.1;
+            // Create a video element for the main video
+            const videoElement = document.createElement('video');
+            videoElement.setAttribute('controls', true);
+            videoElement.className = 'featured-image';
+            videoElement.style.display = 'none'; // Hide initially
+            videoElement.crossOrigin = "anonymous"; // Important for cloud storage
+            
+            // Set up source
+            const sourceElement = document.createElement('source');
+            sourceElement.src = videoSrc;
+            sourceElement.type = 'video/mp4';
+            videoElement.appendChild(sourceElement);
+            
+            // Ensure we show a proper loading state
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'video-loading';
+            loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading video...';
+            mainVideoContainer.appendChild(loadingIndicator);
+            
+            // When metadata is loaded, replace the thumbnail with actual video
+            videoElement.addEventListener('loadedmetadata', function() {
+                // Create a thumbnail first
+                try {
+                    videoElement.currentTime = 0.5; // Set to 0.5 seconds in
                     
-                    video.addEventListener('seeked', function onSeeked() {
-                        // Create canvas and generate thumbnail
-                        const canvas = document.createElement('canvas');
-                        // Use small size for efficiency
-                        const scale = 0.5;
-                        canvas.width = video.videoWidth * scale;
-                        canvas.height = video.videoHeight * scale;
-                        
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                        
-                        try {
-                            // Save thumbnail to cache
-                            const dataURL = canvas.toDataURL('image/jpeg', 0.7);
-                            window.videoCache[src].thumbnail = dataURL;
-                            window.videoCache[src].loaded = true;
+                    videoElement.addEventListener('seeked', function onSeeked() {
+                        // Create a new thumbnail for the video
+                        const thumbnail = document.getElementById('videoThumbnail');
+                        if (thumbnail) {
+                            thumbnail.style.opacity = 1;
                             
-                            // Apply thumbnail to all matching elements immediately
-                            applyThumbnailToMatchingElements(src, dataURL);
+                            // Show the container with the thumbnail
+                            const playOverlay = mainVideoContainer.querySelector('.play-overlay');
+                            if (playOverlay) {
+                                playOverlay.style.display = 'flex';
+                            }
                             
-                            // Remove event listener to prevent multiple executions
-                            video.removeEventListener('seeked', onSeeked);
-                        } catch(e) {
-                            console.error("Could not generate thumbnail", e);
+                            // Remove loading indicator
+                            const loader = mainVideoContainer.querySelector('.video-loading');
+                            if (loader) {
+                                loader.remove();
+                            }
                         }
-                    });
-                    
-                    // Remove event listener
-                    video.removeEventListener('loadeddata', onDataLoaded);
-                });
-                
-                // Start loading
-                video.load();
-            });
-        }
-        
-        // Apply thumbnails to all matching elements
-        function applyThumbnailToMatchingElements(videoSrc, thumbnailSrc) {
-            // Apply to main video container
-            const mainContainer = document.getElementById('videoContainer');
-            if (mainContainer && mainContainer.dataset.src === videoSrc) {
-                const mainThumb = document.getElementById('videoThumbnail');
-                if (mainThumb) {
-                    mainThumb.src = thumbnailSrc;
-                    mainThumb.style.opacity = 1;
-                }
-            }
-            
-            // Apply to all matching gallery thumbnails
-            document.querySelectorAll(`.thumbnail[data-media-type="video"][data-src="${videoSrc}"] img`).forEach(img => {
-                img.src = thumbnailSrc;
-                img.style.opacity = 1;
-            });
-        }
-        
-        // Handle click on the video to play immediately
-        function setupVideoClickHandlers() {
-            // Main video container
-            const videoContainer = document.getElementById('videoContainer');
-            if (videoContainer) {
-                videoContainer.addEventListener('click', function() {
-                    const videoSrc = this.dataset.src;
-                    
-                    // If we've preloaded the video, use it
-                    if (window.videoCache[videoSrc] && window.videoCache[videoSrc].video) {
-                        const videoElement = document.createElement('video');
-                        videoElement.setAttribute('controls', true);
-                        videoElement.setAttribute('autoplay', true);
-                        videoElement.className = 'featured-image';
-                        videoElement.src = videoSrc;
                         
-                        // Replace container with video
-                        this.parentNode.replaceChild(videoElement, this);
-                        videoElement.play();
+                        videoElement.removeEventListener('seeked', onSeeked);
+                    }, { once: true });
+                } catch (e) {
+                    console.error("Error setting up video thumbnail:", e);
+                    
+                    // Remove loading indicator and show play button if thumbnail fails
+                    const loader = mainVideoContainer.querySelector('.video-loading');
+                    if (loader) {
+                        loader.remove();
                     }
+                    
+                    const playOverlay = mainVideoContainer.querySelector('.play-overlay');
+                    if (playOverlay) {
+                        playOverlay.style.display = 'flex';
+                    }
+                }
+            });
+            
+            // Handle errors more gracefully
+            videoElement.addEventListener('error', function() {
+                console.error("Error loading video:", videoElement.error);
+                
+                // Remove loading indicator
+                const loader = mainVideoContainer.querySelector('.video-loading');
+                if (loader) {
+                    loader.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Video loading error. Click to try again.';
+                    loader.className = 'video-error';
+                }
+                
+                // Add retry functionality
+                mainVideoContainer.addEventListener('click', function retryHandler() {
+                    loadFirstVideoImmediately();
+                    mainVideoContainer.removeEventListener('click', retryHandler);
                 });
-            }
+            });
+            
+            // Start loading
+            videoElement.load();
+            
+            // Cache the video for later use
+            window.videoCache[videoSrc] = {
+                video: videoElement,
+                loaded: false
+            };
+            
+            // Set up click handler for playing
+            mainVideoContainer.addEventListener('click', function() {
+                // Remove any error messages
+                const error = mainVideoContainer.querySelector('.video-error');
+                if (error) {
+                    error.remove();
+                }
+                
+                // Create a fresh video element (avoids issues with reusing the cached one)
+                const playVideoElement = document.createElement('video');
+                playVideoElement.setAttribute('controls', true);
+                playVideoElement.setAttribute('autoplay', true);
+                playVideoElement.className = 'featured-image';
+                playVideoElement.src = videoSrc;
+                
+                // Replace container with video
+                mainVideoContainer.parentNode.replaceChild(playVideoElement, mainVideoContainer);
+                playVideoElement.play().catch(e => {
+                    console.error("Could not autoplay video:", e);
+                    // If autoplay fails, show controls prominently
+                    playVideoElement.controls = true;
+                });
+            });
         }
         
         // Handle thumbnail gallery functionality
@@ -374,49 +372,110 @@
                     const mediaSrc = this.dataset.src;
                     
                     if (mediaType === 'video') {
-                        // Create video container with preloaded thumbnail
+                        // Create video container with loading indicator
                         const videoContainer = document.createElement('div');
                         videoContainer.className = 'video-container';
                         videoContainer.id = 'videoContainer';
                         videoContainer.dataset.src = mediaSrc;
+                        
+                        // Create loading indicator
+                        const loadingIndicator = document.createElement('div');
+                        loadingIndicator.className = 'video-loading';
+                        loadingIndicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading video...';
                         
                         // Create thumbnail image
                         const thumbnail = document.createElement('img');
                         thumbnail.className = 'video-thumbnail';
                         thumbnail.id = 'videoThumbnail';
                         thumbnail.alt = 'Video thumbnail';
+                        thumbnail.style.opacity = 0; // Hide until loaded
                         
-                        // Use cached thumbnail if available
-                        if (window.videoCache[mediaSrc] && window.videoCache[mediaSrc].thumbnail) {
-                            thumbnail.src = window.videoCache[mediaSrc].thumbnail;
-                            thumbnail.style.opacity = 1;
-                        }
-                        
-                        // Add play overlay
+                        // Add play overlay (hidden initially)
                         const playOverlay = document.createElement('div');
                         playOverlay.className = 'play-overlay';
+                        playOverlay.style.display = 'none'; // Hide until loaded
                         playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
                         
                         // Assemble container
                         videoContainer.appendChild(thumbnail);
                         videoContainer.appendChild(playOverlay);
+                        videoContainer.appendChild(loadingIndicator);
                         
                         // Replace content in featured container
                         featuredContainer.innerHTML = '';
                         featuredContainer.appendChild(videoContainer);
                         
+                        // Attempt to load the video and generate thumbnail
+                        const videoElement = document.createElement('video');
+                        videoElement.muted = true;
+                        videoElement.crossOrigin = "anonymous"; // Important for cloud storage
+                        videoElement.preload = 'metadata';
+                        videoElement.src = mediaSrc;
+                        
+                        // When metadata is loaded, create thumbnail
+                        videoElement.addEventListener('loadedmetadata', function() {
+                            try {
+                                videoElement.currentTime = 0.5; // Set to 0.5 seconds in
+                                
+                                videoElement.addEventListener('seeked', function onSeeked() {
+                                    // Create canvas and generate thumbnail
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = videoElement.videoWidth * 0.5;
+                                    canvas.height = videoElement.videoHeight * 0.5;
+                                    
+                                    try {
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                                        
+                                        // Apply thumbnail
+                                        thumbnail.src = canvas.toDataURL('image/jpeg', 0.7);
+                                        thumbnail.style.opacity = 1;
+                                        
+                                        // Show play overlay
+                                        playOverlay.style.display = 'flex';
+                                        
+                                        // Remove loading indicator
+                                        loadingIndicator.remove();
+                                    } catch(e) {
+                                        console.error("Could not generate thumbnail", e);
+                                        playOverlay.style.display = 'flex';
+                                        loadingIndicator.remove();
+                                    }
+                                    
+                                    videoElement.removeEventListener('seeked', onSeeked);
+                                }, { once: true });
+                            } catch(e) {
+                                console.error("Error setting video time for thumbnail", e);
+                                playOverlay.style.display = 'flex';
+                                loadingIndicator.remove();
+                            }
+                        });
+                        
+                        // Handle loading errors
+                        videoElement.addEventListener('error', function() {
+                            console.error("Error loading video:", videoElement.error);
+                            loadingIndicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Video loading error';
+                            loadingIndicator.className = 'video-error';
+                        });
+                        
+                        // Start loading
+                        videoElement.load();
+                        
                         // Set up click handler for playing the video
                         videoContainer.addEventListener('click', function() {
-                            const videoElement = document.createElement('video');
-                            videoElement.setAttribute('controls', true);
-                            videoElement.setAttribute('autoplay', true);
-                            videoElement.className = 'featured-image';
-                            videoElement.src = this.dataset.src;
+                            const playVideoElement = document.createElement('video');
+                            playVideoElement.setAttribute('controls', true);
+                            playVideoElement.setAttribute('autoplay', true);
+                            playVideoElement.className = 'featured-image';
+                            playVideoElement.src = mediaSrc;
                             
                             // Replace container with video
                             featuredContainer.innerHTML = '';
-                            featuredContainer.appendChild(videoElement);
-                            videoElement.play();
+                            featuredContainer.appendChild(playVideoElement);
+                            playVideoElement.play().catch(e => {
+                                console.error("Could not autoplay video:", e);
+                                playVideoElement.controls = true;
+                            });
                         });
                     } else {
                         // Handle image content
@@ -479,16 +538,66 @@
             });
         }
         
+        // Add CSS for loading states
+        function addLoadingStyles() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .video-loading {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background: rgba(0,0,0,0.7);
+                    color: white;
+                    font-size: 16px;
+                }
+                
+                .video-loading i {
+                    margin-right: 8px;
+                }
+                
+                .video-error {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                    justify-content: center;
+                    background: rgba(0,0,0,0.8);
+                    color: white;
+                    font-size: 14px;
+                    text-align: center;
+                    cursor: pointer;
+                }
+                
+                .video-error i {
+                    font-size: 24px;
+                    margin-bottom: 8px;
+                    color: #ff4d4d;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
         // Initialize everything
         function init() {
+            // Add loading indicator styles
+            addLoadingStyles();
+            
             // Set up event handlers
             setupFAQHandlers();
-            setupVideoClickHandlers();
             setupGalleryThumbnails();
             setupVersionSelector();
             
-            // Start preloading videos immediately
-            preloadAllVideos();
+            // Start loading first video immediately
+            setTimeout(loadFirstVideoImmediately, 100);
         }
         
         // Start initialization
