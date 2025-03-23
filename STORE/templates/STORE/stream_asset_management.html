@@ -65,7 +65,7 @@
                             <td>{{ asset.id }}</td>
                             <td class="asset-name-cell">{{ asset.name }}</td>
                             <td>{{ asset.file_path }}</td>
-                            <td>{{ asset.created_at|date }}</td>
+                            <td style="white-space: nowrap;">{{ asset.created_at|date }}</td>
                             <td>
                                 {% if asset.is_active %}
                                     <span class="product-status active">Active</span>
