@@ -1372,7 +1372,16 @@ def payment_page(request, product_id):
         'paypal_client_id': settings.PAYPAL_CLIENT_ID,
     }
     
-    return render(request, 'STORE/payment_page.html', context)
+    response = render(request, 'STORE/payment_page.html', context)
+    # Set CSP header directly in view (this will override any in-page CSP)
+    response['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.paypal.com https://*.paypalobjects.com; connect-src 'self' https://*.paypal.com https://*.paypal.cn https://*.paypalobjects.com https://objects.paypal.cn https://192.55.233.1 https://*.google.com https://www.google.com https://browser-intake-us5-datadoghq.com https://*.qualtrics.com; frame-src 'self' https://*.paypal.com; img-src 'self' data: https://*.paypal.com https://*.paypalobjects.com;"
+    
+    # Add cache control headers
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    
+    return response
 
 @login_required
 def payment_success(request):
