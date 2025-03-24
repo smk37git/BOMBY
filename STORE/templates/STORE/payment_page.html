@@ -35,71 +35,93 @@
                 <div class="price-value">${{ product.price }}</div>
             </div>
             
-            <!-- PayPal Button Container -->
-            <div id="paypal-button-container" class="mt-4"></div>
-            
-            <!-- Alternative payment option as fallback -->
-            <div id="payment-fallback" style="display:none; margin-top:20px;">
-                <p>PayPal payment option is currently unavailable.</p>
-                <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">Proceed Without PayPal</a>
+            <!-- PayPal Button Container with loading indicator -->
+            <div class="payment-section">
+                <!-- PayPal loading indicator -->
+                <div id="paypal-loading" class="paypal-loader">
+                    <div class="paypal-loader-spinner"></div>
+                    <p class="loading-text">Loading payment options...</p>
+                </div>
+                
+                <!-- PayPal buttons -->
+                <div id="paypal-button-container" style="display:none;" class="mt-4"></div>
+                
+                <!-- Alternative payment option as fallback -->
+                <div id="payment-fallback" style="display:none;">
+                    <p>PayPal payment option is currently unavailable.</p>
+                    <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">Proceed Without PayPal</a>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Debug info -->
-<script>
-    console.log("Client ID:", "{{ paypal_client_id }}");
-    console.log("Client ID length:", "{{ paypal_client_id }}".length);
-</script>
-
-<!-- PayPal JavaScript SDK -->
-<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD&debug=true"></script>
+<!-- PayPal JavaScript SDK - Load earlier -->
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD&components=buttons,funding-eligibility"></script>
 
 <script>
-    // Check if PayPal SDK loaded after a delay
-    setTimeout(function() {
-        if (typeof paypal === 'undefined') {
-            console.error("PayPal SDK failed to load");
-            document.getElementById('payment-fallback').style.display = 'block';
-        } else {
-            console.log("PayPal SDK loaded successfully");
-            
-            // Initialize PayPal buttons
-            paypal.Buttons({
-                // Set up the transaction
-                createOrder: function(data, actions) {
-                    return actions.order.create({
-                        purchase_units: [{
-                            amount: {
-                                value: '{{ product.price }}'
-                            }
-                        }]
-                    });
-                },
+    // Initialize PayPal buttons with better error handling
+    window.addEventListener('load', function() {
+        // Hide loading indicator after a short delay
+        setTimeout(function() {
+            // Check if PayPal SDK loaded
+            if (typeof paypal === 'undefined') {
+                console.error("PayPal SDK failed to load");
+                document.getElementById('paypal-loading').style.display = 'none';
+                document.getElementById('payment-fallback').style.display = 'block';
+            } else {
+                console.log("PayPal SDK loaded successfully");
+                document.getElementById('paypal-loading').style.display = 'none';
+                document.getElementById('paypal-button-container').style.display = 'block';
                 
-                // Finalize the transaction
-                onApprove: function(data, actions) {
-                    return actions.order.capture().then(function(orderData) {
-                        // Redirect to success page with payment ID and product ID
-                        window.location.href = "{% url 'STORE:payment_success' %}?paymentId=" + 
-                            orderData.id + "&product_id={{ product.id }}";
-                    });
-                },
-                
-                // Handle errors
-                onError: function(err) {
-                    console.error('PayPal error:', err);
-                    alert('There was an error processing your payment. Please try again.');
-                    document.getElementById('payment-fallback').style.display = 'block';
-                },
-                
-                // Handle cancellation
-                onCancel: function() {
-                    window.location.href = "{% url 'STORE:payment_cancel' %}";
-                }
-            }).render('#paypal-button-container');
-        }
-    }, 2000);
+                // Initialize PayPal buttons with customized styling
+                paypal.Buttons({
+                    // Set up the transaction
+                    createOrder: function(data, actions) {
+                        return actions.order.create({
+                            purchase_units: [{
+                                amount: {
+                                    value: '{{ product.price }}'
+                                }
+                            }]
+                        });
+                    },
+                    
+                    // Finalize the transaction
+                    onApprove: function(data, actions) {
+                        // Show processing message
+                        document.getElementById('paypal-button-container').innerHTML = '<div class="processing-payment">Processing your payment...</div>';
+                        
+                        return actions.order.capture().then(function(orderData) {
+                            // Redirect to success page with payment ID and product ID
+                            window.location.href = "{% url 'STORE:payment_success' %}?paymentId=" + 
+                                orderData.id + "&product_id={{ product.id }}";
+                        });
+                    },
+                    
+                    // Handle errors
+                    onError: function(err) {
+                        console.error('PayPal error:', err);
+                        alert('There was an error processing your payment. Please try again.');
+                        document.getElementById('payment-fallback').style.display = 'block';
+                    },
+                    
+                    // Handle cancellation
+                    onCancel: function() {
+                        window.location.href = "{% url 'STORE:payment_cancel' %}";
+                    },
+                    
+                    // Custom button styling
+                    style: {
+                        layout: 'vertical',
+                        color: 'blue',
+                        shape: 'rect',
+                        label: 'paypal',
+                        height: 45
+                    }
+                }).render('#paypal-button-container');
+            }
+        }, 1000); // Reduced timeout for better UX
+    });
 </script>
 {% endblock %}
