@@ -53,6 +53,9 @@
                 </div>
             </div>
         </div>
+        
+        <!-- PayPal popup container helper -->
+        <div id="paypal-popup-overlay" class="paypal-popup-overlay"></div>
     </div>
 </div>
 
@@ -74,8 +77,8 @@
                 document.getElementById('paypal-loading').style.display = 'none';
                 document.getElementById('paypal-button-container').style.display = 'block';
                 
-                // Initialize PayPal buttons with customized styling
-                paypal.Buttons({
+                // Initialize PayPal buttons with enhanced styling and integration
+                paypalCheckout.Buttons({
                     // Set up the transaction
                     createOrder: function(data, actions) {
                         return actions.order.create({
@@ -117,8 +120,9 @@
                         color: 'blue',
                         shape: 'rect',
                         label: 'paypal',
-                        height: 45
-                    }
+                        height: 55
+                    },
+                    fundingSource: undefined
                 }).render('#paypal-button-container');
             }
         }, 1000); // Reduced timeout for better UX

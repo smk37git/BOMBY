@@ -79,31 +79,43 @@
     line-height: 1.6;
 }
 
+.product-description h2 {
+    color: white;
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+}
+
 /* Purchase section */
 .product-purchase {
     margin-top: auto;
     padding-top: 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 2rem;
 }
 
 .price-section {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 150px;
 }
 
 .price-label {
     font-size: 1.25rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
 }
 
 .price-value {
     font-size: 2.5rem;
     font-weight: bold;
     color: white;
+    margin-top: 0.5rem;
 }
 
 .purchase-btn {
@@ -129,20 +141,39 @@
 
 /* Payment section */
 .payment-section {
-    width: 100%;
-    margin-top: 20px;
+    flex: 1;
+    min-width: 300px;
+    margin-top: 0;
+    position: relative;
 }
 
 /* PayPal specific styles */
 #paypal-button-container {
     width: 100%;
-    min-height: 150px;
+    min-height: 180px;
+    position: relative;
+    z-index: 1;
 }
 
-/* PayPal button adjustments for iframe content */
+/* PayPal button adjustments */
+#paypal-button-container .paypal-button {
+    margin-bottom: 12px !important;
+}
+
+/* Override PayPal iframe styles */
 #paypal-button-container iframe {
-    min-height: 45px !important;
-    margin-bottom: 10px !important;
+    min-height: 55px !important;
+    z-index: 1 !important;
+}
+
+/* Specifically target the credit/debit card button */
+.paypal-button-card {
+    background-color: #1a1a1a !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.paypal-button-card .paypal-button-text {
+    color: white !important;
 }
 
 /* Loader for PayPal buttons */
@@ -151,7 +182,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    height: 100px;
+    height: 180px;
     width: 100%;
 }
 
@@ -166,8 +197,8 @@
 }
 
 .loading-text {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 14px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 16px;
 }
 
 @keyframes spin {
@@ -183,13 +214,14 @@
     border-radius: 8px;
     background-color: rgba(0, 112, 186, 0.2);
     border: 1px solid rgba(0, 112, 186, 0.5);
+    font-size: 1rem;
 }
 
 /* Fallback payment styles */
 #payment-fallback {
     width: 100%;
     margin-top: 10px;
-    padding: 15px;
+    padding: 20px;
     border-radius: 8px;
     background-color: rgba(255, 255, 255, 0.05);
     text-align: center;
@@ -197,13 +229,38 @@
 
 #payment-fallback p {
     margin-bottom: 15px;
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
 }
 
 /* Fix for PayPal popup */
-.paypal-button {
-    z-index: 1;
-    margin-bottom: 10px !important;
+.paypal-overlay {
+    background-color: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* PayPal popup fixes */
+.paypal-checkout-sandbox, 
+.paypal-checkout-iframe-container {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: 450px !important;
+    width: 100% !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Override PayPal's default text colors to ensure visibility */
+.paypal-button-label-container * {
+    color: white !important;
+}
+
+.paypal-button-card .paypal-button-text,
+.paypal-button-card .paypal-button-card-text {
+    color: white !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
 }
 
 /* Responsive adjustments */
@@ -212,12 +269,25 @@
         font-size: 2rem;
     }
     
-    .price-value {
-        font-size: 2rem;
+    .product-purchase {
+        flex-direction: column;
     }
     
-    .purchase-btn {
+    .price-section {
         width: 100%;
-        text-align: center;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .price-value {
+        font-size: 2rem;
+        margin-top: 0;
+    }
+    
+    .payment-section {
+        width: 100%;
     }
 }
