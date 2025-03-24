@@ -35,8 +35,14 @@
                 <div class="price-value">${{ product.price }}</div>
             </div>
             
+            <!-- PayPal Loading Indicator -->
+            <div id="paypal-loading" class="paypal-loader">
+                <div class="paypal-loader-spinner"></div>
+                <p class="loading-text">Loading payment options...</p>
+            </div>
+            
             <!-- PayPal Button Container -->
-            <div id="paypal-button-container" class="mt-4"></div>
+            <div id="paypal-button-container" class="mt-4" style="display:none;"></div>
             
             <!-- Alternative payment option as fallback -->
             <div id="payment-fallback" style="display:none; margin-top:20px;">
@@ -48,7 +54,7 @@
 </div>
 
 <!-- PayPal JavaScript SDK -->
-<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD&debug=true"></script>
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD&debug=true&disable-funding=paylater"></script>
 
 <script>
     // Check if PayPal SDK loaded after a delay
@@ -58,6 +64,10 @@
             document.getElementById('payment-fallback').style.display = 'block';
         } else {
             console.log("PayPal SDK loaded successfully");
+            
+            // Hide loader and show buttons
+            document.getElementById('paypal-loading').style.display = 'none';
+            document.getElementById('paypal-button-container').style.display = 'block';
             
             // Initialize PayPal buttons
             paypal.Buttons({
@@ -98,7 +108,8 @@
                     layout: 'vertical',
                     color: 'blue',
                     shape: 'rect',
-                    label: 'paypal'
+                    label: 'paypal',
+                    height: 50
                 }
             }).render('#paypal-button-container');
         }
