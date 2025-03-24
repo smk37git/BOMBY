@@ -221,7 +221,8 @@ CSP_STYLE_SRC = (
     "'unsafe-inline'",
     "https://cdnjs.cloudflare.com",
     "https://*.paypal.com", 
-    "https://*.paypalobjects.com"
+    "https://*.paypalobjects.com",
+    "https://unpkg.com" 
 )
 CSP_CONNECT_SRC = (
     "'self'",
@@ -251,5 +252,7 @@ CSP_FONT_SRC = (
     "'self'",
     "https://cdnjs.cloudflare.com",
     "https://*.paypal.com",
-    "https://*.paypalobjects.com"
+    "https://*.paypalobjects.com",
+     "https://fonts.gstatic.com",
+    "data:"
 )
