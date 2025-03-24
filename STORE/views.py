@@ -137,21 +137,15 @@ def get_all_reviews():
 # Orders
 @login_required
 def purchase_product(request, product_id):
+    """Handle product purchase by redirecting to payment page"""
     product = get_object_or_404(Product, id=product_id, is_active=True)
     
-    # Create order
-    order = Order.objects.create(
-        user=request.user,
-        product=product,
-        status='pending'
-    )
-    
-    # Update user role to client
+    # Don't create the order yet - that happens after successful payment
+    # Update user role if needed
     if not request.user.is_client:
         request.user.promote_to_client()
     
-    # Redirect to form questions page
-    messages.success(request, f"Order created successfully! Please fill out the required information.")
+    # Redirect to payment page
     return redirect('STORE:payment_page', product_id=product_id)
 
 @login_required
@@ -172,6 +166,12 @@ def order_form(request, order_id):
             # Update order status
             order.status = 'in_progress'
             order.save()
+            
+            # Send in-progress email
+            try:
+                send_in_progress_order_email(request, order)
+            except Exception as e:
+                print(f"Error sending in-progress email: {e}")
             
             messages.success(request, "Thank you for your information! Your order is now in progress.")
             return redirect('STORE:order_details', order_id=order.id)
@@ -248,6 +248,12 @@ def mark_completed(request, order_id):
     order.status = 'completed'
     order.save()
     
+    # Send completed order email
+    try:
+        send_completed_order_email(request, order)
+    except Exception as e:
+        print(f"Error sending completed order email: {e}")
+    
     messages.success(request, "Order has been marked as completed!")
     return redirect('STORE:order_details', order_id=order.id)
 
@@ -289,130 +295,6 @@ def my_orders(request):
     
     return render(request, 'STORE/my_orders.html', {'orders': orders})
 
-# Email Views
-@login_required
-def purchase_product(request, product_id):
-    product = get_object_or_404(Product, id=product_id, is_active=True)
-    
-    # Create order
-    order = Order.objects.create(
-        user=request.user,
-        product=product,
-        status='pending'
-    )
-    
-    # Update user role to client
-    if not request.user.is_client:
-        request.user.promote_to_client()
-    
-    # Send order confirmation email
-    try:
-        send_pending_order_email(request, order)
-    except Exception as e:
-        print(f"Error sending pending order email: {e}")  # Log the error but don't break the flow
-    
-    # Redirect to form questions page
-    messages.success(request, f"Order created successfully! Please fill out the required information.")
-    return redirect('STORE:order_form', order_id=order.id)
-
-# Update order_form function to send email when status changes to in_progress
-@login_required
-def order_form(request, order_id):
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    
-    # Check if form already exists
-    if hasattr(order, 'form'):
-        return redirect('STORE:order_details', order_id=order.id)
-    
-    if request.method == 'POST':
-        form = OrderQuestionsForm(request.POST)
-        if form.is_valid():
-            order_form = form.save(commit=False)
-            order_form.order = order
-            order_form.save()
-            
-            # Update order status
-            order.status = 'in_progress'
-            order.save()
-            
-            # Send in-progress email
-            try:
-                send_in_progress_order_email(request, order)
-            except Exception as e:
-                print(f"Error sending in-progress email: {e}")
-            
-            messages.success(request, "Thank you for your information! Your order is now in progress.")
-            return redirect('STORE:order_details', order_id=order.id)
-    else:
-        form = OrderQuestionsForm()
-    
-    return render(request, 'STORE/order_form.html', {'form': form, 'order': order})
-
-# Update mark_completed function to send email
-@login_required
-def mark_completed(request, order_id):
-    if not request.user.is_staff:
-        return HttpResponseForbidden("Only staff can complete orders")
-    
-    order = get_object_or_404(Order, id=order_id)
-    order.status = 'completed'
-    order.save()
-    
-    # Send completed order email
-    try:
-        send_completed_order_email(request, order)
-    except Exception as e:
-        print(f"Error sending completed order email: {e}")
-    
-    messages.success(request, "Order has been marked as completed!")
-    return redirect('STORE:order_details', order_id=order.id)
-
-# Update admin_change_order_status to send emails when appropriate
-@require_POST
-@login_required
-@user_passes_test(lambda u: u.is_staff)
-def admin_change_order_status(request):
-    """Change status for selected orders"""
-    selected_orders = request.POST.get('selected_orders', '')
-    new_status = request.POST.get('status')
-    
-    if selected_orders and new_status in dict(Order.STATUS_CHOICES):
-        order_ids = [int(id) for id in selected_orders.split(',')]
-        
-        # Update all selected orders
-        updated_count = 0
-        for order_id in order_ids:
-            try:
-                order = Order.objects.get(id=order_id)
-                old_status = order.status
-                order.status = new_status
-                order.save()
-                updated_count += 1
-                
-                # Send appropriate emails based on status change
-                if old_status != new_status:
-                    if new_status == 'in_progress':
-                        try:
-                            send_in_progress_order_email(request, order)
-                        except Exception as e:
-                            print(f"Error sending in-progress email: {e}")
-                    elif new_status == 'completed':
-                        try:
-                            send_completed_order_email(request, order)
-                        except Exception as e:
-                            print(f"Error sending completed email: {e}")
-                    
-            except Order.DoesNotExist:
-                continue
-        
-        messages.success(
-            request, 
-            f"{updated_count} order{'s' if updated_count > 1 else ''} updated to {dict(Order.STATUS_CHOICES)[new_status]}."
-        )
-    
-    return redirect('STORE:order_management')
-
-# Stream Store Views
 # Stream Store Views
 def user_can_access_stream_store(user):
     """Check if user can access stream store"""
@@ -1244,9 +1126,23 @@ def admin_change_order_status(request):
         for order_id in order_ids:
             try:
                 order = Order.objects.get(id=order_id)
+                old_status = order.status
                 order.status = new_status
                 order.save()
                 updated_count += 1
+                
+                # Send appropriate emails based on status change
+                if old_status != new_status:
+                    if new_status == 'in_progress':
+                        try:
+                            send_in_progress_order_email(request, order)
+                        except Exception as e:
+                            print(f"Error sending in-progress email: {e}")
+                    elif new_status == 'completed':
+                        try:
+                            send_completed_order_email(request, order)
+                        except Exception as e:
+                            print(f"Error sending completed email: {e}")
             except Order.DoesNotExist:
                 continue
         
@@ -1497,6 +1393,12 @@ def payment_success(request):
     # Update user role to client
     if not request.user.is_client:
         request.user.promote_to_client()
+    
+    # Send order confirmation email
+    try:
+        send_pending_order_email(request, order)
+    except Exception as e:
+        print(f"Error sending pending order email: {e}")
     
     messages.success(request, "Payment successful! Please fill out the required information.")
     return redirect('STORE:order_form', order_id=order.id)
