@@ -202,3 +202,54 @@ if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
 # Payment Details
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'YOUR_SANDBOX_CLIENT_ID')
 PAYPAL_SECRET = os.environ.get('PAYPAL_SECRET', 'YOUR_SANDBOX_SECRET')
+
+# Allow PayPal popups to work properly
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
+
+# Comprehensive CSP that allows PayPal integration
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = (
+    "'self'", 
+    "'unsafe-inline'", 
+    "'unsafe-eval'",
+    "https://*.paypal.com", 
+    "https://*.paypalobjects.com",
+    "https://*.google.com"
+)
+CSP_STYLE_SRC = (
+    "'self'", 
+    "'unsafe-inline'",
+    "https://cdnjs.cloudflare.com",
+    "https://*.paypal.com", 
+    "https://*.paypalobjects.com"
+)
+CSP_CONNECT_SRC = (
+    "'self'",
+    "https://*.paypal.com",
+    "https://*.paypal.cn",
+    "https://*.paypalobjects.com",
+    "https://objects.paypal.cn",
+    "https://192.55.233.1",
+    "https://*.google.com",
+    "https://www.google.com",
+    "https://browser-intake-us5-datadoghq.com",
+    "https://*.qualtrics.com"
+)
+CSP_FRAME_SRC = (
+    "'self'",
+    "https://*.paypal.com",
+    "https://*.google.com"
+)
+CSP_IMG_SRC = (
+    "'self'",
+    "data:",
+    "https://*.paypal.com",
+    "https://*.paypalobjects.com",
+    "https://*.google.com"
+)
+CSP_FONT_SRC = (
+    "'self'",
+    "https://cdnjs.cloudflare.com",
+    "https://*.paypal.com",
+    "https://*.paypalobjects.com"
+)

@@ -1373,8 +1373,17 @@ def payment_page(request, product_id):
     }
     
     response = render(request, 'STORE/payment_page.html', context)
-    # Set CSP header directly in view (this will override any in-page CSP)
-    response['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.paypal.com https://*.paypalobjects.com; connect-src 'self' https://*.paypal.com https://*.paypal.cn https://*.paypalobjects.com https://objects.paypal.cn https://192.55.233.1 https://*.google.com https://www.google.com https://browser-intake-us5-datadoghq.com https://*.qualtrics.com; frame-src 'self' https://*.paypal.com; img-src 'self' data: https://*.paypal.com https://*.paypalobjects.com;"
+    
+    # Comprehensive CSP that addresses all the error types
+    response['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.paypal.com https://*.paypalobjects.com https://*.google.com; "
+        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://*.paypal.com https://*.paypalobjects.com; "
+        "connect-src 'self' https://*.paypal.com https://*.paypal.cn https://*.paypalobjects.com https://objects.paypal.cn "
+        "https://192.55.233.1 https://*.google.com https://www.google.com https://browser-intake-us5-datadoghq.com https://*.qualtrics.com; "
+        "frame-src 'self' https://*.paypal.com https://*.google.com; "
+        "img-src 'self' data: https://*.paypal.com https://*.paypalobjects.com https://*.google.com;"
+    )
     
     # Add cache control headers
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
