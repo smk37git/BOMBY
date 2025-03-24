@@ -147,42 +147,17 @@
     min-width: 300px;
 }
 
-/* Critical fixes for PayPal credit/debit card text visibility */
-.paypal-button-card {
-    background-color: #2c2e2f !important;
-}
-
-.paypal-button-card .paypal-button-text {
+/* PayPal button text color fixes for dark background */
+.paypal-button.paypal-button-card .paypal-button-text,
+.paypal-button.paypal-button-card .paypal-button-card-text {
     color: white !important;
     font-weight: bold !important;
     text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
-}
-
-.paypal-button-card .paypal-button-card-text {
-    color: white !important;
-    font-weight: bold !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
-}
-
-/* Special style for PayPal text */
-.paypal-button-text {
-    font-weight: bold !important;
 }
 
 /* PayPal debit/credit card button specific fix */
 .paypal-button-tagline {
     color: white !important;
-}
-
-/* Processing payment indicator */
-.processing-payment {
-    text-align: center;
-    color: white;
-    padding: 15px;
-    border-radius: 8px;
-    background-color: rgba(0, 112, 186, 0.2);
-    border: 1px solid rgba(0, 112, 186, 0.5);
-    font-size: 1rem;
 }
 
 /* Loading indicator styles */
@@ -228,12 +203,6 @@
     margin-bottom: 15px;
     color: rgba(255, 255, 255, 0.9);
     font-size: 1rem;
-}
-
-/* PayPal popup fixes */
-.paypal-popup {
-    border-radius: 12px !important;
-    overflow: hidden !important;
 }
 
 /* Responsive adjustments */

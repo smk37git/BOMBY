@@ -4,8 +4,8 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/payment.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <!-- Meta tag to allow PayPal popups -->
-    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; frame-src *;">
+    <!-- Comprehensive CSP that allows PayPal popups to function properly -->
+    <meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval'; img-src * data:; frame-src *; connect-src *;">
 {% endblock %}
 
 {% block background %}
@@ -55,7 +55,7 @@
     </div>
 </div>
 
-<!-- PayPal JavaScript SDK with popup parameters -->
+<!-- PayPal JavaScript SDK -->
 <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
 
 <script>
@@ -104,6 +104,13 @@
                 // Handle cancellation
                 onCancel: function() {
                     window.location.href = "{% url 'STORE:payment_cancel' %}";
+                },
+                
+                style: {
+                    layout: 'vertical',
+                    color: 'blue',
+                    shape: 'rect',
+                    label: 'paypal'
                 }
             }).render('#paypal-button-container');
         }
