@@ -35,45 +35,42 @@
                 <div class="price-value">${{ product.price }}</div>
             </div>
             
-            <!-- Simple payment buttons approach -->
-            <div class="payment-buttons">
-                <!-- PayPal Button -->
-                <a href="#" id="paypal-button" class="payment-btn paypal-btn">
-                    <i class="fab fa-paypal"></i> Pay with PayPal
-                </a>
-                
-                <!-- Credit Card Button -->
-                <a href="#" id="card-button" class="payment-btn card-btn">
-                    <i class="fas fa-credit-card"></i> Pay with Card
-                </a>
+            <!-- PayPal Loading Indicator -->
+            <div id="paypal-loading" class="paypal-loader">
+                <div class="paypal-loader-spinner"></div>
+                <p class="loading-text">Loading payment options...</p>
             </div>
             
-            <!-- PayPal container (hidden initially) -->
-            <div id="paypal-container" style="display:none;">
-                <div id="paypal-button-container"></div>
+            <!-- PayPal Button Container -->
+            <div id="paypal-button-container" style="display:none;"></div>
+            
+            <!-- Alternative payment option as fallback -->
+            <div id="payment-fallback" style="display:none; margin-top:20px;">
+                <p>PayPal payment option is currently unavailable.</p>
+                <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">Proceed Without PayPal</a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- PayPal JavaScript SDK (loaded but not initialized until button click) -->
-<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD" data-csp-nonce="xyz"></script>
+<!-- PayPal JavaScript SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
 
 <script>
-    // Get references to elements
-    const paypalButton = document.getElementById('paypal-button');
-    const cardButton = document.getElementById('card-button');
-    const paypalContainer = document.getElementById('paypal-container');
-    
-    // PayPal button click handler
-    paypalButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        
-        // Toggle PayPal container
-        if (paypalContainer.style.display === 'none') {
-            paypalContainer.style.display = 'block';
+    // Check if PayPal SDK loaded after a delay
+    setTimeout(function() {
+        if (typeof paypal === 'undefined') {
+            console.error("PayPal SDK failed to load");
+            document.getElementById('paypal-loading').style.display = 'none';
+            document.getElementById('payment-fallback').style.display = 'block';
+        } else {
+            console.log("PayPal SDK loaded successfully");
             
-            // Initialize PayPal buttons only when needed
+            // Hide loader and show buttons
+            document.getElementById('paypal-loading').style.display = 'none';
+            document.getElementById('paypal-button-container').style.display = 'block';
+            
+            // Initialize PayPal buttons
             paypal.Buttons({
                 // Set up the transaction
                 createOrder: function(data, actions) {
@@ -99,22 +96,22 @@
                 onError: function(err) {
                     console.error('PayPal error:', err);
                     alert('There was an error processing your payment. Please try again.');
+                    document.getElementById('payment-fallback').style.display = 'block';
                 },
                 
                 // Handle cancellation
                 onCancel: function() {
                     window.location.href = "{% url 'STORE:payment_cancel' %}";
+                },
+                
+                style: {
+                    layout: 'vertical',
+                    color: 'blue',
+                    shape: 'rect',
+                    label: 'paypal'
                 }
             }).render('#paypal-button-container');
-        } else {
-            paypalContainer.style.display = 'none';
         }
-    });
-    
-    // Credit card button click handler
-    cardButton.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.location.href = "{% url 'STORE:purchase_product' product.id %}?method=card";
-    });
+    }, 2000);
 </script>
 {% endblock %}

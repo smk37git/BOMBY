@@ -118,64 +118,25 @@
     margin-top: 0.5rem;
 }
 
-/* Payment buttons */
-.payment-buttons {
-    flex: 1;
-    min-width: 300px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.payment-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 15px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
+.purchase-btn {
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
     text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
     transition: all 0.3s ease;
-}
-
-.payment-btn i {
-    margin-right: 10px;
-    font-size: 18px;
-}
-
-.paypal-btn {
-    background-color: #0070ba;
-    color: white;
-    border: none;
-}
-
-.paypal-btn:hover {
-    background-color: #005ea6;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.card-btn {
-    background-color: #333333;
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.card-btn:hover {
-    background-color: #444444;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* PayPal container */
-#paypal-container {
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     width: 100%;
-    margin-top: 20px;
+    text-align: center;
 }
 
-#paypal-button-container {
-    min-height: 200px;
+.purchase-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
 }
 
 /* PayPal specific styles */
@@ -186,16 +147,22 @@
     min-width: 300px;
 }
 
-/* Fix PayPal credit/debit button text */
-#paypal-button-container iframe {
-    color-scheme: light;
+/* Important PayPal iframe text color fixes */
+.paypal-button-text {
+    color: white !important;
+    font-weight: bold !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
 }
 
-/* Override PayPal button text for better visibility */
-.paypal-button.paypal-button-card .paypal-button-text,
-.paypal-button.paypal-button-card .paypal-button-card-text {
+.paypal-button-card-text {
     color: white !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.8) !important;
+    font-weight: bold !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+}
+
+/* PayPal debit/credit card button specific fix */
+.paypal-button-tagline {
+    color: white !important;
 }
 
 /* Loading indicator styles */
