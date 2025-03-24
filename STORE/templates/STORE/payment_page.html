@@ -35,83 +35,27 @@
                 <div class="price-value">${{ product.price }}</div>
             </div>
             
-            <!-- PayPal Loading Indicator -->
-            <div id="paypal-loading" class="paypal-loader">
-                <div class="paypal-loader-spinner"></div>
-                <p class="loading-text">Loading payment options...</p>
-            </div>
+            <!-- Simple direct PayPal form -->
+            <form action="https://www.sandbox.paypal.com/cgi-bin/webscr" method="post" class="paypal-form">
+                <input type="hidden" name="cmd" value="_xclick">
+                <input type="hidden" name="business" value="{{ paypal_client_id }}">
+                <input type="hidden" name="item_name" value="{{ product.name }}">
+                <input type="hidden" name="amount" value="{{ product.price }}">
+                <input type="hidden" name="currency_code" value="USD">
+                <input type="hidden" name="return" value="{% url 'STORE:payment_success' %}?product_id={{ product.id }}">
+                <input type="hidden" name="cancel_return" value="{% url 'STORE:payment_cancel' %}">
+                
+                <!-- PayPal button -->
+                <button type="submit" class="payment-btn paypal-btn">
+                    <i class="fab fa-paypal"></i> Pay with PayPal
+                </button>
+            </form>
             
-            <!-- PayPal Button Container -->
-            <div id="paypal-button-container" style="display:none;"></div>
-            
-            <!-- Alternative payment option as fallback -->
-            <div id="payment-fallback" style="display:none; margin-top:20px;">
-                <p>PayPal payment option is currently unavailable.</p>
-                <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">Proceed Without PayPal</a>
-            </div>
+            <!-- Direct card payment option -->
+            <a href="{% url 'STORE:purchase_product' product.id %}?method=card" class="payment-btn card-btn">
+                <i class="fas fa-credit-card"></i> Pay with Card
+            </a>
         </div>
     </div>
 </div>
-
-<!-- PayPal JavaScript SDK -->
-<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
-
-<script>
-    // Check if PayPal SDK loaded after a delay
-    setTimeout(function() {
-        if (typeof paypal === 'undefined') {
-            console.error("PayPal SDK failed to load");
-            document.getElementById('paypal-loading').style.display = 'none';
-            document.getElementById('payment-fallback').style.display = 'block';
-        } else {
-            console.log("PayPal SDK loaded successfully");
-            
-            // Hide loader and show buttons
-            document.getElementById('paypal-loading').style.display = 'none';
-            document.getElementById('paypal-button-container').style.display = 'block';
-            
-            // Initialize PayPal buttons
-            paypal.Buttons({
-                // Set up the transaction
-                createOrder: function(data, actions) {
-                    return actions.order.create({
-                        purchase_units: [{
-                            amount: {
-                                value: '{{ product.price }}'
-                            }
-                        }]
-                    });
-                },
-                
-                // Finalize the transaction
-                onApprove: function(data, actions) {
-                    return actions.order.capture().then(function(orderData) {
-                        // Redirect to success page with payment ID and product ID
-                        window.location.href = "{% url 'STORE:payment_success' %}?paymentId=" + 
-                            orderData.id + "&product_id={{ product.id }}";
-                    });
-                },
-                
-                // Handle errors
-                onError: function(err) {
-                    console.error('PayPal error:', err);
-                    alert('There was an error processing your payment. Please try again.');
-                    document.getElementById('payment-fallback').style.display = 'block';
-                },
-                
-                // Handle cancellation
-                onCancel: function() {
-                    window.location.href = "{% url 'STORE:payment_cancel' %}";
-                },
-                
-                style: {
-                    layout: 'vertical',
-                    color: 'blue',
-                    shape: 'rect',
-                    label: 'paypal'
-                }
-            }).render('#paypal-button-container');
-        }
-    }, 2000);
-</script>
 {% endblock %}

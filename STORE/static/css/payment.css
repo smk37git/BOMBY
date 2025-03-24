@@ -118,25 +118,49 @@
     margin-top: 0.5rem;
 }
 
-.purchase-btn {
-    display: inline-block;
-    padding: 0.8rem 2rem;
-    background: linear-gradient(45deg, #9e33e6, #505ed7);
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+.payment-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 100%;
-    text-align: center;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
 }
 
-.purchase-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
+.payment-btn i {
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+.paypal-btn {
+    background-color: #0070ba;
+    color: white;
+    border: none;
+}
+
+.paypal-btn:hover {
+    background-color: #005ea6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.card-btn {
+    background-color: #333333;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-btn:hover {
+    background-color: #444444;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 /* PayPal specific styles */
