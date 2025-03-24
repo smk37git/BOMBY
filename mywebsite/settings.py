@@ -222,7 +222,8 @@ CSP_STYLE_SRC = (
     "https://cdnjs.cloudflare.com",
     "https://*.paypal.com", 
     "https://*.paypalobjects.com",
-    "https://unpkg.com" 
+    "https://unpkg.com",
+    "https://maxcdn.bootstrapcdn.com"
 )
 CSP_CONNECT_SRC = (
     "'self'",
@@ -250,9 +251,11 @@ CSP_IMG_SRC = (
 )
 CSP_FONT_SRC = (
     "'self'",
+    "data:",
     "https://cdnjs.cloudflare.com",
     "https://*.paypal.com",
     "https://*.paypalobjects.com",
-     "https://fonts.gstatic.com",
-    "data:"
+    "https://fonts.gstatic.com",
+    "https://unpkg.com",
+    "https://maxcdn.bootstrapcdn.com"
 )

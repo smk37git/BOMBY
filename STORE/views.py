@@ -1378,7 +1378,8 @@ def payment_page(request, product_id):
     response['Content-Security-Policy'] = (
         "default-src 'self'; "
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.paypal.com https://*.paypalobjects.com https://*.google.com; "
-        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://*.paypal.com https://*.paypalobjects.com; "
+        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://*.paypal.com https://*.paypalobjects.com https://unpkg.com https://maxcdn.bootstrapcdn.com; "
+        "font-src 'self' data: https://cdnjs.cloudflare.com https://*.paypal.com https://*.paypalobjects.com https://fonts.gstatic.com https://unpkg.com https://maxcdn.bootstrapcdn.com; "
         "connect-src 'self' https://*.paypal.com https://*.paypal.cn https://*.paypalobjects.com https://objects.paypal.cn "
         "https://192.55.233.1 https://*.google.com https://www.google.com https://browser-intake-us5-datadoghq.com https://*.qualtrics.com; "
         "frame-src 'self' https://*.paypal.com https://*.google.com; "
@@ -1391,7 +1392,6 @@ def payment_page(request, product_id):
     response['Expires'] = '0'
     
     return response
-
 @login_required
 def payment_success(request):
     # Get data from PayPal
