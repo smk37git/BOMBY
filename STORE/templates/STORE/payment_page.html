@@ -35,11 +35,71 @@
                 <div class="price-value">${{ product.price }}</div>
             </div>
             
-            <!-- Skip PayPal integration for now and use direct link -->
-            <div style="margin-top: 20px;">
-                <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">Complete Purchase</a>
+            <!-- PayPal Button Container -->
+            <div id="paypal-button-container" class="mt-4"></div>
+            
+            <!-- Alternative payment option as fallback -->
+            <div id="payment-fallback" style="display:none; margin-top:20px;">
+                <p>PayPal payment option is currently unavailable.</p>
+                <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">Proceed Without PayPal</a>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Debug info -->
+<script>
+    console.log("Client ID:", "{{ paypal_client_id }}");
+    console.log("Client ID length:", "{{ paypal_client_id }}".length);
+</script>
+
+<!-- PayPal JavaScript SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD&debug=true"></script>
+
+<script>
+    // Check if PayPal SDK loaded after a delay
+    setTimeout(function() {
+        if (typeof paypal === 'undefined') {
+            console.error("PayPal SDK failed to load");
+            document.getElementById('payment-fallback').style.display = 'block';
+        } else {
+            console.log("PayPal SDK loaded successfully");
+            
+            // Initialize PayPal buttons
+            paypal.Buttons({
+                // Set up the transaction
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: '{{ product.price }}'
+                            }
+                        }]
+                    });
+                },
+                
+                // Finalize the transaction
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(orderData) {
+                        // Redirect to success page with payment ID and product ID
+                        window.location.href = "{% url 'STORE:payment_success' %}?paymentId=" + 
+                            orderData.id + "&product_id={{ product.id }}";
+                    });
+                },
+                
+                // Handle errors
+                onError: function(err) {
+                    console.error('PayPal error:', err);
+                    alert('There was an error processing your payment. Please try again.');
+                    document.getElementById('payment-fallback').style.display = 'block';
+                },
+                
+                // Handle cancellation
+                onCancel: function() {
+                    window.location.href = "{% url 'STORE:payment_cancel' %}";
+                }
+            }).render('#paypal-button-container');
+        }
+    }, 2000);
+</script>
 {% endblock %}
