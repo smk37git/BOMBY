@@ -616,6 +616,10 @@
     margin-bottom: 1.5rem;
 }
 
+.form-group .form-label {
+    margin-bottom: 12px;
+}
+
 .order-main .form-label {
     margin-bottom: 0.5rem;
     display: block;
@@ -953,74 +957,1116 @@ textarea[name="comment"]:focus {
     box-shadow: 0 5px 15px rgba(120, 90, 255, 0.4);
 }
 
-/* Responsive Styles */
-@media (max-width: 992px) {
-    .orders-container {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
-    
-    .order-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .order-sidebar {
-        order: -1;
-    }
+/* New styles for improved form elements */
+.speed-inputs {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px 15px;
 }
 
-@media (max-width: 768px) {
-    .orders-container {
-        grid-template-columns: 1fr;
-    }
-    
-    .message {
-        max-width: 90%;
-    }
-    
-    .message-actions {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: stretch;
-    }
-    
-    .file-upload-wrapper {
-        width: 100%;
-    }
-    
-    .send-button {
-        width: 100%;
-    }
+.speed-inputs label:first-child {
+    width: 85px;
+    text-align: right;
 }
 
-@media (max-width: 576px) {
-    .order-header h1, 
-    .orders-header h1, 
-    .form-header h1 {
-        font-size: 2rem;
-    }
-    
-    .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-    
-    .order-badge {
-        align-self: flex-start;
-    }
+.speed-inputs label {
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
 
-    .message-form {
-        width: 100%;
-    }
+.speed-inputs input {
+    width: 120px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: white;
+    font-size: 16px;
+    margin: 0 10px;
+}
 
-    .message-input-container textarea {
-        padding: 0.75rem;
-        min-height: 80px;
-    }
-    
-    .file-upload-btn,
-    .send-button {
-        padding: 0.6rem 1rem;
-        font-size: 0.9rem;
-    }
+#username-field {
+    display: none;
+    margin-left: 32px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 12px 15px;
+    border-left: 3px solid #a991ff;
+    width: calc(100% - 50px);
+    box-sizing: border-box;
+}
+
+#username-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+}
+
+#username-field input {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: white;
+    box-sizing: border-box;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.radio-option:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.radio-option:last-child {
+    margin-bottom: 0;
+}
+
+.radio-option input[type="radio"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 12px !important;
+    height: 12px !important;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    margin-right: 10px;
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.radio-option input[type="radio"]:checked {
+    border-color: #a991ff;
+}
+
+.radio-option input[type="radio"]:checked:after {
+    content: "";
+    position: absolute;
+    width: 12px !important;
+    height: 12px !important;
+    background: #a991ff;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.radio-option label {
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+}/* General Order Styling */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Header Styling with Better Backgrounds */
+.order-header-wrapper, .orders-header-wrapper, .form-header-wrapper {
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem auto;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    max-width: fit-content;
+    min-width: auto;
+}
+
+.order-header, .orders-header, .form-header {
+    position: relative;
+    text-align: center;
+}
+
+.order-header h1, .orders-header h1, .form-header h1 {
+    font-size: 2.5rem;
+    color: #fff;
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.form-header p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+    margin-bottom: 0;
+}
+
+/* Order Card Styling */
+.order-card {
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 2rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.card-header {
+    background: linear-gradient(45deg, #1a1a1a, #191919);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h5 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.card-body {
+    padding: 1.5rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.card-footer {
+    background: rgba(20, 20, 20, 0.8);
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+.back-link {
+    display: inline-flex;
+    margin-right: 5px;
+    align-items: center;
+    color: white;
+    text-decoration: none;
+    padding: 0.6rem 1.2rem;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Order Status Badge */
+.order-badge {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 50px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.badge-warning {
+    background-color: rgba(255, 7, 7, 0.2);
+    color: #ff3f3f;
+    border: 1px solid #ff0707;
+}
+
+.badge-primary {
+    background-color: rgba(253, 221, 13, 0.2);
+    color: #ffc824;
+    border: 1px solid #ffc107;
+}
+
+.badge-success {
+    background-color: rgba(25, 135, 84, 0.2);
+    color: #33ffa0;
+    border: 1px solid #198754;
+}
+
+/* Order Info Display */
+.order-info {
+    display: grid;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    margin-bottom: 0.5rem;
+}
+
+.info-label {
+    min-width: 100px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.info-value {
+    color: #fff;
+}
+
+/* Order Details Layout - Fiverr-like grid system */
+.order-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr; /* Order details left, chat right (Fiverr style) */
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.order-main {
+    display: flex;
+    flex-direction: column;
+}
+
+.order-sidebar {
+    display: flex;
+    flex-direction: column;
+}
+
+.action-container {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+/* Chat/Message Styling - Fiverr-like design */
+.chat-container {
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    max-height: 700px;
+}
+
+.chat-header {
+    background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.chat-header h5 {
+    margin: 0;
+    color: #fff;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.messages-container {
+    height: 350px;
+    max-height: 350px;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: linear-gradient(180deg, #000000, #0d0d0d);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    scroll-behavior: smooth;
+}
+
+.messages-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 10px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+/* Explicitly override base.css message styling */
+#messages-container .message,
+#messages-container .message-mine,
+#messages-container .message-other,
+#messages-container .timeline-event,
+#messages-container .date-divider {
+    opacity: 1 !important;
+    transition: none !important;
+    animation: none !important;
+    visibility: visible !important;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+    border-radius: 12px;
+    position: relative;
+    display: block !important;
+    max-width: 80%;
+}
+
+/* Override base.css message class */
+.message-container .message {
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+#messages-container .message {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+    box-shadow: none;
+}
+
+#messages-container .message-mine {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    align-self: flex-end;
+    margin-left: auto;
+}
+
+#messages-container .message-other {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    align-self: flex-start;
+    margin-right: auto;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.message-user {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.username {
+    font-weight: 600;
+    color: white;
+    margin-right: 1.5rem;
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.message-time {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.message-body {
+    color: rgba(255, 255, 255, 0.9);
+    word-wrap: break-word;
+}
+
+.attachments {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.attachment-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.75rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.attachment-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+.no-messages {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.no-messages p {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1.1rem;
+}
+
+.no-messages i {
+    font-size: 2.5rem;
+    opacity: 0.5;
+}
+
+/* Fiverr-like timeline indicators */
+#messages-container .date-separator, 
+#messages-container .date-divider {
+    text-align: center;
+    position: relative;
+    margin: 15px 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+}
+
+#messages-container .date-separator::before, 
+#messages-container .date-divider:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+#messages-container .date-separator::after, 
+#messages-container .date-divider:after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.date-separator span {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0 15px;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    position: relative;
+    z-index: 2;
+}
+
+/* Timeline styles */
+#messages-container .timeline-item, 
+#messages-container .timeline-event {
+    display: flex;
+    margin-bottom: 15px;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    max-width: 100%;
+}
+
+.timeline-icon, .event-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 14px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.timeline-content, .event-content {
+    flex-grow: 1;
+}
+
+.timeline-time, .event-time {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.event-title {
+    margin: 10px auto;
+    font-weight: 600;
+    color: white;
+}
+
+/* Message Form */
+.chat-form {
+    padding: 1rem;
+    background-color: rgba(20, 20, 20, 0.6);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    bottom: 0;
+}
+
+.message-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.message-input-container {
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.message-input-container textarea {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    resize: none;
+    font-size: 0.95rem;
+    min-height: 100px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-sizing: border-box;
+    overflow: auto;
+    max-width: 100%;
+}
+
+.message-input-container textarea:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.message-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.file-upload-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.file-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.file-upload-btn:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+.file-input {
+    position: absolute;
+    width: 0.1px;
+    height: 0.1px;
+    opacity: 0;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.file-list {
+    display: none;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    max-width: 300px;
+}
+
+.file-list.has-files {
+    display: block;
+}
+
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.send-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.send-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(120, 90, 255, 0.4);
+}
+
+/* Orders List Styling */
+.orders-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.order-item {
+    transition: transform 0.3s ease;
+}
+
+.order-main .form-fields p {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 0;
+    color: white;
+    word-break: break-word;
+}
+
+.order-main .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group .form-label {
+    margin-bottom: 12px;
+}
+
+.order-main .form-label {
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+/* Improved view details button */
+.details-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+    width: 100%;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+    border: none;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.details-button i {
+    flex-shrink: 0;
+}
+
+.details-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(120, 90, 255, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+.no-orders {
+    grid-column: 1 / -1;
+}
+
+.empty-message {
+    text-align: center;
+    padding: 3rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.empty-message i {
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.empty-message p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+}
+
+.store-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.store-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(120, 90, 255, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+/* Order Form Styling - Fixed Button Problem */
+.order-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.order-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-height: 400px;
+    position: relative;
+    padding-bottom: 80px; /* Space for submit button */
+}
+
+.form-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    flex-grow: 1;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: white;
+}
+
+/* Shortened form links with hover-to-see-full-URL */
+.form-link {
+    color: #a991ff;
+    text-decoration: underline;
+    position: relative;
+    display: inline-block;
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: bottom;
+}
+
+.form-link:hover {
+    color: #c6b5ff;
+    text-decoration: underline;
+}
+
+.form-link:hover::after {
+    content: attr(href);
+    position: absolute;
+    left: 0;
+    bottom: -25px;
+    background: rgba(10, 10, 10, 0.9);
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 10;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.form-group input,
+.form-group textarea {
+    padding: 1rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: white;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-text {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.error-message {
+    color: #f86e6e;
+    font-size: 0.85rem;
+}
+
+/* Fixed position for submit button */
+.form-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+
+.submit-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 3rem;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 300px;
+}
+
+.submit-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(120, 90, 255, 0.4);
+}
+
+/* Action Buttons */
+.action-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.action-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(120, 90, 255, 0.4);
+    color: white;
+    text-decoration: none;
+}
+
+/* Order Countdown */
+.order-countdown {
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 1rem;
+    margin-top: 1rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    text-align: center;
+    color: white;
+}
+
+/* Star Rating Enhancement */
+.rating-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.rating-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+}
+
+.star-rating {
+    display: inline-flex;
+    flex-direction: row-reverse;
+    gap: 0.25rem;
+}
+
+.star-rating input {
+    display: none;
+}
+
+.star-rating label {
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+}
+
+.star-rating input:checked ~ label {
+    color: #ffd700;
+}
+
+.star-rating label:hover,
+.star-rating label:hover ~ label {
+    color: #ffd700;
+}
+
+/* Hide the default select dropdown */
+select[name="rating"] {
+    display: none;
+}
+
+/* Style for Comment Textarea */
+textarea[name="comment"] {
+    width: 100%;
+    min-height: 120px;
+    padding: 1rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 0.95rem;
+    resize: vertical;
+    box-sizing: border-box;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+textarea[name="comment"]:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+/* Style for Submit Review Button */
+.review-submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 2rem;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: auto;
+    min-width: 150px;
+}
+
+.review-submit-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(120, 90, 255, 0.4);
+}
+
+/* New styles for improved form elements */
+.speed-inputs {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px 15px;
+}
+
+.speed-inputs label:first-child {
+    width: 85px;
+    text-align: right;
+}
+
+.speed-inputs label {
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.speed-inputs input {
+    width: 120px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: white;
+    font-size: 16px;
+    margin: 0 10px;
+}
+
+.radio-options {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 15px;
 }

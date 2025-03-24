@@ -28,20 +28,98 @@
                 </div>
                 <div class="card-body">
                     <div class="form-fields">
-                        {% for field in form %}
+                        <!-- Computer Specs -->
                         <div class="form-group">
-                            <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                            {{ field }}
-                            {% if field.help_text %}
-                            <small class="form-text">{{ field.help_text }}</small>
-                            {% endif %}
-                            {% if field.errors %}
+                            <label for="{{ form.question1.id_for_label }}" class="form-label">{{ form.question1.label }}</label>
+                            {{ form.question1 }}
+                            {% if form.question1.errors %}
                             <div class="error-message">
-                                {{ field.errors }}
+                                {{ form.question1.errors }}
                             </div>
                             {% endif %}
                         </div>
-                        {% endfor %}
+                        
+                        <!-- Internet Speed -->
+                        <div class="form-group">
+                            <label class="form-label">Please run a Broadband Speed Test (Internet Speed Test) and share the Download and Upload Speeds (Mbps). You can do this safely by using Speedtest by Ookla: <a href="https://www.speedtest.net" target="_blank" class="form-link">https://www.speedtest.net</a></label>
+                            <div class="speed-inputs">
+                                <label>Download:</label>
+                                {{ form.download_speed }}
+                                <label>Mbps</label>
+                            </div>
+                            <div class="speed-inputs">
+                                <label>Upload:</label>
+                                {{ form.upload_speed }}
+                                <label>Mbps</label>
+                            </div>
+                            {% if form.download_speed.errors or form.upload_speed.errors %}
+                            <div class="error-message">
+                                {{ form.download_speed.errors }}
+                                {{ form.upload_speed.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Discord Status -->
+                        <div class="form-group">
+                            <label class="form-label">You are HIGHLY recommended to join the Discord Server to get the best experience with clear communication about your stream setup. Join here: <a href="https://discord.gg/bdqAXc4" target="_blank" class="form-link">https://discord.gg/bdqAXc4</a></label>
+                            <div class="radio-options">
+                                <div class="radio-option">
+                                    <input type="radio" name="{{ form.discord_status.name }}" id="id_discord_status_0" value="joined" 
+                                           {% if form.discord_status.value == "joined" %}checked{% endif %}
+                                           onchange="showDiscordUsername(true)">
+                                    <label for="id_discord_status_0">I have joined the Discord Server</label>
+                                </div>
+                                <div id="username-field" class="username-field">
+                                    <label for="{{ form.discord_username.id_for_label }}">My Discord username is:</label>
+                                    {{ form.discord_username }}
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" name="{{ form.discord_status.name }}" id="id_discord_status_1" value="not_joined"
+                                           {% if form.discord_status.value == "not_joined" %}checked{% endif %}
+                                           onchange="showDiscordUsername(false)">
+                                    <label for="id_discord_status_1">I have not joined the Discord Server</label>
+                                </div>
+                            </div>
+                            {% if form.discord_status.errors %}
+                            <div class="error-message">
+                                {{ form.discord_status.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- TeamViewer Status -->
+                        <div class="form-group">
+                            <label class="form-label">The way that I like to support you is by remotely connecting to your PC via TeamViewer. Please download TeamViewer QuickSupport here: <a href="https://www.teamviewer.com/en-us/download/windows/" target="_blank" class="form-link">https://www.teamviewer.com/en-us/download/windows/</a></label>
+                            <div class="radio-options">
+                                <div class="radio-option">
+                                    <input type="radio" name="{{ form.teamviewer_status.name }}" id="id_teamviewer_status_0" value="downloaded"
+                                           {% if form.teamviewer_status.value == "downloaded" %}checked{% endif %}>
+                                    <label for="id_teamviewer_status_0">I have downloaded TeamViewer</label>
+                                </div>
+                                <div class="radio-option">
+                                    <input type="radio" name="{{ form.teamviewer_status.name }}" id="id_teamviewer_status_1" value="not_downloaded"
+                                           {% if form.teamviewer_status.value == "not_downloaded" %}checked{% endif %}>
+                                    <label for="id_teamviewer_status_1">I have not downloaded TeamViewer</label>
+                                </div>
+                            </div>
+                            {% if form.teamviewer_status.errors %}
+                            <div class="error-message">
+                                {{ form.teamviewer_status.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Additional Info -->
+                        <div class="form-group">
+                            <label for="{{ form.question5.id_for_label }}" class="form-label">{{ form.question5.label }}</label>
+                            {{ form.question5 }}
+                            {% if form.question5.errors %}
+                            <div class="error-message">
+                                {{ form.question5.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -54,21 +132,20 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const labels = document.querySelectorAll('.form-label');
-        
-        labels.forEach(label => {
-            const urlRegex = /(https?:\/\/[^\s]+)/g;
-            const labelHtml = label.innerHTML;
-            
-            if (urlRegex.test(labelHtml)) {
-                const newHtml = labelHtml.replace(urlRegex, url => {
-                    const displayUrl = url.length > 40 ? url.substring(0, 37) + '...' : url;
-                    return `<a href="${url}" target="_blank" class="form-link" title="${url}">${displayUrl}</a>`;
-                });
-                
-                label.innerHTML = newHtml;
-            }
-        });
+        // Check initial state of Discord radio buttons
+        const joinedRadio = document.getElementById('id_discord_status_0');
+        if (joinedRadio && joinedRadio.checked) {
+            showDiscordUsername(true);
+        }
     });
+    
+    function showDiscordUsername(show) {
+        const usernameField = document.getElementById('username-field');
+        if (show) {
+            usernameField.style.display = 'block';
+        } else {
+            usernameField.style.display = 'none';
+        }
+    }
 </script>
 {% endblock %}

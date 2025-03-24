@@ -4,19 +4,58 @@ from django.core.exceptions import ValidationError
 from ACCOUNTS.validators import validate_clean_content
 
 class OrderQuestionsForm(forms.ModelForm):
+    # Add structured fields for specific questions
+    download_speed = forms.CharField(max_length=10, required=False, 
+                                    widget=forms.TextInput(attrs={'placeholder': 'Enter speed'}))
+    upload_speed = forms.CharField(max_length=10, required=False,
+                                  widget=forms.TextInput(attrs={'placeholder': 'Enter speed'}))
+    
+    DISCORD_CHOICES = [
+        ('joined', 'I have joined the Discord Server'),
+        ('not_joined', 'I have not joined the Discord Server')
+    ]
+    discord_status = forms.ChoiceField(choices=DISCORD_CHOICES, widget=forms.RadioSelect)
+    discord_username = forms.CharField(max_length=100, required=False)
+    
+    TEAMVIEWER_CHOICES = [
+        ('downloaded', 'I have downloaded TeamViewer'),
+        ('not_downloaded', 'I have not downloaded TeamViewer')
+    ]
+    teamviewer_status = forms.ChoiceField(choices=TEAMVIEWER_CHOICES, widget=forms.RadioSelect)
+    
     class Meta:
         model = OrderForm
-        fields = ['question1', 'question2', 'question3', 'question4', 'question5']
+        fields = ['question1', 'download_speed', 'upload_speed', 'discord_status', 'discord_username', 
+                  'teamviewer_status', 'question5']
         labels = {
             'question1': 'Please list your computer Specifications (GPU, CPU, RAM) so that I can configure the best settings for you.',
-            'question2': 'Please run a Broadband Speed Test (Internet Speed Test) and share the Download and Upload Speeds (Mbps). You can do this safely by using Speedtest by Ookla: https://www.speedtest.net',
-            'question3': 'You are HIGHLY recommended to join the Discord Server to get the best experience with clear communication about your stream setup. Join here: https://discord.gg/bdqAXc4',
-            'question4': 'The way that I like to support you is by remotely connecting to your PC via TeamViewer. Please download TeamViewer QuickSupporthere: https://www.teamviewer.com/en-us/download/windows/?utm_source=google&utm_medium=cpc&utm_campaign=us%7Cb%7Cpr%7C22%7Caug%7Ctv-core-download-sn%7Cnew%7Ct0%7C0&utm_content=Download&utm_term=teamviewer+download',
             'question5': 'Now that the business questions are out of the way, please share some information about yourself! What are you wanting to achieve? What will you stream? Be as creative as you want!',
         }
         widgets = {
             'question5': forms.Textarea(attrs={'rows': 4}),
         }
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Format question2 with download and upload speeds
+        instance.question2 = f"Download: {self.cleaned_data.get('download_speed')} Mbps, Upload: {self.cleaned_data.get('upload_speed')} Mbps"
+        
+        # Format question3 with Discord status and username if applicable
+        if self.cleaned_data.get('discord_status') == 'joined':
+            instance.question3 = f"I have joined the Discord Server. My username is: {self.cleaned_data.get('discord_username')}"
+        else:
+            instance.question3 = "I have not joined the Discord Server"
+        
+        # Format question4 with TeamViewer status
+        if self.cleaned_data.get('teamviewer_status') == 'downloaded':
+            instance.question4 = "I have downloaded TeamViewer"
+        else:
+            instance.question4 = "I have not downloaded TeamViewer"
+        
+        if commit:
+            instance.save()
+        return instance
 
 class MessageForm(forms.ModelForm):
     class Meta:
