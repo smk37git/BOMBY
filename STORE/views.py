@@ -152,7 +152,7 @@ def purchase_product(request, product_id):
     
     # Redirect to form questions page
     messages.success(request, f"Order created successfully! Please fill out the required information.")
-    return redirect('STORE:order_form', order_id=order.id)
+    return redirect('STORE:payment_page', product_id=product_id)
 
 @login_required
 def order_form(request, order_id):
@@ -1466,3 +1466,42 @@ def admin_add_review(request):
         messages.error(request, f"Error creating review: {str(e)}")
     
     return redirect('STORE:review_management')
+
+## PAYMENT PROCESSING ##
+def payment_page(request, product_id):
+    product = get_object_or_404(Product, id=product_id, is_active=True)
+    
+    context = {
+        'product': product,
+        'paypal_client_id': settings.PAYPAL_CLIENT_ID,
+    }
+    
+    return render(request, 'STORE/payment_page.html', context)
+
+@login_required
+def payment_success(request):
+    # Get data from PayPal
+    payment_id = request.GET.get('paymentId')
+    product_id = request.GET.get('product_id')
+    
+    # Create order with paid status
+    product = get_object_or_404(Product, id=product_id, is_active=True)
+    order = Order.objects.create(
+        user=request.user,
+        product=product,
+        status='pending',
+        payment_id=payment_id,
+        is_paid=True
+    )
+    
+    # Update user role to client
+    if not request.user.is_client:
+        request.user.promote_to_client()
+    
+    messages.success(request, "Payment successful! Please fill out the required information.")
+    return redirect('STORE:order_form', order_id=order.id)
+
+@login_required
+def payment_cancel(request):
+    messages.error(request, "Payment was cancelled. Please try again.")
+    return redirect('STORE:store')

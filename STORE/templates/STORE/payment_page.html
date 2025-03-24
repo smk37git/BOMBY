@@ -1,0 +1,82 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/store_item.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="product-container">
+    <!-- Back link -->
+    <div class="product-navigation">
+        <a href="{% url 'STORE:store' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Store
+        </a>
+    </div>
+    
+    <div class="product-card">
+        <h1 class="product-title">Complete Your Purchase</h1>
+        <hr class="page-divider"></hr>
+        
+        <div class="product-description">
+            <h2>Order Summary</h2>
+            <p>Product: {{ product.name }}</p>
+            <p>Price: ${{ product.price }}</p>
+        </div>
+        
+        <div class="product-purchase">
+            <div class="price-section">
+                <div class="price-label">Total:</div>
+                <div class="price-value">${{ product.price }}</div>
+            </div>
+            
+            <!-- PayPal Button Container -->
+            <div id="paypal-button-container" class="mt-4"></div>
+        </div>
+    </div>
+</div>
+
+<!-- PayPal JavaScript SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize PayPal buttons
+        paypal.Buttons({
+            // Set up the transaction
+            createOrder: function(data, actions) {
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: '{{ product.price }}'
+                        }
+                    }]
+                });
+            },
+            
+            // Finalize the transaction
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(function(orderData) {
+                    // Redirect to success page with payment ID and product ID
+                    window.location.href = "{% url 'STORE:payment_success' %}?paymentId=" + 
+                        orderData.id + "&product_id={{ product.id }}";
+                });
+            },
+            
+            // Handle errors
+            onError: function(err) {
+                console.error('PayPal error:', err);
+                alert('There was an error processing your payment. Please try again.');
+            },
+            
+            // Handle cancellation
+            onCancel: function() {
+                window.location.href = "{% url 'STORE:payment_cancel' %}";
+            }
+        }).render('#paypal-button-container');
+    });
+</script>
+{% endblock %}

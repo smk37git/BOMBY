@@ -66,4 +66,9 @@ urlpatterns = [
     path('admin/reviews/edit/<int:review_id>/', views.admin_edit_review, name='admin_edit_review'),
     path('admin/reviews/delete/', views.admin_delete_reviews, name='admin_delete_reviews'),
     path('admin/reviews/add/', views.admin_add_review, name='admin_add_review'),
+
+    # Payment Processing
+    path('payment/<int:product_id>/', views.payment_page, name='payment_page'),
+    path('payment/success/', views.payment_success, name='payment_success'),
+    path('payment/cancel/', views.payment_cancel, name='payment_cancel'),
 ]

@@ -107,10 +107,6 @@ DATABASES = {
     }
 }
 
-# Temporary for Stream Asset Upload
-DATA_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100MB
-FILE_UPLOAD_MAX_MEMORY_SIZE = 104857600  # 100MB
-
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -202,3 +198,7 @@ if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
     MEDIA_ROOT = GS_MEDIA_BUCKET_PATH
     # Use FileSystemStorage for mounted bucket
     DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+
+# Payment Details
+PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'YOUR_SANDBOX_CLIENT_ID')
+PAYPAL_SECRET = os.environ.get('PAYPAL_SECRET', 'YOUR_SANDBOX_SECRET')

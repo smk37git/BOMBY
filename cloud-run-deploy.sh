@@ -14,6 +14,8 @@ DB_USER="postgres"
 DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
+PAYPAL_CLIENT_ID=$(grep PAYPAL_CLIENT_ID .env | cut -d'=' -f2)
+PAYPAL_SECRET=$(grep PAYPAL_SECRET .env | cut -d'=' -f2)
 BUCKET_NAME="bomby-user-uploads"
 
 # Build the Docker image
@@ -40,6 +42,13 @@ gcloud secrets create postgres-password --replication-policy="automatic" --data-
 
 gcloud secrets describe sendgrid-api-key > /dev/null 2>&1 || \
 gcloud secrets create sendgrid-api-key --replication-policy="automatic" --data-file=<(echo -n "$SENDGRID_KEY")
+
+# PayPal secrets
+gcloud secrets describe paypal-client-id > /dev/null 2>&1 || \
+gcloud secrets create paypal-client-id --replication-policy="automatic" --data-file=<(echo -n "$PAYPAL_CLIENT_ID")
+
+gcloud secrets describe paypal-secret > /dev/null 2>&1 || \
+gcloud secrets create paypal-secret --replication-policy="automatic" --data-file=<(echo -n "$PAYPAL_SECRET")
 
 # Ensure the bucket exists with correct permissions
 echo "Ensuring the storage bucket exists..."
@@ -72,7 +81,9 @@ DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\
 AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
 SENDGRID_API_KEY=sendgrid-api-key:latest,\
-DEFAULT_FROM_EMAIL=default-from-email:latest" \
+DEFAULT_FROM_EMAIL=default-from-email:latest,\
+PAYPAL_CLIENT_ID=paypal-client-id:latest,\
+PAYPAL_SECRET=paypal-secret:latest" \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
 echo "Deployment complete! Your website should be available soon at the URL above."
