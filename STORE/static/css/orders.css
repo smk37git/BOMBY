@@ -298,8 +298,10 @@
 .user-avatar {
     width: 32px;
     height: 32px;
+    border: 2px solid rgba(255, 255, 255, 0.788);
     border-radius: 50%;
     overflow: hidden;
+    
 }
 
 .user-avatar img {

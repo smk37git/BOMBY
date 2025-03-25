@@ -461,6 +461,24 @@
 <script>
     // Rating System
     document.addEventListener('DOMContentLoaded', function() {
+
+        // Send with enter key
+        const textarea = document.querySelector('.message-input-container textarea');
+        if (textarea) {
+            textarea.addEventListener('keydown', function(e) {
+                // Submit form on Enter without Shift
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Prevent newline
+                    const form = document.getElementById('message-form');
+                    
+                    // Only submit if there is content
+                    if (this.value.trim() !== '') {
+                        form.dispatchEvent(new Event('submit'));
+                    }
+                }
+            });
+        }
+        
         // Get the select element
         const selectRating = document.querySelector('select[name="rating"]');
         if (!selectRating) return;

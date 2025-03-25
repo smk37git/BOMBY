@@ -298,8 +298,10 @@
 .user-avatar {
     width: 32px;
     height: 32px;
+    border: 2px solid rgba(255, 255, 255, 0.788);
     border-radius: 50%;
     overflow: hidden;
+    
 }
 
 .user-avatar img {
@@ -614,6 +616,10 @@
 
 .order-main .form-group {
     margin-bottom: 1.5rem;
+}
+
+.form-group .form-label {
+    margin-bottom: 12px;
 }
 
 .order-main .form-label {
@@ -953,74 +959,126 @@ textarea[name="comment"]:focus {
     box-shadow: 0 5px 15px rgba(120, 90, 255, 0.4);
 }
 
-/* Responsive Styles */
-@media (max-width: 992px) {
-    .orders-container {
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    }
-    
-    .order-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .order-sidebar {
-        order: -1;
-    }
+/* New styles for improved form elements */
+.speed-inputs {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 15px;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 12px 15px;
 }
 
-@media (max-width: 768px) {
-    .orders-container {
-        grid-template-columns: 1fr;
-    }
-    
-    .message {
-        max-width: 90%;
-    }
-    
-    .message-actions {
-        flex-direction: column;
-        gap: 1rem;
-        align-items: stretch;
-    }
-    
-    .file-upload-wrapper {
-        width: 100%;
-    }
-    
-    .send-button {
-        width: 100%;
-    }
+.speed-inputs label:first-child {
+    width: 85px;
+    text-align: right;
 }
 
-@media (max-width: 576px) {
-    .order-header h1, 
-    .orders-header h1, 
-    .form-header h1 {
-        font-size: 2rem;
-    }
-    
-    .card-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-    }
-    
-    .order-badge {
-        align-self: flex-start;
-    }
+.speed-inputs label {
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+}
 
-    .message-form {
-        width: 100%;
-    }
+.speed-inputs input {
+    width: 120px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: white;
+    font-size: 16px;
+    margin: 0 10px;
+}
 
-    .message-input-container textarea {
-        padding: 0.75rem;
-        min-height: 80px;
-    }
-    
-    .file-upload-btn,
-    .send-button {
-        padding: 0.6rem 1rem;
-        font-size: 0.9rem;
-    }
+#username-field {
+    display: none;
+    margin-left: 32px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 12px 15px;
+    border-left: 3px solid #a991ff;
+    width: calc(100% - 50px);
+    box-sizing: border-box;
+}
+
+#username-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+}
+
+#username-field input {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: white;
+    box-sizing: border-box;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.radio-option:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.radio-option:last-child {
+    margin-bottom: 0;
+}
+
+.radio-option input[type="radio"] {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 12px !important;
+    height: 12px !important;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    margin-right: 10px;
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.radio-option input[type="radio"]:checked {
+    border-color: #a991ff;
+}
+
+.radio-option input[type="radio"]:checked:after {
+    content: "";
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #a991ff;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.radio-option label {
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+}
+
+.radio-options {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 15px;
 }
