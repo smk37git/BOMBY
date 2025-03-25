@@ -56,7 +56,13 @@ def signup(request):
 
 @login_required
 def account(request):
-    return render(request, 'ACCOUNTS/account.html')
+
+    # Get user's orders
+    user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    
+    return render(request, 'ACCOUNTS/account.html', {
+        'user_orders': user_orders
+    })
 
 class AdminRequiredMixin(UserPassesTestMixin):
     def test_func(self):
@@ -65,6 +71,15 @@ class AdminRequiredMixin(UserPassesTestMixin):
 class ClientRequiredMixin(UserPassesTestMixin):
     def test_func(self):
         return self.request.user.is_client() or self.request.user.is_admin_user()
+
+@login_required
+def purchase_history(request):
+    # Get all orders for the current user
+    user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    
+    return render(request, 'ACCOUNTS/purchase_history.html', {
+        'user_orders': user_orders
+    })
 
 # Profile View
 User = get_user_model()

@@ -315,7 +315,23 @@ def stream_store_purchase(request):
     if user_can_access_stream_store(request.user):
         return redirect('STORE:stream_store')
         
-    product = Product.objects.get(id=4)
+    product = Product.objects.get(id=4)  # Stream Store product
+    
+    if request.method == 'POST':
+        # Create a new order
+        order = Order.objects.create(
+            user=request.user,
+            product=product,
+            status='completed',
+            is_paid=True
+        )
+        
+        # Update user role to supporter
+        request.user.promote_to_supporter()
+        
+        messages.success(request, "You now have access to the Stream Store!")
+        return redirect('STORE:stream_store')
+    
     return render(request, 'STORE/stream_store_purchase.html', {'product': product})
 
 @login_required

@@ -1,0 +1,207 @@
+/* Purchase History Styling */
+.purchase-history-container {
+    max-width: 1200px;
+    margin: 100px auto 30px;
+    padding: 30px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
+.purchase-title {
+    text-align: center;
+    font-size: 3.5em;
+    padding: 20px 40px;
+    margin: 0 auto 30px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    width: fit-content;
+    color: white;
+    position: relative;
+    z-index: 4;
+}
+
+.purchase-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+}
+
+.filter-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.filter-select {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    background-color: rgb(36, 36, 36);
+    color: white;
+    font-size: 14px;
+}
+
+.back-button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-block;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.back-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+.purchase-table-container {
+    overflow-x: auto;
+    margin-top: 20px;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.purchase-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.purchase-table th,
+.purchase-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.purchase-table th {
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.7);
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+.purchase-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.purchase-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.order-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-warning {
+    background-color: rgba(255, 7, 7, 0.2);
+    color: #ff3f3f;
+    border: 1px solid #ff0707;
+}
+
+.badge-primary {
+    background-color: rgba(253, 221, 13, 0.2);
+    color: #ffc824;
+    border: 1px solid #ffc107;
+}
+
+.badge-success {
+    background-color: rgba(25, 135, 84, 0.2);
+    color: #33ffa0;
+    border: 1px solid #198754;
+}
+
+.view-details-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 15px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.view-details-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+.empty-purchases {
+    text-align: center;
+    padding: 50px 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    margin-top: 20px;
+}
+
+.empty-purchases i {
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.2);
+    margin-bottom: 15px;
+}
+
+.empty-purchases p {
+    color: rgba(255, 255, 255, 0.6);
+    margin-bottom: 20px;
+}
+
+.store-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 20px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.store-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+@media (max-width: 768px) {
+    .purchase-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .filter-container {
+        flex-direction: column;
+        align-items: flex-start;
+        width: 100%;
+        margin-top: 15px;
+    }
+    
+    .filter-select {
+        width: 100%;
+    }
+    
+    .purchase-table th:nth-child(3),
+    .purchase-table td:nth-child(3) {
+        display: none;
+    }
+}

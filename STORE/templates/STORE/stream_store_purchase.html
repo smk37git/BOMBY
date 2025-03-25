@@ -96,7 +96,10 @@
                         OR <span class="account-type client">CLIENT</span>
                     </div>
                 </div>
-                <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">GET ACCESS</a>
+                <form method="post" action="{% url 'STORE:stream_store_purchase' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="action-button">Purchase Stream Store Access</button>
+                </form>
             </div>
         </div>
     </div>

@@ -320,46 +320,21 @@
                 });
             </script>
             
-            {% if user.is_member %}
-                <h3 style="margin-top: 30px;">Purchase History</h3>
-                <div class="purchase-history">
+            <h3 style="margin-top: 30px;">Purchase History</h3>
+            <div class="purchase-history">
+                {% if user_orders %}
+                    <p>You have {{ user_orders|length }} recent order{% if user_orders|length != 1 %}s{% endif %}.</p>
+                    <a href="{% url 'ACCOUNTS:purchase_history' %}" class="action-button" style="margin-top: 10px;">
+                        <i class="fas fa-history"></i> View Full Purchase History
+                    </a>
+                {% else %}
                     <p>Your purchase history will appear here once you've made purchases.</p>
-                </div>
-            {% elif user.is_supporter %}
-                <h3 style="margin-top: 30px;">Purchase History</h3>
-                <div class="purchase-history">
-                    <p>Your purchase history will appear here once you've made purchases.</p>
-                </div>
-            {% endif %}
+                    <a href="{% url 'STORE:store' %}" class="action-button" style="margin-top: 10px;">
+                        <i class="fas fa-store"></i> Browse Store
+                    </a>
+                {% endif %}
+            </div>
         </div>
-    </div>
-    
-    {% if user.is_admin_user %}
-    <div class="admin-cards">
-        <a href="/admin/" class="admin-card">
-            <i class="fas fa-cog"></i>
-            <div>Django Admin</div>
-        </a>
-        <a href="{% url 'ACCOUNTS:user_management' %}" class="admin-card">
-            <i class="fas fa-users"></i>
-            <div>User Management</div>
-        </a>
-        <a href="{% url 'ACCOUNTS:message_monitor' %}" class="admin-card">
-            <i class="fas fa-comments"></i>
-            <div>Message Monitoring</div>
-        </a>
-        <a href="{% url 'STORE:order_management' %}" class="admin-card">
-            <i class="fas fa-shopping-cart"></i>
-            <div>Orders</div>
-        </a>
-        <a href="{% url 'STORE:review_management' %}" class="admin-card">
-            <i class="fas fa-paperclip"></i>
-            <div>Reviews</div>
-        </a>
-        <a href="{% url 'STORE:product_management' %}" class="admin-card">
-            <i class="fa-solid fa-shop"></i>
-            <div>Product Management</div>
-        </a>
     </div>
 
     <!-- Time Conversion Script -->
@@ -380,6 +355,5 @@
         });
       });
     </script>
-    {% endif %}
 </div>
 {% endblock %}

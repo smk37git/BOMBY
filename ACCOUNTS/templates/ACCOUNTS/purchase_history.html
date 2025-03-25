@@ -1,0 +1,139 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/purchase_history.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% load tz %}
+
+{% block content %}
+<div class="purchase-history-container">
+    <h1 class="purchase-title">Purchase History</h1>
+    
+    <div class="purchase-header">
+        <a href="{% url 'ACCOUNTS:account' %}" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back to Account
+        </a>
+        
+        <div class="filter-container">
+            <select id="status-filter" class="filter-select">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+            </select>
+            
+            <select id="date-filter" class="filter-select">
+                <option value="all">All Time</option>
+                <option value="30">Last 30 Days</option>
+                <option value="90">Last 90 Days</option>
+                <option value="365">Last Year</option>
+            </select>
+        </div>
+    </div>
+    
+    {% if user_orders %}
+        <div class="purchase-table-container">
+            <table class="purchase-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Product</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Price</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in user_orders %}
+                    <tr data-status="{{ order.status }}" data-date="{{ order.created_at|date:'U' }}">
+                        <td>#{{ order.id }}</td>
+                        <td>{{ order.product.name }}</td>
+                        <td data-utc="{{ order.created_at|date:'c' }}">
+                            {{ order.created_at|date:"M d, Y" }}
+                        </td>
+                        <td>
+                            {% if order.status == 'pending' %}
+                                <span class="order-badge badge-warning">Pending</span>
+                            {% elif order.status == 'in_progress' %}
+                                <span class="order-badge badge-primary">In Progress</span>
+                            {% elif order.status == 'completed' %}
+                                <span class="order-badge badge-success">Completed</span>
+                            {% endif %}
+                        </td>
+                        <td>${{ order.product.price }}</td>
+                        <td>
+                            <a href="{% url 'STORE:order_details' order_id=order.id %}" class="view-details-button">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-purchases">
+            <i class="fas fa-shopping-cart"></i>
+            <p>You haven't made any purchases yet.</p>
+            <a href="{% url 'STORE:store' %}" class="store-link">
+                <i class="fas fa-store"></i> Browse Store
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Convert UTC dates to local timezone
+    document.querySelectorAll('[data-utc]').forEach(function(el) {
+        const utcTime = new Date(el.getAttribute('data-utc'));
+        if (!isNaN(utcTime)) {
+            el.textContent = utcTime.toLocaleString(undefined, {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+    });
+    
+    // Filter functionality
+    const statusFilter = document.getElementById('status-filter');
+    const dateFilter = document.getElementById('date-filter');
+    const orderRows = document.querySelectorAll('.purchase-table tbody tr');
+    
+    function applyFilters() {
+        const statusValue = statusFilter.value;
+        const dateValue = parseInt(dateFilter.value);
+        const currentDate = Math.floor(Date.now() / 1000);
+        
+        orderRows.forEach(row => {
+            const status = row.getAttribute('data-status');
+            const orderDate = parseInt(row.getAttribute('data-date'));
+            const daysDiff = (currentDate - orderDate) / 86400; // Convert seconds to days
+            
+            let statusMatch = statusValue === 'all' || status === statusValue;
+            let dateMatch = dateValue === 'all' || daysDiff <= dateValue;
+            
+            if (statusMatch && dateMatch) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+    
+    statusFilter.addEventListener('change', applyFilters);
+    dateFilter.addEventListener('change', applyFilters);
+});
+</script>
+{% endblock %}
