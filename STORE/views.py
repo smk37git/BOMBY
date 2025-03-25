@@ -182,14 +182,19 @@ def order_form(request, order_id):
 
 @login_required
 def order_details(request, order_id):
-    # Allow both client and admin to view this page
+    # Get the order object
     order = get_object_or_404(Order, id=order_id)
     
-    # Only owner or staff can view
+    # Redirect Stream Store orders to the stream store
+    if order.product_id == 4:  # Stream Store product
+        messages.info(request, "Stream Store is an access product, not a traditional order.")
+        return redirect('STORE:stream_store')
+    
+    # Verify permission - only owner or staff can view
     if request.user != order.user and not request.user.is_staff:
         return HttpResponseForbidden("You don't have permission to view this order")
     
-    # Handle message form
+    # Handle message form submission
     if request.method == 'POST':
         form = MessageForm(request.POST)
         if form.is_valid():
@@ -199,12 +204,12 @@ def order_details(request, order_id):
                 message.sender = request.user
                 message.save()
                 
-                # Process attachments - access them directly from request.FILES
+                # Process attachments
                 files = request.FILES.getlist('attachments')
                 for file in files:
                     OrderAttachment.objects.create(message=message, file=file)
             
-            # Check if it's an AJAX request
+            # Handle AJAX request
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({'status': 'success'})
             
@@ -215,15 +220,14 @@ def order_details(request, order_id):
     # Get all messages for this order
     messages_list = OrderMessage.objects.filter(order=order).order_by('created_at')
     
-    # Prepare review form if applicable - only show for completed orders without reviews
+    # Prepare review form if applicable - only for completed orders without reviews
     review_form = None
     if order.status == 'completed' and request.user == order.user:
-        # Check if review exists using a direct query instead of hasattr
         review_exists = Review.objects.filter(order=order).exists()
         if not review_exists:
             review_form = ReviewForm()
     
-    # Get the order's review if it exists, using direct query
+    # Get order review if it exists
     try:
         order_review = Review.objects.get(order=order)
     except Review.DoesNotExist:
@@ -286,14 +290,33 @@ def submit_review(request, order_id):
 
 @login_required
 def my_orders(request):
-    if request.user.is_staff:
-        # Staff sees all orders
-        orders = Order.objects.all().order_by('-created_at')
-    else:
-        # Users see their own orders
-        orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    
-    return render(request, 'STORE/my_orders.html', {'orders': orders})
+   # Get appropriate orders based on user role
+   if request.user.is_staff:
+       # Staff sees all orders
+       orders = Order.objects.all().order_by('-created_at')
+   else:
+       # Users see their own orders, excluding Stream Store access
+       orders = Order.objects.filter(user=request.user).exclude(product_id=4).order_by('-created_at')
+       
+   # Check if user has stream store access separately
+   stream_store_access = user_can_access_stream_store(request.user)
+   
+   # Get any stream store purchase for display
+   stream_purchase = None
+   if not request.user.is_staff:
+       try:
+           stream_purchase = Order.objects.filter(
+               user=request.user, 
+               product_id=4
+           ).order_by('-created_at').first()
+       except:
+           pass
+   
+   return render(request, 'STORE/my_orders.html', {
+       'orders': orders,
+       'stream_store_access': stream_store_access,
+       'stream_purchase': stream_purchase
+   })
 
 # Stream Store Views
 def user_can_access_stream_store(user):
@@ -315,15 +338,16 @@ def stream_store_purchase(request):
     if user_can_access_stream_store(request.user):
         return redirect('STORE:stream_store')
         
-    product = Product.objects.get(id=4)  # Stream Store product
+    product = Product.objects.get(id=4)
     
     if request.method == 'POST':
-        # Create a new order
+        # Create a new order that's already completed - but mark it as a special type
         order = Order.objects.create(
             user=request.user,
             product=product,
             status='completed',
-            is_paid=True
+            completed_at=timezone.now(),
+            is_paid=True 
         )
         
         # Update user role to supporter

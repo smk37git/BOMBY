@@ -77,6 +77,13 @@ def purchase_history(request):
     # Get all orders for the current user
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
     
+    # Mark Stream Store purchases differently in the template
+    for order in user_orders:
+        if order.product.id == 4:
+            order.is_access_product = True
+        else:
+            order.is_access_product = False
+    
     return render(request, 'ACCOUNTS/purchase_history.html', {
         'user_orders': user_orders
     })
