@@ -15,7 +15,6 @@ urlpatterns = [
     path('stream-store/', views.stream_store, name='stream_store'),
 
     # Stream Store pages
-    path('stream-store/', views.stream_store, name='stream_store'),
     path('stream-store/purchase/', views.stream_store_purchase, name='stream_store_purchase'),
     path('stream-asset/<int:asset_id>/', views.stream_asset_detail, name='stream_asset_detail'),
     path('stream-asset/<int:asset_id>/download/', views.download_asset, name='download_asset'),

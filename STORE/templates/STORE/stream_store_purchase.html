@@ -1,149 +1,235 @@
+
 {% extends 'MAIN/base.html' %}
 {% load static %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/purchase_history.css' %}">
+    <link rel="stylesheet" href="{% static 'css/store_item.css' %}">
+    <link rel="stylesheet" href="{% static 'css/stream_store.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 {% endblock %}
 
 {% block background %}
-    {% include 'MAIN/base_background.html' %}
+    {% include 'MAIN/base_background_starry.html' %}
 {% endblock %}
 
-{% load tz %}
-
 {% block content %}
-<div class="purchase-history-container">
-    <h1 class="purchase-title">Purchase History</h1>
-    
-    <div class="purchase-header">
-        <a href="{% url 'ACCOUNTS:account' %}" class="back-button">
-            <i class="fas fa-arrow-left"></i> Back to Account
+<div class="product-container">
+    <!-- Back link -->
+    <div class="product-navigation">
+        <a href="{% url 'STORE:store' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Store
         </a>
-        
-        <div class="filter-container">
-            <select id="status-filter" class="filter-select">
-                <option value="all">All Statuses</option>
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-            </select>
-            
-            <select id="date-filter" class="filter-select">
-                <option value="all">All Time</option>
-                <option value="30">Last 30 Days</option>
-                <option value="90">Last 90 Days</option>
-                <option value="365">Last Year</option>
-            </select>
-        </div>
     </div>
     
-    {% if user_orders %}
-        <div class="purchase-table-container">
-            <table class="purchase-table">
-                <thead>
-                    <tr>
-                        <th>Order #</th>
-                        <th>Product</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Price</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for order in user_orders %}
-                    <tr data-status="{{ order.status }}" data-date="{{ order.created_at|date:'U' }}">
-                        <td>#{{ order.id }}</td>
-                        <td>{{ order.product.name }}</td>
-                        <td data-utc="{{ order.created_at|date:'c' }}">
-                            {{ order.created_at|date:"M d, Y" }}
-                        </td>
-                        <td>
-                            {% if order.product.id == 4 %}
-                                <span class="order-badge badge-success">Access Granted</span>
-                            {% else %}
-                                {% if order.status == 'pending' %}
-                                    <span class="order-badge badge-warning">Pending</span>
-                                {% elif order.status == 'in_progress' %}
-                                    <span class="order-badge badge-primary">In Progress</span>
-                                {% elif order.status == 'completed' %}
-                                    <span class="order-badge badge-success">Completed</span>
-                                {% endif %}
-                            {% endif %}
-                        </td>
-                        <td>${{ order.product.price }}</td>
-                        <td>
-                            {% if order.product.id == 4 %}
-                                <a href="{% url 'STORE:stream_store' %}" class="view-details-button">
-                                    <i class="fas fa-shopping-basket"></i> Access Store
-                                </a>
-                            {% else %}
-                                <a href="{% url 'STORE:order_details' order_id=order.id %}" class="view-details-button">
-                                    <i class="fas fa-eye"></i> View Details
-                                </a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- Split layout for product -->
+    <div class="product-split">
+        <!-- Left side: Gallery -->
+        <div class="product-gallery-side">
+            <div class="product-featured-image">
+                <img src="{% static 'images/1.jpg' %}" 
+                     alt="Basic Package" class="featured-image" id="featuredImage">
+            </div>
+            
+            <div class="gallery-thumbnails">
+                <!-- Thumbnails -->
+                <div class="thumbnail active" data-image="{% static 'images/1.jpg' %}">
+                    <img src="{% static 'images/1.jpg' %}" alt="Main Package View">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/2.jpg' %}">
+                    <img src="{% static 'images/2.jpg' %}" alt="Gallery Image 2">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/3.jpg' %}">
+                    <img src="{% static 'images/3.jpg' %}" alt="Gallery Image 3">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/4.jpg' %}">
+                    <img src="{% static 'images/4.jpg' %}" alt="Gallery Image 4">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/5.jpg' %}">
+                    <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 5">
+                </div>
+            </div>
         </div>
-    {% else %}
-        <div class="empty-purchases">
-            <i class="fas fa-shopping-cart"></i>
-            <p>You haven't made any purchases yet.</p>
-            <a href="{% url 'STORE:store' %}" class="store-link">
-                <i class="fas fa-store"></i> Browse Store
-            </a>
+        
+        <!-- Right side: Product info -->
+        <div class="product-card">
+            <h1 class="product-title">STREAM STORE
+                <div class="product-status {% if product.is_active %}active{% else %}inactive{% endif %}">
+                    {% if product.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                </div>
+            </h1>
+            <hr class="page-divider"></hr>
+            
+            <div class="product-features-container">
+                <div class="product-features" style="margin-right: 250px;">
+                  <h2>FEATURES:</h2>
+                  <ul class="features-list">
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      Massive Overlay Library
+                    </li>
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      Widget Library
+                    </li>
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      Unlimated Downloads
+                    </li>
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      One Time Purchase
+                    </li>
+                  </ul>
+                </div>
+                
+                <div class="delivery-badge">
+                    <i class="fa-solid fa-bolt"></i>
+                  <span>Instant Access</span>
+                </div>
+            </div>
+            
+            <div class="product-purchase">
+                <div class="price-section">
+                    <div class="price-label">Price:</div>
+                    <div class="price-value">$10.00</div>
+                    <div class="price-value-subtitle">
+                        OR <span class="account-type client">CLIENT</span>
+                    </div>
+                </div>
+                <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">PURCHASE NOW</a>
+            </div>
         </div>
-    {% endif %}
+    </div>
+
+    <!-- Description section -->
+    <div class="product-description-section">
+        <div class="product-card">
+            <div class="product-description">
+                <h2 class="heading-with-line">ABOUT THE STREAM STORE</h2>
+                <p>
+                    Unlock access to Bomby's complete library of professional streaming assets, designed to elevate your stream quality instantly. Each asset is carefully crafted to help you create a polished and engaging stream that stands out.
+                    Additionally, unlock the Supporter role to better promote yourself on the promotional wall!
+                </p>
+                <p>
+                    Our asset library is constantly growing, and all future additions are included with your one-time purchase. Download as many assets as you need, whenever you need them.
+                </p>
+                <p>
+                    <b>Users who have purchased one of the three stream setup services are automatically granted access to the stream store!</b>
+                </p>
+
+                <h2 class="heading-with-line">WHAT'S INCLUDED</h2>
+                <div class="features-grid">
+                    <div class="feature-item">
+                        <i class="fas fa-paint-brush"></i>
+                        <h3>Stream Overlays</h3>
+                        <p>Professional overlays in multiple styles and themes</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-bell"></i>
+                        <h3>Alert Packages</h3>
+                        <p>Eye-catching alerts for subs, donations, and follows</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-exchange-alt"></i>
+                        <h3>Transitions</h3>
+                        <p>Smooth scene transitions for professional streams</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-image"></i>
+                        <h3>Screens</h3>
+                        <p>Starting soon, be right back, and ending screens</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fa-solid fa-user"></i>
+                        <h3>Supporter Role</h3>
+                        <p>Appear higher on the promotional wall for better visibility</p>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fa-solid fa-download"></i>
+                        <h3>Unlimited Downloads</h3>
+                        <p>Download as many files as you want</p>
+                    </div>
+                </div>
+
+                <h2 class="heading-with-line">FREQUENTLY ASKED QUESTIONS</h2>
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>Is this a subscription or a one-time payment?</span>
+                        </div>
+                        <div class="faq-answer">
+                            This is a one-time payment of $10 that gives you permanent access to the entire Stream Store, including all future assets that will be added to the library.
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>Can I use these assets for my streams?</span>
+                        </div>
+                        <div class="faq-answer">
+                            Yes! All assets come with a personal use license, allowing you to use them on your streams across any platform including Twitch, YouTube, TikTok, and others.
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>How do I install and use these assets?</span>
+                        </div>
+                        <div class="faq-answer">
+                            Most assets can be easily added to OBS Studio as browser sources or image sources. If you need help setting up any of the assets, check out the service packages where you can get them setup!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Convert UTC dates to local timezone
-    document.querySelectorAll('[data-utc]').forEach(function(el) {
-        const utcTime = new Date(el.getAttribute('data-utc'));
-        if (!isNaN(utcTime)) {
-            el.textContent = utcTime.toLocaleString(undefined, {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-            });
-        }
-    });
-    
-    // Filter functionality
-    const statusFilter = document.getElementById('status-filter');
-    const dateFilter = document.getElementById('date-filter');
-    const orderRows = document.querySelectorAll('.purchase-table tbody tr');
-    
-    function applyFilters() {
-        const statusValue = statusFilter.value;
-        const dateValue = parseInt(dateFilter.value);
-        const currentDate = Math.floor(Date.now() / 1000);
+    document.addEventListener('DOMContentLoaded', function() {
+        // Image gallery functionality
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        const featuredImage = document.getElementById('featuredImage');
         
-        orderRows.forEach(row => {
-            const status = row.getAttribute('data-status');
-            const orderDate = parseInt(row.getAttribute('data-date'));
-            const daysDiff = (currentDate - orderDate) / 86400; // Convert seconds to days
-            
-            let statusMatch = statusValue === 'all' || status === statusValue;
-            let dateMatch = dateValue === 'all' || daysDiff <= dateValue;
-            
-            if (statusMatch && dateMatch) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+        thumbnails.forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                // Update featured image
+                featuredImage.src = this.dataset.image;
+                
+                // Update active thumbnail
+                thumbnails.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
         });
-    }
-    
-    statusFilter.addEventListener('change', applyFilters);
-    dateFilter.addEventListener('change', applyFilters);
-});
+        
+        // FAQ dropdown functionality
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            
+            question.addEventListener('click', function() {
+                // Toggle active class
+                item.classList.toggle('active');
+                
+                // Get the chevron container
+                const chevronContainer = this.querySelector('.chevron-container');
+                
+                // Toggle chevron direction
+                if(item.classList.contains('active')) {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                } else {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                }
+            });
+        });
+    });
 </script>
 {% endblock %}

@@ -59,19 +59,29 @@
                             {{ order.created_at|date:"M d, Y" }}
                         </td>
                         <td>
-                            {% if order.status == 'pending' %}
-                                <span class="order-badge badge-warning">Pending</span>
-                            {% elif order.status == 'in_progress' %}
-                                <span class="order-badge badge-primary">In Progress</span>
-                            {% elif order.status == 'completed' %}
-                                <span class="order-badge badge-success">Completed</span>
+                            {% if order.product.id == 4 %}
+                                <span class="order-badge badge-success">Access Granted</span>
+                            {% else %}
+                                {% if order.status == 'pending' %}
+                                    <span class="order-badge badge-warning">Pending</span>
+                                {% elif order.status == 'in_progress' %}
+                                    <span class="order-badge badge-primary">In Progress</span>
+                                {% elif order.status == 'completed' %}
+                                    <span class="order-badge badge-success">Completed</span>
+                                {% endif %}
                             {% endif %}
                         </td>
                         <td>${{ order.product.price }}</td>
                         <td>
-                            <a href="{% url 'STORE:order_details' order_id=order.id %}" class="view-details-button">
-                                <i class="fas fa-eye"></i> View Details
-                            </a>
+                            {% if order.product.id == 4 %}
+                                <a href="{% url 'STORE:stream_store' %}" class="view-details-button">
+                                    <i class="fas fa-shopping-basket"></i> Access Store
+                                </a>
+                            {% else %}
+                                <a href="{% url 'STORE:order_details' order_id=order.id %}" class="view-details-button">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            {% endif %}
                         </td>
                     </tr>
                     {% endfor %}

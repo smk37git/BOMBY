@@ -321,27 +321,47 @@ def my_orders(request):
 # Stream Store Views
 def user_can_access_stream_store(user):
     """Check if user can access stream store"""
-    return user.is_authenticated and (user.is_client or user.is_supporter or user.is_staff)
+    if not user.is_authenticated:
+        return False
+        
+    # Clients and admins always have access
+    if user.is_client or user.is_admin_user:
+        return True
+        
+    # Check if user has purchased stream store access
+    has_stream_store = Order.objects.filter(
+        user=user,
+        product_id=4,  # Stream Store product ID
+        status='completed',
+        is_paid=True
+    ).exists()
+    
+    return has_stream_store
 
 @login_required
 def stream_store(request):
     """Stream store view with access control"""
+    # Check if user can access (supporter, client, admin)
     if not user_can_access_stream_store(request.user):
-        return redirect('STORE:stream_store_purchase')
-        
+        # Show the purchase page (not purchase history)
+        product = Product.objects.get(id=4)
+        return render(request, 'STORE/stream_store_purchase.html', {'product': product})
+    
+    # User has access, show the actual store    
     assets = StreamAsset.objects.filter(is_active=True)
     return render(request, 'STORE/stream_store.html', {'assets': assets})
 
 @login_required
 def stream_store_purchase(request):
     """Page for purchasing stream store access"""
+    # If already a client/supporter/admin, redirect to store
     if user_can_access_stream_store(request.user):
         return redirect('STORE:stream_store')
         
     product = Product.objects.get(id=4)
     
     if request.method == 'POST':
-        # Create a new order that's already completed - but mark it as a special type
+        # Create a new order that's already completed
         order = Order.objects.create(
             user=request.user,
             product=product,
@@ -356,6 +376,7 @@ def stream_store_purchase(request):
         messages.success(request, "You now have access to the Stream Store!")
         return redirect('STORE:stream_store')
     
+    # Change this line to use stream_store_purchase.html
     return render(request, 'STORE/stream_store_purchase.html', {'product': product})
 
 @login_required
@@ -1432,34 +1453,52 @@ def payment_page(request, product_id):
     response['Expires'] = '0'
     
     return response
+
 @login_required
 def payment_success(request):
     # Get data from PayPal
     payment_id = request.GET.get('paymentId')
     product_id = request.GET.get('product_id')
     
-    # Create order with paid status
     product = get_object_or_404(Product, id=product_id, is_active=True)
-    order = Order.objects.create(
-        user=request.user,
-        product=product,
-        status='pending',
-        payment_id=payment_id,
-        is_paid=True
-    )
     
-    # Update user role to client
-    if not request.user.is_client:
-        request.user.promote_to_client()
-    
-    # Send order confirmation email
-    try:
-        send_pending_order_email(request, order)
-    except Exception as e:
-        print(f"Error sending pending order email: {e}")
-    
-    messages.success(request, "Payment successful! Please fill out the required information.")
-    return redirect('STORE:order_form', order_id=order.id)
+    # Create order with completed status for Stream Store
+    if product_id == '4':  # Stream Store product ID
+        order = Order.objects.create(
+            user=request.user,
+            product=product,
+            status='completed',  # Immediately completed
+            payment_id=payment_id,
+            is_paid=True
+        )
+        
+        # Promote to supporter only if not already a client or admin
+        if not (request.user.is_client or request.user.is_admin_user):
+            request.user.promote_to_supporter()
+            
+        messages.success(request, "Payment successful! You now have access to the Stream Store.")
+        return redirect('STORE:stream_store')
+    else:
+        # Normal product flow
+        order = Order.objects.create(
+            user=request.user,
+            product=product,
+            status='pending',
+            payment_id=payment_id,
+            is_paid=True
+        )
+        
+        # Update user role to client
+        if not request.user.is_client:
+            request.user.promote_to_client()
+        
+        try:
+            send_pending_order_email(request, order)
+        except Exception as e:
+            print(f"Error sending pending order email: {e}")
+        
+        messages.success(request, "Payment successful! Please fill out the required information.")
+        return redirect('STORE:order_form', order_id=order.id)
 
 @login_required
 def payment_cancel(request):
