@@ -140,12 +140,7 @@ def purchase_product(request, product_id):
     """Handle product purchase by redirecting to payment page"""
     product = get_object_or_404(Product, id=product_id, is_active=True)
     
-    # Don't create the order yet - that happens after successful payment
-    # Update user role if needed
-    if not request.user.is_client:
-        request.user.promote_to_client()
-    
-    # Redirect to payment page
+    # Just redirect to payment page, no role changes yet
     return redirect('STORE:payment_page', product_id=product_id)
 
 @login_required
@@ -1456,30 +1451,29 @@ def payment_page(request, product_id):
 
 @login_required
 def payment_success(request):
-    # Get data from PayPal
     payment_id = request.GET.get('paymentId')
     product_id = request.GET.get('product_id')
     
     product = get_object_or_404(Product, id=product_id, is_active=True)
     
-    # Create order with completed status for Stream Store
-    if product_id == '4':  # Stream Store product ID
+    if int(product_id) == 4:  # Stream Store product
+        # Create completed order
         order = Order.objects.create(
             user=request.user,
             product=product,
-            status='completed',  # Immediately completed
+            status='completed',
             payment_id=payment_id,
             is_paid=True
         )
         
-        # Promote to supporter only if not already a client or admin
+        # Promote to supporter if not already client/admin
         if not (request.user.is_client or request.user.is_admin_user):
             request.user.promote_to_supporter()
             
         messages.success(request, "Payment successful! You now have access to the Stream Store.")
         return redirect('STORE:stream_store')
     else:
-        # Normal product flow
+        # Regular product flow
         order = Order.objects.create(
             user=request.user,
             product=product,
@@ -1488,10 +1482,11 @@ def payment_success(request):
             is_paid=True
         )
         
-        # Update user role to client
+        # NOW promote user to client
         if not request.user.is_client:
             request.user.promote_to_client()
         
+        # Send confirmation email
         try:
             send_pending_order_email(request, order)
         except Exception as e:
