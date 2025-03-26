@@ -105,6 +105,59 @@
                         </div>
                         <div class="message-body">
                             <p>{{ msg.content }}</p>
+                            
+                            {% if "Basic Package" in msg.content or "Standard Package" in msg.content or "Premium Package" in msg.content or "Basic Website" in msg.content or "Ecommerce Website" in msg.content or "Custom Project" in msg.content %}
+                            <div class="related-product">
+                                {% if "Basic Package" in msg.content %}
+                                <img src="{% static 'images/1.jpg' %}" alt="Basic Package" class="product-image">
+                                {% elif "Standard Package" in msg.content %}
+                                <img src="{% static 'images/2.jpg' %}" alt="Standard Package" class="product-image">
+                                {% elif "Premium Package" in msg.content %}
+                                <img src="{% static 'images/3.jpg' %}" alt="Premium Package" class="product-image">
+                                {% elif "Basic Website" in msg.content %}
+                                <img src="{% static 'images/4.jpg' %}" alt="Basic Website" class="product-image">
+                                {% elif "Ecommerce Website" in msg.content %}
+                                <img src="{% static 'images/5.jpg' %}" alt="Ecommerce Website" class="product-image">
+                                {% elif "Custom Project" in msg.content %}
+                                <img src="{% static 'images/1.jpg' %}" alt="Custom Project" class="product-image">
+                                {% else %}
+                                <img src="{% static 'images/2.jpg' %}" alt="Product" class="product-image">
+                                {% endif %}
+                                
+                                <div class="product-details">
+                                    <div class="product-info">
+                                        <span class="product-name">
+                                            {% if "Basic Package" in msg.content %}Basic Package
+                                            {% elif "Standard Package" in msg.content %}Standard Package
+                                            {% elif "Premium Package" in msg.content %}Premium Package
+                                            {% elif "Basic Website" in msg.content %}Basic Website
+                                            {% elif "Ecommerce Website" in msg.content %}Ecommerce Website
+                                            {% elif "Custom Project" in msg.content %}Custom Project
+                                            {% else %}Product{% endif %}
+                                        </span>
+                                        <span class="product-price">
+                                            {% if "Basic Package" in msg.content %}$25.00
+                                            {% elif "Standard Package" in msg.content %}$45.00
+                                            {% elif "Premium Package" in msg.content %}$75.00
+                                            {% elif "Basic Website" in msg.content %}$150.00
+                                            {% elif "Ecommerce Website" in msg.content %}$350.00
+                                            {% elif "Custom Project" in msg.content %}$500.00
+                                            {% else %}$0.00{% endif %}
+                                        </span>
+                                    </div>
+                                    
+                                    <a href="{% if 'Basic Package' in msg.content %}{% url 'STORE:basic_package' %}
+                                           {% elif 'Standard Package' in msg.content %}{% url 'STORE:standard_package' %}
+                                           {% elif 'Premium Package' in msg.content %}{% url 'STORE:premium_package' %}
+                                           {% elif 'Basic Website' in msg.content %}{% url 'STORE:basic_website' %}
+                                           {% elif 'Ecommerce Website' in msg.content %}{% url 'STORE:ecommerce_website' %}
+                                           {% elif 'Custom Project' in msg.content %}{% url 'STORE:custom_project' %}
+                                           {% else %}{% url 'STORE:store' %}{% endif %}" 
+                                           class="view-product-btn">View Product</a>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
                             {% if msg.related_order %}
                             <div class="related-order">
                                 <a href="{% url 'STORE:order_details' order_id=msg.related_order.id %}">Order #{{ msg.related_order.id }}</a>

@@ -139,6 +139,7 @@ class Message(models.Model):
     is_read = models.BooleanField(default=False)
     related_order = models.ForeignKey('STORE.Order', null=True, blank=True, on_delete=models.CASCADE)
     conversation = models.ForeignKey('Conversation', related_name='messages', on_delete=models.CASCADE, null=True)
+    related_product = models.ForeignKey('STORE.Product', null=True, blank=True, on_delete=models.SET_NULL)
     
     class Meta:
         ordering = ['-created_at']

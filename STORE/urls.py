@@ -26,6 +26,7 @@ urlpatterns = [
     path('custom-project/', views.custom_project, name='custom_project'),
 
     # Order pages
+    path('message-me/<int:product_id>/', views.start_message_from_product, name='message_me'),
     path('purchase/<int:product_id>/', views.purchase_product, name='purchase_product'),
     path('order/<int:order_id>/form/', views.order_form, name='order_form'),
     path('order/<int:order_id>/', views.order_details, name='order_details'),

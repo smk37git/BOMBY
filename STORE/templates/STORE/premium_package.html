@@ -46,6 +46,17 @@
                     <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 5">
                 </div>
             </div>
+            <div class="gallery-message-button">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'STORE:message_me' product.id %}" class="gallery-message-btn">
+                        <i class="fas fa-comment-alt"></i> MESSAGE ME ABOUT THIS PACKAGE
+                    </a>
+                {% else %}
+                    <a href="{% url 'ACCOUNTS:login' %}?next={% url 'STORE:message_me' product.id %}" class="gallery-message-btn">
+                        <i class="fas fa-comment-alt"></i> MESSAGE ME ABOUT THIS PACKAGE
+                    </a>
+                {% endif %}
+            </div>
         </div>
         
         <!-- Right side: Product info -->

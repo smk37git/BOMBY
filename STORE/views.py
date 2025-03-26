@@ -10,6 +10,7 @@ from .forms import OrderQuestionsForm, MessageForm, ReviewForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
 from django.contrib.auth import get_user_model
+from ACCOUNTS.models import Message, Conversation
 import json
 from django.http import HttpResponse
 from google.cloud import storage
@@ -133,6 +134,45 @@ def custom_project(request):
 def get_all_reviews():
     """Helper function to get all reviews across products"""
     return Review.objects.all().select_related('order__user', 'order__product')
+
+# Message about Product
+@login_required
+def start_message_from_product(request, product_id):
+    # Get product info
+    product = get_object_or_404(Product, id=product_id)
+    
+    # Get first staff user
+    staff_user = get_user_model().objects.filter(is_staff=True).first()
+    
+    if not staff_user:
+        messages.error(request, "No staff members available to message.")
+        return redirect('STORE:store')
+    
+    # Get or create conversation
+    conversation = Conversation.objects.filter(
+        participants=request.user
+    ).filter(
+        participants=staff_user
+    ).first()
+    
+    if not conversation:
+        conversation = Conversation.objects.create()
+        conversation.participants.add(request.user, staff_user)
+        conversation.save()
+    
+    # Create a message with product info embedded - include price now
+    message = Message.objects.create(
+        sender=request.user,
+        recipient=staff_user,
+        content=f"I'm interested in discussing the {product.name}!",
+        conversation=conversation
+    )
+    
+    # Update conversation's last_message
+    conversation.last_message = message
+    conversation.save()
+    
+    return redirect('ACCOUNTS:conversation', user_id=staff_user.id)
 
 # Orders
 @login_required

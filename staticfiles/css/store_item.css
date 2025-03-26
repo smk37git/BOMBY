@@ -76,7 +76,7 @@
     display: flex;
     gap: 1rem;
     justify-content: center;
-    margin-top: 2.5rem;
+    margin-top: 1rem;
     width: 100%;
 }
 
@@ -373,6 +373,38 @@
 }
 
 .purchase-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
+}
+
+.gallery-message-button {
+    margin-top: 20px;
+    margin-bottom: -20px;
+    text-align: center;
+    width: 100%;
+}
+
+.gallery-message-btn {
+    display: inline-block;
+    padding: 0.8rem 2rem;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    width: 80%;
+    max-width: 500px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.gallery-message-btn i {
+    margin-right: 8px;
+}
+
+.gallery-message-btn:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
 }
