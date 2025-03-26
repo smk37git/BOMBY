@@ -90,9 +90,9 @@ class User(AbstractUser):
             self.save()
 
     def promote_to_client(self):
-    if self.user_type in [self.UserType.MEMBER, self.UserType.SUPPORTER]:
-        self.user_type = self.UserType.CLIENT
-        self.save()
+        if self.user_type in [self.UserType.MEMBER, self.UserType.SUPPORTER]:
+            self.user_type = self.UserType.CLIENT
+            self.save()
             
     def save(self, *args, **kwargs):
         # Existing save method remains unchanged
