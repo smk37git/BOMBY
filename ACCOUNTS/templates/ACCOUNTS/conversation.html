@@ -106,7 +106,7 @@
                         <div class="message-body">
                             <p>{{ msg.content }}</p>
                             
-                            {% if "Basic Package" in msg.content or "Standard Package" in msg.content or "Premium Package" in msg.content or "Basic Website" in msg.content or "Ecommerce Website" in msg.content or "Custom Project" in msg.content %}
+                            {% if "Basic Package" in msg.content or "Standard Package" in msg.content or "Premium Package" in msg.content or "Basic Website" in msg.content or "Ecommerce Website" in msg.content or "Custom Project" in msg.conent or "Stream Store" in msg.content %}
                             <div class="related-product">
                                 {% if "Basic Package" in msg.content %}
                                 <img src="{% static 'images/1.jpg' %}" alt="Basic Package" class="product-image">
@@ -120,6 +120,8 @@
                                 <img src="{% static 'images/5.jpg' %}" alt="Ecommerce Website" class="product-image">
                                 {% elif "Custom Project" in msg.content %}
                                 <img src="{% static 'images/1.jpg' %}" alt="Custom Project" class="product-image">
+                                {% elif "Stream Store" in msg.content %}
+                                <img src="{% static 'images/1.jpg' %}" alt="Stream Store" class="product-image">
                                 {% else %}
                                 <img src="{% static 'images/2.jpg' %}" alt="Product" class="product-image">
                                 {% endif %}
@@ -133,6 +135,7 @@
                                             {% elif "Basic Website" in msg.content %}Basic Website
                                             {% elif "Ecommerce Website" in msg.content %}Ecommerce Website
                                             {% elif "Custom Project" in msg.content %}Custom Project
+                                            {% elif "Stream Store" in msg.content %}Stream Store
                                             {% else %}Product{% endif %}
                                         </span>
                                         <span class="product-price">
@@ -142,6 +145,7 @@
                                             {% elif "Basic Website" in msg.content %}$150.00
                                             {% elif "Ecommerce Website" in msg.content %}$350.00
                                             {% elif "Custom Project" in msg.content %}$500.00
+                                            {% elif "Stream Store" in msg.content %}$10.00
                                             {% else %}$0.00{% endif %}
                                         </span>
                                     </div>
@@ -152,6 +156,7 @@
                                            {% elif 'Basic Website' in msg.content %}{% url 'STORE:basic_website' %}
                                            {% elif 'Ecommerce Website' in msg.content %}{% url 'STORE:ecommerce_website' %}
                                            {% elif 'Custom Project' in msg.content %}{% url 'STORE:custom_project' %}
+                                           {% elif 'Stream Store' in msg.content %}{% url 'STORE:stream_store_purchase' %}
                                            {% else %}{% url 'STORE:store' %}{% endif %}" 
                                            class="view-product-btn">View Product</a>
                                 </div>

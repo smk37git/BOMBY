@@ -164,7 +164,7 @@ def start_message_from_product(request, product_id):
     message = Message.objects.create(
         sender=request.user,
         recipient=staff_user,
-        content=f"I'm interested in discussing the {product.name}!",
+        content=f"I'm interested in discussing about the {product.name}!",
         conversation=conversation
     )
     

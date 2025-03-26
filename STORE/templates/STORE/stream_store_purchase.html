@@ -51,11 +51,11 @@
             <div class="gallery-message-button">
                 {% if user.is_authenticated %}
                     <a href="{% url 'STORE:message_me' product.id %}" class="gallery-message-btn">
-                        <i class="fas fa-comment-alt"></i> MESSAGE ME ABOUT THIS PACKAGE
+                        <i class="fas fa-comment-alt"></i> MESSAGE ME ABOUT THIS PRODUCT
                     </a>
                 {% else %}
                     <a href="{% url 'ACCOUNTS:login' %}?next={% url 'STORE:message_me' product.id %}" class="gallery-message-btn">
-                        <i class="fas fa-comment-alt"></i> MESSAGE ME ABOUT THIS PACKAGE
+                        <i class="fas fa-comment-alt"></i> MESSAGE ME ABOUT THIS PRODUCT
                     </a>
                 {% endif %}
             </div>
