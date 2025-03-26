@@ -19,9 +19,11 @@
     {% if messages %}
     <div class="messages">
         {% for message in messages %}
-            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
-                {{ message }}
-            </div>
+            {% if 'order' not in message|lower and 'created' not in message|lower and 'payment' not in message|lower %}
+                <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endif %}
         {% endfor %}
     </div>
     {% endif %}

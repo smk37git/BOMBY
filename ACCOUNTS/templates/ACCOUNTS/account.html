@@ -157,13 +157,11 @@
                 {% if messages %}
                 <div class="messages">
                     {% for message in messages %}
-                        {% with message_text=message|stringformat:"s" %}
-                            {% if 'order' not in message_text|lower and 'created' not in message_text|lower %}
-                                <div class="message {% if message.tags %}{{ message.tags }}{% endif %}" style="background-color: #37000556; color: white; font-size: 16px;">
-                                    {{ message }}
-                                </div>
-                            {% endif %}
-                        {% endwith %}
+                        {% if 'order' not in message|lower and 'created' not in message|lower and 'payment' not in message|lower %}
+                            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}" style="background-color: #37000556; color: white; font-size: 16px;">
+                                {{ message }}
+                            </div>
+                        {% endif %}
                     {% endfor %}
                 </div>
                 {% endif %}
