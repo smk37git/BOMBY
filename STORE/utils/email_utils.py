@@ -3,6 +3,8 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.contrib.sites.shortcuts import get_current_site
+import tempfile
+from weasyprint import HTML
 
 def send_customer_email(request, order, template_name, subject):
     """Send email to customer"""
@@ -83,7 +85,10 @@ def send_invoice_email(request, order, invoice):
     from .invoice_utils import generate_invoice_html
     invoice_html = generate_invoice_html(order)
     
-    # Send email with HTML invoice
+    temp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+    HTML(string=invoice_html).write_pdf(temp.name)
+    
+    # Send email with PDF invoice
     from django.core.mail import EmailMessage
     email = EmailMessage(
         subject=subject,
@@ -93,7 +98,12 @@ def send_invoice_email(request, order, invoice):
     )
     email.content_subtype = "html"
     
-    # Attach HTML invoice as a file
-    email.attach(f"invoice_{invoice.invoice_number}.html", invoice_html, "text/html")
+    # Attach PDF invoice as a file
+    with open(temp.name, 'rb') as f:
+        email.attach(f"invoice_{invoice.invoice_number}.pdf", f.read(), "application/pdf")
     
     email.send(fail_silently=False)
+    
+    # Clean up temp file
+    import os
+    os.unlink(temp.name)
