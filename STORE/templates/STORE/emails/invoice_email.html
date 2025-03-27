@@ -25,6 +25,7 @@
         .invoice-header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             border-bottom: 2px solid rgba(255, 255, 255, 0.3);
             padding-bottom: 20px;
             margin-bottom: 20px;
@@ -62,18 +63,31 @@
             margin-top: 30px;
             text-align: center;
             font-size: 14px;
-            color: rgba(255, 255, 255, 0.6);
+            color: #fff;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
             padding-top: 20px;
+        }
+        .logo-container {
+            text-align: center;
         }
         .bomby-logo {
             font-family: monospace;
             white-space: pre;
             line-height: 1.2;
             letter-spacing: 0.05em;
-            margin: 15px 0;
+            margin: 0 auto;
             color: #ffffff;
             font-size: 8px;
+            display: inline-block;
+            text-align: center;
+        }
+        .bomby-title {
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 0;
+        }
+        .client-info {
+            color: #fff;
         }
     </style>
 </head>
@@ -84,31 +98,31 @@
                 <h1>INVOICE</h1>
                 <h2>{{ invoice_number }}</h2>
             </div>
-            <div>
+            <div class="logo-container">
                 <div class="bomby-logo">
-                                                    
-                      %#+*%                         
-                    %*-#%#:%                        
-          %        #:#   %=*                        
-       *%-=#-#%  #-*%  %%%##%%%                     
-     %%*:....+:#-+%   %#*****#%                     
-     .*.:-----#%%   %%%#*****##%%%                  
-     %#-.---..+#  %%#**   *******#%%                
-       %=*.-:+   %#*-  +***********#%               
-          %- %  %#** ***************#%   %%         
-            %% %#* .*****************#% %%%         
-           %%%%%#*+******************#%%%%          
-            %%%%#********************#%%%           
-               %#********************#%             
-                %#******************#%              
-                 %#****************#%               
-               %%%%%#************#%%%%              
-              %%%   %%%########%%%  %%%             
-              %%          %%         %%%            
-            %%%%                     %%%%%          
-                                                    
+                                                
+                  %#+*%                         
+                %*-#%#:%                        
+      %        #:#   %=*                        
+   *%-=#-#%  #-*%  %%%##%%%                     
+ %%*:....+:#-+%   %#*****#%                     
+ .*.:-----#%%   %%%#*****##%%%                  
+ %#-.---..+#  %%#**   *******#%%                
+   %=*.-:+   %#*-  +***********#%               
+      %- %  %#** ***************#%   %%         
+        %% %#* .*****************#% %%%         
+       %%%%%#*+******************#%%%%          
+        %%%%#********************#%%%           
+           %#********************#%             
+            %#******************#%              
+             %#****************#%               
+           %%%%%#************#%%%%              
+          %%%   %%%########%%%  %%%             
+          %%          %%         %%%            
+        %%%%                     %%%%%          
+                                                
                 </div>
-                <h2>BOMBY</h2>
+                <h2 class="bomby-title">BOMBY</h2>
             </div>
         </div>
         
@@ -117,13 +131,13 @@
                 <tr>
                     <td width="50%">
                         <strong>Bill To:</strong><br>
-                        {{ order.user.username }}<br>
-                        {{ order.user.email }}
+                        <span class="client-info">{{ order.user.username }}<br>
+                        {{ order.user.email }}</span>
                     </td>
                     <td width="50%" class="text-right">
-                        <strong>Order #:</strong> {{ order.id }}<br>
-                        <strong>Invoice Date:</strong> {{ order.created_at|date:"F j, Y" }}<br>
-                        <strong>Payment ID:</strong> {{ order.payment_id }}
+                        <strong>Order #:</strong> <span class="client-info">{{ order.id }}</span><br>
+                        <strong>Invoice Date:</strong> <span class="client-info">{{ order.created_at|date:"F j, Y" }}</span><br>
+                        <strong>Payment ID:</strong> <span class="client-info">{{ order.payment_id }}</span>
                     </td>
                 </tr>
             </table>

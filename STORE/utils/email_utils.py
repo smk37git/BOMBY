@@ -51,7 +51,7 @@ def send_admin_email(request, order, subject):
 
 def send_pending_order_email(request, order):
     """Send pending order email to customer only"""
-    subject = f"BOMBY: Complete Your Order Form for order #{order.id}"
+    subject = f"BOMBY: Complete Your Order Form for Order #{order.id}"
     send_customer_email(request, order, 'pending_order_email', subject)
 
 def send_in_progress_order_email(request, order):
