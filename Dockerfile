@@ -1,7 +1,19 @@
 FROM python:3.11-slim
 
-# Install PostgreSQL client
-RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+# Install PostgreSQL client and WeasyPrint (for invoices) dependencies
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    libcairo2 \
+    libpango-1.0-0 \
+    libpangocairo-1.0-0 \
+    libgdk-pixbuf2.0-0 \
+    libffi-dev \
+    shared-mime-info \
+    libgirepository1.0-dev \
+    gir1.2-gobject-2.0 \
+    gir1.2-pango-1.0 \
+    gir1.2-gtk-3.0 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
