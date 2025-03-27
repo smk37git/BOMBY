@@ -23,11 +23,13 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
         .invoice-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            text-align: center;
             border-bottom: 2px solid rgba(255, 255, 255, 0.3);
             padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .title-section {
+            text-align: left;
             margin-bottom: 20px;
         }
         h1, h2 {
@@ -47,6 +49,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             padding: 12px;
             text-align: left;
+            color: #fff;
         }
         .invoice-table th {
             background-color: rgba(255, 255, 255, 0.1);
@@ -67,9 +70,6 @@
             border-top: 1px solid rgba(255, 255, 255, 0.2);
             padding-top: 20px;
         }
-        .logo-container {
-            text-align: center;
-        }
         .bomby-logo {
             font-family: monospace;
             white-space: pre;
@@ -78,28 +78,36 @@
             margin: 0 auto;
             color: #ffffff;
             font-size: 8px;
-            display: inline-block;
             text-align: center;
         }
         .bomby-title {
             text-align: center;
-            margin-top: 5px;
-            margin-bottom: 0;
+            margin-top: 10px;
+            margin-bottom: 30px;
+            color: #fff;
+            font-size: 28px;
         }
         .client-info {
+            color: #fff !important;
+        }
+        .info-label {
+            color: #fff;
+            font-weight: bold;
+        }
+        .info-value {
             color: #fff;
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="title-section">
+            <h1>INVOICE</h1>
+            <h2>{{ invoice_number }}</h2>
+        </div>
+        
         <div class="invoice-header">
-            <div>
-                <h1>INVOICE</h1>
-                <h2>{{ invoice_number }}</h2>
-            </div>
-            <div class="logo-container">
-                <div class="bomby-logo">
+            <div class="bomby-logo">
                                                 
                   %#+*%                         
                 %*-#%#:%                        
@@ -121,23 +129,24 @@
           %%          %%         %%%            
         %%%%                     %%%%%          
                                                 
-                </div>
-                <h2 class="bomby-title">BOMBY</h2>
             </div>
+            <h1 class="bomby-title">BOMBY</h1>
         </div>
+        
+        <hr style="border: 1px solid rgba(255, 255, 255, 0.2); margin: 30px 0;">
         
         <div class="invoice-details">
             <table width="100%">
                 <tr>
                     <td width="50%">
-                        <strong>Bill To:</strong><br>
-                        <span class="client-info">{{ order.user.username }}<br>
-                        {{ order.user.email }}</span>
+                        <span class="info-label">Bill To:</span><br>
+                        <span class="info-value">{{ order.user.username }}</span><br>
+                        <span class="info-value">{{ order.user.email }}</span>
                     </td>
                     <td width="50%" class="text-right">
-                        <strong>Order #:</strong> <span class="client-info">{{ order.id }}</span><br>
-                        <strong>Invoice Date:</strong> <span class="client-info">{{ order.created_at|date:"F j, Y" }}</span><br>
-                        <strong>Payment ID:</strong> <span class="client-info">{{ order.payment_id }}</span>
+                        <span class="info-label">Order #:</span> <span class="info-value">{{ order.id }}</span><br>
+                        <span class="info-label">Invoice Date:</span> <span class="info-value">{{ order.created_at|date:"F j, Y" }}</span><br>
+                        <span class="info-label">Payment ID:</span> <span class="info-value">{{ order.payment_id }}</span>
                     </td>
                 </tr>
             </table>
@@ -163,6 +172,8 @@
                 </tr>
             </tbody>
         </table>
+        
+        <hr style="border: 1px solid rgba(255, 255, 255, 0.2); margin: 30px 0;">
         
         <div class="footer">
             <p>Thank you for your business!</p>
