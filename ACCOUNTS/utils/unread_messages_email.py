@@ -47,7 +47,7 @@ def send_unread_messages_email(request, user):
     
     # Render the email template
     html_email = render_to_string('ACCOUNTS/emails/unread_messages_email.html', context)
-    subject = f"You Have {unread_count} Unread Message{'s' if unread_count > 1 else ''} - BOMBY"
+    subject = f"BOMBY: You Have {unread_count} Unread Message{'s' if unread_count > 1 else ''}"
     
     # Send the email
     email_message = EmailMultiAlternatives(

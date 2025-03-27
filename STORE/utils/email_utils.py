@@ -51,18 +51,18 @@ def send_admin_email(request, order, subject):
 
 def send_pending_order_email(request, order):
     """Send pending order email to customer only"""
-    subject = f"Action Required: Complete Your Order #{order.id}"
+    subject = f"BOMBY: Complete Your Order Form for order #{order.id}"
     send_customer_email(request, order, 'pending_order_email', subject)
 
 def send_in_progress_order_email(request, order):
     """Send in-progress emails to both customer and admin"""
-    subject = f"Your Order #{order.id} is Now in Progress"
+    subject = f"BOMBY: Your Order #{order.id} is Now in Progress"
     send_customer_email(request, order, 'in_progress_order_email', subject)
     send_admin_email(request, order, subject)
 
 def send_completed_order_email(request, order):
     """Send completed emails to both customer and admin"""
-    subject = f"Your Order #{order.id} is Complete"
+    subject = f"BOMBY: Your Order #{order.id} is Complete"
     send_customer_email(request, order, 'completed_order_email', subject)
     send_admin_email(request, order, subject)
 
@@ -77,7 +77,7 @@ def send_invoice_email(request, order, invoice):
         'protocol': 'https' if request.is_secure() else 'http',
     }
     
-    subject = f"Your Invoice #{invoice.invoice_number} for Order #{order.id}"
+    subject = f"BOMBY: Your Invoice #{invoice.invoice_number} for Order #{order.id}"
     html_message = render_to_string('STORE/emails/invoice_email.html', context)
     plain_message = strip_tags(html_message)
     
