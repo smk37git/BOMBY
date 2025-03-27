@@ -7,4 +7,4 @@ def generate_invoice_html(order):
         'invoice_number': f"INV-{order.created_at.year}-{order.created_at.month:02d}-{order.id}"
     }
     
-    return render_to_string('STORE/emails/invoice_template.html', context)
+    return render_to_string('STORE/emails/invoice_email.html', context)
