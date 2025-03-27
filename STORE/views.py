@@ -268,12 +268,19 @@ def order_details(request, order_id):
     except Review.DoesNotExist:
         order_review = None
     
+    # Get order invoice if it exists
+    try:
+        order_invoice = Invoice.objects.get(order=order)
+    except Invoice.DoesNotExist:
+        order_invoice = None
+        
     context = {
         'order': order,
         'form': form,
         'messages_list': messages_list,
         'review_form': review_form,
         'order_review': order_review,
+        'order_invoice': order_invoice,
     }
     
     return render(request, 'STORE/order_details.html', context)
@@ -1496,8 +1503,8 @@ def payment_success(request):
     
     product = get_object_or_404(Product, id=product_id, is_active=True)
     
+    # Create order (using your existing code)
     if int(product_id) == 4:  # Stream Store product
-        # Create completed order
         order = Order.objects.create(
             user=request.user,
             product=product,
@@ -1509,9 +1516,6 @@ def payment_success(request):
         # Promote to supporter if not already client/admin
         if not (request.user.is_client or request.user.is_admin_user):
             request.user.promote_to_supporter()
-            
-        messages.success(request, "Payment successful! You now have access to the Stream Store.")
-        return redirect('STORE:stream_store')
     else:
         # Regular product flow
         order = Order.objects.create(
@@ -1522,11 +1526,36 @@ def payment_success(request):
             is_paid=True
         )
         
-        # NOW promote user to client
+        # Promote user to client
         if not request.user.is_client:
             request.user.promote_to_client()
+    
+    # Generate invoice
+    try:
+        # Create invoice record
+        invoice = Invoice(order=order)
+        invoice.invoice_number = f"INV-{order.created_at.year}-{order.created_at.month:02d}-{order.id}"
+        invoice.save()
         
-        # Send confirmation email
+        # Send invoice email
+        from .utils.email_utils import send_invoice_email
+        send_invoice_email(request, order, invoice)
+        
+    except Exception as e:
+        # Log error but don't stop the flow
+        print(f"Error generating invoice: {e}")
+    
+    # Continue with your existing email sending
+    if int(product_id) == 4:
+        try:
+            # You might want to customize this for stream store
+            send_completed_order_email(request, order)
+        except Exception as e:
+            print(f"Error sending completed order email: {e}")
+        
+        messages.success(request, "Payment successful! You now have access to the Stream Store.")
+        return redirect('STORE:stream_store')
+    else:
         try:
             send_pending_order_email(request, order)
         except Exception as e:
@@ -1534,6 +1563,48 @@ def payment_success(request):
         
         messages.success(request, "Payment successful! Please fill out the required information.")
         return redirect('STORE:order_form', order_id=order.id)
+
+@login_required
+def download_invoice(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Verify permission - only owner or staff can download
+    if request.user != order.user and not request.user.is_staff:
+        return HttpResponseForbidden("You don't have permission to access this invoice")
+    
+    try:
+        invoice = Invoice.objects.get(order=order)
+        if invoice.pdf_file:
+            # Serve the file
+            response = HttpResponse(invoice.pdf_file, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{os.path.basename(invoice.pdf_file.name)}"'
+            return response
+        else:
+            messages.error(request, "Invoice file not found")
+    except Invoice.DoesNotExist:
+        messages.error(request, "No invoice available for this order")
+    
+    return redirect('STORE:order_details', order_id=order.id)
+
+@login_required
+def view_invoice(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    
+    # Verify permission - only owner or staff can view
+    if request.user != order.user and not request.user.is_staff:
+        return HttpResponseForbidden("You don't have permission to view this invoice")
+    
+    try:
+        invoice = Invoice.objects.get(order=order)
+        
+        # Generate HTML invoice
+        from .utils.invoice_utils import generate_invoice_html
+        invoice_html = generate_invoice_html(order)
+        
+        return HttpResponse(invoice_html)
+    except Invoice.DoesNotExist:
+        messages.error(request, "No invoice available for this order")
+        return redirect('STORE:order_details', order_id=order.id)
 
 @login_required
 def payment_cancel(request):

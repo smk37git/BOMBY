@@ -157,3 +157,16 @@ class UserAsset(models.Model):
     
     class Meta:
         unique_together = ('user', 'asset')
+
+# Invoices
+class Invoice(models.Model):
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='invoice')
+    invoice_number = models.CharField(max_length=50, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Invoice #{self.invoice_number} for Order #{self.order.id}"
+    
+    def generate_invoice_number(self):
+        # Format: INV-YEAR-MONTH-ORDERID
+        return f"INV-{self.created_at.year}-{self.created_at.month:02d}-{self.order.id}"

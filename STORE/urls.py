@@ -33,6 +33,7 @@ urlpatterns = [
     path('order/<int:order_id>/complete/', views.mark_completed, name='mark_completed'),
     path('order/<int:order_id>/review/', views.submit_review, name='submit_review'),
     path('my-orders/', views.my_orders, name='my_orders'),
+    path('order/<int:order_id>/view-invoice/', views.view_invoice, name='view_invoice'),
     
     # Admin functionality
     path('admin/toggle/<int:product_id>/', views.toggle_product_status, name='toggle_product_status'),
