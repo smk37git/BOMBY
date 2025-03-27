@@ -5,7 +5,7 @@ from django.http import HttpResponseForbidden, JsonResponse
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
-from .models import Order, OrderForm, OrderMessage, OrderAttachment, Review, Product
+from .models import Order, OrderForm, OrderMessage, OrderAttachment, Review, Product, Invoice
 from .forms import OrderQuestionsForm, MessageForm, ReviewForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.views.decorators.http import require_POST
@@ -19,7 +19,8 @@ from .models import StreamAsset, UserAsset, AssetVersion, AssetMedia
 from .utils.email_utils import (
     send_pending_order_email,
     send_in_progress_order_email, 
-    send_completed_order_email
+    send_completed_order_email,
+    send_invoice_email
 )
 import os
 import uuid
