@@ -25,6 +25,7 @@ from .utils.email_utils import (
 import os
 import uuid
 from django.conf import settings
+from django.db import connection
 
 def store(request):
     products = [
@@ -256,6 +257,18 @@ def order_details(request, order_id):
     # Get all messages for this order
     messages_list = OrderMessage.objects.filter(order=order).order_by('created_at')
     
+    # Mark messages as read if the current user is the recipient
+    if request.user.is_staff:
+        # Staff is viewing - mark messages from non-staff as read
+        unread_messages = messages_list.filter(sender__is_staff=False, is_read=False)
+    else:
+        # Customer is viewing - mark messages from staff as read
+        unread_messages = messages_list.filter(sender__is_staff=True, is_read=False)
+    
+    for message in unread_messages:
+        message.is_read = True
+        message.save()
+    
     # Prepare review form if applicable - only for completed orders without reviews
     review_form = None
     if order.status == 'completed' and request.user == order.user:
@@ -285,6 +298,37 @@ def order_details(request, order_id):
     }
     
     return render(request, 'STORE/order_details.html', context)
+
+@login_required
+def get_unread_order_messages_count(request):
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        try:
+            if request.user.is_staff:
+                # For staff, count unread messages from clients
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT COUNT(*) FROM "STORE_ordermessage" 
+                        JOIN "ACCOUNTS_user" ON "STORE_ordermessage"."sender_id" = "ACCOUNTS_user"."id"
+                        WHERE "ACCOUNTS_user"."is_staff" = FALSE AND "STORE_ordermessage"."is_read" = FALSE
+                    """)
+                    unread_count = cursor.fetchone()[0]
+            else:
+                # For regular users, count unread messages from staff
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        SELECT COUNT(*) FROM "STORE_ordermessage"
+                        JOIN "ACCOUNTS_user" ON "STORE_ordermessage"."sender_id" = "ACCOUNTS_user"."id" 
+                        JOIN "STORE_order" ON "STORE_ordermessage"."order_id" = "STORE_order"."id"
+                        WHERE "ACCOUNTS_user"."is_staff" = TRUE AND "STORE_ordermessage"."is_read" = FALSE AND "STORE_order"."user_id" = %s
+                    """, [request.user.id])
+                    unread_count = cursor.fetchone()[0]
+            
+            return JsonResponse({'unread_count': unread_count})
+        except Exception as e:
+            print(f"Error getting unread count: {e}")
+            return JsonResponse({'unread_count': 0})
+    
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @login_required
 def mark_completed(request, order_id):
@@ -333,33 +377,60 @@ def submit_review(request, order_id):
 
 @login_required
 def my_orders(request):
-   # Get appropriate orders based on user role
-   if request.user.is_staff:
-       # Staff sees all orders
-       orders = Order.objects.all().order_by('-created_at')
-   else:
-       # Users see their own orders, excluding Stream Store access
-       orders = Order.objects.filter(user=request.user).exclude(product_id=4).order_by('-created_at')
-       
-   # Check if user has stream store access separately
-   stream_store_access = user_can_access_stream_store(request.user)
-   
-   # Get any stream store purchase for display
-   stream_purchase = None
-   if not request.user.is_staff:
-       try:
-           stream_purchase = Order.objects.filter(
-               user=request.user, 
-               product_id=4
-           ).order_by('-created_at').first()
-       except:
-           pass
-   
-   return render(request, 'STORE/my_orders.html', {
-       'orders': orders,
-       'stream_store_access': stream_store_access,
-       'stream_purchase': stream_purchase
-   })
+    # Get appropriate orders based on user role
+    if request.user.is_staff:
+        # Staff sees all orders
+        orders = Order.objects.all().order_by('-created_at')
+        
+        # For each order, count unread messages
+        for order in orders:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT COUNT(*) FROM "STORE_ordermessage"
+                    JOIN "ACCOUNTS_user" ON "STORE_ordermessage"."sender_id" = "ACCOUNTS_user"."id"
+                    WHERE "STORE_ordermessage"."order_id" = %s 
+                    AND "ACCOUNTS_user"."is_staff" = FALSE
+                    AND "STORE_ordermessage"."is_read" = FALSE
+                """, [order.id])
+                unread_count = cursor.fetchone()[0]
+            
+            order.has_unread_messages = unread_count > 0
+            order.unread_message_count = unread_count
+    else:
+        # Users see their own orders, excluding Stream Store access
+        orders = Order.objects.filter(user=request.user).exclude(product_id=4).order_by('-created_at')
+        
+        # For each order, count unread messages
+        for order in orders:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT COUNT(*) FROM "STORE_ordermessage"
+                    JOIN "ACCOUNTS_user" ON "STORE_ordermessage"."sender_id" = "ACCOUNTS_user"."id"
+                    WHERE "STORE_ordermessage"."order_id" = %s 
+                    AND "ACCOUNTS_user"."is_staff" = TRUE
+                    AND "STORE_ordermessage"."is_read" = FALSE
+                """, [order.id])
+                unread_count = cursor.fetchone()[0]
+            
+            order.has_unread_messages = unread_count > 0
+            order.unread_message_count = unread_count
+    
+    # Check if user has stream store access
+    stream_store_access = user_can_access_stream_store(request.user)
+    
+    # Get stream store purchase for display
+    stream_purchase = None
+    if not request.user.is_staff:
+        stream_purchase = Order.objects.filter(
+            user=request.user, 
+            product_id=4
+        ).order_by('-created_at').first()
+    
+    return render(request, 'STORE/my_orders.html', {
+        'orders': orders,
+        'stream_store_access': stream_store_access,
+        'stream_purchase': stream_purchase
+    })
 
 # Stream Store Views
 def user_can_access_stream_store(user):

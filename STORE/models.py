@@ -69,8 +69,10 @@ class OrderMessage(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    is_read = models.BooleanField(default=False)  # Add this line
     
     def save(self, *args, **kwargs):
+        # Keep existing save logic
         if not self.id:
             # Get user's timezone if available, otherwise use server's timezone
             user_timezone = getattr(self.sender, 'timezone', None)

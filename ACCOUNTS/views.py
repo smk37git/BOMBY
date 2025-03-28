@@ -523,8 +523,23 @@ def run_message_check(request):
         return HttpResponse("Unauthorized", status=401)
         
     if request.method == 'POST':
+        # Run regular message check
         call_command('check_unread_messages')
-        return HttpResponse("Command executed successfully", status=200)
+        
+        # Import and run order message check for all users
+        from STORE.unread_messages_email import send_unread_order_messages_email
+        from django.contrib.auth import get_user_model
+        
+        User = get_user_model()
+        users = User.objects.filter(email__isnull=False).exclude(email='')
+        
+        for user in users:
+            try:
+                send_unread_order_messages_email(request, user)
+            except Exception as e:
+                print(f"Error sending order message emails for {user.username}: {e}")
+        
+        return HttpResponse("Commands executed successfully", status=200)
     return HttpResponse("Method not allowed", status=405)
 
 # Function to link order messages with the user messaging system

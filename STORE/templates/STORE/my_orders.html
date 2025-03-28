@@ -23,11 +23,16 @@
             <div class="order-card">
                 <div class="card-header">
                     <h5>Order #{{ order.id }}</h5>
-                    <span class="order-badge {% if order.status == 'pending' %}badge-warning
-                          {% elif order.status == 'in_progress' %}badge-primary
-                          {% else %}badge-success{% endif %}">
-                        {{ order.get_status_display }}
-                    </span>
+                    <div style="display: flex; align-items: center;">
+                        <span class="order-badge {% if order.status == 'pending' %}badge-warning
+                              {% elif order.status == 'in_progress' %}badge-primary
+                              {% else %}badge-success{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                        {% if order.has_unread_messages %}
+                        <span class="notification-count" style="margin-left: 10px; margin-right: -10px;">{{ order.unread_message_count }}</span>
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="order-info">

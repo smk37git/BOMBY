@@ -33,7 +33,10 @@
                 <a class="nav-link dropdown-toggle">Store <span class="dropdown-arrow">▾</span></a>
                 <div class="dropdown-content">
                     <a href="{% url 'STORE:store' %}">View Store</a>
-                    <a href="{% url 'STORE:my_orders' %}">My Orders</a>
+                    <a href="{% url 'STORE:my_orders' %}" class="notification-badge">
+                        Orders
+                        <span class="notification-count" id="order-messages-badge"></span>
+                    </a>
                     <a href="{% url 'ACCOUNTS:promotional_wall' %}">Promotional Wall</a>
                 </div>
             </div>
@@ -147,6 +150,14 @@
                     });
                 }
             });
+            
+            // Initial checks
+            checkUnreadMessages();
+            checkUnreadOrderMessages();
+            
+            // Check periodically (every 30 seconds)
+            setInterval(checkUnreadMessages, 30000);
+            setInterval(checkUnreadOrderMessages, 30000);
         });
     </script>
 
@@ -174,14 +185,32 @@
                 });
             }
         }
+    </script>
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initial check
-            checkUnreadMessages();
-            
-            // Check periodically (every 30 seconds)
-            setInterval(checkUnreadMessages, 30000);
-        });
+    <!-- Order Messages -->
+    <script>
+        function checkUnreadOrderMessages() {
+            fetch('/store/orders/unread-count/', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const orderBadge = document.getElementById('order-messages-badge');
+                if (orderBadge) {
+                    if (data.unread_count > 0) {
+                        orderBadge.textContent = data.unread_count;
+                        orderBadge.style.display = 'inline-flex';
+                    } else {
+                        orderBadge.style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error checking order messages:', error);
+            });
+        }
     </script>
     
     {% block extra_js %}

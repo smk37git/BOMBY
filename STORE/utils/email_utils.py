@@ -1,10 +1,11 @@
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.contrib.sites.shortcuts import get_current_site
 import tempfile
-from weasyprint import HTML
+import os
+import importlib
 
 def send_customer_email(request, order, template_name, subject):
     """Send email to customer"""
@@ -66,6 +67,15 @@ def send_completed_order_email(request, order):
     send_customer_email(request, order, 'completed_order_email', subject)
     send_admin_email(request, order, subject)
 
+# Lazy import for WeasyPrint
+def get_html_class():
+    """Dynamically import HTML class from WeasyPrint only when needed"""
+    try:
+        from weasyprint import HTML
+        return HTML
+    except ImportError:
+        return None
+
 # Invoices
 def send_invoice_email(request, order, invoice):
     """Send invoice email to customer"""
@@ -85,25 +95,38 @@ def send_invoice_email(request, order, invoice):
     from .invoice_utils import generate_invoice_html
     invoice_html = generate_invoice_html(order)
     
-    temp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-    HTML(string=invoice_html).write_pdf(temp.name)
+    # Dynamically import HTML only when needed
+    HTML = get_html_class()
     
-    # Send email with PDF invoice
-    from django.core.mail import EmailMessage
-    email = EmailMessage(
-        subject=subject,
-        body=html_message,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[order.user.email]
-    )
-    email.content_subtype = "html"
-    
-    # Attach PDF invoice as a file
-    with open(temp.name, 'rb') as f:
-        email.attach(f"invoice_{invoice.invoice_number}.pdf", f.read(), "application/pdf")
-    
-    email.send(fail_silently=False)
-    
-    # Clean up temp file
-    import os
-    os.unlink(temp.name)
+    if HTML:
+        # Generate PDF with WeasyPrint
+        temp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+        HTML(string=invoice_html).write_pdf(temp.name)
+        
+        # Send email with PDF invoice
+        email = EmailMessage(
+            subject=subject,
+            body=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[order.user.email]
+        )
+        email.content_subtype = "html"
+        
+        # Attach PDF invoice as a file
+        with open(temp.name, 'rb') as f:
+            email.attach(f"invoice_{invoice.invoice_number}.pdf", f.read(), "application/pdf")
+        
+        email.send(fail_silently=False)
+        
+        # Clean up temp file
+        os.unlink(temp.name)
+    else:
+        # Fallback to HTML email without PDF attachment
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[order.user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
