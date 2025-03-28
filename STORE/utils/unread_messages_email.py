@@ -8,19 +8,22 @@ from STORE.models import Order, OrderMessage
 
 def send_unread_order_messages_email(request, user):
     """
-    Send an email notification to users with unread order messages
-    First after 5 minutes, then every 24 hours if still unread
+    Send email notifications for unread order messages:
+    1. First notification after 5-10 minutes
+    2. Daily reminders after 24-48 hours
     """
-    # Get current time
-    five_minutes_ago = timezone.now() - timedelta(minutes=5)
-    last_day = timezone.now() - timedelta(days=1)
+    # Define time windows
+    now = timezone.now()
+    first_window_end = now - timedelta(minutes=5)
+    first_window_start = now - timedelta(minutes=10)
+    daily_window_end = now - timedelta(hours=24)
+    daily_window_start = now - timedelta(hours=48)
     
     unread_count = 0
     order_ids = []
     
-    # Check if staff or regular user
     if user.is_staff:
-        # For staff, get unread messages from clients
+        # Staff: get unread messages from clients
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT COUNT(*), array_agg(DISTINCT "STORE_ordermessage"."order_id") 
@@ -28,14 +31,17 @@ def send_unread_order_messages_email(request, user):
                 JOIN "ACCOUNTS_user" ON "STORE_ordermessage"."sender_id" = "ACCOUNTS_user"."id"
                 WHERE "ACCOUNTS_user"."is_staff" = FALSE 
                 AND "STORE_ordermessage"."is_read" = FALSE
-                AND ("STORE_ordermessage"."created_at" <= %s
-                    OR "STORE_ordermessage"."created_at" <= %s)
-            """, [five_minutes_ago, last_day])
+                AND (
+                    ("STORE_ordermessage"."created_at" BETWEEN %s AND %s)
+                    OR
+                    ("STORE_ordermessage"."created_at" BETWEEN %s AND %s)
+                )
+            """, [first_window_start, first_window_end, daily_window_start, daily_window_end])
             result = cursor.fetchone()
             unread_count = result[0] if result[0] else 0
             order_ids = result[1] if result[1] else []
     else:
-        # For regular users, get unread messages from staff
+        # Regular users: get unread messages from staff
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT COUNT(*), array_agg(DISTINCT "STORE_ordermessage"."order_id")
@@ -45,24 +51,27 @@ def send_unread_order_messages_email(request, user):
                 WHERE "ACCOUNTS_user"."is_staff" = TRUE 
                 AND "STORE_ordermessage"."is_read" = FALSE 
                 AND "STORE_order"."user_id" = %s
-                AND ("STORE_ordermessage"."created_at" <= %s
-                    OR "STORE_ordermessage"."created_at" <= %s)
-            """, [user.id, five_minutes_ago, last_day])
+                AND (
+                    ("STORE_ordermessage"."created_at" BETWEEN %s AND %s)
+                    OR
+                    ("STORE_ordermessage"."created_at" BETWEEN %s AND %s)
+                )
+            """, [user.id, first_window_start, first_window_end, daily_window_start, daily_window_end])
             result = cursor.fetchone()
             unread_count = result[0] if result[0] else 0
             order_ids = result[1] if result[1] else []
     
-    # If no unread messages, don't send email
+    # Skip if no messages or order IDs
     if unread_count == 0 or not order_ids:
         return
     
     # Get orders with unread messages
     orders = Order.objects.filter(id__in=order_ids)
     
-    # Get current site for email template
+    # Get current site
     current_site = get_current_site(request)
     
-    # Prepare context for email template
+    # Email context
     context = {
         'user': user,
         'unread_count': unread_count,
@@ -72,11 +81,10 @@ def send_unread_order_messages_email(request, user):
         'protocol': 'https' if request.is_secure() else 'http',
     }
     
-    # Render the email template
+    # Render and send email
     html_email = render_to_string('STORE/emails/unread_order_messages_email.html', context)
     subject = f"BOMBY: You Have {unread_count} Unread Order Message{'s' if unread_count > 1 else ''}"
     
-    # Send the email
     email_message = EmailMultiAlternatives(
         subject=subject,
         body='',
