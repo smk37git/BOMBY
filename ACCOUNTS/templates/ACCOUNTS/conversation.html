@@ -417,8 +417,52 @@
                 .then(data => {
                     console.log("Response data:", data);
                     if (data.status === 'success') {
-                        // Simply refresh the page to show the new message
-                        window.location.reload();
+                        // Instead of reloading, add the message to the chat
+                        const messagesContainer = document.getElementById('chat-messages');
+                        
+                        // Create new message element
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = 'message message-mine';
+                        
+                        // Get current user's data
+                        const currentUserName = document.querySelector('.message-mine .username')?.textContent || 'You';
+                        const currentUserAvatar = document.querySelector('.message-mine .user-avatar')?.innerHTML || 
+                            `<div class="avatar-placeholder small">${currentUserName.charAt(0)}</div>`;
+                        
+                        // Get current time
+                        const now = new Date();
+                        const timeFormatted = formatTimeOnly(now.toISOString());
+                        
+                        // Create message HTML
+                        messageDiv.innerHTML = `
+                            <div class="message-header">
+                                <div class="message-user">
+                                    <div class="user-avatar">
+                                        ${currentUserAvatar}
+                                    </div>
+                                    <strong class="username">${currentUserName}</strong>
+                                </div>
+                                <small class="message-time" data-iso-date="${now.toISOString()}">${timeFormatted}</small>
+                            </div>
+                            <div class="message-body">
+                                <p>${content}</p>
+                            </div>
+                        `;
+                        
+                        // Add message to container
+                        messagesContainer.appendChild(messageDiv);
+                        
+                        // Scroll to bottom
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                        
+                        // Clear input field
+                        contentField.value = '';
+                        
+                        // Reset submission state
+                        isSubmitting = false;
+                        
+                        // Focus back on the textarea
+                        contentField.focus();
                     }
                 })
                 .catch(error => {

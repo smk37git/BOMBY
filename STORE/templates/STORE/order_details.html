@@ -465,9 +465,120 @@
 </div>
 
 <script>
-    // Rating System
     document.addEventListener('DOMContentLoaded', function() {
-
+        // Helper function to apply timezone conversion
+        function convertToLocalTime(dateString) {
+            if (!dateString || dateString === '') return '';
+            
+            try {
+                // Parse the date
+                const date = new Date(dateString);
+                
+                // Check if date is valid
+                if (isNaN(date.getTime())) {
+                    console.warn('Invalid date:', dateString);
+                    return dateString;
+                }
+                
+                // Format with date and time
+                return date.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true
+                });
+            } catch (e) {
+                console.error('Error converting date:', e, dateString);
+                return dateString;
+            }
+        }
+        
+        // Function to format just time (for message timestamps)
+        function formatTimeOnly(dateString) {
+            if (!dateString) return '';
+            
+            try {
+                const date = new Date(dateString);
+                
+                if (isNaN(date.getTime())) {
+                    return dateString;
+                }
+                
+                return date.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            } catch (e) {
+                console.error('Error formatting time:', e);
+                return dateString;
+            }
+        }
+        
+        // 1. Fix info values in the details card
+        document.querySelectorAll('.info-value').forEach(element => {
+            if (element.textContent.trim()) {
+                element.textContent = convertToLocalTime(element.textContent.trim());
+            }
+        });
+        
+        // 2. Fix due date (which has a data attribute)
+        const dueDate = document.getElementById('due-date');
+        if (dueDate && dueDate.dataset.date) {
+            dueDate.textContent = convertToLocalTime(dueDate.dataset.date);
+        }
+        
+        // 3. Fix event times with data-iso-date attribute
+        document.querySelectorAll('[data-iso-date]').forEach(element => {
+            if (element.getAttribute('data-iso-date')) {
+                if (element.classList.contains('message-time')) {
+                    element.textContent = formatTimeOnly(element.getAttribute('data-iso-date'));
+                } else {
+                    element.textContent = convertToLocalTime(element.getAttribute('data-iso-date'));
+                }
+            }
+        });
+        
+        // Target specifically the messages in messages-container
+        const orderMessages = document.querySelectorAll('#messages-container .message, #messages-container .message-mine, #messages-container .message-other, #messages-container .timeline-event, #messages-container .date-divider');
+        
+        // Remove any auto-dismiss timeouts
+        orderMessages.forEach(message => {
+            message.style.opacity = '1';
+            message.style.visibility = 'visible';
+            message.style.display = 'block';
+        });
+        
+        // Scroll to bottom of messages container
+        const messagesContainer = document.getElementById('messages-container');
+        if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // File upload preview functionality
+        const fileInput = document.getElementById('id_attachments');
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                var fileList = document.getElementById('file-list');
+                fileList.innerHTML = '';
+                
+                if (this.files.length > 0) {
+                    fileList.classList.add('has-files');
+                    
+                    for (var i = 0; i < this.files.length; i++) {
+                        var fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        fileItem.innerHTML = '<i class="fas fa-file"></i> ' + this.files[i].name;
+                        fileList.appendChild(fileItem);
+                    }
+                } else {
+                    fileList.classList.remove('has-files');
+                }
+            });
+        }
+        
         // Send with enter key
         const textarea = document.querySelector('.message-input-container textarea');
         if (textarea) {
@@ -485,6 +596,111 @@
             });
         }
         
+        // AJAX form submission
+        const form = document.getElementById('message-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const contentField = document.querySelector('textarea[name="message"]');
+                const content = contentField ? contentField.value.trim() : '';
+                
+                if (!content && !formData.has('attachments')) {
+                    // Show error message 
+                    console.error('Message cannot be empty');
+                    return;
+                }
+                
+                // Add message to the chat before sending to server
+                if (content) {
+                    // Create new message element
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message message-mine';
+                    
+                    // Get current user data from existing messages
+                    const currentUserName = document.querySelector('.message-mine .username')?.textContent || 'You';
+                    const currentUserAvatar = document.querySelector('.message-mine .user-avatar')?.innerHTML || 
+                        `<div class="avatar-placeholder">${currentUserName.charAt(0)}</div>`;
+                    
+                    // Get current time
+                    const now = new Date();
+                    const timeFormatted = formatTimeOnly(now.toISOString());
+                    
+                    // Create message HTML
+                    messageDiv.innerHTML = `
+                        <div class="message-header">
+                            <div class="message-user">
+                                <div class="user-avatar">
+                                    ${currentUserAvatar}
+                                </div>
+                                <strong class="username">${currentUserName}</strong>
+                            </div>
+                            <small class="message-time" data-iso-date="${now.toISOString()}">${timeFormatted}</small>
+                        </div>
+                        <div class="message-body">
+                            <p>${content}</p>
+                        </div>
+                    `;
+                    
+                    // Add message to container
+                    messagesContainer.appendChild(messageDiv);
+                    
+                    // Scroll to bottom
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+                
+                // Send to server
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Message sent successfully');
+                    
+                    // Clear the textarea
+                    if (contentField) {
+                        contentField.value = '';
+                    }
+                    
+                    // Clear file list
+                    const fileList = document.getElementById('file-list');
+                    if (fileList) {
+                        fileList.innerHTML = '';
+                        fileList.classList.remove('has-files');
+                    }
+                    
+                    // Reset file input
+                    if (fileInput) {
+                        fileInput.value = '';
+                    }
+                    
+                    // Focus on textarea
+                    if (contentField) {
+                        contentField.focus();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        }
+    });
+</script>
+
+<script>
+    // Rating System
+    document.addEventListener('DOMContentLoaded', function() {
         // Get the select element
         const selectRating = document.querySelector('select[name="rating"]');
         if (!selectRating) return;
@@ -502,7 +718,7 @@
         const starContainer = document.createElement('div');
         starContainer.className = 'star-rating';
         
-        // Create 5 stars with radio buttons - in descending order for proper CSS selection
+        // Create 5 stars with radio buttons
         for (let i = 5; i >= 1; i--) {
             // Create radio input
             const input = document.createElement('input');

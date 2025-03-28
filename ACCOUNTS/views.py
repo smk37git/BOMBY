@@ -527,7 +527,7 @@ def run_message_check(request):
         call_command('check_unread_messages')
         
         # Import and run order message check for all users
-        from STORE.unread_messages_email import send_unread_order_messages_email
+        from STORE.utils.unread_messages_email import send_unread_order_messages_email
         from django.contrib.auth import get_user_model
         
         User = get_user_model()
