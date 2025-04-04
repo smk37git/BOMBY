@@ -10,14 +10,21 @@ def send_unread_order_messages_email(request, user):
     """
     Send email notifications for unread order messages:
     1. First notification after 5-10 minutes
-    2. Daily reminders after 24-48 hours
+    2. Daily reminders after 24 hours intervals
     """
     # Define time windows
     now = timezone.now()
+    
+    # First notification: 5-10 minutes old
     first_window_end = now - timedelta(minutes=5)
     first_window_start = now - timedelta(minutes=10)
-    daily_window_end = now - timedelta(hours=24)
-    daily_window_start = now - timedelta(hours=48)
+    
+    # Subsequent notifications: 24 hour intervals after first 24 hours
+    daily_windows = []
+    for days in range(1, 14):  # Up to 14 days of reminders
+        window_start = now - timedelta(hours=24*days) - timedelta(hours=1)
+        window_end = now - timedelta(hours=24*days)
+        daily_windows.append((window_start, window_end))
     
     unread_count = 0
     order_ids = []
@@ -25,7 +32,8 @@ def send_unread_order_messages_email(request, user):
     if user.is_staff:
         # Staff: get unread messages from clients
         with connection.cursor() as cursor:
-            cursor.execute("""
+            # Start with the first window condition
+            sql = """
                 SELECT COUNT(*), array_agg(DISTINCT "STORE_ordermessage"."order_id") 
                 FROM "STORE_ordermessage" 
                 JOIN "ACCOUNTS_user" ON "STORE_ordermessage"."sender_id" = "ACCOUNTS_user"."id"
@@ -33,17 +41,26 @@ def send_unread_order_messages_email(request, user):
                 AND "STORE_ordermessage"."is_read" = FALSE
                 AND (
                     ("STORE_ordermessage"."created_at" BETWEEN %s AND %s)
-                    OR
-                    ("STORE_ordermessage"."created_at" BETWEEN %s AND %s)
-                )
-            """, [first_window_start, first_window_end, daily_window_start, daily_window_end])
+            """
+            
+            # Add each daily window as a separate OR condition
+            params = [first_window_start, first_window_end]
+            for start, end in daily_windows:
+                sql += " OR (\"STORE_ordermessage\".\"created_at\" BETWEEN %s AND %s)"
+                params.extend([start, end])
+            
+            # Close the query
+            sql += ")"
+            
+            # Execute with all parameters
+            cursor.execute(sql, params)
             result = cursor.fetchone()
             unread_count = result[0] if result[0] else 0
             order_ids = result[1] if result[1] else []
     else:
         # Regular users: get unread messages from staff
         with connection.cursor() as cursor:
-            cursor.execute("""
+            sql = """
                 SELECT COUNT(*), array_agg(DISTINCT "STORE_ordermessage"."order_id")
                 FROM "STORE_ordermessage"
                 JOIN "ACCOUNTS_user" ON "STORE_ordermessage"."sender_id" = "ACCOUNTS_user"."id" 
@@ -53,10 +70,19 @@ def send_unread_order_messages_email(request, user):
                 AND "STORE_order"."user_id" = %s
                 AND (
                     ("STORE_ordermessage"."created_at" BETWEEN %s AND %s)
-                    OR
-                    ("STORE_ordermessage"."created_at" BETWEEN %s AND %s)
-                )
-            """, [user.id, first_window_start, first_window_end, daily_window_start, daily_window_end])
+            """
+            
+            # Add each daily window as a separate OR condition
+            params = [user.id, first_window_start, first_window_end]
+            for start, end in daily_windows:
+                sql += " OR (\"STORE_ordermessage\".\"created_at\" BETWEEN %s AND %s)"
+                params.extend([start, end])
+            
+            # Close the query
+            sql += ")"
+            
+            # Execute with all parameters
+            cursor.execute(sql, params)
             result = cursor.fetchone()
             unread_count = result[0] if result[0] else 0
             order_ids = result[1] if result[1] else []
