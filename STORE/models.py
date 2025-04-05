@@ -172,3 +172,14 @@ class Invoice(models.Model):
     def generate_invoice_number(self):
         # Format: INV-YEAR-MONTH-ORDERID
         return f"INV-{self.created_at.year}-{self.created_at.month:02d}-{self.order.id}"
+
+class NotificationRecord(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notification_records')
+    notification_type = models.CharField(max_length=50)  # 'order_message', 'message', etc.
+    last_sent_at = models.DateTimeField()
+    
+    class Meta:
+        unique_together = ('user', 'notification_type')
+        
+    def __str__(self):
+        return f"{self.notification_type} for {self.user.email}"
