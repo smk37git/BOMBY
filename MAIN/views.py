@@ -80,3 +80,7 @@ def admin_panel(request):
     }
     
     return render(request, 'MAIN/admin_panel.html', context)
+
+# Coming Soon View
+def coming_soon(request):
+    return render(request, 'MAIN/coming_soon.html')

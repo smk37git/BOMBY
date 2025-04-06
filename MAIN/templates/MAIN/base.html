@@ -18,15 +18,15 @@
     <!-- Navigation bar with blur effect -->
     <nav class="custom-navbar">
         <div class="nav-brand-container">
-            <a href="{% url 'home' %}" class="bomb-icon-link">
+            <a href="{% url 'MAIN:home' %}" class="bomb-icon-link">
                 <div class="bomb-icon">
                     <img src="{% static 'images/bomb.svg' %}" alt="bomb">
                 </div>
             </a>
-            <a href="{% url 'home' %}" class="nav-brand">BOMBY</a>
+            <a href="{% url 'MAIN:home' %}" class="nav-brand">BOMBY</a>
         </div>
         <div class="nav-menu" id="nav-menu">
-            <a href="{% url 'home' %}" class="nav-link">Home</a>
+            <a href="{% url 'MAIN:home' %}" class="nav-link">Home</a>
             <div class="dropdown">
                 <a class="nav-link dropdown-toggle">Store <span class="dropdown-arrow">▾</span></a>
                 <div class="dropdown-content">
@@ -42,8 +42,8 @@
                 </div>
             </div>
             <a href="{% url 'PORTFOLIO:portfolio' %}" class="nav-link">Portfolio</a>
-            <a href="{% url 'about' %}" class="nav-link">About</a>
-            <a href="{% url 'contact' %}" class="nav-link">Contact</a>
+            <a href="{% url 'MAIN:about' %}" class="nav-link">About</a>
+            <a href="{% url 'MAIN:contact' %}" class="nav-link">Contact</a>
             
             <div class="nav-separator"></div>
             
@@ -70,7 +70,7 @@
                             </a>
                             <a href="{% url 'ACCOUNTS:edit_profile' %}">Edit Profile</a>
                             {% if user.is_admin_user %}
-                            <a href="{% url 'admin_panel' %}">Admin Panel</a>
+                            <a href="{% url 'MAIN:admin_panel' %}">Admin Panel</a>
                             {% endif %}
                             <form method="post" action="{% url 'ACCOUNTS:logout' %}">
                                 {% csrf_token %}

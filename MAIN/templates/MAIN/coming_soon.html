@@ -1,0 +1,35 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/store.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+    <header class="store-hero">
+        <div class="hero-content">
+            <h1 class="main-title">MY STORE</h1>
+            <p class="subtitle">SERVICES & PRODUCTS</p>
+        </div>
+    </header>
+
+    <!-- Stream Setup Services Section -->
+    <section class="store-section" id="stream-setup">
+        <div class="section-header">
+            <h2 class="section-title">STREAM SETUP SERVICE</h2>
+            <div class="section-separator-right"></div>
+        </div>
+    </section>
+
+    <section class="contact-cta">
+        <div class="cta-content">
+            <h2>NEED SOMETHING CUSTOM?</h2>
+            <p>I'm always open to discussing custom projects and unique requirements. Let's create something amazing together!</p>
+            <a href="{% url 'MAIN:contact' %}" class="cta-button">GET IN TOUCH</a>
+        </div>
+    </section>
+{% endblock %}
