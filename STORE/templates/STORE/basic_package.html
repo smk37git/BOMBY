@@ -213,9 +213,9 @@
                 <h2 class="heading-with-line">REVIEWS</h2>
                 <div class="reviews-section">
                     {% if product_reviews %}
-                        <div class="reviews-list">
+                        <div class="reviews-list" id="reviewsList">
                             {% for review in product_reviews %}
-                            <div class="review-item">
+                            <div class="review-item fade-in">
                                 <div class="review-header">
                                     <div class="review-user">
                                         <div class="user-avatar">
@@ -253,9 +253,23 @@
                             </div>
                             {% endfor %}
                         </div>
+                        
+                        {% if product_reviews.count > 3 %}
+                        <div class="review-pagination">
+                            <button id="prevReviews" class="pagination-btn" disabled>
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <div class="pagination-info">
+                                <span id="currentPage" style="margin-right: 5px;">1</span> of <span id="totalPages" style="margin-left: 5px;">1</span>
+                            </div>
+                            <button id="nextReviews" class="pagination-btn">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        {% endif %}
                     {% else %}
-                        <div class="no-reviews">
-                            <p>No reviews yet for this product.</p>
+                        <div class="no-reviews" style="padding: 1.5rem; margin-bottom: 1.5rem;">
+                            <p>No reviews yet for this package. Be the first to leave a review after your purchase!</p>
                         </div>
                     {% endif %}
                 </div>
@@ -329,6 +343,135 @@
             if (element.textContent.trim()) {
                 element.textContent = formatLocalDate(element.textContent.trim());
             }
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle review pagination
+        const reviewItems = document.querySelectorAll('.review-item');
+        const reviewsPerPage = 3;
+        const totalPages = Math.ceil(reviewItems.length / reviewsPerPage);
+        
+        if (totalPages > 0) {
+            // Set the total pages in pagination info
+            const totalPagesElement = document.getElementById('totalPages');
+            if (totalPagesElement) {
+                totalPagesElement.textContent = totalPages;
+            }
+            
+            // Apply fade-in class to initial reviews
+            reviewItems.forEach((item, index) => {
+                if (index < reviewsPerPage) {
+                    setTimeout(() => {
+                        item.classList.add('fade-in');
+                    }, index * 100);
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Handle pagination if there are reviews
+            const prevButton = document.getElementById('prevReviews');
+            const nextButton = document.getElementById('nextReviews');
+            const currentPageElement = document.getElementById('currentPage');
+            
+            if (prevButton && nextButton && currentPageElement) {
+                let currentPage = 1;
+                
+                // Disable next button if only one page
+                if (totalPages <= 1) {
+                    nextButton.disabled = true;
+                }
+                
+                nextButton.addEventListener('click', function() {
+                    if (currentPage < totalPages) {
+                        // Hide current page reviews
+                        reviewItems.forEach((item, index) => {
+                            const startIndex = (currentPage - 1) * reviewsPerPage;
+                            const endIndex = startIndex + reviewsPerPage - 1;
+                            
+                            if (index >= startIndex && index <= endIndex) {
+                                item.classList.remove('fade-in');
+                                setTimeout(() => {
+                                    item.style.display = 'none';
+                                }, 300);
+                            }
+                        });
+                        
+                        // Increment page and update UI
+                        currentPage++;
+                        currentPageElement.textContent = currentPage;
+                        prevButton.disabled = false;
+                        
+                        // Show new page reviews
+                        setTimeout(() => {
+                            reviewItems.forEach((item, index) => {
+                                const startIndex = (currentPage - 1) * reviewsPerPage;
+                                const endIndex = startIndex + reviewsPerPage - 1;
+                                
+                                if (index >= startIndex && index <= endIndex) {
+                                    item.style.display = 'block';
+                                    setTimeout(() => {
+                                        item.classList.add('fade-in');
+                                    }, 50);
+                                }
+                            });
+                        }, 300);
+                        
+                        // Disable next button if last page
+                        if (currentPage >= totalPages) {
+                            nextButton.disabled = true;
+                        }
+                    }
+                });
+                
+                prevButton.addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        // Hide current page reviews
+                        reviewItems.forEach((item, index) => {
+                            const startIndex = (currentPage - 1) * reviewsPerPage;
+                            const endIndex = startIndex + reviewsPerPage - 1;
+                            
+                            if (index >= startIndex && index <= endIndex) {
+                                item.classList.remove('fade-in');
+                                setTimeout(() => {
+                                    item.style.display = 'none';
+                                }, 300);
+                            }
+                        });
+                        
+                        // Decrement page and update UI
+                        currentPage--;
+                        currentPageElement.textContent = currentPage;
+                        nextButton.disabled = false;
+                        
+                        // Show new page reviews
+                        setTimeout(() => {
+                            reviewItems.forEach((item, index) => {
+                                const startIndex = (currentPage - 1) * reviewsPerPage;
+                                const endIndex = startIndex + reviewsPerPage - 1;
+                                
+                                if (index >= startIndex && index <= endIndex) {
+                                    item.style.display = 'block';
+                                    setTimeout(() => {
+                                        item.classList.add('fade-in');
+                                    }, 50);
+                                }
+                            });
+                        }, 300);
+                        
+                        // Disable prev button if first page
+                        if (currentPage <= 1) {
+                            prevButton.disabled = true;
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Add animation to review items as they load
+        reviewItems.forEach((item, index) => {
+            item.style.transitionDelay = (index * 0.1) + 's';
         });
     });
 </script>

@@ -8,12 +8,12 @@ class AnalyticsMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         self.get_response = get_response
         self.async_mode = False
-        # Compile URL patterns to match
+        # Compile URL patterns to match - add Stream Store pattern
         self.product_patterns = [
             re.compile(r'^/store/basic-package/$'),
             re.compile(r'^/store/standard-package/$'),
             re.compile(r'^/store/premium-package/$'),
-            re.compile(r'^/store/stream-asset/(\d+)/$'),
+            re.compile(r'^/store/stream-store/$'),
             re.compile(r'^/store/basic-website/$'),
             re.compile(r'^/store/ecommerce-website/$'),
             re.compile(r'^/store/custom-project/$'),
@@ -58,16 +58,14 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         product = Product.objects.filter(id=2).first()
                     elif 'premium-package' in request.path:
                         product = Product.objects.filter(id=3).first()
+                    elif 'stream-store' in request.path:
+                        product = Product.objects.filter(id=4).first()
                     elif 'basic-website' in request.path:
                         product = Product.objects.filter(id=5).first()
                     elif 'ecommerce-website' in request.path:
                         product = Product.objects.filter(id=6).first()
                     elif 'custom-project' in request.path:
                         product = Product.objects.filter(id=7).first()
-                    elif 'stream-asset' in request.path and len(match.groups()) > 0:
-                        asset_id = match.group(1)
-                        # For stream assets, we'd need a different approach
-                        # This is just a placeholder
                         continue
                     
                     if product:

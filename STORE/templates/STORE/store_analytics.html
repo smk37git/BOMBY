@@ -3,8 +3,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/product_management.css' %}">
-<link rel="stylesheet" href="{% static 'css/store_analytics.css' %}"
-
+<link rel="stylesheet" href="{% static 'css/store_analytics.css' %}">
 {% endblock %}
 
 {% block background %}
@@ -30,8 +29,9 @@
         <div class="metric-card">
             <div class="metric-label">Total Orders</div>
             <div class="metric-value">{{ total_orders }}</div>
-            <div class="metric-trend trend-up">
-                <i class="fas fa-arrow-up"></i> 12% from previous period
+            <div class="metric-trend {% if orders_trend >= 0 %}trend-up{% else %}trend-down{% endif %}">
+                <i class="fas fa-arrow-{% if orders_trend >= 0 %}up{% else %}down{% endif %}" style="margin-right: 5px;"></i> 
+                {{ orders_trend_abs|floatformat:1 }}% from previous period
             </div>
         </div>
         
@@ -43,9 +43,10 @@
         
         <div class="metric-card">
             <div class="metric-label">Total Revenue</div>
-            <div class="metric-value">${{ total_revenue }}</div>
-            <div class="metric-trend trend-up">
-                <i class="fas fa-arrow-up"></i> 8% from previous period
+            <div class="metric-value">${{ total_revenue|floatformat:2 }}</div>
+            <div class="metric-trend {% if revenue_trend >= 0 %}trend-up{% else %}trend-down{% endif %}">
+                <i class="fas fa-arrow-{% if revenue_trend >= 0 %}up{% else %}down{% endif %}" style="margin-right: 5px;"></i> 
+                {{ revenue_trend_abs|floatformat:1 }}% from previous period
             </div>
         </div>
         
@@ -78,11 +79,11 @@
                 </div>
                 <div class="pie-item">
                     <div class="pie-color color-progress"></div>
-                    <div>In Progress: {{ in_progress_orders }} ({{ in_progress_orders|floatformat:1 }}%)</div>
+                    <div>In Progress: {{ in_progress_orders }} ({{ in_progress_percent|floatformat:1 }}%)</div>
                 </div>
                 <div class="pie-item">
                     <div class="pie-color color-pending"></div>
-                    <div>Pending: {{ pending_orders }} ({{ pending_orders|floatformat:1 }}%)</div>
+                    <div>Pending: {{ pending_orders }} ({{ pending_percent|floatformat:1 }}%)</div>
                 </div>
             </div>
         </div>
@@ -99,7 +100,7 @@
                 <tr>
                     <th>Product</th>
                     <th>Sales</th>
-                    <th>Revenue</th>
+                    <th>Unit Price</th>
                     <th>Conversion Rate</th>
                 </tr>
             </thead>
@@ -108,7 +109,7 @@
                 <tr>
                     <td>{{ product.product__name }}</td>
                     <td>{{ product.count }}</td>
-                    <td>${{ product.revenue }}</td>
+                    <td>${{ product.unit_price|floatformat:2 }}</td>
                     <td>
                         {% for view in page_views %}
                             {% if view.name == product.product__name %}
@@ -132,15 +133,23 @@
             <h3>Page Views & Conversion</h3>
         </div>
         
-        <div class="chart-container">
-            <div class="bar-chart">
-                {% for view in page_views %}
-                <div class="chart-bar">
-                    <div class="chart-value">{{ view.views }}</div>
-                    <div class="chart-label">{{ view.name }}</div>
-                </div>
-                {% endfor %}
+        <div class="data-type-filter">
+            <div class="filter-checkbox" id="all-checkbox">
+                <div class="checkbox-item" style="background-color: #333">✓</div>
+                <span>All</span>
             </div>
+            <div class="filter-checkbox" id="impressions-checkbox">
+                <div class="checkbox-item" style="background-color: rgba(52, 152, 219, 0.7)">✓</div>
+                <span>Impressions</span>
+            </div>
+            <div class="filter-checkbox" id="conversion-checkbox">
+                <div class="checkbox-item" style="background-color: rgba(87, 87, 87, 0.7)">✓</div>
+                <span>Conversion</span>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="analyticsChart"></canvas>
         </div>
     </div>
 </div>
@@ -148,8 +157,10 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Calculate percentages based on order numbers
         const completed = parseFloat("{{ completed_orders|default:0|escapejs }}");
         const inProgress = parseFloat("{{ in_progress_orders|default:0|escapejs }}");
         const pending = parseFloat("{{ pending_orders|default:0|escapejs }}");
@@ -160,15 +171,17 @@
         const inProgressPercent = total > 0 ? (inProgress / total * 100) : 0;
         const pendingPercent = total > 0 ? (pending / total * 100) : 0;
 
+        // Set pie chart with the calculated percentages
         const pieChart = document.querySelector('.pie-chart');
         if (pieChart) {
             pieChart.style.background = `conic-gradient(
-                ##33ffa0 0% ${completedPercent}%,
-                ##ffc824 ${completedPercent}% ${completedPercent + inProgressPercent}%,
-                ##ff3f3f ${completedPercent + inProgressPercent}% 100%
+                #33ffa0 0% ${completedPercent}%,
+                #ffc824 ${completedPercent}% ${completedPercent + inProgressPercent}%,
+                #ff3f3f ${completedPercent + inProgressPercent}% 100%
             )`;
         }
 
+        // Update legend with the calculated percentages
         const pieItems = document.querySelectorAll('.pie-item');
         if (pieItems.length === 3) {
             pieItems[0].querySelector('div:last-child').textContent = 
@@ -177,6 +190,165 @@
                 `In Progress: ${inProgress} (${inProgressPercent.toFixed(1)}%)`;
             pieItems[2].querySelector('div:last-child').textContent = 
                 `Pending: ${pending} (${pendingPercent.toFixed(1)}%)`;
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Parse data from Django JSON
+        const viewData = JSON.parse('{{ page_views_json|escapejs }}');
+        
+        // Get product names and view counts for the chart
+        const productNames = viewData.map(item => item.name);
+        const viewCounts = viewData.map(item => item.views);
+        const conversionRates = viewData.map(item => item.conversion_rate);
+        
+        // Create the chart
+        const ctx = document.getElementById('analyticsChart').getContext('2d');
+        const formattedConversionRates = conversionRates.map(rate => rate);
+        const analyticsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: productNames,
+                datasets: [
+                    {
+                        label: 'Page Views',
+                        data: viewCounts,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Conversion Rate',
+                        data: conversionRates,
+                        backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                        borderColor: 'rgba(255, 255, 255, 1)',
+                        borderWidth: 1,
+                        // Show as line on secondary y-axis
+                        type: 'line',
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.datasetIndex === 1) {
+                                    return `Conversion Rate: ${context.raw}%`;
+                                }
+                                return `${label}${context.raw}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Page Views'
+                        }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        grid: {
+                            drawOnChartArea: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Conversion Rate'
+                        },
+                        max: 100
+                    }
+                }
+            }
+        });
+        
+        // Filter functionality
+        const allCheckbox = document.getElementById('all-checkbox');
+        const impressionsCheckbox = document.getElementById('impressions-checkbox');
+        const conversionCheckbox = document.getElementById('conversion-checkbox');
+        
+        // Toggle all datasets
+        allCheckbox.addEventListener('click', function() {
+            const isActive = allCheckbox.querySelector('.checkbox-item').textContent === '✓';
+            
+            if (isActive) {
+                // Hide all
+                allCheckbox.querySelector('.checkbox-item').textContent = '';
+                impressionsCheckbox.querySelector('.checkbox-item').textContent = '';
+                conversionCheckbox.querySelector('.checkbox-item').textContent = '';
+                
+                analyticsChart.data.datasets.forEach(dataset => {
+                    dataset.hidden = true;
+                });
+            } else {
+                // Show all
+                allCheckbox.querySelector('.checkbox-item').textContent = '✓';
+                impressionsCheckbox.querySelector('.checkbox-item').textContent = '✓';
+                conversionCheckbox.querySelector('.checkbox-item').textContent = '✓';
+                
+                analyticsChart.data.datasets.forEach(dataset => {
+                    dataset.hidden = false;
+                });
+            }
+            
+            analyticsChart.update();
+        });
+        
+        // Toggle impressions dataset
+        impressionsCheckbox.addEventListener('click', function() {
+            const isActive = impressionsCheckbox.querySelector('.checkbox-item').textContent === '✓';
+            
+            if (isActive) {
+                impressionsCheckbox.querySelector('.checkbox-item').textContent = '';
+                analyticsChart.data.datasets[0].hidden = true;
+            } else {
+                impressionsCheckbox.querySelector('.checkbox-item').textContent = '✓';
+                analyticsChart.data.datasets[0].hidden = false;
+            }
+            
+            updateAllCheckbox();
+            analyticsChart.update();
+        });
+        
+        // Toggle conversion dataset
+        conversionCheckbox.addEventListener('click', function() {
+            const isActive = conversionCheckbox.querySelector('.checkbox-item').textContent === '✓';
+            
+            if (isActive) {
+                conversionCheckbox.querySelector('.checkbox-item').textContent = '';
+                analyticsChart.data.datasets[1].hidden = true;
+            } else {
+                conversionCheckbox.querySelector('.checkbox-item').textContent = '✓';
+                analyticsChart.data.datasets[1].hidden = false;
+            }
+            
+            updateAllCheckbox();
+            analyticsChart.update();
+        });
+        
+        function updateAllCheckbox() {
+            const impressionsActive = impressionsCheckbox.querySelector('.checkbox-item').textContent === '✓';
+            const conversionActive = conversionCheckbox.querySelector('.checkbox-item').textContent === '✓';
+            
+            if (impressionsActive && conversionActive) {
+                allCheckbox.querySelector('.checkbox-item').textContent = '✓';
+            } else {
+                allCheckbox.querySelector('.checkbox-item').textContent = '';
+            }
         }
     });
 </script>

@@ -1724,89 +1724,140 @@ def payment_cancel(request):
 # Store Analyitcs
 @user_passes_test(lambda u: u.is_staff)
 def store_analytics(request):
-    """Analytics dashboard for store metrics"""
+    """Analytics dashboard for store metrics with period comparison"""
     
     # Time frame filters
     time_frame = request.GET.get('time_frame', 'all')
     
+    # Set current period ranges
+    now = timezone.now()
     if time_frame == 'week':
-        start_date = timezone.now() - timedelta(days=7)
-        orders = Order.objects.filter(created_at__gte=start_date)
+        current_start = now - timedelta(days=7)
+        previous_start = current_start - timedelta(days=7)
+        current_orders = Order.objects.filter(created_at__gte=current_start)
     elif time_frame == 'month':
-        start_date = timezone.now() - timedelta(days=30)
-        orders = Order.objects.filter(created_at__gte=start_date)
+        current_start = now - timedelta(days=30)
+        previous_start = current_start - timedelta(days=30)
+        current_orders = Order.objects.filter(created_at__gte=current_start)
     elif time_frame == 'year':
-        start_date = timezone.now() - timedelta(days=365)
-        orders = Order.objects.filter(created_at__gte=start_date)
+        current_start = now - timedelta(days=365)
+        previous_start = current_start - timedelta(days=365)
+        current_orders = Order.objects.filter(created_at__gte=current_start)
     else:
-        # All time
-        orders = Order.objects.all()
-        start_date = None
+        # All time - split history in half for comparison
+        oldest_order = Order.objects.order_by('created_at').first()
+        if oldest_order:
+            total_days = (now - oldest_order.created_at).days
+            mid_point = oldest_order.created_at + timedelta(days=total_days/2)
+            current_orders = Order.objects.all()
+            previous_start = oldest_order.created_at
+            current_start = mid_point
+        else:
+            current_orders = Order.objects.all()
+            previous_start = now - timedelta(days=365)
+            current_start = previous_start
+    
+    # Get previous period orders
+    if current_start and previous_start:
+        previous_orders = Order.objects.filter(
+            created_at__gte=previous_start,
+            created_at__lt=current_start
+        )
+    else:
+        previous_orders = Order.objects.none()
     
     # Basic order metrics
-    total_orders = orders.count()
-    completed_orders = orders.filter(status='completed').count()
-    in_progress_orders = orders.filter(status='in_progress').count()
-    pending_orders = orders.filter(status='pending').count()
+    total_orders = current_orders.count()
+    completed_orders = current_orders.filter(status='completed').count()
+    in_progress_orders = current_orders.filter(status='in_progress').count()
+    pending_orders = current_orders.filter(status='pending').count()
     
-    # Calculate completion rate
-    completion_rate = (completed_orders / total_orders * 100) if total_orders > 0 else 0
+    # Previous period metrics
+    prev_order_count = previous_orders.count()
     
-    # Revenue metrics
-    total_revenue = orders.filter(is_paid=True).aggregate(
-        total=Sum('product__price')
-    )['total'] or 0
+    # Calculate percentages for each status
+    if total_orders > 0:
+        completion_rate = (completed_orders / total_orders * 100)
+        in_progress_percent = (in_progress_orders / total_orders * 100)
+        pending_percent = (pending_orders / total_orders * 100)
+    else:
+        completion_rate = in_progress_percent = pending_percent = 0
     
-    # Product performance
-    product_sales = orders.values('product__name').annotate(
-        count=Count('id'),
-        revenue=Sum('product__price')
-    ).order_by('-count')
+    # Calculate trend percentages
+    if prev_order_count > 0:
+        orders_trend = ((total_orders - prev_order_count) / prev_order_count * 100)
+    else:
+        orders_trend = 100 if total_orders > 0 else 0
+    
+    # Calculate total revenue and comparison
+    total_revenue = 0
+    product_sales = []
+    
+    # Get all products with their orders for current period
+    products_with_orders = Product.objects.filter(
+        id__in=current_orders.values_list('product_id', flat=True)
+    ).distinct()
+    
+    for product in products_with_orders:
+        # Count orders for this product
+        product_order_count = current_orders.filter(product=product).count()
+        
+        if product_order_count > 0:
+            product_sales.append({
+                'product__name': product.name,
+                'count': product_order_count,
+                'unit_price': float(product.price or 0),
+            })
+            
+            # Add to total revenue (price * count)
+            if product.price:
+                total_revenue += product.price * product_order_count
+    
+    # Calculate previous period revenue
+    prev_revenue = 0
+    for product in Product.objects.filter(id__in=previous_orders.values_list('product_id', flat=True)):
+        prev_product_count = previous_orders.filter(product=product).count()
+        if product.price:
+            prev_revenue += product.price * prev_product_count
+    
+    # Calculate revenue trend
+    if prev_revenue > 0:
+        revenue_trend = ((total_revenue - prev_revenue) / prev_revenue * 100)
+    else:
+        revenue_trend = 100 if total_revenue > 0 else 0
+        
+    # Store absolute values for the template
+    orders_trend_abs = abs(orders_trend)
+    revenue_trend_abs = abs(revenue_trend)
+    
+    # Sort by count
+    product_sales = sorted(product_sales, key=lambda x: x['count'], reverse=True)
     
     # Review metrics
-    avg_rating = Review.objects.filter(order__in=orders).aggregate(
+    avg_rating = Review.objects.filter(order__in=current_orders).aggregate(
         avg=Avg('rating')
     )['avg'] or 0
     
-    review_count = Review.objects.filter(order__in=orders).count()
+    review_count = Review.objects.filter(order__in=current_orders).count()
     
-    # Calculate average completion time for completed orders
-    completed_with_dates = orders.filter(
-        status='completed', 
-        completed_at__isnull=False,
-        created_at__isnull=False
-    )
-    
-    if completed_with_dates.exists():
-        # Calculate average time in hours
-        total_hours = 0
-        for order in completed_with_dates:
-            duration = order.completed_at - order.created_at
-            total_hours += duration.total_seconds() / 3600
-        
-        avg_completion_time = total_hours / completed_with_dates.count()
-    else:
-        avg_completion_time = 0
-    
-    # Get page view stats
-    # Get all products
-    products = Product.objects.filter(is_active=True)
+    # Get all products for page views
+    all_products = Product.objects.all()
     
     # Prepare product view data
     page_view_data = []
     
-    for product in products:
+    for product in all_products:
         # Get view count for this product within the time frame
-        if time_frame != 'all' and start_date:
+        if time_frame != 'all' and current_start:
             views_count = PageView.objects.filter(
                 product=product, 
-                timestamp__gte=start_date
+                timestamp__gte=current_start
             ).count()
         else:
             views_count = PageView.objects.filter(product=product).count()
             
         # Calculate conversion rate
-        product_orders = orders.filter(product=product).count()
+        product_orders = current_orders.filter(product=product).count()
         conversion_rate = (product_orders / views_count * 100) if views_count > 0 else 0
         
         page_view_data.append({
@@ -1818,6 +1869,10 @@ def store_analytics(request):
     # Sort by views (descending)
     page_view_data = sorted(page_view_data, key=lambda x: x['views'], reverse=True)
     
+    # Convert to JSON for JavaScript
+    import json
+    page_views_json = json.dumps(page_view_data)
+    
     context = {
         'time_frame': time_frame,
         'total_orders': total_orders,
@@ -1825,12 +1880,18 @@ def store_analytics(request):
         'in_progress_orders': in_progress_orders,
         'pending_orders': pending_orders,
         'completion_rate': round(completion_rate, 1),
-        'total_revenue': total_revenue,
+        'in_progress_percent': round(in_progress_percent, 1),
+        'pending_percent': round(pending_percent, 1),
+        'total_revenue': round(total_revenue, 2),
         'product_sales': product_sales,
         'avg_rating': round(avg_rating, 1),
         'review_count': review_count,
-        'avg_completion_time': round(avg_completion_time, 1),
         'page_views': page_view_data,
+        'page_views_json': page_views_json,
+        'orders_trend': round(orders_trend, 1),
+        'revenue_trend': round(revenue_trend, 1),
+        'orders_trend_abs': round(orders_trend_abs, 1),
+        'revenue_trend_abs': round(revenue_trend_abs, 1),
     }
     
     return render(request, 'STORE/store_analytics.html', context)
