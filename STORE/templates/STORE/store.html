@@ -180,10 +180,10 @@
                             <img src="{% static 'images/coming_soon.png' %}" alt="Basic Website Package">
                         </div>
                         <div class="window-footer">
-                            <div class="product-status {% if products.3.is_active %}active{% else %}inactive{% endif %}">
-                                {% if products.3.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                            <div class="product-status {% if products.4.is_active %}active{% else %}inactive{% endif %}">
+                                {% if products.4.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
-                            <a href="{% url 'STORE:basic_website' %}" class="buy-button">VIEW PACKAGE</a>
+                            <a href="{% url 'MAIN:coming_soon' %}" class="buy-button">VIEW PACKAGE</a>
                             <div class="product-price">${{ products.3.price|default:"150" }}</div>
                         </div>
                     </div>
@@ -192,7 +192,7 @@
 
             <!-- E-Commerce Website -->
             <div class="product-item">
-                <a href="{% url 'STORE:ecommerce_website' %}" class="product-link">
+                <a href="{% url 'MAIN:coming_soon' %}" class="product-link">
                     <div class="window">
                         <div class="window-header">
                             <div class="window-controls">
@@ -209,7 +209,7 @@
                             <div class="product-status {% if products.4.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.4.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
-                            <a href="{% url 'STORE:ecommerce_website' %}" class="buy-button">VIEW PACKAGE</a>
+                            <a href="{% url 'MAIN:coming_soon' %}" class="buy-button">VIEW PACKAGE</a>
                             <div class="product-price">${{ products.4.price|default:"350" }}</div>
                         </div>
                     </div>
@@ -218,7 +218,7 @@
 
             <!-- Custom Project -->
             <div class="product-item">
-                <a href="{% url 'STORE:custom_project' %}" class="product-link">
+                <a href="{% url 'MAIN:coming_soon' %}" class="product-link">
                     <div class="window">
                         <div class="window-header">
                             <div class="window-controls">
@@ -235,7 +235,7 @@
                             <div class="product-status {% if products.5.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.5.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
-                            <a href="{% url 'STORE:custom_project' %}" class="buy-button">VIEW PACKAGE</a>
+                            <a href="{% url 'MAIN:coming_soon' %}" class="buy-button">VIEW PACKAGE</a>
                             <div class="product-price">Custom</div>
                         </div>
                     </div>

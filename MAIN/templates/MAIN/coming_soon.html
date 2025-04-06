@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/product_management.css' %}">
     <link rel="stylesheet" href="{% static 'css/store.css' %}">
 {% endblock %}
 
@@ -10,26 +11,16 @@
 {% endblock %}
 
 {% block content %}
-    <header class="store-hero">
-        <div class="hero-content">
-            <h1 class="main-title">MY STORE</h1>
-            <p class="subtitle">SERVICES & PRODUCTS</p>
-        </div>
-    </header>
+<div class="profile-container" style="margin: 75px auto;">
+    <div class="profile-header">
+        <h1 class="user_management-title">COMING SOON</h1>
+    </div>
 
-    <!-- Stream Setup Services Section -->
-    <section class="store-section" id="stream-setup">
-        <div class="section-header">
-            <h2 class="section-title">STREAM SETUP SERVICE</h2>
-            <div class="section-separator-right"></div>
-        </div>
-    </section>
-
-    <section class="contact-cta">
-        <div class="cta-content">
-            <h2>NEED SOMETHING CUSTOM?</h2>
-            <p>I'm always open to discussing custom projects and unique requirements. Let's create something amazing together!</p>
-            <a href="{% url 'MAIN:contact' %}" class="cta-button">GET IN TOUCH</a>
-        </div>
-    </section>
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h2>Sorry, this page is unavailable right now!</h2>
+        <p>I'm working on something great, and I can't wait to show you. If you're looking for something custom send me a message.</p>
+        <p style="margin-bottom: 50px;">Check back soon!</p>
+        <a href="{% url 'MAIN:contact' %}" class="cta-button">GET IN TOUCH</a>
+    </div>
+</div>
 {% endblock %}
