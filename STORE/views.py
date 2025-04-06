@@ -26,6 +26,9 @@ import os
 import uuid
 from django.conf import settings
 from django.db import connection
+from django.db.models import Count, Avg, Sum, Q, F
+from datetime import timedelta
+from .models import PageView, ProductInteraction
 
 def store(request):
     products = [
@@ -1717,3 +1720,117 @@ def view_invoice(request, order_id):
 def payment_cancel(request):
     messages.error(request, "Payment was cancelled. Please try again.")
     return redirect('STORE:store')
+
+# Store Analyitcs
+@user_passes_test(lambda u: u.is_staff)
+def store_analytics(request):
+    """Analytics dashboard for store metrics"""
+    
+    # Time frame filters
+    time_frame = request.GET.get('time_frame', 'all')
+    
+    if time_frame == 'week':
+        start_date = timezone.now() - timedelta(days=7)
+        orders = Order.objects.filter(created_at__gte=start_date)
+    elif time_frame == 'month':
+        start_date = timezone.now() - timedelta(days=30)
+        orders = Order.objects.filter(created_at__gte=start_date)
+    elif time_frame == 'year':
+        start_date = timezone.now() - timedelta(days=365)
+        orders = Order.objects.filter(created_at__gte=start_date)
+    else:
+        # All time
+        orders = Order.objects.all()
+        start_date = None
+    
+    # Basic order metrics
+    total_orders = orders.count()
+    completed_orders = orders.filter(status='completed').count()
+    in_progress_orders = orders.filter(status='in_progress').count()
+    pending_orders = orders.filter(status='pending').count()
+    
+    # Calculate completion rate
+    completion_rate = (completed_orders / total_orders * 100) if total_orders > 0 else 0
+    
+    # Revenue metrics
+    total_revenue = orders.filter(is_paid=True).aggregate(
+        total=Sum('product__price')
+    )['total'] or 0
+    
+    # Product performance
+    product_sales = orders.values('product__name').annotate(
+        count=Count('id'),
+        revenue=Sum('product__price')
+    ).order_by('-count')
+    
+    # Review metrics
+    avg_rating = Review.objects.filter(order__in=orders).aggregate(
+        avg=Avg('rating')
+    )['avg'] or 0
+    
+    review_count = Review.objects.filter(order__in=orders).count()
+    
+    # Calculate average completion time for completed orders
+    completed_with_dates = orders.filter(
+        status='completed', 
+        completed_at__isnull=False,
+        created_at__isnull=False
+    )
+    
+    if completed_with_dates.exists():
+        # Calculate average time in hours
+        total_hours = 0
+        for order in completed_with_dates:
+            duration = order.completed_at - order.created_at
+            total_hours += duration.total_seconds() / 3600
+        
+        avg_completion_time = total_hours / completed_with_dates.count()
+    else:
+        avg_completion_time = 0
+    
+    # Get page view stats
+    # Get all products
+    products = Product.objects.filter(is_active=True)
+    
+    # Prepare product view data
+    page_view_data = []
+    
+    for product in products:
+        # Get view count for this product within the time frame
+        if time_frame != 'all' and start_date:
+            views_count = PageView.objects.filter(
+                product=product, 
+                timestamp__gte=start_date
+            ).count()
+        else:
+            views_count = PageView.objects.filter(product=product).count()
+            
+        # Calculate conversion rate
+        product_orders = orders.filter(product=product).count()
+        conversion_rate = (product_orders / views_count * 100) if views_count > 0 else 0
+        
+        page_view_data.append({
+            'name': product.name,
+            'views': views_count,
+            'conversion_rate': round(conversion_rate, 1)
+        })
+    
+    # Sort by views (descending)
+    page_view_data = sorted(page_view_data, key=lambda x: x['views'], reverse=True)
+    
+    context = {
+        'time_frame': time_frame,
+        'total_orders': total_orders,
+        'completed_orders': completed_orders,
+        'in_progress_orders': in_progress_orders,
+        'pending_orders': pending_orders,
+        'completion_rate': round(completion_rate, 1),
+        'total_revenue': total_revenue,
+        'product_sales': product_sales,
+        'avg_rating': round(avg_rating, 1),
+        'review_count': review_count,
+        'avg_completion_time': round(avg_completion_time, 1),
+        'page_views': page_view_data,
+    }
+    
+    return render(request, 'STORE/store_analytics.html', context)

@@ -183,3 +183,97 @@ class NotificationRecord(models.Model):
         
     def __str__(self):
         return f"{self.notification_type} for {self.user.email}"
+
+# Store Analytics
+class PageView(models.Model):
+    """Model to track page views for analytics"""
+    
+    # Reference to a product (null if not a product page)
+    product = models.ForeignKey(
+        'Product', 
+        on_delete=models.CASCADE, 
+        related_name='views',
+        null=True,
+        blank=True
+    )
+    
+    # Page URL for non-product pages
+    url = models.CharField(max_length=255, blank=True)
+    
+    # User who viewed the page (null for anonymous users)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    
+    # Session ID for tracking anonymous users
+    session_id = models.CharField(max_length=100, blank=True)
+    
+    # Referrer URL
+    referrer = models.CharField(max_length=255, blank=True)
+    
+    # Timestamp
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['product']),
+            models.Index(fields=['url']),
+            models.Index(fields=['timestamp']),
+        ]
+    
+    def __str__(self):
+        if self.product:
+            return f"View of {self.product.name} by {self.user or self.session_id}"
+        return f"View of {self.url} by {self.user or self.session_id}"
+
+
+class ProductInteraction(models.Model):
+    """Model to track detailed product interactions"""
+    
+    # Types of interactions
+    INTERACTION_TYPES = (
+        ('view', 'Page View'),
+        ('click', 'Click'),
+        ('purchase', 'Purchase'),
+        ('review', 'Review'),
+        ('message', 'Message'),
+    )
+    
+    product = models.ForeignKey(
+        'Product',
+        on_delete=models.CASCADE,
+        related_name='interactions'
+    )
+    
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    
+    session_id = models.CharField(max_length=100, blank=True)
+    
+    interaction_type = models.CharField(
+        max_length=20,
+        choices=INTERACTION_TYPES
+    )
+    
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    # Additional data as JSON
+    data = models.JSONField(blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['product', 'interaction_type']),
+            models.Index(fields=['timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_interaction_type_display()} on {self.product.name}"

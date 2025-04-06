@@ -1,0 +1,183 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product_management.css' %}">
+<link rel="stylesheet" href="{% static 'css/store_analytics.css' %}"
+
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<h1 class="user_management-title" style="margin: 50px auto;">Store Analytics</h1>
+
+<div class="analytics-container">
+    <div class="analytics-header">
+        <h2>Performance Dashboard</h2>
+        <div class="time-filter">
+            <a href="?time_frame=week" class="{% if time_frame == 'week' %}active{% endif %}">Last 7 days</a>
+            <a href="?time_frame=month" class="{% if time_frame == 'month' %}active{% endif %}">Last 30 days</a>
+            <a href="?time_frame=year" class="{% if time_frame == 'year' %}active{% endif %}">Last year</a>
+            <a href="?time_frame=all" class="{% if time_frame == 'all' %}active{% endif %}">All time</a>
+        </div>
+    </div>
+    
+    <!-- Key metrics -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-label">Total Orders</div>
+            <div class="metric-value">{{ total_orders }}</div>
+            <div class="metric-trend trend-up">
+                <i class="fas fa-arrow-up"></i> 12% from previous period
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Completion Rate</div>
+            <div class="metric-value">{{ completion_rate }}%</div>
+            <div class="metric-subtext">Percentage of orders completed</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Total Revenue</div>
+            <div class="metric-value">${{ total_revenue }}</div>
+            <div class="metric-trend trend-up">
+                <i class="fas fa-arrow-up"></i> 8% from previous period
+            </div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Average Rating</div>
+            <div class="metric-value">
+                {{ avg_rating }}
+                <span class="rating-stars">
+                    {% for i in "12345" %}
+                    <i class="fas fa-star {% if forloop.counter <= avg_rating %}active{% endif %}"></i>
+                    {% endfor %}
+                </span>
+            </div>
+            <div class="metric-subtext">From {{ review_count }} reviews</div>
+        </div>
+    </div>
+    
+    <!-- Orders by status -->
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Order Status Breakdown</h3>
+        </div>
+        
+        <div class="pie-container">
+            <div class="pie-chart"></div>
+            <div class="pie-legend">
+                <div class="pie-item">
+                    <div class="pie-color color-completed"></div>
+                    <div>Completed: {{ completed_orders }} ({{ completion_rate }}%)</div>
+                </div>
+                <div class="pie-item">
+                    <div class="pie-color color-progress"></div>
+                    <div>In Progress: {{ in_progress_orders }} ({{ in_progress_orders|floatformat:1 }}%)</div>
+                </div>
+                <div class="pie-item">
+                    <div class="pie-color color-pending"></div>
+                    <div>Pending: {{ pending_orders }} ({{ pending_orders|floatformat:1 }}%)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product performance -->
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Product Performance</h3>
+        </div>
+        
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Sales</th>
+                    <th>Revenue</th>
+                    <th>Conversion Rate</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in product_sales %}
+                <tr>
+                    <td>{{ product.product__name }}</td>
+                    <td>{{ product.count }}</td>
+                    <td>${{ product.revenue }}</td>
+                    <td>
+                        {% for view in page_views %}
+                            {% if view.name == product.product__name %}
+                                {{ view.conversion_rate }}%
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No data available</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Page views -->
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Page Views & Conversion</h3>
+        </div>
+        
+        <div class="chart-container">
+            <div class="bar-chart">
+                {% for view in page_views %}
+                <div class="chart-bar">
+                    <div class="chart-value">{{ view.views }}</div>
+                    <div class="chart-label">{{ view.name }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const completed = parseFloat("{{ completed_orders|default:0|escapejs }}");
+        const inProgress = parseFloat("{{ in_progress_orders|default:0|escapejs }}");
+        const pending = parseFloat("{{ pending_orders|default:0|escapejs }}");
+
+        const total = completed + inProgress + pending;
+
+        const completedPercent = total > 0 ? (completed / total * 100) : 0;
+        const inProgressPercent = total > 0 ? (inProgress / total * 100) : 0;
+        const pendingPercent = total > 0 ? (pending / total * 100) : 0;
+
+        const pieChart = document.querySelector('.pie-chart');
+        if (pieChart) {
+            pieChart.style.background = `conic-gradient(
+                ##33ffa0 0% ${completedPercent}%,
+                ##ffc824 ${completedPercent}% ${completedPercent + inProgressPercent}%,
+                ##ff3f3f ${completedPercent + inProgressPercent}% 100%
+            )`;
+        }
+
+        const pieItems = document.querySelectorAll('.pie-item');
+        if (pieItems.length === 3) {
+            pieItems[0].querySelector('div:last-child').textContent = 
+                `Completed: ${completed} (${completedPercent.toFixed(1)}%)`;
+            pieItems[1].querySelector('div:last-child').textContent = 
+                `In Progress: ${inProgress} (${inProgressPercent.toFixed(1)}%)`;
+            pieItems[2].querySelector('div:last-child').textContent = 
+                `Pending: ${pending} (${pendingPercent.toFixed(1)}%)`;
+        }
+    });
+</script>
+{% endblock %}

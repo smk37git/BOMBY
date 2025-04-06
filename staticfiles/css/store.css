@@ -61,9 +61,13 @@
     font-size: clamp(2rem, 5vw, 3rem);
     color: #fff;
     display: inline-block;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
     white-space: nowrap;
+    padding: 12px 30px;
+    background-color: #0a0a0a;
+    border: 1px solid white;
+    border-radius: 8px;
+    width: fit-content;
+    position: relative;
 }
 
 .section-separator-right {
@@ -83,7 +87,14 @@
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 2rem;
     max-width: 1400px;
-    margin: 0 auto;
+    margin: -50px auto;
+    flex: 1;
+    background-color: #0a0a0a;
+    padding: 10px 30px 30px 30px;
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+    z-index: 4;
 }
 
 .website-grid {
@@ -103,13 +114,15 @@
 
 /* Window styling (from portfolio) */
 .window {
+    margin-top: 2rem;
     background: rgba(20, 20, 30, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     transition: transform 0.3s ease;
-    height: 100%;
+    height: auto;
+    width: 100%;
     display: flex;
     flex-direction: column;
 }
@@ -162,64 +175,6 @@
     margin-right: 30px;
 }
 
-/* Toggle button fixes */
-.admin-toggle {
-    position: relative;
-    z-index: 1000 !important;
-    margin-left: auto;
-    pointer-events: auto;
-}
-
-.toggle {
-    position: relative;
-    z-index: 1000 !important;
-    display: inline-block;
-    width: 45px;
-    height: 22px;
-    cursor: pointer !important;
-    pointer-events: all !important;
-}
-
-.toggle-checkbox {
-    opacity: 0;
-    width: 0;
-    height: 0;
-    pointer-events: none;
-}
-
-.toggle-slider {
-    position: absolute;
-    cursor: pointer !important;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #2e2e2e;
-    transition: .4s;
-    border-radius: 22px;
-    pointer-events: all !important;
-}
-
-.toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 3px;
-    bottom: 3px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-
-.toggle-checkbox:checked + .toggle-slider {
-    background-color: #a600ff;
-}
-
-.toggle-checkbox:checked + .toggle-slider:before {
-    transform: translateX(23px);
-}
-
 /* Ensure toggles render properly */
 .product-status-container {
     display: flex;
@@ -227,13 +182,6 @@
     gap: 10px;
     z-index: 1000;
     position: relative;
-}
-
-/* Fix positioning */
-.window-header .admin-toggle {
-    display: inline-block !important;
-    margin-left: 10px;
-    min-width: 40px;
 }
 
 .window-content {
@@ -280,6 +228,66 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 10px;
+}
+
+/* Stream Store specifics */
+.product-item:nth-child(5) .window-footer {
+    padding: 12px 8px;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    color: white;
+    text-decoration: none;
+    padding: 0.6rem 1.2rem;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.back-link i {
+    margin-right: 8px;
+}
+
+.back-link:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
+}
+
+.product-item:nth-child(5) .store-price {
+    margin-left: auto;
+    font-size: 0.85rem;
+    min-width: 100px;
+    text-align: center;
+    background: linear-gradient(45deg, #c833e6, #d75050);
+    padding: 4px 10px;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.product-item:nth-child(5) .buy-button {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.75rem;
+}
+
+.store-price {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(45deg, #c833e6, #d75050);
+    padding: 4px 10px;
+    border-radius: 6px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .product-status {
@@ -322,14 +330,6 @@
     font-size: 1.2rem;
     font-weight: bold;
     color: white;
-}
-
-.streamer-name {
-    flex: 1;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 1.5rem;
-    font-family: monospace;
-    text-align: center;
 }
 
 /* Product Modal */
@@ -469,23 +469,19 @@
     color: white;
 }
 
-.purchase-btn {
-    display: inline-block;
-    padding: 12px 24px;
+.buy-button {
+    padding: 0.5rem 1rem;
     background: linear-gradient(45deg, #9e33e6, #505ed7);
-    color: white;
+    color: #ffffff;
     text-decoration: none;
     border-radius: 8px;
     font-weight: bold;
+    font-size: 0.8rem;
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 1px;
+    white-space: nowrap;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.purchase-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
 }
 
 /* Contact CTA section (from portfolio) */
@@ -493,7 +489,7 @@
     padding: 4rem 0;
     text-align: center;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background: linear-gradient(45deg, rgba(24, 24, 24, 0.9), rgba(11, 11, 11, 0.9));
+    background: #0a0a0a;
     border-radius: 12px;
     margin: 3rem auto;
     max-width: 1200px;
