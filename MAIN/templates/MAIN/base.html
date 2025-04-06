@@ -33,7 +33,9 @@
                     <a href="{% url 'STORE:store' %}">View Store</a>
                     <a href="{% url 'STORE:my_orders' %}" class="notification-badge">
                         Orders
+                        {% if user.is_authenticated %}
                         <span class="notification-count" id="order-messages-badge"></span>
+                        {% endif %}
                     </a>
                     {% if user.is_admin_user %}
                     <a href="{% url 'STORE:store_analytics' %}">Analytics</a>
