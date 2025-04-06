@@ -44,6 +44,7 @@
                             <div class="product-status {% if products.0.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.0.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
+                            <a href="{% url 'STORE:basic_package' %}" class="buy-button">VIEW PACKAGE</a>
                             <div class="product-price">${{ products.0.price|default:"25" }}</div>
                         </div>
                     </div>
@@ -69,6 +70,7 @@
                             <div class="product-status {% if products.1.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.1.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
+                            <a href="{% url 'STORE:standard_package' %}" class="buy-button">VIEW PACKAGE</a>
                             <div class="product-price">${{ products.1.price|default:"45" }}</div>
                         </div>
                     </div>
@@ -94,6 +96,7 @@
                             <div class="product-status {% if products.2.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.2.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
+                            <a href="{% url 'STORE:premium_package' %}" class="buy-button">VIEW PACKAGE</a>
                             <div class="product-price">${{ products.2.price|default:"70" }}</div>
                         </div>
                     </div>
@@ -119,7 +122,7 @@
                             <div class="product-status {% if products.3.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.3.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
-                            <div class="streamer-name">CUSTOM SETUP</div>
+                            <a href="{% url 'STORE:stream_setup' %}" class="buy-button">VIEW CUSTOM SETUP</a>
                         </div>
                     </div>
                 </a>
@@ -138,15 +141,14 @@
                             <div class="window-title">Stream-Store.exe</div>
                         </div>
                         <div class="window-content">
-                            <img src="{% static 'images/Basic_Package.jpeg' %}" alt="Stream Store">
+                            <img src="{% static 'images/stream_store.jpeg' %}" alt="Stream Store">
                         </div>
                         <div class="window-footer">
                             <div class="product-status {% if products.3.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.3.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
-                            <div class="account-type client">CLIENT</div>
-                            <p style="margin: 0 -75px;">OR</p>
-                            <div class="product-price">${{ products.3.price|default:"10" }}</div>
+                            <a href="{% url 'STORE:stream_store' %}" class="buy-button">VIEW PACKAGE</a>
+                            <div class="store-price">CLIENT OR $10</div>
                         </div>
                     </div>
                 </a>
@@ -175,12 +177,13 @@
                             <div class="window-title">Basic Website</div>
                         </div>
                         <div class="window-content">
-                            <img src="{% static 'images/website-basic.jpg' %}" alt="Basic Website Package">
+                            <img src="{% static 'images/coming_soon.png' %}" alt="Basic Website Package">
                         </div>
                         <div class="window-footer">
                             <div class="product-status {% if products.3.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.3.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
+                            <a href="{% url 'STORE:basic_website' %}" class="buy-button">VIEW PACKAGE</a>
                             <div class="product-price">${{ products.3.price|default:"150" }}</div>
                         </div>
                     </div>
@@ -200,12 +203,13 @@
                             <div class="window-title">E-Commerce Website</div>
                         </div>
                         <div class="window-content">
-                            <img src="{% static 'images/website-ecommerce.jpg' %}" alt="E-Commerce Website Package">
+                            <img src="{% static 'images/coming_soon.png' %}" alt="E-Commerce Website Package">
                         </div>
                         <div class="window-footer">
                             <div class="product-status {% if products.4.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.4.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
+                            <a href="{% url 'STORE:ecommerce_website' %}" class="buy-button">VIEW PACKAGE</a>
                             <div class="product-price">${{ products.4.price|default:"350" }}</div>
                         </div>
                     </div>
@@ -225,12 +229,13 @@
                             <div class="window-title">Custom Project</div>
                         </div>
                         <div class="window-content">
-                            <img src="{% static 'images/website-custom.jpg' %}" alt="Custom Website Project">
+                            <img src="{% static 'images/coming_soon.png' %}" alt="Custom Website Project">
                         </div>
                         <div class="window-footer">
                             <div class="product-status {% if products.5.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.5.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
+                            <a href="{% url 'STORE:custom_project' %}" class="buy-button">VIEW PACKAGE</a>
                             <div class="product-price">Custom</div>
                         </div>
                     </div>

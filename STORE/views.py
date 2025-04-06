@@ -139,6 +139,41 @@ def get_all_reviews():
 
 # Message about Product
 @login_required
+def message_general(request):
+    # Get first staff user
+    staff_user = get_user_model().objects.filter(is_staff=True).first()
+    
+    if not staff_user:
+        messages.error(request, "No staff members available to message.")
+        return redirect('STORE:store')
+    
+    # Get or create conversation
+    conversation = Conversation.objects.filter(
+        participants=request.user
+    ).filter(
+        participants=staff_user
+    ).first()
+    
+    if not conversation:
+        conversation = Conversation.objects.create()
+        conversation.participants.add(request.user, staff_user)
+        conversation.save()
+    
+    # Create a general message
+    message = Message.objects.create(
+        sender=request.user,
+        recipient=staff_user,
+        content="I'm interested in discussing your stream setup!",
+        conversation=conversation
+    )
+    
+    # Update conversation's last_message
+    conversation.last_message = message
+    conversation.save()
+    
+    return redirect('ACCOUNTS:conversation', user_id=staff_user.id)
+
+@login_required
 def start_message_from_product(request, product_id):
     # Get product info
     product = get_object_or_404(Product, id=product_id)

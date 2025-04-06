@@ -1,1 +1,361 @@
-<div>Hello World</div>
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/store_item.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="product-container">
+    <!-- Back link -->
+    <div class="product-navigation">
+        <a href="{% url 'STORE:store' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Store
+        </a>
+    </div>
+    
+    <!-- Split layout for product -->
+    <div class="product-split">
+        <!-- Left side: Gallery -->
+        <div class="product-gallery-side">
+            <div class="product-featured-image">
+                <div id="featured-container">
+                    <video id="featuredVideo" class="featured-image" controls style="display: none;">
+                        <source src="{% static 'videos/Bomby_Stream_Setup.mp4' %}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <img src="{% static 'images/stream_setup_1.jpg' %}" 
+                         alt="Basic Package" class="featured-image" id="featuredImage">
+                </div>
+            </div>
+            
+            <div class="gallery-thumbnails">
+                <!-- Thumbnails -->
+                <div class="thumbnail video-thumb active" data-type="video">
+                    <div class="video-thumbnail-container">
+                        <img src="{% static 'images/stream_setup_1.jpg' %}" alt="Video Thumbnail">
+                        <div class="play-icon">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_2.jpg' %}">
+                    <img src="{% static 'images/my_stream_setup_2.jpg' %}" alt="Gallery Image 2">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_3.jpg' %}">
+                    <img src="{% static 'images/my_stream_setup_3.jpg' %}" alt="Gallery Image 3">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_4.jpg' %}">
+                    <img src="{% static 'images/my_stream_setup_4.jpg' %}" alt="Gallery Image 4">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_5.jpg' %}">
+                    <img src="{% static 'images/my_stream_setup_5.jpg' %}" alt="Gallery Image 5">
+                </div>
+            </div>
+
+            <div class="gallery-message-button">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'STORE:message_general' %}" class="gallery-message-btn">
+                        <i class="fas fa-comment-alt"></i> MESSAGE ME ABOUT MY SETUP
+                    </a>
+                {% else %}
+                    <a href="{% url 'ACCOUNTS:login' %}?next={% url 'STORE:message_general' %}" class="gallery-message-btn">
+                        <i class="fas fa-comment-alt"></i> MESSAGE ME ABOUT THIS SETUP
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Right side: Product info -->
+        <div class="product-card">
+            <h1 class="product-title">MY CUSTOM SETUP
+                <div class="product-status {% if product.is_inactive %}active{% else %}active{% endif %}">
+                    {% if product.is_inactive %}ACTIVE{% else %}ACTIVE{% endif %}
+                </div>
+            </h1>
+            <hr class="page-divider"></hr>
+            
+            <div class="product-features-container">
+                <div class="product-features" style="margin-right: 250px;">
+                  <h2>FEATURES:</h2>
+                  <ul class="features-list">
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      Precise Performance Enhancements
+                    </li>
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      Professional Overlays and Graphics
+                    </li>
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      Multiple Scenes with High Functionality
+                    </li>
+                    <li>
+                      <i class="fas fa-check-circle"></i>
+                      Chatbots / Interactivity / Fluid Transitions
+                    </li>
+                  </ul>
+                </div>
+                
+                <div class="delivery-badge">
+                    <i class="fa-solid fa-star"></i>
+                    <span style="font-size: 1rem;">BEST OF THE BEST</span>
+                </div>
+            </div>
+
+            <div class="product-purchase" style="display: inline-block; text-align: center;">
+                <a href="{% url 'STORE:premium_package' %}" class="purchase-btn">WANT A SETUP LIKE THIS?</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Description section moved below gallery and product info -->
+    <div class="product-description-section">
+        <div class="product-card">
+            <div class="product-description">
+                <h2 class="heading-with-line">DESCRIPTION</h2>
+                
+                <p>
+                    Lets bring your streaming/recording dreams to life! Message me your thoughts so we can start piecing together your setup!
+                    I am a full-time Information Technology student and also a part-time streamer with over 1000+ hours streamed. 
+                    I have years of experience on both sides of the playing field. Whether it's configuring the back-end of your setup or helping you attract more views to build your online career!
+                    <br>
+                    <br>
+                    Are you feeling overwhelmed with trying to setup your stream yourself? After consulting with me you will feel confident and have the help you need!
+                    <br>
+                    <br>
+                    Here is a list of the things I can setup and more:
+                    <br>
+                    <li class="description-text">OBS Stream Setup (Captures, Video Capture Devices, etc...)</li>
+                    <li class="description-text">Output Settings (Encoding Settings, Tuning, Knowledge of the different Encoders)</li>
+                    <li class="description-text">Best settings for your Computer Specs</li>
+                    <li class="description-text">OBS troubleshooting (Video, Audio, etc...) -- Having low FPS issues? Let me fix that!</li>
+                    <li class="description-text">Overlay integration (Adding graphics and making them look great!)</li>
+                    <li class="description-text">Fluid and CUSTOM source transitions</li>
+                    <li class="description-text">Multi-streaming</li>
+                    <li class="description-text">Alert Boxes, Widgets, Panels, Sponsor Banners</li>
+                    <li class="description-text">Connecting multiple services (Twitch/YouTube/TikTok/etc..) to your OBS!</li>
+                    <li class="description-text">Windows/Mac</li>
+                    <li class="description-text">Coaching to develop your success!</li>
+
+                    <p class="description-text">Please read the FAQ and MESSAGE me!</p>
+                </p>
+
+                <h2 class="heading-with-line">MY CUSTOM SETUP SPECIFICS</h2>
+                <p>
+                    This is my ultimate setup after being a streamer for many years. It's completely customized specfically for my specifications and needs! From chatbots to fluid animated overlays, it's the ultimate experience for viewers!
+                    <br>
+                    <li class="description-text"><b>Professional Setup</b> -- My OBS is configured for picture-perfectrecording or streaming while ensuring essential settings are refined for a crystal clear picture.</li>
+                    <br>
+                    <li class="description-text"><b>Fluid Overlays and Transitions</b> -- Custom made (by Sebe) overlays and transitions designed to evoke my style and allow me to design creative scenes!</li>
+                    <br>
+                    <li class="description-text"><b>Chatbots and Alerts</b> -- Custom animated alerts and a chatbot customized to promote my socials (YouTube, Discord, Bomby, etc...) + commands for viewers to use and redeem items on stream!</li>
+                </p>
+
+
+                <h2 class="heading-with-line">FAQ</h2>
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>Why OBS and not SLOBS or SE.LIVE?</span>
+                        </div>
+                        <div class="faq-answer">
+                            The reason I choose OBS is because it utilizes less performance compared to the rest. Which means more quality for your setup! SLOBS/SE.LIVE require more CPU usage and can actually HARM the value of your stream or recording setup. I will however use SLOBS widgets and overlays by integrating to OBS!
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>What do you mean use OBS with SLOBS integration?</span>
+                        </div>
+                        <div class="faq-answer">
+                            Put simply, I will use SLOBS's many tools to boost OBS's overall quality for a better management and user experience. Things like chatbots, commands, timers, and everything else SLOBS's tools offer! This involves setting them up through menus on SLOBS without explicitly using their program.
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>How did I create the graphics?</span>
+                        </div>
+                        <div class="faq-answer">
+                            I love to take inspiration from other things and twitst them into my own unqiue style. Mainly through using ASCII themes, I just can't get enough of that art style!
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>What is my experience?</span>
+                        </div>
+                        <div class="faq-answer">
+                            I have surrounded my life around my passion for computers and all their components; software, hardware, applications, and more! Through my own journey I have poured countless hours into configuring my own devices and trying my best to always learn more. As a life-longer learner there is no end!
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <div class="faq-question">
+                            <div class="chevron-container">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                            <span>Why pick my services over others?</span>
+                        </div>
+                        <div class="faq-answer">
+                            As a streamer myself I understand what it means to have a setup that is new, engaging, and beautiful to attract and retain audiences. With my combined experience of streaming and back-end OBS development I can guarantee great results that cover the entire playing field!
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="heading-with-line">REVIEWS</h2>
+                <div class="reviews-section">
+                    {% if product_reviews %}
+                        <div class="reviews-list">
+                            {% for review in product_reviews %}
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <div class="review-user">
+                                        <div class="user-avatar">
+                                            {% if review.order.user.is_staff %}
+                                                <div class="private-review-avatar"></div>
+                                            {% elif review.order.user.profile_picture and review.order.user.profile_picture.url %}
+                                                <img src="{{ review.order.user.profile_picture.url }}" alt="{{ review.order.user.username }}">
+                                            {% else %}
+                                                <div class="avatar-placeholder">{{ review.order.user.username|first }}</div>
+                                            {% endif %}
+                                        </div>
+                                        <div class="review-user-info">
+                                            <div class="username-and-price">
+                                                <strong class="username">
+                                                    {% if review.order.user.is_staff %}
+                                                        Private Review
+                                                    {% else %}
+                                                        {{ review.order.user.username }}
+                                                    {% endif %}
+                                                </strong>
+                                                <span class="order-price">${{ review.order.product.price }}</span>
+                                            </div>
+                                            <div class="review-rating">
+                                                {% for i in "12345" %}
+                                                <span class="fa fa-star {% if i|add:'0' <= review.rating %}star-active{% endif %}"></span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="review-date">{{ review.created_at|date:"F j, Y" }}</div>
+                                </div>
+                                <div class="review-content">
+                                    <p class="review-comment">{{ review.comment }}</p>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="no-reviews">
+                            <p>No reviews yet for this product.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Image gallery and video functionality
+        const thumbnails = document.querySelectorAll('.thumbnail');
+        const featuredImage = document.getElementById('featuredImage');
+        const featuredVideo = document.getElementById('featuredVideo');
+        
+        thumbnails.forEach(thumb => {
+            thumb.addEventListener('click', function() {
+                // Update active thumbnail
+                thumbnails.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Check if this is the video thumbnail
+                if (this.classList.contains('video-thumb')) {
+                    // Show video, hide image
+                    featuredVideo.style.display = 'block';
+                    featuredImage.style.display = 'none';
+                    featuredVideo.play();
+                } else {
+                    // Show image, hide and pause video
+                    featuredVideo.style.display = 'none';
+                    featuredImage.style.display = 'block';
+                    featuredVideo.pause();
+                    
+                    // Update featured image
+                    featuredImage.src = this.dataset.image;
+                }
+            });
+        });
+        
+        // Click the video thumbnail to start
+        const videoThumb = document.querySelector('.thumbnail.video-thumb');
+        if (videoThumb) {
+            videoThumb.click();
+        }
+        
+        // FAQ dropdown functionality
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            
+            question.addEventListener('click', function() {
+                // Toggle active class
+                item.classList.toggle('active');
+                
+                // Get the chevron container
+                const chevronContainer = this.querySelector('.chevron-container');
+                
+                // Toggle chevron direction
+                if(item.classList.contains('active')) {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                } else {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                }
+            });
+        });
+    
+        // Add date/time conversion to review dates
+        // Format dates to local timezone
+        const formatLocalDate = (dateString) => {
+            if (!dateString) return '';
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) {
+                    return dateString;
+                }
+                return new Intl.DateTimeFormat('en-US', {
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric'
+                }).format(date);
+            } catch (e) {
+                return dateString;
+            }
+        };
+        
+        // Convert review dates to local timezone
+        document.querySelectorAll('.review-date').forEach(element => {
+            if (element.textContent.trim()) {
+                element.textContent = formatLocalDate(element.textContent.trim());
+            }
+        });
+    });
+</script>
+{% endblock %}
