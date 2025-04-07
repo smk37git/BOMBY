@@ -279,10 +279,7 @@
         
         thumbnails.forEach(thumb => {
             thumb.addEventListener('click', function() {
-                // Update featured image
                 featuredImage.src = this.dataset.image;
-                
-                // Update active thumbnail
                 thumbnails.forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
             });
@@ -295,13 +292,9 @@
             const question = item.querySelector('.faq-question');
             
             question.addEventListener('click', function() {
-                // Toggle active class
                 item.classList.toggle('active');
-                
-                // Get the chevron container
                 const chevronContainer = this.querySelector('.chevron-container');
                 
-                // Toggle chevron direction
                 if(item.classList.contains('active')) {
                     chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
                 } else {
@@ -309,10 +302,7 @@
                 }
             });
         });
-    });
 
-    // Add date/time conversion to review dates
-    document.addEventListener('DOMContentLoaded', function() {
         // Format dates to local timezone
         const formatLocalDate = (dateString) => {
             if (!dateString) return '';
@@ -337,33 +327,51 @@
                 element.textContent = formatLocalDate(element.textContent.trim());
             }
         });
-    });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle review pagination
+        // Handle review pagination with randomization
         const reviewItems = document.querySelectorAll('.review-item');
-        const reviewsPerPage = 3;
-        const totalPages = Math.ceil(reviewItems.length / reviewsPerPage);
+        const reviewsPerPage = 5; // Changed from 3 to 5
         
-        if (totalPages > 0) {
+        // Randomize reviews
+        if (reviewItems.length > 0) {
+            const reviewsList = document.getElementById('reviewsList');
+            const reviews = Array.from(reviewItems);
+            
+            // Shuffle array using Fisher-Yates algorithm
+            for (let i = reviews.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [reviews[i], reviews[j]] = [reviews[j], reviews[i]];
+            }
+            
+            // Remove all reviews from DOM
+            reviews.forEach(review => review.remove());
+            
+            // Reappend in new random order
+            reviews.forEach(review => {
+                review.style.display = 'none';
+                review.classList.remove('fade-in');
+                reviewsList.appendChild(review);
+            });
+            
+            const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+            
             // Set the total pages in pagination info
             const totalPagesElement = document.getElementById('totalPages');
             if (totalPagesElement) {
                 totalPagesElement.textContent = totalPages;
             }
             
-            // Apply fade-in class to initial reviews
-            reviewItems.forEach((item, index) => {
+            // Show first page of reviews
+            reviews.forEach((item, index) => {
                 if (index < reviewsPerPage) {
+                    item.style.display = 'block';
                     setTimeout(() => {
                         item.classList.add('fade-in');
                     }, index * 100);
-                } else {
-                    item.style.display = 'none';
                 }
             });
             
-            // Handle pagination if there are reviews
+            // Handle pagination
             const prevButton = document.getElementById('prevReviews');
             const nextButton = document.getElementById('nextReviews');
             const currentPageElement = document.getElementById('currentPage');
@@ -379,7 +387,7 @@
                 nextButton.addEventListener('click', function() {
                     if (currentPage < totalPages) {
                         // Hide current page reviews
-                        reviewItems.forEach((item, index) => {
+                        reviews.forEach((item, index) => {
                             const startIndex = (currentPage - 1) * reviewsPerPage;
                             const endIndex = startIndex + reviewsPerPage - 1;
                             
@@ -398,7 +406,7 @@
                         
                         // Show new page reviews
                         setTimeout(() => {
-                            reviewItems.forEach((item, index) => {
+                            reviews.forEach((item, index) => {
                                 const startIndex = (currentPage - 1) * reviewsPerPage;
                                 const endIndex = startIndex + reviewsPerPage - 1;
                                 
@@ -421,7 +429,7 @@
                 prevButton.addEventListener('click', function() {
                     if (currentPage > 1) {
                         // Hide current page reviews
-                        reviewItems.forEach((item, index) => {
+                        reviews.forEach((item, index) => {
                             const startIndex = (currentPage - 1) * reviewsPerPage;
                             const endIndex = startIndex + reviewsPerPage - 1;
                             
@@ -440,7 +448,7 @@
                         
                         // Show new page reviews
                         setTimeout(() => {
-                            reviewItems.forEach((item, index) => {
+                            reviews.forEach((item, index) => {
                                 const startIndex = (currentPage - 1) * reviewsPerPage;
                                 const endIndex = startIndex + reviewsPerPage - 1;
                                 
@@ -462,7 +470,7 @@
             }
         }
         
-        // Add animation to review items as they load
+        // Add animation to review items
         reviewItems.forEach((item, index) => {
             item.style.transitionDelay = (index * 0.1) + 's';
         });
