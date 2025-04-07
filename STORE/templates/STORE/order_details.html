@@ -396,6 +396,23 @@
             </div>
             {% endif %}
 
+            {% if order.status == 'completed' and request.user == order.user %}
+            <div class="order-card mb-4">
+                <div class="card-header">
+                    <h5>Send a Tip</h5>
+                </div>
+                <div class="card-body">
+                    <div class="messages">
+                        Enjoyed your service? Kindly leave a tip to support the website!
+                    </div>
+                    <a href="{% url 'STORE:donation_page' %}" class="back-link">
+                        <i class="fa-solid fa-dollar-sign" style="margin-right: 5px;"></i>Donations
+                    </a>
+                    
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Back link -->
             <div class="product-navigation">
                 <a href="{% url 'STORE:my_orders' %}" class="back-link">
