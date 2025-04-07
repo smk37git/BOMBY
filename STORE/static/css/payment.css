@@ -45,6 +45,7 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden; /* Prevent content from spilling outside */
 }
 
 .product-title {
@@ -96,6 +97,7 @@
     align-items: flex-start;
     flex-wrap: wrap;
     gap: 2rem;
+    width: 100%; /* Ensure full width */
 }
 
 .price-section {
@@ -130,7 +132,7 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    width: 100%;
+    width: auto;
     text-align: center;
 }
 
@@ -142,6 +144,7 @@
 /* PayPal specific styles */
 #paypal-button-container {
     width: 100%;
+    max-width: 100%; /* Ensure it doesn't exceed container width */
     min-height: 180px;
     flex: 1;
     min-width: 300px;
@@ -149,11 +152,20 @@
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden; /* Prevent content overflow */
+    box-sizing: border-box; /* Include padding in width calculation */
 }
 
-/* Add styles for PayPal iframe content */
-.paypal-button {
-    background-color: #fff !important;
+/* PayPal iframe container */
+.paypal-buttons-context-iframe {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* Override PayPal's inline styles to ensure proper width */
+iframe[title^="PayPal"] {
+    max-width: 100% !important;
+    width: 100% !important;
 }
 
 /* PayPal button text color fixes */
@@ -171,6 +183,8 @@
     padding: 15px;
     margin-top: 15px;
     color: #000 !important;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* Fix PayPal tagline color */
@@ -215,6 +229,7 @@
     border-radius: 8px;
     background-color: rgba(255, 255, 255, 0.05);
     text-align: center;
+    box-sizing: border-box;
 }
 
 #payment-fallback p {
@@ -230,6 +245,8 @@
     padding: 15px;
     border-radius: 10px;
     margin-top: 10px;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* Add custom style to ensure text fields are visible */
