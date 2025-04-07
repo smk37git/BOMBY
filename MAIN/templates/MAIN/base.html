@@ -95,12 +95,56 @@
         {% block content %}{% endblock %}
     </main>
 
+    <!-- Replace your current footer with this -->
     <footer class="base-footer">
-        <div class="contact-separator" style="margin-bottom: 15px;"></div>
-        <p>&copy; SEBE_TV ALL RIGHTS RESERVED</p>
-        {% if user.is_admin_user %}
-            <a href="/admin/" class="admin-link">LOGGED IN AS ADMIN</a>
-        {% endif %}
+        <div class="footer-container">
+            <!-- Company info section -->
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <img src="{% static 'images/bomb.svg' %}" alt="BOMBY">
+                    <span>BOMBY</span>
+                </div>
+                <p class="footer-tagline">Portfolio and Freelance Services</p>
+            </div>
+            
+            <!-- Quick links section -->
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="{% url 'MAIN:home' %}">Home</a></li>
+                    <li><a href="{% url 'STORE:store' %}">Store</a></li>
+                    <li><a href="{% url 'PORTFOLIO:portfolio' %}">Portfolio</a></li>
+                    <li><a href="{% url 'MAIN:about' %}">About</a></li>
+                    <li><a href="{% url 'MAIN:contact' %}">Contact</a></li>
+                </ul>
+            </div>
+            
+            <!-- Contact information -->
+            <div class="footer-section">
+                <h4>Contact Me</h4>
+                <ul class="footer-contact">
+                    <li><i class="fas fa-envelope" style="color: rgb(212, 212, 212);"></i> sebetvbusiness@gmail.com</li>
+                </ul>
+            </div>
+            
+            <!-- Social media links -->
+            <div class="footer-section">
+                <h4>Follow Me</h4>
+                <div class="social-icons">
+                    <a href="https://discord.com/invite/bdqAXc4" aria-label="Discord"><i class="fab fa-discord"></i></a>
+                    <a href="https://www.twitch.tv/sebe_tv/about" aria-label="Twitter"><i class="fab fa-twitch"></i></a>
+                    <a href="https://www.linkedin.com/in/sebastian-main-6a4799224/" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Copyright bar -->
+        <div class="footer-bottom">
+            <p>&copy; {% now "Y" %} SEBE_TV. ALL RIGHTS RESERVED.</p>
+            {% if user.is_admin_user %}
+                <a href="/admin/" class="admin-link">ADMIN PANEL</a>
+            {% endif %}
+        </div>
     </footer>
     
     <!-- JavaScript for mobile menu toggle -->

@@ -1082,3 +1082,65 @@ textarea[name="comment"]:focus {
     padding: 14px;
     margin-bottom: 15px;
 }
+
+.order-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.6rem 1.2rem;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.pagination-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
+}
+
+.pagination-btn:disabled {
+    background: #444;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.pagination-btn i {
+    margin: 0 5px;
+}
+
+.pagination-info {
+    display: flex;
+    align-items: center;
+    color: white;
+    font-weight: 500;
+    background-color: rgba(30, 10, 60, 0.7);
+    border: 1px solid #a970ff;
+    border-radius: 5px;
+    padding: 0.4rem 1rem;
+}
+
+.order-item {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.order-item.fade-in {
+    opacity: 1;
+    transform: translateY(0);
+}
