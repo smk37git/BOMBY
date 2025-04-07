@@ -180,6 +180,7 @@
                         navBadge.textContent = data.unread_count;
                         navBadge.style.display = 'inline-flex';
                     } else {
+                        navBadge.textContent = '';
                         navBadge.style.display = 'none';
                     }
                 })
@@ -206,6 +207,7 @@
                         orderBadge.textContent = data.unread_count;
                         orderBadge.style.display = 'inline-flex';
                     } else {
+                        orderBadge.textContent = '';
                         orderBadge.style.display = 'none';
                     }
                 }
