@@ -45,7 +45,7 @@
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden; /* Prevent content from spilling outside */
+    overflow: hidden;
 }
 
 .product-title {
@@ -92,8 +92,8 @@
     padding-top: 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
-    flex-direction: column; /* Changed to column for better layout */
-    align-items: center; /* Center alignment horizontally */
+    flex-direction: column;
+    align-items: center;
     width: 100%;
 }
 
@@ -142,8 +142,8 @@
 
 /* PayPal specific styles */
 #paypal-button-container {
-    width: 400px;
-    max-width: 90%; /* Responsive width */
+    width: 800px;
+    max-width: 90%;
     min-height: auto;
     background-color: #fff;
     border-radius: 12px;
@@ -151,7 +151,7 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     box-sizing: border-box;
-    margin: 0 auto; /* Center the container */
+    margin: 0 auto;
 }
 
 /* PayPal iframe container */
@@ -199,14 +199,14 @@ iframe[title^="PayPal"] {
     min-height: 180px;
     width: 400px;
     max-width: 90%;
-    margin: 0 auto; /* Center the loader */
+    margin: 0 auto;
 }
 
 .paypal-loader-spinner {
     width: 40px;
     height: 40px;
     border: 4px solid rgba(255, 255, 255, 0.1);
-    border-top: 4px solid #0070ba; /* PayPal blue */
+    border-top: 4px solid #0070ba;
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 15px;
@@ -231,7 +231,7 @@ iframe[title^="PayPal"] {
     background-color: rgba(255, 255, 255, 0.05);
     text-align: center;
     box-sizing: border-box;
-    margin: 0 auto; /* Center the fallback */
+    margin: 0 auto;
 }
 
 #payment-fallback p {
