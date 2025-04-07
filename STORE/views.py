@@ -91,10 +91,25 @@ def premium_package(request):
     return response
 
 def stream_setup(request):
-    return render(request, 'STORE/stream_setup.html')
+    product_reviews = get_all_reviews()
+    return render(request, 'STORE/stream_setup.html', {'product_reviews': product_reviews})
+
 
 def stream_store(request):
-    return render(request, 'STORE/stream_store.html')
+    """Stream store view with access control"""
+    # Check if user can access (supporter, client, admin)
+    if request.user.is_authenticated and user_can_access_stream_store(request.user):
+        # User has access, show the actual store    
+        assets = StreamAsset.objects.filter(is_active=True)
+        return render(request, 'STORE/stream_store.html', {'assets': assets})
+    else:
+        # Show the purchase page (not purchase history)
+        product = Product.objects.get(id=4)
+        product_reviews = get_all_reviews()
+        return render(request, 'STORE/stream_store_purchase.html', {
+            'product': product,
+            'product_reviews': product_reviews
+        })
 
 def basic_website(request):
     product = Product.objects.get(id=5)
@@ -489,47 +504,6 @@ def user_can_access_stream_store(user):
     ).exists()
     
     return has_stream_store
-
-@login_required
-def stream_store(request):
-    """Stream store view with access control"""
-    # Check if user can access (supporter, client, admin)
-    if not user_can_access_stream_store(request.user):
-        # Show the purchase page (not purchase history)
-        product = Product.objects.get(id=4)
-        return render(request, 'STORE/stream_store_purchase.html', {'product': product})
-    
-    # User has access, show the actual store    
-    assets = StreamAsset.objects.filter(is_active=True)
-    return render(request, 'STORE/stream_store.html', {'assets': assets})
-
-@login_required
-def stream_store_purchase(request):
-    """Page for purchasing stream store access"""
-    # If already a client/supporter/admin, redirect to store
-    if user_can_access_stream_store(request.user):
-        return redirect('STORE:stream_store')
-        
-    product = Product.objects.get(id=4)
-    
-    if request.method == 'POST':
-        # Create a new order that's already completed
-        order = Order.objects.create(
-            user=request.user,
-            product=product,
-            status='completed',
-            completed_at=timezone.now(),
-            is_paid=True 
-        )
-        
-        # Update user role to supporter
-        request.user.promote_to_supporter()
-        
-        messages.success(request, "You now have access to the Stream Store!")
-        return redirect('STORE:stream_store')
-    
-    # Change this line to use stream_store_purchase.html
-    return render(request, 'STORE/stream_store_purchase.html', {'product': product})
 
 @login_required
 def stream_asset_detail(request, asset_id):
