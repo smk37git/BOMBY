@@ -54,6 +54,19 @@ class Order(models.Model):
             self.completed_at = timezone.now()
             
         super().save(*args, **kwargs)
+    
+
+class Donation(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_id = models.CharField(max_length=100, blank=True, null=True)
+    is_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        if self.user:
+            return f"Donation of ${self.amount} by {self.user.username}"
+        return f"Anonymous donation of ${self.amount}"
 
 class OrderForm(models.Model):
     order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name='form')

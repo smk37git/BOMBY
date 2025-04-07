@@ -130,3 +130,52 @@ def send_invoice_email(request, order, invoice):
             html_message=html_message,
             fail_silently=False,
         )
+
+def send_donation_receipt(request, donation):
+    """Send receipt email for donation"""
+    current_site = get_current_site(request)
+    context = {
+        'donation': donation,
+        'domain': current_site.domain,
+        'protocol': 'https' if request.is_secure() else 'http',
+    }
+    
+    subject = f"BOMBY: Thank You for Your Donation"
+    html_message = render_to_string('STORE/emails/invoice_email.html', context)
+    plain_message = strip_tags(html_message)
+    
+    # Generate email with PDF attachment
+    HTML = get_html_class()
+    
+    if HTML and donation.user:
+        # Generate PDF with WeasyPrint
+        temp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+        HTML(string=html_message).write_pdf(temp.name)
+        
+        # Send email with PDF receipt
+        email = EmailMessage(
+            subject=subject,
+            body=html_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[donation.user.email]
+        )
+        email.content_subtype = "html"
+        
+        # Attach PDF as a file
+        with open(temp.name, 'rb') as f:
+            email.attach(f"donation_receipt_{donation.id}.pdf", f.read(), "application/pdf")
+        
+        email.send(fail_silently=False)
+        
+        # Clean up temp file
+        os.unlink(temp.name)
+    elif donation.user:
+        # Fallback to HTML email
+        send_mail(
+            subject=subject,
+            message=plain_message,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[donation.user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )

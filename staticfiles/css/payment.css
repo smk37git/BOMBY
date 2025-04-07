@@ -45,6 +45,7 @@
     display: flex;
     flex-direction: column;
     position: relative;
+    overflow: hidden; /* Prevent content from spilling outside */
 }
 
 .product-title {
@@ -96,6 +97,7 @@
     align-items: flex-start;
     flex-wrap: wrap;
     gap: 2rem;
+    width: 100%; /* Ensure full width */
 }
 
 .price-section {
@@ -130,7 +132,7 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    width: 100%;
+    width: auto;
     text-align: center;
 }
 
@@ -142,22 +144,52 @@
 /* PayPal specific styles */
 #paypal-button-container {
     width: 100%;
-    min-height: 180px;
+    max-width: auto; 
+    min-height: auto;
     flex: 1;
     min-width: 300px;
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
-/* PayPal button text color fixes for dark background */
+/* PayPal iframe container */
+.paypal-buttons-context-iframe {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* Override PayPal's inline styles to ensure proper width */
+iframe[title^="PayPal"] {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+
+/* PayPal button text color fixes */
 .paypal-button.paypal-button-card .paypal-button-text,
 .paypal-button.paypal-button-card .paypal-button-card-text {
-    color: white !important;
+    color: #000 !important;
     font-weight: bold !important;
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;
+    text-shadow: none !important;
 }
 
-/* PayPal debit/credit card button specific fix */
+/* PayPal debit/credit card section container */
+.paypal-card-form-container {
+    background-color: #fff !important;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+    color: #000 !important;
+    max-width: auto;
+    box-sizing: border-box;
+}
+
+/* Fix PayPal tagline color */
 .paypal-button-tagline {
-    color: white !important;
+    color: #6c7378 !important;
 }
 
 /* Loading indicator styles */
@@ -197,12 +229,41 @@
     border-radius: 8px;
     background-color: rgba(255, 255, 255, 0.05);
     text-align: center;
+    box-sizing: border-box;
 }
 
 #payment-fallback p {
     margin-bottom: 15px;
     color: rgba(255, 255, 255, 0.9);
     font-size: 1rem;
+}
+
+/* Custom styles for PayPal iframe container */
+.paypal-card-fields-container {
+    background-color: #fff !important;
+    color: #000 !important;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 10px;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* Add custom style to ensure text fields are visible */
+.paypal-card-form-container input,
+.paypal-card-form-container label,
+.paypal-card-form-container text {
+    color: #000 !important;
+    background-color: #fff !important;
+}
+
+/* Style for the billing address section */
+.billing-address-heading {
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.2rem;
+    margin: 15px 0;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 /* Responsive adjustments */

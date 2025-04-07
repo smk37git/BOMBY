@@ -14,25 +14,24 @@
 <div class="product-container">
     <!-- Back link -->
     <div class="product-navigation">
-        <a href="{% url 'STORE:store' %}" class="back-link">
-            <i class="fas fa-arrow-left"></i> Back to Store
+        <a href="{% url 'STORE:donation_page' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Donation
         </a>
     </div>
     
     <div class="product-card">
-        <h1 class="product-title">Complete Your Purchase</h1>
+        <h1 class="product-title">Complete Your Donation</h1>
         <hr class="page-divider"></hr>
         
         <div class="product-description">
-            <h2>Order Summary</h2>
-            <p>Product: {{ product.name }}</p>
-            <p>Price: ${{ product.price }}</p>
+            <h2>Donation Summary</h2>
+            <p>Amount: ${{ amount }}</p>
         </div>
         
         <div class="product-purchase">
             <div class="price-section">
                 <div class="price-label">Total:</div>
-                <div class="price-value">${{ product.price }}</div>
+                <div class="price-value">${{ amount }}</div>
             </div>
             
             <!-- PayPal Loading Indicator -->
@@ -49,7 +48,7 @@
             <!-- Alternative payment option as fallback -->
             <div id="payment-fallback" style="display:none; margin-top:20px;">
                 <p>PayPal payment option is currently unavailable.</p>
-                <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">Proceed Without PayPal</a>
+                <a href="{% url 'STORE:store' %}" class="purchase-btn">Go Back to Store</a>
             </div>
         </div>
     </div>
@@ -72,35 +71,6 @@
             document.getElementById('paypal-loading').style.display = 'none';
             document.getElementById('paypal-button-container').style.display = 'block';
             
-            // Add custom styling to make the billing address text visible
-            setTimeout(function() {
-                // Find and style billing address elements
-                const billingElements = document.querySelectorAll('.paypal-card-form-container label');
-                billingElements.forEach(function(element) {
-                    if (element.textContent.includes('Billing address')) {
-                        // Create a new styled header element
-                        const billingHeader = document.createElement('div');
-                        billingHeader.className = 'billing-address-heading';
-                        billingHeader.textContent = 'Billing Address';
-                        
-                        // Insert the new header before the label
-                        element.parentNode.insertBefore(billingHeader, element);
-                        
-                        // Hide the original label
-                        element.style.display = 'none';
-                    }
-                });
-                
-                // Add background to form fields container
-                const formContainers = document.querySelectorAll('.paypal-card-fields-container');
-                formContainers.forEach(function(container) {
-                    container.style.backgroundColor = '#fff';
-                    container.style.padding = '15px';
-                    container.style.borderRadius = '10px';
-                    container.style.color = '#000';
-                });
-            }, 1000); // Small delay to ensure PayPal elements are loaded
-            
             // Initialize PayPal buttons
             paypal.Buttons({
                 // Set up the transaction
@@ -108,7 +78,7 @@
                     return actions.order.create({
                         purchase_units: [{
                             amount: {
-                                value: '{{ product.price }}'
+                                value: '{{ amount }}'
                             }
                         }]
                     });
@@ -117,9 +87,9 @@
                 // Finalize the transaction
                 onApprove: function(data, actions) {
                     return actions.order.capture().then(function(orderData) {
-                        // Redirect to success page with payment ID and product ID
-                        window.location.href = "{% url 'STORE:payment_success' %}?paymentId=" + 
-                            orderData.id + "&product_id={{ product.id }}";
+                        // Redirect to success page with payment ID and donation info
+                        window.location.href = "{% url 'STORE:donation_success' %}?paymentId=" + 
+                            orderData.id + "&donation_id={{ donation_id }}&amount={{ amount }}";
                     });
                 },
                 

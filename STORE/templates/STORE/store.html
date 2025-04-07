@@ -236,12 +236,52 @@
                                 {% if products.5.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
                             <a href="{% url 'MAIN:coming_soon' %}" class="buy-button">VIEW PACKAGE</a>
-                            <div class="product-price">Custom</div>
+                            <div class="product-price">$ - - -</div>
                         </div>
                     </div>
                 </a>
             </div>
         </div>
+    </section>
+
+    <section class="store-section" id="website-building">
+        <div class="section-header">
+            <h2 class="section-title">DONATIONS</h2>
+            <div class="section-separator-right"></div>
+        </div>
+
+        <div class="products-grid">
+            <!-- Basic Package -->
+            <div class="product-item">
+                <a href="{% url 'STORE:donation_page' %}" class="product-link">
+                    <div class="window">
+                        <div class="window-header">
+                            <div class="window-controls">
+                                <div class="control red"></div>
+                                <div class="control yellow"></div>
+                                <div class="control green"></div>
+                            </div>
+                            <div class="window-title">donation.exe</div>
+                        </div>
+                        <div class="window-content">
+                            <img src="{% static 'images/BOMBY.png' %}" alt="Donation">
+                        </div>
+                        <div class="window-footer">
+                            <div class="product-status {% if products.0.is_active %}active{% else %}inactive{% endif %}">
+                                ACTIVE
+                            </div>
+                            <a href="{% url 'STORE:donation_page' %}" class="buy-button">MAKE A DONATION</a>
+                            <div class="product-price">$ - - -</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
+            <div>
+                <h1 style="text-align: center; display: flex;">Generous Donations go towards keeping the website running and funding future projects.</h1>
+            </div>
+        </div>
+        
     </section>
 
     <section class="contact-cta">

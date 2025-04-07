@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice #{{ invoice_number }}</title>
+    <title>{% if donation %}Donation Receipt{% else %}Invoice #{{ invoice_number }}{% endif %}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -97,13 +97,18 @@
         .info-value {
             color: #fff;
         }
+        .donation-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #9e33e6;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="title-section">
-            <h1>INVOICE</h1>
-            <h2>{{ invoice_number }}</h2>
+            <h1>{% if donation %}DONATION RECEIPT{% else %}INVOICE{% endif %}</h1>
+            <h2>{% if donation %}DON-{{ donation.id }}{% else %}{{ invoice_number }}{% endif %}</h2>
         </div>
         
         <div class="invoice-header">
@@ -137,14 +142,29 @@
             <table width="100%">
                 <tr>
                     <td width="50%">
-                        <span class="info-label">Bill To:</span><br>
-                        <span class="info-value">{{ order.user.username }}</span><br>
-                        <span class="info-value">{{ order.user.email }}</span>
+                        <span class="info-label">{% if donation %}Donor:{% else %}Bill To:{% endif %}</span><br>
+                        {% if donation %}
+                          {% if donation.user %}
+                            <span class="info-value">{{ donation.user.username }}</span><br>
+                            <span class="info-value">{{ donation.user.email }}</span>
+                          {% else %}
+                            <span class="info-value">Anonymous Donor</span>
+                          {% endif %}
+                        {% else %}
+                          <span class="info-value">{{ order.user.username }}</span><br>
+                          <span class="info-value">{{ order.user.email }}</span>
+                        {% endif %}
                     </td>
                     <td width="50%" class="text-right">
-                        <span class="info-label">Order #:</span> <span class="info-value">{{ order.id }}</span><br>
-                        <span class="info-label">Invoice Date:</span> <span class="info-value">{{ order.created_at|date:"F j, Y" }}</span><br>
-                        <span class="info-label">Payment ID:</span> <span class="info-value">{{ order.payment_id }}</span>
+                        {% if donation %}
+                          <span class="info-label">Donation #:</span> <span class="info-value">{{ donation.id }}</span><br>
+                          <span class="info-label">Date:</span> <span class="info-value">{{ donation.created_at|date:"F j, Y" }}</span><br>
+                          <span class="info-label">Payment ID:</span> <span class="info-value">{{ donation.payment_id }}</span>
+                        {% else %}
+                          <span class="info-label">Order #:</span> <span class="info-value">{{ order.id }}</span><br>
+                          <span class="info-label">Invoice Date:</span> <span class="info-value">{{ order.created_at|date:"F j, Y" }}</span><br>
+                          <span class="info-label">Payment ID:</span> <span class="info-value">{{ order.payment_id }}</span>
+                        {% endif %}
                     </td>
                 </tr>
             </table>
@@ -159,6 +179,17 @@
                 </tr>
             </thead>
             <tbody>
+                {% if donation %}
+                <tr>
+                    <td>Donation to BOMBY</td>
+                    <td>Support for website and future projects</td>
+                    <td class="donation-amount">${{ donation.amount }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="2" class="text-right"><strong>Total</strong></td>
+                    <td>${{ donation.amount }}</td>
+                </tr>
+                {% else %}
                 <tr>
                     <td>{{ order.product.name }}</td>
                     <td>{{ order.product.description|truncatewords:20 }}</td>
@@ -168,13 +199,14 @@
                     <td colspan="2" class="text-right"><strong>Total</strong></td>
                     <td>${{ order.product.price }}</td>
                 </tr>
+                {% endif %}
             </tbody>
         </table>
         
         <hr style="border: 1px solid rgba(255, 255, 255, 0.2); margin: 30px 0;">
         
         <div class="footer">
-            <p>Thank you for your business!</p>
+            <p>{% if donation %}Thank you for your generous support!{% else %}Thank you for your business!{% endif %}</p>
             <p>For any questions, please contact support at sebetvbusiness@gmail.com</p>
         </div>
     </div>

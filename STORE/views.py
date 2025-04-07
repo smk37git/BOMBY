@@ -28,7 +28,7 @@ from django.conf import settings
 from django.db import connection
 from django.db.models import Count, Avg, Sum, Q, F
 from datetime import timedelta
-from .models import PageView, ProductInteraction
+from .models import PageView, ProductInteraction, Donation
 
 def store(request):
     products = [
@@ -89,6 +89,82 @@ def premium_package(request):
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
     return response
+
+def donation_page(request):
+    """View for custom donation amount"""
+    return render(request, 'STORE/donation_page.html', {
+        'paypal_client_id': settings.PAYPAL_CLIENT_ID,
+    })
+
+def donation_payment(request):
+    """Handle processing a donation with custom amount"""
+    if request.method == 'POST':
+        amount = request.POST.get('amount')
+        
+        try:
+            # Validate amount is a positive number
+            amount = float(amount)
+            if amount <= 0:
+                raise ValueError("Amount must be positive")
+                
+            # Format with 2 decimal places
+            amount = "{:.2f}".format(amount)
+                
+            # Create donation object (not saving yet)
+            donation = Donation(amount=amount)
+            if request.user.is_authenticated:
+                donation.user = request.user
+                
+            # Redirect to payment processing
+            return render(request, 'STORE/donation_payment.html', {
+                'amount': amount,
+                'paypal_client_id': settings.PAYPAL_CLIENT_ID,
+                'donation_id': str(uuid.uuid4())  # Generate a temporary ID
+            })
+                
+        except (ValueError, TypeError) as e:
+            messages.error(request, f"Invalid donation amount: {str(e)}")
+            
+    return redirect('STORE:donation_page')
+
+def donation_success(request):
+    """Handle successful donation and promote to supporter"""
+    donation_id = request.GET.get('donation_id')
+    payment_id = request.GET.get('paymentId')
+    amount = request.GET.get('amount')
+    
+    try:
+        # Create and save donation record
+        donation = Donation(
+            amount=amount,
+            payment_id=payment_id,
+            is_paid=True
+        )
+        
+        if request.user.is_authenticated:
+            donation.user = request.user
+            
+            # Promote user to supporter if donation is $10 or more
+            if float(amount) >= 10 and not request.user.is_supporter and hasattr(request.user, 'promote_to_supporter'):
+                request.user.promote_to_supporter()
+                messages.success(request, "Thank you for your donation! You have been promoted to supporter status.")
+            
+        donation.save()
+        
+        # Send receipt email
+        from .utils.email_utils import send_donation_receipt
+        try:
+            send_donation_receipt(request, donation)
+        except Exception as e:
+            print(f"Error sending donation receipt: {e}")
+        
+        messages.success(request, "Thank you for your generous donation!")
+            
+    except Exception as e:
+        print(f"Error processing donation: {str(e)}")
+        messages.error(request, "There was an error processing your donation.")
+        
+    return redirect('STORE:store')
 
 def stream_setup(request):
     product_reviews = get_all_reviews()

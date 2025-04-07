@@ -144,16 +144,16 @@
 /* PayPal specific styles */
 #paypal-button-container {
     width: 100%;
-    max-width: 100%; /* Ensure it doesn't exceed container width */
-    min-height: 180px;
+    max-width: auto; 
+    min-height: auto;
     flex: 1;
     min-width: 300px;
     background-color: #fff;
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    overflow: hidden; /* Prevent content overflow */
-    box-sizing: border-box; /* Include padding in width calculation */
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 /* PayPal iframe container */
@@ -183,7 +183,7 @@ iframe[title^="PayPal"] {
     padding: 15px;
     margin-top: 15px;
     color: #000 !important;
-    max-width: 100%;
+    max-width: auto;
     box-sizing: border-box;
 }
 
