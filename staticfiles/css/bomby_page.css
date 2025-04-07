@@ -222,7 +222,7 @@
 }
 
 .info-card {
-    background: linear-gradient(145deg, rgba(30, 30, 45, 0.9), rgba(20, 20, 30, 0.8));
+    background: linear-gradient(145deg, #131313, #141414);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 2.5rem;
@@ -277,7 +277,7 @@
 
 /* Technical details section */
 .tech-details {
-    background: rgba(20, 20, 30, 0.8);
+    background: linear-gradient(145deg, #131313, #141414);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 3rem;

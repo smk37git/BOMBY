@@ -73,6 +73,10 @@
    font-size: 1.3rem;
 }
 
+.fab.fa-github {
+   color: #a600ff;
+}
+
 /* Introduction Section */
 .intro-section {
    padding: 6rem 3rem;
@@ -123,7 +127,7 @@
 }
 
 .stat-card {
-   background: rgba(30, 30, 45, 0.6);
+   background: linear-gradient(145deg, #131313, #141414);
    border-radius: 10px;
    padding: 2rem 1.5rem;
    text-align: center;
@@ -211,7 +215,7 @@
    grid-template-columns: 1.2fr 0.8fr;
    gap: 0;
    margin-bottom: 5rem;
-   background: rgba(20, 20, 30, 0.6);
+   background: linear-gradient(145deg, #131313, #141414);
    border-radius: 16px;
    overflow: hidden;
    border: 1px solid rgba(255, 255, 255, 0.05);
@@ -238,7 +242,7 @@
 
 .project-card:hover {
    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-   border-color: rgba(136, 0, 255, 0.15);
+   border-color: rgba(255, 255, 255, 0.15);
    transform: translateY(-5px);
 }
 
@@ -273,7 +277,7 @@
 }
 
 .project-tag {
-   background: rgba(136, 0, 255, 0.1);
+   background: #a600ff96;
    color: #ffffff;
    padding: 0.3rem 0.8rem;
    border-radius: 20px;
@@ -398,7 +402,7 @@
 }
 
 .mini-project {
-   background: rgba(30, 30, 45, 0.6);
+   background: linear-gradient(145deg, #131313, #141414);
    border-radius: 12px;
    padding: 1.8rem;
    border: 1px solid rgba(255, 255, 255, 0.05);
@@ -419,7 +423,7 @@
 .mini-project:hover {
    transform: translateY(-5px);
    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-   border-color: rgba(136, 0, 255, 0.15);
+   border-color: rgba(255, 255, 255, 0.15);
 }
 
 .mini-project-header {
@@ -527,7 +531,7 @@
 }
 
 .timeline-content {
-   background: rgba(30, 30, 45, 0.6);
+   background: linear-gradient(145deg, #131313, #141414);
    border-radius: 16px;
    padding: 2.5rem;
    border: 1px solid rgba(255, 255, 255, 0.05);
@@ -538,12 +542,12 @@
 .timeline-item:hover .timeline-content {
    transform: translateY(-5px);
    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-   border-color: rgba(136, 0, 255, 0.15);
+   border-color: rgba(255, 255, 255, 0.15);
 }
 
 .timeline-date {
    display: inline-block;
-   background: rgba(136, 0, 255, 0.1);
+   background: #a600ff;
    color: #ffffff;
    padding: 0.4rem 1rem;
    border-radius: 20px;

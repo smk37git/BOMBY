@@ -1,6 +1,6 @@
 .analytics-container {
     max-width: 1200px;
-    margin: 0 auto;
+    margin: 50px auto;
     padding: 30px;
     background-color: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.3);
@@ -266,6 +266,36 @@
 
 .color-pending {
     background-color: #ff3f3f;
+}
+
+.data-type-filter {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.filter-checkbox {
+    display: flex;
+    align-items: center;
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.checkbox-item {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.chart-container {
+    position: relative;
+    height: 350px;
+    margin: 20px 0;
 }
 
 /* Responsive adjustments */

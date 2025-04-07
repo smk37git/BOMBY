@@ -41,8 +41,10 @@
                 <p class="loading-text">Loading payment options...</p>
             </div>
             
-            <!-- PayPal Button Container -->
-            <div id="paypal-button-container" style="display:none;"></div>
+            <!-- PayPal Button Container with custom styling -->
+            <div id="paypal-button-container" style="display:none;">
+                <!-- PayPal buttons will render here -->
+            </div>
             
             <!-- Alternative payment option as fallback -->
             <div id="payment-fallback" style="display:none; margin-top:20px;">
@@ -69,6 +71,35 @@
             // Hide loader and show buttons
             document.getElementById('paypal-loading').style.display = 'none';
             document.getElementById('paypal-button-container').style.display = 'block';
+            
+            // Add custom styling to make the billing address text visible
+            setTimeout(function() {
+                // Find and style billing address elements
+                const billingElements = document.querySelectorAll('.paypal-card-form-container label');
+                billingElements.forEach(function(element) {
+                    if (element.textContent.includes('Billing address')) {
+                        // Create a new styled header element
+                        const billingHeader = document.createElement('div');
+                        billingHeader.className = 'billing-address-heading';
+                        billingHeader.textContent = 'Billing Address';
+                        
+                        // Insert the new header before the label
+                        element.parentNode.insertBefore(billingHeader, element);
+                        
+                        // Hide the original label
+                        element.style.display = 'none';
+                    }
+                });
+                
+                // Add background to form fields container
+                const formContainers = document.querySelectorAll('.paypal-card-fields-container');
+                formContainers.forEach(function(container) {
+                    container.style.backgroundColor = '#fff';
+                    container.style.padding = '15px';
+                    container.style.borderRadius = '10px';
+                    container.style.color = '#000';
+                });
+            }, 1000); // Small delay to ensure PayPal elements are loaded
             
             // Initialize PayPal buttons
             paypal.Buttons({

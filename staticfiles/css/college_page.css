@@ -130,7 +130,7 @@
  
  .project-card {
     margin-bottom: 3rem;
-    background: rgba(20, 20, 30, 0.6);
+    background: linear-gradient(145deg, #131313, #141414);
     border-radius: 16px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -182,7 +182,7 @@
  }
  
  .project-tag {
-    background: rgba(136, 0, 255, 0.1);
+    background: #a600ff;
     color: #ffffff;
     padding: 0.3rem 0.8rem;
     border-radius: 20px;
