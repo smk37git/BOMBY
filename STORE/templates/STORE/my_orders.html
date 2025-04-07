@@ -70,4 +70,136 @@
         {% endfor %}
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle order pagination
+        const orderItems = document.querySelectorAll('.order-item');
+        const ordersPerPage = 6;
+        const totalPages = Math.ceil(orderItems.length / ordersPerPage);
+        
+        if (totalPages > 1) {
+            // Create pagination container
+            const ordersContainer = document.querySelector('.orders-container');
+            
+            // Add pagination HTML directly after orders container
+            const paginationHTML = `
+                <div class="order-pagination">
+                    <button id="prevOrders" class="pagination-btn" disabled>
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <div class="pagination-info">
+                        <span id="currentPage" style="margin-right: 5px;">1</span> of <span id="totalPages" style="margin-left: 5px;">${totalPages}</span>
+                    </div>
+                    <button id="nextOrders" class="pagination-btn">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Insert pagination after orders container
+            ordersContainer.insertAdjacentHTML('afterend', paginationHTML);
+            
+            // Add fade-in class for animation
+            orderItems.forEach((item, index) => {
+                if (index < ordersPerPage) {
+                    item.classList.add('fade-in');
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // Set up pagination event handlers
+            const prevButton = document.getElementById('prevOrders');
+            const nextButton = document.getElementById('nextOrders');
+            const currentPageElement = document.getElementById('currentPage');
+            
+            let currentPage = 1;
+            
+            nextButton.addEventListener('click', function() {
+                if (currentPage < totalPages) {
+                    // Hide current page orders
+                    orderItems.forEach((item, index) => {
+                        const startIndex = (currentPage - 1) * ordersPerPage;
+                        const endIndex = startIndex + ordersPerPage - 1;
+                        
+                        if (index >= startIndex && index <= endIndex) {
+                            item.classList.remove('fade-in');
+                            setTimeout(() => {
+                                item.style.display = 'none';
+                            }, 300);
+                        }
+                    });
+                    
+                    // Increment page and update UI
+                    currentPage++;
+                    currentPageElement.textContent = currentPage;
+                    prevButton.disabled = false;
+                    
+                    // Show new page orders
+                    setTimeout(() => {
+                        orderItems.forEach((item, index) => {
+                            const startIndex = (currentPage - 1) * ordersPerPage;
+                            const endIndex = startIndex + ordersPerPage - 1;
+                            
+                            if (index >= startIndex && index <= endIndex) {
+                                item.style.display = 'block';
+                                setTimeout(() => {
+                                    item.classList.add('fade-in');
+                                }, 50);
+                            }
+                        });
+                    }, 300);
+                    
+                    // Disable next button if last page
+                    if (currentPage >= totalPages) {
+                        nextButton.disabled = true;
+                    }
+                }
+            });
+            
+            prevButton.addEventListener('click', function() {
+                if (currentPage > 1) {
+                    // Hide current page orders
+                    orderItems.forEach((item, index) => {
+                        const startIndex = (currentPage - 1) * ordersPerPage;
+                        const endIndex = startIndex + ordersPerPage - 1;
+                        
+                        if (index >= startIndex && index <= endIndex) {
+                            item.classList.remove('fade-in');
+                            setTimeout(() => {
+                                item.style.display = 'none';
+                            }, 300);
+                        }
+                    });
+                    
+                    // Decrement page and update UI
+                    currentPage--;
+                    currentPageElement.textContent = currentPage;
+                    nextButton.disabled = false;
+                    
+                    // Show new page orders
+                    setTimeout(() => {
+                        orderItems.forEach((item, index) => {
+                            const startIndex = (currentPage - 1) * ordersPerPage;
+                            const endIndex = startIndex + ordersPerPage - 1;
+                            
+                            if (index >= startIndex && index <= endIndex) {
+                                item.style.display = 'block';
+                                setTimeout(() => {
+                                    item.classList.add('fade-in');
+                                }, 50);
+                            }
+                        });
+                    }, 300);
+                    
+                    // Disable prev button if first page
+                    if (currentPage <= 1) {
+                        prevButton.disabled = true;
+                    }
+                }
+            });
+        }
+    });
+</script>
 {% endblock %}
