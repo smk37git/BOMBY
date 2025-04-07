@@ -1,0 +1,254 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/bomby_page.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+    <div class="project-container">
+        <!-- Horizontal Split Hero Section -->
+        <section class="hero-split">
+            <!-- Left Side - Hero Content -->
+            <div class="hero-content-side">
+                <h1 class="project-title">STEAM WORKSHOP MODDING
+                </h1>
+                <p class="project-author">By Sebastian Main</p>
+                <p class="project-brief">
+                    A showcase of my Steam workshop mods. Currently I have only one mod published that required coding, but I'd love to show it off!
+                </p>
+                
+                <div class="hero-cta">
+                    <a href="{% url 'PORTFOLIO:portfolio' %}" class="hero-button">
+                        <i class="fas fa-arrow-left"></i> Back to Portfolio
+                    </a>
+                    <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3291465513&searchtext=10+years+later" class="hero-button primary">View Live</a>
+                    <a href="https://github.com/smk37git/PROJECT-ZOMBOID_10-YEARS-LATER-SURVIVORS-MOD" class="hero-button">GitHub Repo</a>
+                </div>
+            </div>
+            
+            <!-- Right Side - Gallery -->
+            <div class="hero-gallery-side">
+                <div class="project-featured-image">
+                    <img src="{% static 'images/steam_workshop_1.jpg' %}" alt="Project Name" class="featured-image" id="featuredImage">
+                </div>
+                
+                <div class="gallery-thumbnails">
+                    <div class="thumbnail active" data-image="{% static 'images/steam_workshop_1.jpg' %}">
+                        <img src="{% static 'images/steam_workshop_1.jpg' %}" alt="Main Project Image">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/steam_workshop_2.jpg' %}">
+                        <img src="{% static 'images/steam_workshop_2.jpg' %}" alt="Gallery Image 1">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/steam_workshop_3.jpg' %}">
+                        <img src="{% static 'images/steam_workshop_3.jpg' %}" alt="Gallery Image 2">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/steam_workshop_4.jpg' %}">
+                        <img src="{% static 'images/steam_workshop_4.jpg' %}" alt="Gallery Image 3">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/steam_workshop_5.jpg' %}">
+                        <img src="{% static 'images/steam_workshop_5.jpg' %}" alt="Gallery Image 4">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <div class="project-content" style="margin-top: -100px;">
+            <!-- Overview Section -->
+            <section class="content-section" id="overview">
+                <div class="section-header">
+                    <h2 class="section-title" style="margin-top: 100px;">Project Overview</h2>
+                    <p class="section-subtitle">A detailed look at the purpose and approach of this project</p>
+                </div>
+                
+                <div class="project-info-grid">
+                    <div class="info-card">
+                        <h3 class="info-card-title">The Project</h3>
+                        <div class="info-card-content">
+                            <p>
+                                This mod simply addresses the issues when combining multiple other mods for one of my favorite games, Project Zomboid.
+                                A thrilling and the most realistic (despite the isometric artstyle) zombie survival simulator set in 1993 Knox County, Kentucky.
+                                By using this mod, it will allow NPC survivors to spawn in using more post-apocalyptic outfits contrary to their usual day one outbreak
+                                outfits. I like to play the game with a more of a 'Last of Us' setting so prior to my mod, it broke my immersion heavily to see NPCs with
+                                undamaged clothing ten years into the apocalypse.
+                                <br></br>
+
+                                Thus I developed this mod to fix this issue and finally make my playthroughs coherent when I find new survivors to recruit against the undead!
+                            </p>
+                            
+                            <div class="info-stats">
+                                <div class="info-stat">
+                                    <div class="stat-label">Date</div>
+                                    <div class="stat-value">July 17th, 2024</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Category</div>
+                                    <div class="stat-value">Game Modding</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Role</div>
+                                    <div class="stat-value">Developer</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="info-card">
+                        <h3 class="info-card-title">Our Approach</h3>
+                        <div class="info-card-content">
+                            <p>
+                                I first broke down exactly how to mod the game. As Project Zomboid runs on a Java and Lua foundation for the base game.
+                                Quickly I found out that I needed to understand Lua to create mods as that is what the modding community uses to make thousands of mods.
+                                So I began by studying other mods and replicated their processes to create my own mod.
+                                <br></br>
+
+                                With all my efforts I eventually got my mod published at as of April 2025, the mod has over 27k views, 3,200+ downloads, and 63 (5) star reviews (Steam adds 5 Star Rating at >100 Reviews)!
+                            </p>
+                            
+                            <div class="info-stats">
+                                <div class="info-stat">
+                                    <div class="stat-label">Tech Stack</div>
+                                    <div class="stat-value">Lua</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Timeline</div>
+                                    <div class="stat-value">1 Month</div>
+                                </div>
+                                <div class="info-stat">
+                                    <div class="stat-label">Purpose</div>
+                                    <div class="stat-value">Rebuilt Website with Functionality for the Fraternity</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Technical Details Section -->
+            <section class="content-section" id="technical">
+                <div class="section-header">
+                    <h2 class="section-title" style="margin-top: -50px;">Technical Details</h2>
+                    <p class="section-subtitle">A deeper look at the development process and implementation</p>
+                </div>
+                
+                <div class="tech-details">
+                    <h3>Development Process</h3>
+                    <p>
+                        I began creating the mod by creating the two files that I wanted to have overwrite the base NPCs. The SuperSurvivorSuitsUtilities and the SuperSurvivorWeaponsList.
+                        The SuitsUtilities file allowed me to overwrite the base outfits by calling item IDs directly from the Project Zomboid database. Things like hats, gloves, shirts, pants, socks, and other accessories.
+                        <br></br>
+
+                        This is crucial for complete customization of all the NPCs. Furthermore, I can also create multiple outfits for NPCs in different rarities (where the rarer an outfit is, the less likely it'll be chosen when an NPC spawns).
+                        There are 5 different levels of rarity (Most rare to most common): Legendary, Very Rare, Rare, Uncommon, and Normal. With an additional variable called "Presets" where when specific NPCs are spawned in,
+                        like a 'soldier' for example, they'll always spawn with one of the preset outfits. Currently there are 8 preset outfits for militia, farmers, police, etc. Each rarity of outfits also has ~9 outfits.
+                        Totaling at 69 outfits currently. Each one is unique and allows for a dynamic experience when coming across survivors. Some may be very geared and could put up a fight
+                        in a confrontion. While others are wearing basic rags and will need help rather than harm.
+                        <br></br>
+
+                        Conversely, the WeaponsList file allows survivors to dynamically spawn with different weapons based on how long they've been alive. In Project Zomboid NPCs aren't 
+                        directly spawned in front of the player. They are actually spawned in meta-data until the player or NPC are near each other. That is when the weapons and outfit spawning are determined. 
+                        Once the NPC is loaded in, if they have survived '<'48 hours then they get basic weapons. Like a stake for example. While if they have survived '>' 48 hours, they get better
+                        weapons like pistols or shotguns. This allows for easy, uncompromised weapon spawning even if users have other weapon mods installed.
+                    </p>
+                    
+                    <h3>Technical Challenges</h3>
+                    <p>
+                        The biggest challenge when creating this mod was trying to understand the Project Zomboid database and how to reference the items
+                        in my Lua file. It was a quick challenge to overcome though by using online documentation on the Project Zomboid wiki to find item IDs.
+                        <br></br>
+
+                        Once I got the items I wanted to add to an NPC it basically become a cookie-cutter mold for each outfit!
+                    </p>
+                    
+                    <pre>
+// Example code snippet
+local hoursSurvived = math.floor(getGameTime():getWorldAgeHours())
+
+--	if hoursSurvived > 48 then
+--  	table.insert(MeleWeapons,"Base.WoodAxe");
+--  	table.insert(MeleWeapons,"Base.Plunger");
+--  	table.insert(MeleWeapons,"Base.Stake");
+--  	table.insert(MeleWeapons,"Base.Stake");
+--	end
+</pre>
+                    
+                    <h3>Key Features</h3>
+                    <ul>
+                        <li>Dynamic Outfit Selection</li>
+                        <li>Dynamic Weapon Selection</li>
+                        <li>Documentation for future users to add their own outfits</li>
+                        <li>Published and Open Source</li>
+                    </ul>
+                    
+                    <h3>Lessons Learned</h3>
+                    <p>
+                        Working on this passion mod made me develop my connection deeper to one of my favorite games. While also allowing me to branch out my coding expertise
+                        and try something new. I enjoyed getting to be creative when designing this mod and allowed it to be compatible for future game updates!
+                    </p>
+                </div>
+            </section>
+            
+            <!-- Contact CTA Section -->
+            <section class="contact-cta">
+                <div class="cta-content">
+                    <h2>INTERESTED IN MY WORK?</h2>
+                    <p>I'm available for freelance projects and would love to discuss how I can help bring your ideas to life.</p>
+                    <a href="{% url 'MAIN:contact' %}" class="cta-button">GET IN TOUCH</a>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS animation library
+        AOS.init({
+            duration: 800,
+            offset: 100,
+            once: true
+        });
+        
+        // Gallery functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const featuredImage = document.getElementById('featuredImage');
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    // Update main image
+                    featuredImage.src = this.getAttribute('data-image');
+                    
+                    // Update active state
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+            
+            // Scroll animation for content sections
+            const contentSections = document.querySelectorAll('.content-section');
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.1
+            };
+            
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+            
+            contentSections.forEach(section => {
+                observer.observe(section);
+            });
+        });
+    </script>
+{% endblock %}

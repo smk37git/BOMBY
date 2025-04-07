@@ -197,15 +197,15 @@
                     
                     <pre>
 // Example code snippet
-function handleAuthentication(brother) {
-  const token = generateToken(brother);
-  storeBrotherSession(token);
-  return {
-    success: true,
-    message: 'Authentication successful',
-    token: token
-  };
-}</pre>
+@login_required # Used for Live Update
+def poll_results(request):
+    aye_votes = Brother_votes.objects.filter(user_vote_choice='Aye').count()
+    nay_votes = Brother_votes.objects.filter(user_vote_choice='Nay').count()
+    return JsonResponse({
+        'aye_votes': aye_votes,
+        'nay_votes': nay_votes
+    })
+</pre>
                     
                     <h3>Key Features</h3>
                     <ul>

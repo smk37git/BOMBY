@@ -34,24 +34,24 @@
             <!-- Right Side - Gallery -->
             <div class="hero-gallery-side">
                 <div class="project-featured-image">
-                    <img src="{% static 'images/BOMBY.jpg' %}" alt="Project Name" class="featured-image" id="featuredImage">
+                    <img src="{% static 'images/BOMBY.png' %}" alt="Project Name" class="featured-image" id="featuredImage">
                 </div>
                 
                 <div class="gallery-thumbnails">
-                    <div class="thumbnail active" data-image="{% static 'images/1.jpg' %}">
-                        <img src="{% static 'images/1.jpg' %}" alt="Main Project Image">
+                    <div class="thumbnail active" data-image="{% static 'images/BOMBY.png' %}">
+                        <img src="{% static 'images/BOMBY.png' %}" alt="Main Project Image">
                     </div>
-                    <div class="thumbnail" data-image="{% static 'images/2.jpg' %}">
-                        <img src="{% static 'images/2.jpg' %}" alt="Gallery Image 1">
+                    <div class="thumbnail" data-image="{% static 'images/portfolio_bomby_1.jpg' %}">
+                        <img src="{% static 'images/portfolio_bomby_1.jpg' %}" alt="Gallery Image 1">
                     </div>
-                    <div class="thumbnail" data-image="{% static 'images/3.jpg' %}">
-                        <img src="{% static 'images/3.jpg' %}" alt="Gallery Image 2">
+                    <div class="thumbnail" data-image="{% static 'images/portfolio_bomby_2.jpg' %}">
+                        <img src="{% static 'images/portfolio_bomby_2.jpg' %}" alt="Gallery Image 2">
                     </div>
-                    <div class="thumbnail" data-image="{% static 'images/4.jpg' %}">
-                        <img src="{% static 'images/4.jpg' %}" alt="Gallery Image 3">
+                    <div class="thumbnail" data-image="{% static 'images/portfolio_bomby_3.jpg' %}">
+                        <img src="{% static 'images/portfolio_bomby_3.jpg' %}" alt="Gallery Image 3">
                     </div>
-                    <div class="thumbnail" data-image="{% static 'images/5.jpg' %}">
-                        <img src="{% static 'images/5.jpg' %}" alt="Gallery Image 4">
+                    <div class="thumbnail" data-image="{% static 'images/portfolio_bomby_4.jpg' %}">
+                        <img src="{% static 'images/portfolio_bomby_4.jpg' %}" alt="Gallery Image 4">
                     </div>
                 </div>
             </div>
@@ -181,12 +181,22 @@
                         offer a secure checkout process that was user-friendly and instilled trust within clients. Furthermore, on the admin side,
                         I can track orders through an analytics panel that gives me every order detail, click-rates, finincial information, and more.
                         All in all, I broke my website down into four corners and built each one up to be a strong foundation accounting for all possiblities.
+                        <br></br>
+
+                        Finally, after getting everything put together, I launched my website using Cloud Run through the Google Cloud Console. Deploying my container
+                        was a struggle. I had no idea what I was doing at first, but through grit and one long weekend I was able to get the containers deployed. I also installed
+                        a PostgreSQL database to store my data persistently along with Google Buckets to store my user-uploads like profile pictures and my stream assets for the stream store.
+                        Additionally, I've added CRON Schedular jobs to handle my emailing system for orders and messages all done on the website. That way clients get their invoices and users
+                        get reminded if they have unread messages!
+                        <br></br>
+                        
+                        All together, Bomby runs great and effectively handles all the jobs it needs to do. While also allowing me to easily come in and customize what needs updating or refining!
                     </p>
                     
                     <h3>Technical Challenges</h3>
                     <p>
-                        The biggest hurdle to get over was organizing the different django apps and stringing them together to make sure they all worked together.
-                        The 'STORE' app is built of the foundation of the 'ACCOUNTS' app, and all the apps (including 'PORTFOLIO') are all built off of
+                        The biggest hurdle to get over at first was organizing the different django apps and stringing them together to make sure they all worked together.
+                        The 'STORE' app is built of the foundation off the 'ACCOUNTS' app, and all the apps (including 'PORTFOLIO') are all built off of
                         the 'MAIN' app. Getting this organizational structure put together was a challenge with trying to figure out exactly how to string
                         them all together.
                         <br></br>
@@ -195,23 +205,27 @@
                         css files that led to users downloading EVERY file on every single page of the website. Identifying the issue and finding a solution
                         led me to discover that all my css files were being piped through my base.html (the navbar, footer, etc.). Fixing this led to
                         styling errors over the entire website. I had to go back and reformat all css and html files to look great and this time make them
-                        look even better than they did prior to the error.
+                        look even better than they did prior to the error. Fixing this critical error massively reduced load times across the entire website and led to a more professional look.
                         <br></br>
-                        
-                        Fixing this critical error massively reduced load times across the entire website and led to a more professional look.
+
+                        Another problem I faced was the incredible challenge of trying to deploy my website via Cloud Run. From never having used a service like Cloud Run
+                        it was overwhelming at first. I had issues trying to get my stylesheets to load properly. Then I had issues getting my data to load (which led to me setting up the PostgreSQL database).
+                        After that I then had to get my profile picture upload process working right and submitting files to a Google Bucket. Finally I had to get my stream assets
+                        to be included in the bucket properly so that clients could download them seamlessly. Overall, I created and configured a secure and functional Cloud Run website
+                        that functions smoothly.
                     </p>
                     
                     <pre>
 // Example code snippet
-function handleAuthentication(user) {
-  const token = generateToken(user);
-  storeUserSession(token);
-  return {
-    success: true,
-    message: 'Authentication successful',
-    token: token
-  };
-}</pre>
+class Product(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=8, decimal_places=2, null=True, blank=True)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.name
+</pre>
                     
                     <h3>Key Features</h3>
                     <ul>

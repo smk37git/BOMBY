@@ -65,3 +65,6 @@ def github_project(request):
 
 def college_project(request):
     return render(request, 'PORTFOLIO/college_project.html')
+
+def steam_workshop(request):
+    return render(request, 'PORTFOLIO/steam_workshop.html')
