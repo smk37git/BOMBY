@@ -12,12 +12,11 @@
 }
 
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: Arial, sans-serif;
   color: white;
   margin: 0;
   padding: 0;
-  background-color: var(--bg-dark);
-  line-height: 1.6;
+  background-color: #000;
 }
 
 /* Navigation bar */
@@ -26,18 +25,17 @@ body {
   align-items: center;
   padding: 1.5rem 3rem;
   width: 100%;
-  position: fixed;
+  position: absolute;
   justify-content: flex-end;
   top: 0;
   left: 0;
   z-index: 1000;
   background-color: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(var(--nav-blur));
-  -webkit-backdrop-filter: blur(var(--nav-blur));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 1px 5px rgba(255, 255, 255, 0.2);
   box-sizing: border-box;
-  transition: background-color var(--transition-speed) ease;
 }
 
 /* Brand and logo */
@@ -296,7 +294,7 @@ body {
 /* Main content */
 main {
   padding-top: 90px;
-  min-height: calc(100vh - 150px);
+  min-height: calc(100vh - 300px);
 }
 
 /* Footer */
@@ -330,11 +328,23 @@ main {
   gap: 20px;
 }
 
+/* FIXED FOOTER SECTIONS */
 .footer-section {
   flex: 1;
   min-width: 200px;
   margin-bottom: 20px;
   padding: 0 15px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+}
+
+.footer-section h4, 
+.footer-section .footer-logo, 
+.footer-section p {
+  text-align: left;
+  align-self: flex-start;
 }
 
 .footer-section h4 {
@@ -344,7 +354,6 @@ main {
   position: relative;
   padding-bottom: 10px;
   display: inline-block;
-  text-align: center;
 }
 
 .footer-section h4::after {
@@ -360,7 +369,6 @@ main {
 .footer-logo {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
 }
 
 .footer-logo img {
@@ -387,10 +395,12 @@ main {
   list-style: none;
   padding: 0;
   margin: 0;
+  width: 100%;
 }
 
 .footer-links li {
   margin-bottom: 10px;
+  text-align: left;
 }
 
 .footer-links a {
@@ -408,6 +418,7 @@ main {
   list-style: none;
   padding: 0;
   margin: 0;
+  width: 100%;
 }
 
 .footer-contact li {
@@ -416,6 +427,7 @@ main {
   align-items: center;
   font-size: 0.9rem;
   color: #aaa;
+  text-align: left;
 }
 
 .footer-contact li i {
@@ -429,6 +441,7 @@ main {
   display: flex;
   gap: 15px;
   margin-top: 10px;
+  align-self: flex-start;
 }
 
 .social-icons a {
@@ -460,7 +473,6 @@ main {
   align-items: center;
   flex-direction: column;
   gap: 10px;
-  display: flex;
 }
 
 .footer-bottom p {

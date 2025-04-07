@@ -10,188 +10,128 @@
 {% endblock %}
 
 {% block content %}
-    <header class="hero">
+    <!-- Hero Section -->
+    <section class="hero-section">
         <div class="hero-content">
-            <h1 class="main-title">SEBASTIAN<br>MAIN</h1>
-            <p class="subtitle">PORTFOLIO AND FREELANCE SERVICE</p>
-        </div>
-        <div class="hero-image-container">
-            <div class="binary-background" data-binary=""></div>
-            <div class="profile-image-wrapper">
-                <img src="{% static 'images/sebastian-main-headshot.jpg' %}" alt="Sebastian Main" class="profile-image">
+            <h1 class="hero-title">BOMBY</h1>
+            <p class="hero-subtitle">PORTFOLIO AND FREELANCE SERVICE</p>
+            <div class="hero-buttons">
+                <a href="{% url 'PORTFOLIO:portfolio' %}" class="hero-btn">MY PORTFOLIO</a>
+                <a href="{% url 'STORE:store' %}" class="hero-btn">STREAM SETUP SERVICES</a>
             </div>
-        </div>
-    </header>
-
-    <section class="gallery-section">
-        <div class="gallery-header">
-            <h2 class="gallery-title">QUICK LINKS</h2>
-            <div class="gallery-separator"></div>
         </div>
         
-        <div class="gallery-grid">
-            <!-- Portfolio Item -->
-            <div class="gallery-item" data-aos="fade-up">
-                <div class="window">
-                    <div class="window-header">
-                        <div class="window-controls">
-                            <div class="control red"></div>
-                            <div class="control yellow"></div>
-                            <div class="control green"></div>
-                        </div>
-                        <div class="window-title">portfolio.exe</div>
-                    </div>
-                    <div class="window-content">
-                        <img src="{% static 'images/example.jpg' %}" alt="Portfolio">
-                    </div>
-                    <div class="window-footer"></div>
-                </div>
-                <h3 class="window-smalltitle">PORTFOLIO</h3>
-            </div>
-
-            <!-- Stream Setup Item -->
-            <div class="gallery-item" data-aos="fade-up" data-aos-delay="100">
-                <div class="window">
-                    <div class="window-header">
-                        <div class="window-controls">
-                            <div class="control red"></div>
-                            <div class="control yellow"></div>
-                            <div class="control green"></div>
-                        </div>
-                        <div class="window-title">stream-setup.exe</div>
-                    </div>
-                    <div class="window-content">
-                        <img src="{% static 'images/stream-setup.jpg' %}" alt="Stream Setup">
-                    </div>
-                    <div class="window-footer"></div>
-                </div>
-                <h3 class="window-smalltitle">STREAM SETUP</h3>
-            </div>
-
-            <!-- About Me Item -->
-            <div class="gallery-item" data-aos="fade-up" data-aos-delay="200">
-                <div class="window">
-                    <div class="window-header">
-                        <div class="window-controls">
-                            <div class="control red"></div>
-                            <div class="control yellow"></div>
-                            <div class="control green"></div>
-                        </div>
-                        <div class="window-title">about-me.exe</div>
-                    </div>
-                    <div class="window-content">
-                        <img src="{% static 'images/sebastian-main-headshot.jpg' %}" alt="ABOUT ME">
-                    </div>
-                    <div class="window-footer"></div>
-                </div>
-                <h3 class="window-smalltitle">ABOUT ME</h3>
+        <div class="hero-video">
+            <div class="video-container">
+                <video autoplay loop muted playsinline>
+                    <source src="{% static 'videos/eye-animation.webm' %}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
             </div>
         </div>
     </section>
 
-    <!-- AOS Section -->
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <!-- Info Section with Eye Animation -->
+    <section class="info-section">
+        <div class="container">
+            <div class="info-row">
+                <div class="eye-animation">
+                    <div class="eye-container">
+                        <video id="eye-animation-video" autoplay loop muted playsinline>
+                            <source src="{% static 'videos/eye-animation.webm' %}" type="video/webm">
+                            Your browser does not support the video tag.
+                        </video>
+                        <div class="eye-caption">
+                            <h3>WANT TO SEE WHAT I DO?</h3>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="welcome-content">
+                    <h2>WELCOME TO BOMBY!</h2>
+                    <p>I'm an Information Technology student currently in college! This website hosts my portfolio and stream setup service. As you can see, I am passionate about technology and the design of such systems.</p>
+                    <p>You may be asking yourself, "What can I do?" Take a look at my portfolio and Stream Setup service to get an idea of what I offer. From coding expertise to software deployment and media creation, I cover many bases with my skillset.</p>
+                    <div class="welcome-buttons">
+                        <a href="{% url 'MAIN:about' %}" class="action-btn">LEARN MORE ABOUT ME</a>
+                        <a href="{% url 'MAIN:contact' %}" class="action-btn">GET IN TOUCH</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services-section">
+        <div class="container">
+            <h2 class="section-title">
+                MY SERVICES
+                <div class="divider"></div>
+            </h2>
+            
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-code"></i>
+                    </div>
+                    <h3>Web Development</h3>
+                    <p>Custom websites designed with modern technologies and responsive interfaces.</p>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3>Stream Setup</h3>
+                    <p>Professional streaming configurations with OBS optimization and custom graphics.</p>
+                </div>
+                
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>Technical Support</h3>
+                    <p>Expert troubleshooting and setup assistance for your tech needs.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>READY TO START A PROJECT?</h2>
+            <p>Let's bring your ideas to life with professional development and technical expertise.</p>
+            <a href="{% url 'MAIN:contact' %}" class="action-btn">GET IN TOUCH</a>
+        </div>
+    </section>
+
     <script>
-        AOS.init({
-            duration: 800, // Optional: controls the animation speed
-            offset: 100, // Optional: adjusts when the animation is triggered
-            once: true // Optional: ensures animation happens only once
+        document.addEventListener('DOMContentLoaded', function() {
+            // Control eye animation video speed
+            const eyeVideo = document.getElementById('eye-animation-video');
+            if (eyeVideo) {
+                eyeVideo.playbackRate = 0.5;
+            }
+            
+            // Simple scroll animation
+            const animateElements = document.querySelectorAll('.service-card, .welcome-content, .eye-animation, .cta-section');
+            
+            function checkScroll() {
+                animateElements.forEach(el => {
+                    const rect = el.getBoundingClientRect();
+                    const windowHeight = window.innerHeight;
+                    
+                    if (rect.top < windowHeight * 0.8) {
+                        el.classList.add('visible');
+                    }
+                });
+            }
+            
+            // Initial check
+            checkScroll();
+            
+            // Listen for scroll
+            window.addEventListener('scroll', checkScroll);
         });
-    </script>
-
-    <!-- Binary Background -->
-    <script>
-        function createBinaryBackground() {
-            const binaryElement = document.querySelector('.binary-background');
-            let previousBinary = '';
-            let frameCount = 0;
-            const FRAMES_PER_SHIFT = 24;
-
-            function generateBinary() {
-                const width = Math.floor(binaryElement.offsetWidth / 8);
-                const height = Math.floor(binaryElement.offsetHeight / 8);
-                let binary = '';
-
-                function getFormattedChar() {
-                    if (Math.random() > 0.25) {
-                        const digit = Math.random() > 0.5 ? '1' : '0';
-                        return digit.padEnd(4, ' ');
-                    }
-                    return ' ';
-                }
-
-                function generateLine() {
-                    let line = '';
-                    for (let j = 0; j < Math.floor(width / 2); j++) {
-                        line += getFormattedChar();
-                    }
-                    return line;
-                }
-
-                if (!previousBinary) {
-                    for (let i = 0; i < height; i++) {
-                        binary += generateLine() + '\n';
-                    }
-                } else {
-                    const lines = previousBinary.split('\n');
-                    if (frameCount >= FRAMES_PER_SHIFT) {
-                        lines.shift();
-                        lines.push(generateLine());
-                        frameCount = 0;
-                    }
-                    binary = lines.join('\n');
-                }
-
-                previousBinary = binary;
-                return binary;
-            }
-
-            function update() {
-                binaryElement.setAttribute('data-binary', generateBinary());
-                const offset = (frameCount / FRAMES_PER_SHIFT) * -1;
-                binaryElement.style.transform = `translateY(${offset}px)`;
-                frameCount++;
-                requestAnimationFrame(update);
-            }
-
-            requestAnimationFrame(update);
-        }
-
-        document.addEventListener('DOMContentLoaded', createBinaryBackground);
-    </script>
-
-    <!-- Eye Animation Section -->
-    <div class="video-separator"></div>
-    <section id="video-section" class="video-container">
-        <div class="video-wrapper">
-            <video id="eye-animation-video" autoplay loop muted playsinline>
-                <source src="{% static 'videos/eye-animation.webm' %}" type="video/webm">
-                Your browser does not support the video tag.
-            </video>
-            <h3 class="eye-animation-title">WANT TO SEE WHAT I DO?</h3>
-        </div>
-        
-        <!-- Text area for future content -->
-        <div class="text-wrapper">
-            <h2 class="text-title">WELCOME TO MY WEBSITE!</h2>
-            <p class="text-content1">
-                I'm an Information Technology student who is currently in college! This
-                website will host my portfolio and stream setup service. As you can see, I am very passionate about
-                technology and the design of such systems.
-            </p>
-            <p class="text-content2">
-                You may be asking yourself, "What can I do?". Take a good look at my portfolio and Stream Setup service
-                to get a good idea of what I offer. From coding expertise to software deployment and even media creation,
-                I cover a lot of bases with my skillset.
-            </p>
-        </div>
-    </section>
-
-    <script>
-        // Get the video element
-        const video = document.getElementById('eye-animation-video');
-        
-        // Control speed
-        video.playbackRate = 0.5;
     </script>
 {% endblock %}
