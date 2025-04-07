@@ -73,9 +73,10 @@ class MessageForm(forms.ModelForm):
 class ReviewForm(forms.ModelForm):
     class Meta:
         model = Review
-        fields = ['rating', 'comment']
+        fields = ['rating', 'comment', 'is_fiverr', 'fiverr_username']
         widgets = {
             'comment': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Share your experience...'}),
+            'fiverr_username': forms.TextInput(attrs={'placeholder': 'Fiverr username (if applicable)'}),
         }
     
     def clean_comment(self):

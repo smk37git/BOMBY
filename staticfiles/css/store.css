@@ -483,6 +483,20 @@
     white-space: nowrap;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
+  
+.donation-description {
+    position: absolute;
+    left: 35%;
+    top: 50%;
+    transform: translate(50%, -50%);
+    text-align: center;
+    max-width: 400px;
+}
+  
+.donation-description {
+    text-align: center;
+    max-width: 400px;
+}
 
 /* Contact CTA section (from portfolio) */
 .contact-cta {

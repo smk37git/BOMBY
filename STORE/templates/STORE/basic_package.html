@@ -219,7 +219,9 @@
                                 <div class="review-header">
                                     <div class="review-user">
                                         <div class="user-avatar">
-                                            {% if review.order.user.is_staff %}
+                                            {% if review.is_fiverr %}
+                                                <div class="avatar-placeholder" style="background: linear-gradient(45deg, #1dbf73, #23e686);">F</div>
+                                            {% elif review.order.user.is_staff %}
                                                 <div class="private-review-avatar"></div>
                                             {% elif review.order.user.profile_picture and review.order.user.profile_picture.url %}
                                                 <img src="{{ review.order.user.profile_picture.url }}" alt="{{ review.order.user.username }}">
@@ -230,7 +232,9 @@
                                         <div class="review-user-info">
                                             <div class="username-and-price">
                                                 <strong class="username">
-                                                    {% if review.order.user.is_staff %}
+                                                    {% if review.is_fiverr %}
+                                                        {{ review.fiverr_username }} <span style="font-size: 0.8em; color: #1dbf73;">(Fiverr)</span>
+                                                    {% elif review.order.user.is_staff %}
                                                         Private Review
                                                     {% else %}
                                                         {{ review.order.user.username }}

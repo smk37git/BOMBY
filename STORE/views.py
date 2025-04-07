@@ -1591,6 +1591,8 @@ def admin_add_review(request):
     product_id = request.POST.get('product_id')
     rating = request.POST.get('rating')
     comment = request.POST.get('comment')
+    is_fiverr = request.POST.get('is_fiverr') == 'on'
+    fiverr_username = request.POST.get('fiverr_username', '')
     
     try:
         if not product_id:
@@ -1614,7 +1616,9 @@ def admin_add_review(request):
         review = Review.objects.create(
             order=mock_order,
             rating=rating,
-            comment=comment
+            comment=comment,
+            is_fiverr=is_fiverr,
+            fiverr_username=fiverr_username if is_fiverr else None
         )
         
         messages.success(request, f"Review added successfully for {product.name}.")

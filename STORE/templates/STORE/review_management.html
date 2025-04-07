@@ -159,6 +159,16 @@
                         <textarea name="comment" id="comment_text" class="message-input-container textarea" required></textarea>
                     </div>
                     
+                    <div class="form-group" style="display: flex; align-items: center; margin: 15px 0;">
+                        <input type="checkbox" id="is_fiverr" name="is_fiverr" style="margin-right: 10px;">
+                        <label for="is_fiverr">This is a Fiverr review</label>
+                    </div>
+                    
+                    <div class="form-group fiverr-username-group" style="display: none;">
+                        <label for="fiverr_username">Fiverr Username:</label>
+                        <input type="text" name="fiverr_username" id="fiverr_username" class="message-input-container" placeholder="Enter Fiverr username">
+                    </div>
+                    
                     <button type="submit" class="submit-button">Create Review</button>
                 </form>
             </div>
@@ -265,6 +275,16 @@
         
         // Initialize button states
         updateButtonStates();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Toggle Fiverr username field visibility
+        const isFiverrCheckbox = document.getElementById('is_fiverr');
+        const fiverrUsernameGroup = document.querySelector('.fiverr-username-group');
+        
+        isFiverrCheckbox.addEventListener('change', function() {
+            fiverrUsernameGroup.style.display = this.checked ? 'block' : 'none';
+        });
     });
 </script>
 {% endblock %}

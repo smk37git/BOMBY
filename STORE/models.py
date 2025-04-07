@@ -117,6 +117,8 @@ class Review(models.Model):
     rating = models.IntegerField(choices=[(i, i) for i in range(1, 6)])
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    is_fiverr = models.BooleanField(default=False)
+    fiverr_username = models.CharField(max_length=100, blank=True, null=True)
 
 # Stream Store Models
 class StreamAsset(models.Model):
