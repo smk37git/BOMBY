@@ -96,8 +96,8 @@
     justify-content: space-between;
     align-items: flex-start;
     flex-wrap: wrap;
-    gap: 2rem;
-    width: 100%; /* Ensure full width */
+    gap: 1rem;
+    width: 100%;
 }
 
 .price-section {
@@ -143,10 +143,9 @@
 
 /* PayPal specific styles */
 #paypal-button-container {
-    width: auto;
-    max-width: auto; 
+    width: 350px;
+    max-width: 100%;
     min-height: auto;
-    flex: 1;
     min-width: 300px;
     background-color: #fff;
     border-radius: 12px;
