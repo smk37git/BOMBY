@@ -4,32 +4,24 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="light only">
-    <meta name="supported-color-schemes" content="light">
     <title>BOMBY - {{ subject }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            color: #fff !important;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #000 !important;
         }
         .container {
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(128, 128, 128, 0.3);
             border-radius: 12px;
             padding: 30px;
-            background-color: #0a0a0a !important;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
         h1 {
-            color: #fff !important;
             font-size: 24px;
             margin-top: 0;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(128, 128, 128, 0.2);
             padding-bottom: 10px;
         }
         .alert-header {
@@ -44,39 +36,38 @@
             font-size: 20px;
             margin-right: 10px;
         }
+        .alert-header strong {
+            color: #ffffff;
+        }
         .order-details {
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: rgba(128, 128, 128, 0.1);
+            border: 1px solid rgba(128, 128, 128, 0.2);
             border-radius: 12px;
             padding: 15px;
             margin: 20px 0;
         }
         .order-details h3 {
-            color: #a991ff !important;
+            color: #9e33e6;
             margin-top: 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(128, 128, 128, 0.2);
             padding-bottom: 10px;
         }
         .order-info-row {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(128, 128, 128, 0.1);
         }
         .order-info-row:last-child {
             border-bottom: none;
         }
         .order-info-label {
             font-weight: bold;
-            color: rgba(255, 255, 255, 0.7) !important;
-        }
-        .order-info-value {
-            color: #fff !important;
         }
         .action-button {
             display: inline-block;
             background: linear-gradient(45deg, #9e33e6, #505ed7);
-            color: white !important;
+            color: #ffffff !important;
             text-decoration: none;
             padding: 12px 24px;
             border-radius: 8px;
@@ -93,7 +84,7 @@
         }
         .badge-warning {
             background-color: rgba(255, 7, 7, 0.2);
-            color: #ff3f3f !important;
+            color: #cc3333;
             border: 1px solid #ff0707;
             padding: 3px 8px;
             border-radius: 50px;
@@ -103,7 +94,7 @@
         }
         .badge-primary {
             background-color: rgba(253, 221, 13, 0.2);
-            color: #ffc824 !important;
+            color: #cc9900;
             border: 1px solid #ffc107;
             padding: 3px 8px;
             border-radius: 50px;
@@ -113,7 +104,7 @@
         }
         .badge-success {
             background-color: rgba(25, 135, 84, 0.2);
-            color: #33ffa0 !important;
+            color: #00cc66;
             border: 1px solid #198754;
             padding: 3px 8px;
             border-radius: 50px;
@@ -129,7 +120,7 @@
         
         <div class="alert-header">
             <i class="fas fa-bell"></i>
-            <strong style="color: #ffffff !important;">Admin Notification: Order #{{ order.id }} for {{ order.product.name }}</strong>
+            <strong>Admin Notification: Order #{{ order.id }} for {{ order.product.name }}</strong>
         </div>
         
         <div class="order-details">
