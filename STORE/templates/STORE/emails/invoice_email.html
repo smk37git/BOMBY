@@ -4,24 +4,24 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="dark">
-    <meta name="supported-color-schemes" content="dark">
+    <meta name="color-scheme" content="light only">
+    <meta name="supported-color-schemes" content="light">
     <title>{% if donation %}Donation Receipt{% else %}Invoice #{{ invoice_number }}{% endif %}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            color: #fff;
+            color: #fff !important;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #000;
+            background-color: #000 !important;
         }
         .container {
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 12px;
             padding: 30px;
-            background-color: #0a0a0a;
+            background-color: #0a0a0a !important;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
         .invoice-header {
@@ -35,7 +35,7 @@
             margin-bottom: 20px;
         }
         h1, h2 {
-            color: #fff;
+            color: #fff !important;
             margin-top: 0;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
@@ -51,11 +51,11 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             padding: 12px;
             text-align: left;
-            color: #fff;
+            color: #fff !important;
         }
         .invoice-table th {
             background-color: rgba(255, 255, 255, 0.1);
-            color: white;
+            color: white !important;
         }
         .text-right {
             text-align: right;
@@ -68,7 +68,7 @@
             margin-top: 30px;
             text-align: center;
             font-size: 14px;
-            color: #fff;
+            color: #fff !important;
             border-top: 1px solid rgba(255, 255, 255, 0.2);
             padding-top: 20px;
         }
@@ -78,7 +78,7 @@
             line-height: 1.2;
             letter-spacing: 0.05em;
             margin: 0 auto;
-            color: #ffffff;
+            color: #ffffff !important;
             font-size: 8px;
             text-align: center;
         }
@@ -86,23 +86,23 @@
             text-align: center;
             margin-top: 10px;
             margin-bottom: 30px;
-            color: #fff;
+            color: #fff !important;
             font-size: 28px;
         }
         .client-info {
             color: #fff !important;
         }
         .info-label {
-            color: #fff;
+            color: #fff !important;
             font-weight: bold;
         }
         .info-value {
-            color: #fff;
+            color: #fff !important;
         }
         .donation-amount {
             font-size: 24px;
             font-weight: bold;
-            color: #9e33e6;
+            color: #9e33e6 !important;
         }
     </style>
 </head>

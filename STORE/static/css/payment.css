@@ -142,12 +142,12 @@
 
 /* PayPal specific styles */
 #paypal-button-container {
-    width: 100%;
-    max-width: 100%;
+    width: 80%;
+    max-width: 600px;
     min-height: auto;
     background-color: #fff;
     border-radius: 12px;
-    padding: 20px;
+    padding: 15px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     overflow: hidden;
     box-sizing: border-box;
@@ -158,8 +158,6 @@
 .paypal-buttons-context-iframe {
     max-width: 100% !important;
     width: 100% !important;
-    transform: scale(1.1);
-    transform-origin: top center;
     margin-bottom: 10px;
 }
 
@@ -180,7 +178,7 @@ iframe[title^="PayPal"] {
 /* PayPal buttons */
 .paypal-buttons {
     min-width: 100% !important;
-    min-height: 45px !important;
+    min-height: 40px !important;
 }
 
 /* PayPal debit/credit card section container */
@@ -206,8 +204,8 @@ iframe[title^="PayPal"] {
     justify-content: center;
     align-items: center;
     min-height: 180px;
-    width: 100%;
-    max-width: 100%;
+    width: 80%;
+    max-width: 600px;
     margin: 0 auto;
 }
 
@@ -233,8 +231,8 @@ iframe[title^="PayPal"] {
 
 /* Fallback payment styles */
 #payment-fallback {
-    width: 100%;
-    max-width: 100%;
+    width: 80%;
+    max-width: 600px;
     padding: 20px;
     border-radius: 8px;
     background-color: rgba(255, 255, 255, 0.05);
@@ -295,5 +293,14 @@ iframe[title^="PayPal"] {
     .price-value {
         font-size: 2rem;
         margin-top: 0;
+    }
+    
+    #paypal-button-container {
+        width: 95%;
+    }
+    
+    .paypal-loader,
+    #payment-fallback {
+        width: 95%;
     }
 }

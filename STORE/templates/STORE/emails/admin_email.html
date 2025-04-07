@@ -4,28 +4,28 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="color-scheme" content="dark">
-    <meta name="supported-color-schemes" content="dark">
+    <meta name="color-scheme" content="light only">
+    <meta name="supported-color-schemes" content="light">
     <title>BOMBY - {{ subject }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-            color: #fff;
+            color: #fff !important;
             max-width: 600px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #000;
+            background-color: #000 !important;
         }
         .container {
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 12px;
             padding: 30px;
-            background-color: #0a0a0a;
+            background-color: #0a0a0a !important;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
         h1 {
-            color: #fff;
+            color: #fff !important;
             font-size: 24px;
             margin-top: 0;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
@@ -52,7 +52,7 @@
             margin: 20px 0;
         }
         .order-details h3 {
-            color: #a991ff;
+            color: #a991ff !important;
             margin-top: 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding-bottom: 10px;
@@ -68,15 +68,15 @@
         }
         .order-info-label {
             font-weight: bold;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.7) !important;
         }
         .order-info-value {
-            color: #fff;
+            color: #fff !important;
         }
         .action-button {
             display: inline-block;
             background: linear-gradient(45deg, #9e33e6, #505ed7);
-            color: white;
+            color: white !important;
             text-decoration: none;
             padding: 12px 24px;
             border-radius: 8px;
@@ -93,7 +93,7 @@
         }
         .badge-warning {
             background-color: rgba(255, 7, 7, 0.2);
-            color: #ff3f3f;
+            color: #ff3f3f !important;
             border: 1px solid #ff0707;
             padding: 3px 8px;
             border-radius: 50px;
@@ -103,7 +103,7 @@
         }
         .badge-primary {
             background-color: rgba(253, 221, 13, 0.2);
-            color: #ffc824;
+            color: #ffc824 !important;
             border: 1px solid #ffc107;
             padding: 3px 8px;
             border-radius: 50px;
@@ -113,7 +113,7 @@
         }
         .badge-success {
             background-color: rgba(25, 135, 84, 0.2);
-            color: #33ffa0;
+            color: #33ffa0 !important;
             border: 1px solid #198754;
             padding: 3px 8px;
             border-radius: 50px;
@@ -129,7 +129,7 @@
         
         <div class="alert-header">
             <i class="fas fa-bell"></i>
-            <strong style="color: #ffffff;">Admin Notification: Order #{{ order.id }} for {{ order.product.name }}</strong>
+            <strong style="color: #ffffff !important;">Admin Notification: Order #{{ order.id }} for {{ order.product.name }}</strong>
         </div>
         
         <div class="order-details">
@@ -171,7 +171,7 @@
             {% endif %}
         </div>
         
-        <a href="{{ protocol }}://{{ domain }}{% url 'STORE:order_details' order.id %}" style="color: #ffffff;" class="action-button">View Order Details</a>
+        <a href="{{ protocol }}://{{ domain }}{% url 'STORE:order_details' order.id %}" style="color: #ffffff !important;" class="action-button">View Order Details</a>
     </div>
 </body>
 </html>
