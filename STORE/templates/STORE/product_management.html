@@ -10,10 +10,14 @@
 {% endblock %}
 
 {% block content %}
+<div class="profile-header">
+    <h1 class="user_management-title">Product Management</h1>
+</div>
+
 <div class="profile-container">
-    <div class="profile-header">
-        <h1 class="user_management-title">Product Management</h1>
-    </div>
+    <a href="{% url 'MAIN:admin_panel' %}" class="action-button">
+        <i class="fas fa-arrow-left"></i> Back to Admin Panel
+    </a>
     
     <!-- Messages -->
     {% if messages %}

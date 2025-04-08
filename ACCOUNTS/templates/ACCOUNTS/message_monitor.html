@@ -18,7 +18,10 @@
 </div>
 
 <div class="profile-container message-monitor-container">
-    
+    <a href="{% url 'MAIN:admin_panel' %}" class="action-button">
+        <i class="fas fa-arrow-left"></i> Back to Admin Panel
+    </a>
+
     <!-- Messages -->
     {% if messages %}
     <div class="messages">
