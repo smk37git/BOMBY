@@ -207,48 +207,57 @@ local hoursSurvived = math.floor(getGameTime():getWorldAgeHours())
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        // Initialize AOS animation library
         AOS.init({
             duration: 800,
             offset: 100,
             once: true
         });
         
-        // Gallery functionality
         document.addEventListener('DOMContentLoaded', function() {
+            // Make thumbnails clickable on mobile
             const featuredImage = document.getElementById('featuredImage');
             const thumbnails = document.querySelectorAll('.thumbnail');
             
-            thumbnails.forEach(thumb => {
-                thumb.addEventListener('click', function() {
-                    // Update main image
-                    featuredImage.src = this.getAttribute('data-image');
-                    
-                    // Update active state
-                    thumbnails.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                });
+            thumbnails.forEach(function(thumb) {
+                // Increase z-index for mobile
+                thumb.style.zIndex = '50';
+                thumb.style.position = 'relative';
+                
+                // Handle both touch and click
+                thumb.addEventListener('click', handleThumbClick);
+                thumb.addEventListener('touchstart', handleThumbClick, {passive: false});
             });
             
-            // Scroll animation for content sections
-            const contentSections = document.querySelectorAll('.content-section');
-            const observerOptions = {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0.1
-            };
+            function handleThumbClick(e) {
+                // Prevent default behavior
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Get the thumbnail element
+                const thumb = this;
+                
+                // Update image
+                const imgSrc = thumb.getAttribute('data-image');
+                featuredImage.src = imgSrc;
+                
+                // Update active state
+                thumbnails.forEach(t => t.classList.remove('active'));
+                thumb.classList.add('active');
+                
+                return false;
+            }
             
-            const observer = new IntersectionObserver((entries, observer) => {
+            // Scroll animation
+            const contentSections = document.querySelectorAll('.content-section');
+            const observer = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         entry.target.classList.add('visible');
                     }
                 });
-            }, observerOptions);
+            }, { threshold: 0.1 });
             
-            contentSections.forEach(section => {
-                observer.observe(section);
-            });
+            contentSections.forEach(section => observer.observe(section));
         });
     </script>
 {% endblock %}

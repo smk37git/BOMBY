@@ -267,84 +267,144 @@ class Product(models.Model):
             once: true
         });
         
-        // Gallery functionality
+        // DOM manipulation safety wrapper
+        function safelyExecute(fn) {
+            try {
+                fn();
+            } catch (error) {
+                console.warn('Error in execution:', error);
+            }
+        }
+        
+        // Main initialization when DOM is ready
         document.addEventListener('DOMContentLoaded', function() {
-            const featuredImage = document.getElementById('featuredImage');
-            const thumbnails = document.querySelectorAll('.thumbnail');
-            
-            thumbnails.forEach(thumb => {
-                thumb.addEventListener('click', function() {
-                    // Update main image
-                    featuredImage.src = this.getAttribute('data-image');
-                    
-                    // Update active state
-                    thumbnails.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                });
+            // Gallery functionality
+            safelyExecute(() => {
+                const featuredImage = document.getElementById('featuredImage');
+                const thumbnails = document.querySelectorAll('.thumbnail');
+                
+                if (featuredImage && thumbnails.length > 0) {
+                    thumbnails.forEach(thumb => {
+                        thumb.addEventListener('click', function() {
+                            // Update main image
+                            featuredImage.src = this.getAttribute('data-image');
+                            
+                            // Update active state
+                            thumbnails.forEach(t => t.classList.remove('active'));
+                            this.classList.add('active');
+                        });
+                    });
+                }
             });
             
             // Scroll animation for content sections
-            const contentSections = document.querySelectorAll('.content-section');
-            const observerOptions = {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0.1
-            };
+            safelyExecute(() => {
+                const contentSections = document.querySelectorAll('.content-section');
+                
+                if (contentSections.length > 0) {
+                    const observerOptions = {
+                        root: null,
+                        rootMargin: '0px',
+                        threshold: 0.1
+                    };
+                    
+                    const observer = new IntersectionObserver((entries, observer) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                entry.target.classList.add('visible');
+                            }
+                        });
+                    }, observerOptions);
+                    
+                    contentSections.forEach(section => {
+                        observer.observe(section);
+                    });
+                }
+            });
             
-            const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, observerOptions);
+            // Call initial layout adjustments
+            adjustLayout();
             
-            contentSections.forEach(section => {
-                observer.observe(section);
+            // GitHub API integration
+            safelyExecute(() => {
+                const username = 'smk37git';
+                const repo = 'BOMBY';
+                
+                fetchLatestCommit(username, repo);
             });
         });
         
-        // GitHub API integration
-        document.addEventListener('DOMContentLoaded', function() {
-            const username = 'smk37git';
-            const repo = 'BOMBY';
+        // Adjust layout for responsive design
+        function adjustLayout() {
+            const isMobile = window.innerWidth <= 768;
             
-            fetchLatestCommit(username, repo);
-        });
-
-        function fetchLatestCommit(username, repo) {
-            const apiUrl = `/portfolio/api/github-commit/${username}/${repo}/`;
-    
-        fetch(apiUrl)
-            .then(response => response.json())
-            .then(data => updateCommitDisplay(data, username, repo))
-            .catch(error => {
-                console.error('Error fetching commit data:', error);
-                // Display fallback message
-                document.querySelector('.github-commit-container').innerHTML = `
-                    <div class="github-header">
-                        <a href="https://github.com/${username}" class="github-logo">
-                            <i class="fab fa-github"></i>
-                            <span>GitHub Repository</span>
-                        </a>
-                        <a href="https://github.com/${username}/${repo}" class="repo-link">
-                            <i class="fas fa-code-branch"></i> View Repository
-                        </a>
-                    </div>
-                    <div class="github-commit" style="padding: 1.5rem; text-align: center;">
-                        <p>Unable to load latest commit information. Please check the repository directly.</p>
-                    </div>
-                `;
+            // Featured image container adjustment
+            safelyExecute(() => {
+                const featuredImageContainer = document.querySelector('.project-featured-image');
+                
+                if (featuredImageContainer) {
+                    featuredImageContainer.style.width = isMobile ? '90%' : '100%';
+                    featuredImageContainer.style.maxWidth = isMobile ? '320px' : '900px';
+                    featuredImageContainer.style.margin = isMobile ? '0 auto 1rem' : '0 auto 1.5rem';
+                }
+            });
+            
+            // Gallery thumbnails adjustment
+            safelyExecute(() => {
+                const galleryThumbnails = document.querySelector('.gallery-thumbnails');
+                
+                if (galleryThumbnails) {
+                    galleryThumbnails.style.width = isMobile ? '90%' : '100%';
+                    galleryThumbnails.style.maxWidth = isMobile ? '320px' : '900px';
+                    galleryThumbnails.style.gap = isMobile ? '0.4rem' : '1rem';
+                }
             });
         }
-
+        
+        // Listen for window resize events
+        window.addEventListener('resize', adjustLayout);
+        
+        // GitHub commit fetching
+        function fetchLatestCommit(username, repo) {
+            const apiUrl = `/portfolio/api/github-commit/${username}/${repo}/`;
+            
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => updateCommitDisplay(data, username, repo))
+                .catch(error => {
+                    console.error('Error fetching commit data:', error);
+                    // Display fallback message
+                    const container = document.querySelector('.github-commit-container');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="github-header">
+                                <a href="https://github.com/${username}" class="github-logo">
+                                    <i class="fab fa-github"></i>
+                                    <span>GitHub Repository</span>
+                                </a>
+                                <a href="https://github.com/${username}/${repo}" class="repo-link">
+                                    <i class="fas fa-code-branch"></i> View Repository
+                                </a>
+                            </div>
+                            <div class="github-commit" style="padding: 1.5rem; text-align: center;">
+                                <p>Unable to load latest commit information. Please check the repository directly.</p>
+                            </div>
+                        `;
+                    }
+                });
+        }
+        
+        // Update commit display with fetched data
         function updateCommitDisplay(commit, username, repo) {
+            // Safety check
+            if (!commit || !commit.commit) return;
+            
             // Format the commit date
             const commitDate = new Date(commit.commit.author.date);
             const timeAgo = getTimeAgo(commitDate);
             
             // Get the shortened commit hash
-            const shortHash = commit.sha.substring(0, 7);
+            const shortHash = commit.sha ? commit.sha.substring(0, 7) : '';
             
             // Get author info
             const authorName = commit.commit.author.name;
@@ -356,6 +416,7 @@ class Product(models.Model):
             
             // Update the DOM with the latest commit info
             const container = document.querySelector('.github-commit-container');
+            if (!container) return;
             
             container.innerHTML = `
                 <div class="github-header">
@@ -401,9 +462,11 @@ class Product(models.Model):
                 </div>
             `;
         }
-
+        
         // Helper function to format time ago
         function getTimeAgo(date) {
+            if (!date || isNaN(date.getTime())) return '';
+            
             const seconds = Math.floor((new Date() - date) / 1000);
             
             let interval = Math.floor(seconds / 31536000);
@@ -428,9 +491,10 @@ class Product(models.Model):
             
             return 'just now';
         }
-
+        
         // Helper function to prevent XSS
         function escapeHtml(unsafe) {
+            if (!unsafe) return '';
             return unsafe
                 .replace(/&/g, "&amp;")
                 .replace(/</g, "&lt;")
@@ -438,9 +502,11 @@ class Product(models.Model):
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
         }
-
+        
         // Copy to clipboard function
         function copyToClipboard(text) {
+            if (!text) return;
+            
             navigator.clipboard.writeText(text).then(function() {
                 // Create temporary tooltip
                 const tooltip = document.createElement('div');
@@ -454,11 +520,18 @@ class Product(models.Model):
                 tooltip.style.fontWeight = 'bold';
                 tooltip.style.zIndex = '1000';
                 
-                // Position near hash element
+                // Position near hash element - with safety check
                 const hashElement = document.querySelector('.commit-hash');
-                const rect = hashElement.getBoundingClientRect();
-                tooltip.style.left = `${rect.right + 10}px`;
-                tooltip.style.top = `${rect.top}px`;
+                if (hashElement) {
+                    const rect = hashElement.getBoundingClientRect();
+                    tooltip.style.left = `${rect.right + 10}px`;
+                    tooltip.style.top = `${rect.top}px`;
+                } else {
+                    // Fallback positioning
+                    tooltip.style.left = '50%';
+                    tooltip.style.top = '50%';
+                    tooltip.style.transform = 'translate(-50%, -50%)';
+                }
                 
                 document.body.appendChild(tooltip);
                 
@@ -467,7 +540,9 @@ class Product(models.Model):
                     tooltip.style.opacity = '0';
                     tooltip.style.transition = 'opacity 0.5s ease';
                     setTimeout(() => {
-                        document.body.removeChild(tooltip);
+                        if (document.body.contains(tooltip)) {
+                            document.body.removeChild(tooltip);
+                        }
                     }, 500);
                 }, 1500);
             }).catch(function(error) {
