@@ -29,7 +29,7 @@
             <a href="{% url 'MAIN:home' %}" class="nav-link">Home</a>
             <div class="account-section">
                 <div class="dropdown">
-                    <a class="nav-link dropdown-toggle">
+                    <a href="{% url 'STORE:store' %}" class="nav-link dropdown-toggle">
                         Store <span class="dropdown-arrow">▾</span>
                     </a>
                     <div class="dropdown-content">
@@ -56,7 +56,7 @@
             <div class="account-section">
                 {% if user.is_authenticated %}
                     <div class="dropdown">
-                        <a class="nav-link dropdown-toggle">
+                        <a href="{% url 'ACCOUNTS:account' %}" class="nav-link dropdown-toggle">
                             <div class="nav-profile-pic-container">
                                 {% if user.profile_picture %}
                                     <img src="{{ user.profile_picture.url }}" alt="Profile" class="nav-profile-pic">
@@ -151,7 +151,7 @@
         </div>
     </footer>
     
-    <!-- JavaScript for mobile menu toggle -->
+    <!-- JavaScript for mobile menu toggle and dropdowns -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const mobileToggle = document.getElementById('mobile-menu-toggle');
@@ -163,16 +163,53 @@
                 navMenu.classList.toggle('active');
             });
             
-            // Handle dropdowns on both mobile and desktop
-            dropdownToggles.forEach(toggle => {
-                toggle.addEventListener('click', function(e) {
-                if (window.innerWidth <= 768) {
-                    e.preventDefault();
-                    const dropdownContent = this.nextElementSibling;
-                    dropdownContent.classList.toggle('show');
-                }
+            // Handle desktop hover for dropdowns
+            const dropdowns = document.querySelectorAll('.dropdown');
+            
+            // Use hover on desktop, click on mobile
+            function setupDropdownBehavior() {
+                dropdowns.forEach(dropdown => {
+                    // Remove existing event listeners first
+                    const clone = dropdown.cloneNode(true);
+                    dropdown.parentNode.replaceChild(clone, dropdown);
+                    
+                    // Get the new dropdown element and its toggle
+                    const newDropdown = clone;
+                    const toggle = newDropdown.querySelector('.dropdown-toggle');
+                    const content = newDropdown.querySelector('.dropdown-content');
+                    
+                    if (window.innerWidth > 768) {
+                        // Desktop: Use hover
+                        newDropdown.addEventListener('mouseenter', function() {
+                            content.classList.add('show');
+                        });
+                        newDropdown.addEventListener('mouseleave', function() {
+                            content.classList.remove('show');
+                        });
+                        
+                        // Make sure toggle still navigates to its href
+                        if (toggle) {
+                            toggle.addEventListener('click', function(e) {
+                                // Let the link navigate normally
+                            });
+                        }
+                    } else {
+                        // Mobile: Use click to toggle
+                        if (toggle) {
+                            toggle.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                content.classList.toggle('show');
+                            });
+                        }
+                    }
                 });
-            });
+            }
+            
+            // Set up initial behavior
+            setupDropdownBehavior();
+            
+            // Update behavior on window resize
+            window.addEventListener('resize', setupDropdownBehavior);
             
             // Auto-dismiss messages
             const messages = document.querySelectorAll('.message');
