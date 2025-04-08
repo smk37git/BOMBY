@@ -12,12 +12,13 @@
 
 {% block content %}
 <div class="profile-header">
-    <h1 class="promotional_wall-title">PROMOTIONAL WALL
+    <h1 class="promotional_wall-title">
+        PROMOTIONAL WALL
         <p>View all Users Accounts and their info by clicking on them!</p>
-        <p>Total Clients: {{ client_users.count|default:'0' }}</p>
-        <p>Total Supporters: {{ supporter_users.count|default:'0' }}</p>
-        <p>Total Members: {{ member_users.count|default:'0' }}</p>
     </h1>
+    <h1 class="promotional_wall-subtitle">Total Clients: {{ client_users.count|default:'0' }}</h1>
+    <h1 class="promotional_wall-subtitle">Total Supporters: {{ supporter_users.count|default:'0' }}</h1>
+    <h1 class="promotional_wall-subtitle">Total Members: {{ member_users.count|default:'0' }}</h1>
 </div>
 
 {% if admin_users and admin_users.exists %}

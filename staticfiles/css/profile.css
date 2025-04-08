@@ -1,5 +1,5 @@
 .profile-container {
-    max-width: 1200px;
+    max-width: 90%;
     margin: 50px auto 30px;
     padding: 30px;
     background-color: #0a0a0a;
@@ -119,6 +119,7 @@
     background-color: rgba(255, 255, 255, 0.05);
     padding: 20px;
     border-radius: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .profile-section h2 {
@@ -421,22 +422,37 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
+html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 @media (max-width: 768px) {
-    .profile-content {
-        grid-template-columns: 1fr;
+    .profile-container {
+        width: 95%;
+        max-width: 95%;
+        padding: 15px;
+        margin: 20px auto;
+        box-sizing: border-box;
+        overflow-x: hidden;
     }
     
-    .profile-header {
-        flex-direction: column;
-        align-items: flex-start;
+    .profile-title {
+        font-size: 2em;
+        padding: 10px 15px;
+        width: auto;
+    }
+    
+    .profile-content {
+        grid-template-columns: 1fr;
+        gap: 20px;
     }
     
     .profile-avatar {
+        display: flex;
+        justify-content: center;
+        margin-right: 0;
         margin-bottom: 15px;
-    }
-    
-    .account-type {
-        margin-top: 10px;
     }
     
     .section-header {
@@ -444,24 +460,62 @@
         align-items: flex-start;
     }
     
-    .section-header h3 {
-        margin-bottom: 10px;
-    }
-    
     .info-row {
         flex-direction: column;
     }
     
     .info-label {
+        flex: none;
         margin-bottom: 5px;
+    }
+    
+    .info-value {
+        width: 100%;
+        margin-right: 0;
+        box-sizing: border-box;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .action-buttons > div {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    
+    .action-button,
+    .signin-button,
+    .editprofile-button {
+        width: 100%;
+        display: block;
+        text-align: center;
+        box-sizing: border-box;
+        margin-left: 0 !important;
+        margin-bottom: 10px;
+    }
+    
+    .editprofile-button {
+        font-size: 1.2rem;
     }
     
     .social-links {
         flex-direction: column;
-        align-items: flex-start;
     }
     
     .social-link {
         width: 100%;
+        box-sizing: border-box;
+        justify-content: flex-start;
+    }
+    
+    .promo-links-selection {
+        flex-direction: column;
+    }
+    
+    .promo-option {
+        width: 100%;
+        box-sizing: border-box;
     }
 }

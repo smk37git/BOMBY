@@ -1,6 +1,6 @@
 .message-monitor-container {
-    max-width: 95%;
-    margin: 150px auto 30px;
+    max-width: 90%;
+    margin: 5px auto 30px;
 }
 
 .dashboard-layout {
@@ -9,7 +9,6 @@
     width: 100%;
 }
 
-/* Filter Panel */
 .filter-panel {
     background-color: rgb(26, 26, 26);
     border-radius: 8px;

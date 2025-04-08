@@ -436,6 +436,10 @@
 }
 
 @media (max-width: 768px) {
+    .profile-container {
+        max-width: 90%;
+    }
+
     .profile-header {
         flex-direction: column;
         align-items: flex-start;

@@ -13,10 +13,11 @@
 {% load tz %}
 
 {% block content %}
+<div class="profile-header">
+    <h1 class="user_management-title">Message Monitor</h1>
+</div>
+
 <div class="profile-container message-monitor-container">
-    <div class="profile-header">
-        <h1 class="user_management-title">Message Monitor</h1>
-    </div>
     
     <!-- Messages -->
     {% if messages %}
