@@ -1,4 +1,11 @@
 /* Hero section */
+body, html {
+    overflow-x: hidden;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 .portfolio-hero {
     padding: 4rem 2rem 4rem;
     display: flex;
@@ -109,7 +116,7 @@
     display: inline-block;
     padding: 0.5rem 1rem;
     border-radius: 5px;
-    white-space: nowrap;
+    text-align: center;
 }
 
 .section-separator-right {
@@ -527,38 +534,43 @@
     .portfolio-hero {
         flex-direction: column;
         text-align: center;
-        padding: 6rem 1rem 2rem;
+        padding: 8rem 1rem 2rem;
+        margin-top: -4rem;
     }
     
     .main-title {
-        font-size: 3.5rem;
+        font-size: 3rem;
     }
     
     .subtitle {
         font-size: 1.2rem;
     }
     
+    /* Code animation container */
     .code-animation-container {
         width: 100%;
-        max-width: 350px;
-        height: 350px;
-        margin: 2rem auto 0;
+        max-width: 320px;
+        height: 320px;
+        margin: 3rem auto 1rem;
     }
     
     .code-wrapper {
-        padding: 10px;
+        padding: 12px;
     }
     
     .code-display {
         font-size: 0.8rem;
     }
     
+    /* Fix for ASCII art */
     .code-display pre {
-        font-size: 0.4rem !important;
-        text-align: center !important;
+        font-size: 0.35rem !important;
+        transform: scale(0.95);
         margin: 0 auto !important;
-        width: auto !important;
+        width: 100% !important;
+        max-width: 280px;
         display: inline-block !important;
+        text-align: center !important;
     }
     
     .code-display div {
@@ -566,49 +578,96 @@
         width: 100% !important;
     }
     
-    .code-display div[class="portfolio-ready"] {
-        font-size: 1rem !important;
-        margin-top: 10px !important;
-    }
-    
+    /* Project items */
     .project-item, .project-item:nth-child(even) {
         flex-direction: column;
-        gap: 1.5rem;
+        gap: 2rem;
+        align-items: center;
     }
     
     .project-item .window {
-        width: 100%;
-        max-width: 400px;
+        width: 95%;
+        max-width: 350px;
+        margin: 0 auto;
     }
     
-    /* Center all text on mobile */
+    .window-content {
+        height: auto;
+        min-height: 180px;
+    }
+    
+    /* Section headers */
+    .section-header {
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.8rem;
+    }
+    
+    .section-separator-right {
+        height: 3px;
+    }
+    
+    /* Text alignment */
     .project-description {
         text-align: center !important;
+        padding: 0 10px;
     }
     
     .project-links {
         justify-content: center !important;
     }
     
-    .section-separator {
-        width: 90%;
-        max-width: 350px;
-    }
-    
+    /* Resume section */
     .resume-container {
         flex-direction: column;
         text-align: center;
+        gap: 2rem;
     }
     
     .resume-download {
-        width: 100%;
+        width: 95%;
         max-width: 350px;
         margin: 0 auto;
     }
     
     .resume-window {
         height: auto;
-        min-height: 220px;
+        min-height: 200px;
+    }
+    
+    /* Skills grid */
+    .skills-grid {
+        gap: 1.5rem;
+    }
+    
+    .skill-category {
+        width: 100%;
+        max-width: 300px;
+    }
+
+    .contact-cta {
+        padding: 3rem 1rem;
+        margin: 2rem 1rem;
+        max-width: calc(100% - 2rem);
+        border-radius: 8px;
+    }
+    
+    .cta-content h2 {
+        font-size: 1.8rem;
+        margin-bottom: 1rem;
+    }
+    
+    .cta-content p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+        padding: 0 0.5rem;
+    }
+    
+    .cta-button {
+        padding: 0.7rem 1.2rem;
+        font-size: 0.9rem;
     }
 }
 

@@ -168,7 +168,7 @@ body, html {
 .project-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 2rem 0;
 }
 
 /* Section styles */
@@ -754,6 +754,7 @@ body, html {
     
     /* Fix for blocked thumbnails */
     .content-section, .section-header {
+        margin-top: -25px;
         z-index: 1;
     }
     
@@ -782,6 +783,7 @@ body, html {
     
     /* Project content */
     .project-content {
+        margin-top: -25px;
         padding: 1rem;
         position: relative;
         z-index: 10;

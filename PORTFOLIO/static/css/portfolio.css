@@ -114,9 +114,13 @@ body, html {
     font-size: clamp(2rem, 5vw, 3rem);
     color: #fff;
     display: inline-block;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    text-align: center;
+    white-space: nowrap;
+    padding: 12px 30px;
+    background-color: #0a0a0a;
+    border: 1px solid white;
+    border-radius: 8px;
+    width: fit-content;
+    position: relative;
 }
 
 .section-separator-right {
@@ -555,6 +559,8 @@ body, html {
     }
     
     .code-wrapper {
+        max-height: 80%;
+        max-width: 90%;
         padding: 12px;
     }
     
@@ -577,8 +583,16 @@ body, html {
         text-align: center !important;
         width: 100% !important;
     }
+
+    .resume-section {
+       margin-top: -3rem;
+    }
     
     /* Project items */
+    .projects-section {
+        margin-top: -3rem;
+    }
+
     .project-item, .project-item:nth-child(even) {
         flex-direction: column;
         gap: 2rem;
@@ -602,11 +616,10 @@ body, html {
     }
     
     .section-title {
-        font-size: 1.8rem;
-    }
-    
-    .section-separator-right {
-        height: 3px;
+        font-size: 2rem;
+        max-width: 90%;
+        white-space: wrap;
+        text-align: center;
     }
     
     /* Text alignment */
