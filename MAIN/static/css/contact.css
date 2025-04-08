@@ -1,4 +1,3 @@
-/* Contact Page Styling with Fixed Dimensions */
 .contactpage-section {
     padding: 0px 0 50px 0;
     position: relative;
@@ -14,7 +13,7 @@
     text-align: center;
     font-size: 2.8em;
     padding: 15px 30px;
-    margin: 20px auto 25px; /* Reduced from 30px to 20px */
+    margin: 20px auto 25px;
     background-color: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
@@ -94,6 +93,10 @@
     font-size: 1em;
     cursor: pointer;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: block;
+    margin: 0 auto;
+    width: auto;
+    min-width: 150px;
 }
 
 .submit-btn:hover {
@@ -290,27 +293,80 @@
 
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
+    /* Global fixes */
+    html, body, main {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+        width: 100% !important;
+        position: relative !important;
+    }
+    
+    /* Force hide horizontal scrollbar */
+    ::-webkit-scrollbar {
+        width: 0 !important;
+        height: 0 !important;
+        display: none !important;
+    }
+    
+    * {
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+    
+    /* Fix console background */
+    .binary-background {
+        overflow: hidden !important;
+        max-width: 100vw !important;
+        width: 100vw !important;
+        position: fixed !important;
+        left: 0 !important;
+    }
+    
+    .console-container {
+        overflow: hidden !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
+    }
+    
+    .console-line {
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        width: 95vw !important;
+    }
+
+    /* Page content */
     .contactpage-section {
         min-height: 100vh;
-        padding: 20px 25px 50px 25px;
+        padding: 20px 15px 40px;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+        margin: -60px 0 0 !important;
     }
 
     .contactpage-header h1 {
         font-size: 2.2em;
         padding: 15px 25px;
-        margin: 15px auto 25px; /* Reduced further for mobile */
+        margin: 15px auto 25px;
+        width: auto;
+        max-width: 90%;
     }
     
     .contactpage-container {
         flex-direction: column;
         gap: 25px;
+        width: 100%;
         max-width: 100%;
+        box-sizing: border-box;
     }
     
     .contactpage-form-section, 
     .contactpage-info-section {
         width: 100%;
         padding: 20px;
+        box-sizing: border-box;
     }
     
     .contactpage-form-section h2,
@@ -334,6 +390,7 @@
         flex-wrap: wrap;
         justify-content: space-between;
         gap: 10px;
+        width: 100%;
     }
     
     .social-link {
@@ -356,6 +413,12 @@
     .contact-message-divider {
         width: 60%;
         margin: -5px auto 15px;
+    }
+
+    .contact-video-container {
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 }
 

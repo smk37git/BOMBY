@@ -245,6 +245,10 @@
         font-size: 2.5em;
         padding: 15px 30px;
     }
+
+    .admin-dashboard-container {
+        max-width: 90%;
+    }
     
     .dashboard-stats {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
