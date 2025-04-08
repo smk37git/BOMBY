@@ -676,7 +676,7 @@
     margin-bottom: 15px;
 }
 
-.back-button, .back-to-inbox {
+.back-button {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
@@ -690,7 +690,7 @@
     text-decoration: none;
 }
 
-.back-button:hover, .back-to-inbox:hover {
+.back-button:hover {
     background-color: rgba(255, 255, 255, 0.2);
     transform: translateY(-3px);
 }
@@ -1000,48 +1000,287 @@
     box-shadow: 0 5px 15px rgba(158, 51, 230, 0.3);
 }
 
-/* Responsive Styles */
 @media (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+    }
+    
+    .messages-outer-container {
+        width: 92%;
+        max-width: 92%;
+        padding: 15px;
+        margin: 20px auto;
+        box-sizing: border-box;
+        overflow-x: hidden;
+    }
+    
+    .messages-title {
+        font-size: 2em;
+        padding: 10px 15px;
+    }
+    
     .messages-content {
         display: flex;
         flex-direction: column;
         height: auto;
+        min-height: 800px !important;
     }
     
     .conversations-list {
-        height: 200px;
-        max-height: 200px;
+        height: 300px;
+        max-height: 300px;
+        width: 100%;
         border-right: none;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .chat-area {
-        height: 350px;
+        height: 700px !important;
+        min-height: 700px !important;
+        display: flex;
+        flex-direction: column;
     }
     
-    .message-bubble {
-        max-width: 90%;
+    .chat-messages {
+        flex: 1;
+        height: 350px;
+        min-height: 350px;
+        overflow-y: auto;
+        padding: 15px;
+    }
+    
+    .message, .message-mine, .message-other {
+        max-width: 100%;
+        margin-bottom: 20px;
+        padding: 12px;
+    }
+    
+    .message-body {
+        font-size: 16px;
+        line-height: 1.4;
     }
     
     .message-actions-header {
         flex-direction: column;
         gap: 10px;
-        align-items: flex-start;
     }
     
     .new-message-button, 
-    .back-button,
-    .back-to-inbox {
+    .back-button {
         width: 100%;
+        text-align: center;
+        box-sizing: border-box;
+        justify-content: center;
     }
     
-    .user-actions {
+    .chat-form {
+        padding: 15px;
+        position: relative;
+        width: 100%;
+        box-sizing: border-box;
+        background-color: #0d0d0d;
+        z-index: 10;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        min-height: 160px;
+        display: block;
+        height: auto !important;
+        padding-bottom: 20px !important;
+    }
+    
+    .chat-form form {
         flex-direction: column;
     }
     
-    .view-profile-button, 
-    .message-user-button {
-        width: 120px;
+    .message-input-container {
+        position: relative;
+        width: 100%;
+    }
+    
+    .message-input-container textarea {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 100% !important;
+        min-height: 80px !important;
+        font-size: 16px !important;
+        border: 2px solid rgba(255, 255, 255, 0.3) !important;
+        background-color: rgba(30, 30, 30, 0.8) !important;
+        color: white !important;
+        padding: 12px !important;
+        border-radius: 10px !important;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2) !important;
+        margin-bottom: 15px !important;
+        resize: none !important;
+    }
+    
+    .message-actions {
+        width: 100%;
+        margin-top: 15px;
+    }
+    
+    .send-button {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+        font-size: 16px;
+        height: 45px !important;
+        margin-top: 10px !important;
+    }
+    
+    .conversation-item {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .conversation-info {
+        max-width: 70%;
+    }
+    
+    .conversation-username {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    .conversation-last-message {
+        font-size: 14px;
+        line-height: 1.4;
+    }
+    
+    .conversation-time {
+        margin-top: 8px;
+        font-size: 12px;
+    }
+    
+    .chat-header {
+        padding: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+    }
+    
+    .chat-header .user-info {
+        flex-wrap: wrap;
+    }
+    
+    .user-account-type {
+        margin-top: 5px;
+    }
+    
+    .date-divider {
+        position: relative;
+        text-align: center;
+        margin: 20px 0;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        z-index: 1;
+        padding: 5px 0;
+    }
+    
+    .related-product {
+        flex-direction: column;
+        max-height: none;
+    }
+    
+    .product-image {
+        width: 100%;
+        height: auto;
+    }
+    
+    .product-details {
+        width: 100%;
+        padding: 10px;
+    }
+    
+    /* User search specifics */
+    .search-container {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+    
+    .search-form {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .search-input {
+        width: 90%;
+        padding: 15px;
+        font-size: 16px;
+        border-radius: 8px;
+    }
+    
+    .search-button {
+        width: 100%;
+        height: 45px;
+        font-size: 16px;
+    }
+    
+    .users-list {
+        max-height: none;
+        overflow-y: visible;
+    }
+    
+    .user-item {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    .user-info {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .user-avatar, .avatar-placeholder {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .user-details {
+        display: flex;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 5px;
+    }
+    
+    .user-username {
+        font-size: 18px;
+    }
+    
+    .user-account-type {
+        font-size: 12px;
+        padding: 5px 10px;
+    }
+    
+    .user-actions {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap: 10px;
+    }
+    
+    .view-profile-button, .message-user-button {
+        flex: 1;
+        width: auto;
+        justify-content: center;
+        padding: 12px;
+        font-size: 14px;
+    }
+    
+    .back-container {
+        margin-top: 25px;
+    }
+
+    html, body {
+        max-width: 100%;
+        overflow-x: hidden;
     }
 }
 

@@ -289,3 +289,22 @@
         margin-bottom: 20px;
     }
 }
+
+@media (max-width: 768px) {
+    .panels-container {
+        max-width: 90% !important;
+    }
+
+    .auth-title {
+        white-space: nowrap;
+    }
+
+    .auth-links p {
+        font-size: .96rem;
+    }
+
+    .auth-button.create-account {
+        margin-top: -100px;
+        margin-bottom: -50px;
+    }
+}
