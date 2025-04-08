@@ -361,33 +361,22 @@
     color: #fff;
 }
 
-/* Mobile responsive styles */
-@media (max-width: 992px) {
-    .dashboard-layout {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .user-table-section {
-        width: 100%;
-    }
-    
-    .user-action-panel {
-        width: 100%;
-        position: static;
-    }
-    
-    .users-table-container {
-        overflow-x: auto;
-        width: 100%;
-    }
-    
-    .users-table {
-        min-width: 100%;
-    }
-}
-
 @media (max-width: 768px) {
+    .profile-container {
+        width: 90%;
+        max-width: 85%;
+        padding: 15px;
+        margin: 10px auto;
+        margin-bottom: 25px;
+    }
+    
+    .user_management-title {
+        font-size: 2.2em;
+        padding: 10px 20px;
+        margin: 10px auto 15px;
+        max-width: 95%;
+    }
+    
     .dashboard-layout {
         flex-direction: column;
         width: 100%;
@@ -395,25 +384,74 @@
     
     .user-table-section {
         width: 100%;
+        padding: 15px;
     }
     
     .user-action-panel {
         width: 100%;
         position: static;
+        box-sizing: border-box;
     }
     
     .users-table-container {
         overflow-x: auto;
         width: 100%;
     }
+
+    .profile-section.user-table-section {
+        max-width: 90%;
+    }
+    
+    .users-table th:nth-child(4),
+    .users-table td:nth-child(4),
+    .users-table th:nth-child(5),
+    .users-table td:nth-child(5) {
+        display: none;
+    }
     
     .users-table {
-        min-width: 100%;
+        table-layout: fixed;
+        width: 100%;
     }
-
+    
+    .users-table th,
+    .users-table td {
+        padding: 8px 5px;
+        font-size: 0.85rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .users-table th:nth-child(1),
+    .users-table td:nth-child(1) {
+        width: 30px;
+    }
+    
+    .users-table th:nth-child(2),
+    .users-table td:nth-child(2) {
+        width: 80px;
+    }
+    
+    .users-table th:nth-child(3),
+    .users-table td:nth-child(3) {
+        width: 100px;
+    }
+    
+    .users-table th:nth-child(6),
+    .users-table td:nth-child(6) {
+        width: 80px;
+    }
+    
+    .account-type {
+        font-size: 0.8rem;
+        padding: 3px 6px;
+    }
+    
     .profile-header {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
+        margin-top: 20px;
     }
     
     .action-buttons {
@@ -429,6 +467,7 @@
     
     .search-input {
         width: 100%;
+        box-sizing: border-box;
         margin-bottom: 10px;
     }
     
@@ -436,38 +475,13 @@
         flex-direction: column;
         align-items: flex-start;
     }
+
+    .section-header h2 {
+        margin-bottom: 0px;
+    }
     
     .modal-content {
-        width: 90%;
-    }
-}
-
-@media (max-width: 480px) {
-    .dashboard-layout {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .user-table-section {
-        width: 100%;
-    }
-    
-    .user-action-panel {
-        width: 100%;
-        position: static;
-    }
-    
-    .users-table-container {
-        overflow-x: auto;
-        width: 100%;
-    }
-    
-    .users-table {
-        min-width: 100%;
-    }
-
-    .profile-container {
-        padding: 20px 15px;
-        margin-top: 100px;
+        width: 95%;
+        margin: 10% auto;
     }
 }

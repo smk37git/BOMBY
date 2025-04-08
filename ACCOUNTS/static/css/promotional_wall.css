@@ -21,11 +21,29 @@
     background-color: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
-    width: fit-content;
+    margin: 5px 10px;
     color: white;
     position: relative;
     z-index: 4;
-    display: inline-flex;
+    display: inline-block;
+}
+
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.profile-header .promotional_wall-title {
+    margin-bottom: 15px;
+}
+
+.subtitle-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .promotional_wall-title p {
@@ -47,7 +65,7 @@
     color: #ffffff;
     margin: 40px auto;
     padding: 12px 30px;
-    background-color: #1a1a1a;
+    background-color: #0a0a0a;
     border: 1px solid white;
     border-radius: 8px;
     width: fit-content;
@@ -319,18 +337,57 @@
 }
 
 @media (max-width: 768px) {
+    .profile-header {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0;
+    }
     
-    .user-card {
-        width: 280px;
+    .subtitle-container {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .promotional_wall-title {
+        font-size: 2.2rem;
+        padding: 15px 20px;
+        margin: 30px auto 15px;
+        text-align: center;
+        width: 90%;
+        left: 3%;
+    }
+    
+    .promotional_wall-subtitle {
+        width: 250px;
+        margin: 5px auto;
+        display: block;
+        box-sizing: border-box;
+        left: 6%;
     }
     
     .category-title {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
+        padding: 10px 20px;
+        background: linear-gradient(45deg, #0a0a0a, #0a0a0a);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        margin: 25px auto;
     }
     
     .category-title::before,
     .category-title::after {
-        width: 20vw;
+        width: 15vw;
+    }
+    
+    .profile-picture,
+    .profile-picture-placeholder {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .profile-picture-placeholder i {
+        font-size: 2rem;
     }
 }
 

@@ -16,9 +16,11 @@
         PROMOTIONAL WALL
         <p>View all Users Accounts and their info by clicking on them!</p>
     </h1>
-    <h1 class="promotional_wall-subtitle">Total Clients: {{ client_users.count|default:'0' }}</h1>
-    <h1 class="promotional_wall-subtitle">Total Supporters: {{ supporter_users.count|default:'0' }}</h1>
-    <h1 class="promotional_wall-subtitle">Total Members: {{ member_users.count|default:'0' }}</h1>
+    <div class="subtitle-container">
+        <h1 class="promotional_wall-subtitle">Total Clients: {{ client_users.count|default:'0' }}</h1>
+        <h1 class="promotional_wall-subtitle">Total Supporters: {{ supporter_users.count|default:'0' }}</h1>
+        <h1 class="promotional_wall-subtitle">Total Members: {{ member_users.count|default:'0' }}</h1>
+    </div>
 </div>
 
 {% if admin_users and admin_users.exists %}
