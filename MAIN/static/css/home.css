@@ -325,6 +325,10 @@ p {
         width: 350px;
         height: 350px;
     }
+
+    .info-section {
+        margin-top: -100px;
+    }
     
     .info-row {
         flex-direction: column-reverse;

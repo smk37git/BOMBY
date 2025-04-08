@@ -162,8 +162,10 @@ body {
   border-radius: 4px;
   margin-top: 10px;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  left: 0;
   top: 100%;
+  left: 0;
+  transform: none;
+  min-width: 200px;
 }
 
 .dropdown-content::before {
@@ -221,6 +223,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.account-section .dropdown-content {
+  right: 0;
+  left: auto;
 }
 
 .account-section .nav-link,
@@ -632,6 +639,10 @@ main {
   .mobile-toggle {
     display: block;
   }
+
+  .dropdown-toggle {
+    pointer-events: auto;
+  }
   
   .nav-menu {
     flex-direction: column;
@@ -667,7 +678,6 @@ main {
   }
   
   .dropdown-content {
-    position: absolute;
     display: none;
     width: 100%;
     margin: 0 auto;
@@ -681,6 +691,8 @@ main {
     left: 0;
     top: 100%;
     border-bottom: solid 2px rgba(255, 255, 255, 0.34);
+    position: static;
+    transform: none;
   }
   
   .dropdown-content.show {

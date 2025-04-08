@@ -679,6 +679,10 @@ body, html {
 
 @media (max-width: 768px) {
     /* Hero section */
+    .project-container {
+        max-width: 99%;
+    }
+
     .hero-split {
         flex-direction: column;
         min-height: auto;
