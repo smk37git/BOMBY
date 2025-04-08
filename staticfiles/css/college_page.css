@@ -415,7 +415,7 @@
    
    .section-title {
       margin-top: -100px;
-      font-size: 1.8rem;
+      font-size: .98rem;
    }
    
    .section-title::after {
@@ -472,7 +472,7 @@
    
    /* Fix spacing */
    .featured-projects {
-      margin: 0 auto;
+      margin: -75px auto;
       padding: 2rem 1rem;
    }
    
