@@ -263,6 +263,13 @@
             </span>
         </div>
     </div>
+
+    <!-- Back link -->
+    <div class="product-navigation">
+        <a href="{% url 'STORE:my_orders' %}" class="back-link">
+            <i class="fas fa-arrow-left" style="margin-right: 5px;"></i>Back to Orders
+        </a>
+    </div>
     
     <div class="order-grid">
         <div class="order-sidebar">
@@ -405,20 +412,13 @@
                     <div class="messages">
                         Enjoyed your service? Kindly leave a tip to support the website!
                     </div>
-                    <a href="{% url 'STORE:donation_page' %}" class="back-link">
+                    <a href="{% url 'STORE:donation_page' %}" class="action-button">
                         <i class="fa-solid fa-dollar-sign" style="margin-right: 5px;"></i>Donations
                     </a>
                     
                 </div>
             </div>
             {% endif %}
-
-            <!-- Back link -->
-            <div class="product-navigation">
-                <a href="{% url 'STORE:my_orders' %}" class="back-link">
-                    <i class="fas fa-arrow-left" style="margin-right: 5px;"></i>Back to Orders
-                </a>
-            </div>
         </div>
         
         <div class="order-main">

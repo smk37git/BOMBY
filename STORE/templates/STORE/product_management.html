@@ -36,7 +36,6 @@
             <div class="section-header">
                 <h2>Products</h2>
                 <div class="action-buttons">
-                    <a href="{% url 'STORE:create_product' %}" class="action-button">Add New Product</a>
                     <form method="get" action="{% url 'STORE:product_management' %}">
                         <div class="search-container">
                             <input type="text" name="search" placeholder="Search by product name" value="{{ search_query }}" class="search-input">
@@ -46,6 +45,7 @@
                             {% endif %}
                         </div>
                     </form>
+                    <a href="{% url 'STORE:create_product' %}" class="action-button">Add New Product</a>
                 </div>
             </div>
             

@@ -54,20 +54,20 @@
     margin-top: 2rem;
 }
 
-/* Split layout - adjusted ratio to favor gallery */
+/* Split layout */
 .product-split {
     display: flex;
     gap: 2rem;
     margin-bottom: 3rem;
 }
 
-/* Gallery side - increased proportions */
+/* Gallery side */
 .product-gallery-side {
     flex: 3;
     max-width: 65%;
 }
 
-/* Product card - reduced proportions */
+/* Product card */
 .product-card {
     flex: 2;
     background-color: #0a0a0a;
@@ -251,7 +251,7 @@
     color: #a970ff;
 }
 
-/* Title styling - fixed alignment issue */
+/* Title styling */
 .product-title {
     font-size: 2.5rem;
     color: white;
@@ -260,7 +260,7 @@
     margin-bottom: 1.5rem;
     text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
     display: flex;
-    justify-content: flex-start; /* Changed from space-between */
+    justify-content: flex-start;
     align-items: center;
     flex-wrap: wrap;
 }
@@ -281,7 +281,7 @@
     padding: 0.3rem 0.8rem;
     border-radius: 4px;
     text-transform: uppercase;
-    margin-left: 15px; /* Added to position next to title */
+    margin-left: 15px;
 }
 
 .product-status.active {
@@ -296,7 +296,7 @@
     border: 1px solid #e74c3c;
 }
 
-/* Features section - make space for badge */
+/* Features section */
 .product-features-container {
     position: relative;
     display: flex;
@@ -334,10 +334,10 @@
     margin-top: 0.2rem;
 }
 
-/* Delivery badge - fixed size and positioning */
+/* Delivery badge */
 .delivery-badge {
     position: absolute;
-    right: 10px; /* Adjusted from 30px */
+    right: 10px;
     top: 50%;
     transform: translateY(-50%);
     display: flex;
@@ -346,23 +346,23 @@
     background-color: rgba(30, 10, 60, 0.7);
     border: 2px solid #a970ff;
     border-radius: 15px;
-    padding: 10px; /* Reduced from 18px */
-    width: 120px; /* Reduced from 160px */
-    height: 60px; /* Reduced from 70px */
+    padding: 10px;
+    width: 120px;
+    height: 60px;
     box-shadow: 0 0 15px rgba(169, 112, 255, 0.3);
 }
 
 .delivery-badge i {
-    font-size: 30px; /* Reduced from 40px */
+    font-size: 30px;
     color: #a970ff;
-    margin-bottom: 5px; /* Reduced from 12px */
+    margin-bottom: 5px;
 }
 
 .delivery-badge span {
     color: #a970ff;
     white-space: nowrap;
     font-weight: 600;
-    font-size: 1rem; /* Reduced from 1.2rem */
+    font-size: 1rem;
     text-align: center;
 }
 
@@ -371,14 +371,13 @@
     margin-top: 0;
 }
 
-/* Purchase section - full width button */
+/* Purchase section */
 .product-purchase {
     margin-top: -70px;
     padding-top: 1.5rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Hide price section completely */
 .price-section {
     display: none;
 }
@@ -453,28 +452,107 @@
     display: block;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
-    .product-split {
-        flex-direction: column;
+    .product-container {
+        padding: 1rem;
+        margin-top: 1rem;
+        padding-bottom: 2rem;
     }
     
-    .product-gallery-side, 
-    .product-card {
-        width: 100%;
+    .product-split {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+    
+    .product-gallery-side {
         max-width: 100%;
+        flex: none;
+    } 
+    .product-card {
+        width: 90%;
+        max-width: 80%;
+        flex: none;
     }
     
     .product-featured-image {
         min-height: auto;
+        margin: 0 auto 1rem;
+        border-width: 2px;
+    }
+    
+    .gallery-thumbnails {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    .thumbnail {
+        min-width: calc(20% - 0.5rem);
+        flex-shrink: 0;
+    }
+    
+    .product-title {
+        font-size: 2rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .product-status {
+        margin-left: 0;
+    }
+    
+    .product-features-container {
+        flex-direction: column;
+        margin-bottom: 1rem;
+    }
+    
+    .product-features {
+        width: 100%;
+    }
+    
+    .features-list li {
+        font-size: 1rem;
+        padding: 0.5rem 0;
     }
     
     .delivery-badge {
-        position: relative;
-        right: auto;
-        top: auto;
+        position: static;
         transform: none;
-        margin-top: 15px;
-        width: 100%;
+        margin: 15px auto 15px;
+        width: 90%;
+        max-width: 200px;
+        height: auto;
+        padding: 15px;
+    }
+    
+    .product-purchase {
+        margin-top: 1rem;
+    }
+    
+    .purchase-btn {
+        width: 90%;
+        font-size: 1rem;
+        padding: 0.8rem 1rem;
+    }
+    
+    .version-selector {
+        padding: 10px;
+    }
+    
+    .version-select {
+        font-size: 0.9rem;
+        padding: 8px 12px;
+    }
+    
+    /* FAQ adjustments */
+    .faq-question span {
+        font-size: 0.9rem;
+    }
+    
+    .faq-answer {
+        padding: 0 0 10px 20px;
+        font-size: 0.9rem;
     }
 }

@@ -36,7 +36,6 @@
             <div class="section-header">
                 <h2>Stream Assets</h2>
                 <div class="action-buttons">
-                    <a href="{% url 'STORE:add_stream_asset' %}" class="action-button">Add New Asset</a>
                     <form method="get" action="{% url 'STORE:stream_asset_management' %}">
                         <div class="search-container">
                             <input type="text" name="search" placeholder="Search by asset name" value="{{ search_query }}" class="search-input">
@@ -46,6 +45,7 @@
                             {% endif %}
                         </div>
                     </form>
+                    <a href="{% url 'STORE:add_stream_asset' %}" class="action-button">Add New Asset</a>
                 </div>
             </div>
             

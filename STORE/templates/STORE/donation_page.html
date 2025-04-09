@@ -58,27 +58,6 @@
             box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
         }
         
-        .donation-form button {
-            background: linear-gradient(45deg, #9e33e6, #505ed7);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 1.3rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            width: 100%;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-        
-        .donation-form button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(160, 74, 226, 0.6);
-            background: linear-gradient(45deg, #b44dff, #6272e9);
-        }
     </style>
 {% endblock %}
 
@@ -114,7 +93,7 @@
                     <span class="currency-symbol">$</span>
                     <input type="number" id="amount" name="amount" min="1" step="0.01" value="10.00" required>
                 </div>
-                <button type="submit">Continue to Payment</button>
+                <button type="submit" class="purchase-btn">Continue to Payment</button>
             </form>
         </div>
     </div>
