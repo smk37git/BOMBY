@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-5" data-username="{{ request.user.username }}">
     <div class="order-header-wrapper">
         <div class="order-header">
             <h1>Order #{{ order.id }}</h1>
@@ -285,6 +285,9 @@
                 <div class="chat-form">
                     <form method="post" enctype="multipart/form-data" class="message-form" id="message-form">
                         {% csrf_token %}
+                        <!-- Hidden fields for user info -->
+                        <input type="hidden" id="current_username" value="{{ request.user.username }}">
+                        <input type="hidden" id="current_user_avatar" value="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% endif %}">
                         <div class="message-input-container">
                             {{ form.message }}
                         </div>
@@ -498,86 +501,34 @@
                  const now = new Date();
                  const timeFormatted = formatTimeOnly(now.toISOString());
                  
-                 // Dynamically retrieve the actual username from the page context
-                 // Check for username within authorization elements or any other user identifiers on page
-                 let actualUsername = '';
-                 
-                 // Find the current user's name from the page
-                 // Method 1: Check if there's any user info in the header/navbar
-                 const userInfoElement = document.querySelector('.user-info .username, .navbar .username');
-                 if (userInfoElement && userInfoElement.textContent) {
-                     actualUsername = userInfoElement.textContent.trim();
-                 }
-                 
-                 // Method 2: Check for any existing messages from the current user
-                 if (!actualUsername) {
-                     const myMessages = document.querySelectorAll('.message-mine');
-                     for (let i = 0; i < myMessages.length; i++) {
-                         const usernameEl = myMessages[i].querySelector('.username');
-                         if (usernameEl && usernameEl.textContent.trim()) {
-                             actualUsername = usernameEl.textContent.trim();
-                             break;
-                         }
-                     }
-                 }
-                 
-                 // Method 3: Check meta tags or other page elements that might contain the username
-                 if (!actualUsername) {
-                     const metaUsername = document.querySelector('meta[name="username"]');
-                     if (metaUsername && metaUsername.getAttribute('content')) {
-                         actualUsername = metaUsername.getAttribute('content');
-                     }
-                 }
-                 
-                 // Fallback to requesting username from server if needed
-                 if (!actualUsername) {
-                     // Safe fallback - use the actual name as shown in order details
-                     actualUsername = document.querySelector('.order-user-name')?.textContent.trim() || 
-                                      document.querySelector('.order-header h1')?.textContent.trim() || 
-                                      'You';  // Ultimate fallback
-                 }
+                 // Get username directly from hidden field
+                 let actualUsername = document.getElementById('current_username').value;
+                 let avatarUrl = document.getElementById('current_user_avatar').value;
                  
                  // Get avatar HTML
                  let avatarHtml = '';
                  
-                 // Look for the user's avatar in existing messages
-                 const myMessages = document.querySelectorAll('.message-mine');
-                 if (myMessages.length > 0) {
-                     for (let i = 0; i < myMessages.length; i++) {
-                         const avatar = myMessages[i].querySelector('.user-avatar');
-                         if (avatar) {
-                             avatarHtml = avatar.innerHTML;
-                             break;
-                         }
-                     }
-                 }
-                 
-                 // If no avatar found in messages, check elsewhere
-                 if (!avatarHtml) {
-                     const profileAvatar = document.querySelector('.user-avatar img, .profile-picture img');
-                     if (profileAvatar) {
-                         avatarHtml = `<img src="${profileAvatar.src}" alt="${actualUsername}">`;
-                     }
-                 }
-                 
-                 // Final fallback - create a placeholder with the first letter of the username
-                 if (!avatarHtml) {
+                 // If we have a profile picture URL, use it
+                 if (avatarUrl) {
+                     avatarHtml = `<img src="${avatarUrl}" alt="${actualUsername}">`;
+                 } else {
+                     // Otherwise, create a placeholder with first letter
                      const firstLetter = actualUsername.charAt(0).toUpperCase();
                      avatarHtml = `<div class="avatar-placeholder">${firstLetter}</div>`;
                  }
                  
-                 // Create file attachments preview HTML
-                 let attachmentsHtml = '';
-                 if (hasFiles) {
-                     attachmentsHtml = '<div class="attachments">';
-                     for (let i = 0; i < fileInput.files.length; i++) {
-                         attachmentsHtml += `
+                 // Helper function to generate attachments preview
+                 function generateAttachmentsPreview(files) {
+                     let html = '<div class="attachments">';
+                     for (let i = 0; i < files.length; i++) {
+                         html += `
                              <a class="attachment-link">
-                                 <i class="fas fa-paperclip"></i> ${fileInput.files[i].name}
+                                 <i class="fas fa-paperclip"></i> ${files[i].name}
                              </a>
                          `;
                      }
-                     attachmentsHtml += '</div>';
+                     html += '</div>';
+                     return html;
                  }
                  
                  // Create message element with actual username
@@ -595,11 +546,11 @@
                      </div>
                      <div class="message-body">
                          ${content ? `<p>${content}</p>` : ''}
-                         ${attachmentsHtml}
+                         ${hasFiles ? generateAttachmentsPreview(fileInput.files) : ''}
                      </div>
                  `;
                  
-                 // Send to server first
+                 // Send to server
                  fetch(window.location.href, {
                      method: 'POST',
                      body: formData,
@@ -649,6 +600,11 @@
                  .catch(error => {
                      console.error('Error:', error);
                      isSubmitting = false;
+                     
+                     // Remove the message we added prematurely
+                     if (messageDiv.parentNode === messagesContainer) {
+                         messagesContainer.removeChild(messageDiv);
+                     }
                      
                      // Focus on textarea even if there's an error
                      if (contentField) {
