@@ -13,7 +13,6 @@
 }
 
 .feature-item {
-    background: rgba(0, 0, 0, 0.3);
     padding: 1.5rem;
     border-radius: 10px;
     text-align: center;
@@ -55,4 +54,12 @@
 
 .account-type.client {
     background-image: linear-gradient(45deg, #c833e6, #d75050, #e695fd);
+}
+
+@media (max-width: 768px) {
+    .features-grid {
+        max-width: 100% !important;
+        gap: 1rem;
+        transform: translateX(-6.5%);
+    }
 }

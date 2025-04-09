@@ -278,8 +278,14 @@ iframe[title^="PayPal"] {
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    .product-container {
+        margin: 0;
+        padding: 1rem;
+    }
+    
     .product-title {
-        font-size: 2rem;
+        font-size: 1.8rem;
+        text-align: center;
     }
     
     .price-section {
@@ -290,10 +296,26 @@ iframe[title^="PayPal"] {
         align-items: center;
         margin-bottom: 1.5rem;
     }
+
+    .product-description {
+        margin-bottom: 0px;
+    }
     
     .price-value {
         font-size: 2rem;
         margin-top: 0;
+    }
+
+    .product-card {
+        max-width: 90% !important;
+        margin-bottom: 25px;
+    }
+
+    .purchase-btn {
+        transform: translateX(-9%);
+        font-size: 0.8rem;
+        white-space: nowrap;
+        border: none;
     }
     
     #paypal-button-container {

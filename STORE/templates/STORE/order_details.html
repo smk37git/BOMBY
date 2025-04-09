@@ -543,7 +543,7 @@
             </div>
             
             {% if order.form %}
-            <div class="order-card mb-4">
+            <div class="order-card-info">
                 <div class="card-header">
                     <h5>Order Information</h5>
                 </div>
@@ -578,60 +578,344 @@
 </div>
 
 <script>
-    // Rating System
-    document.addEventListener('DOMContentLoaded', function() {
-        // Get the select element
-        const selectRating = document.querySelector('select[name="rating"]');
-        if (!selectRating) return;
-        
-        // Create container for our rating system
-        const ratingContainer = document.createElement('div');
-        ratingContainer.className = 'rating-container';
-        
-        // Add a label
-        const ratingLabel = document.createElement('span');
-        ratingLabel.textContent = 'Rating:';
-        ratingLabel.className = 'rating-label';
-        
-        // Create the star container
-        const starContainer = document.createElement('div');
-        starContainer.className = 'star-rating';
-        
-        // Create 5 stars with radio buttons
-        for (let i = 5; i >= 1; i--) {
-            // Create radio input
-            const input = document.createElement('input');
-            input.type = 'radio';
-            input.name = 'star-rating';
-            input.id = `star-${i}`;
-            input.value = i;
+   document.addEventListener('DOMContentLoaded', function() {
+        // Helper function to apply timezone conversion
+        function convertToLocalTime(dateString) {
+            if (!dateString || dateString === '') return '';
             
-            // Create label (star)
-            const label = document.createElement('label');
-            label.htmlFor = `star-${i}`;
-            label.innerHTML = '★';
-            
-            // When clicked, update the select value
-            input.addEventListener('change', function() {
-                selectRating.value = this.value;
-            });
-            
-            // Add to container - input first, then label
-            starContainer.appendChild(input);
-            starContainer.appendChild(label);
+            try {
+                const date = new Date(dateString);
+                
+                if (isNaN(date.getTime())) {
+                    console.warn('Invalid date:', dateString);
+                    return dateString;
+                }
+                
+                return date.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true
+                });
+            } catch (e) {
+                console.error('Error converting date:', e, dateString);
+                return dateString;
+            }
         }
         
-        // Add elements to rating container
-        ratingContainer.appendChild(ratingLabel);
-        ratingContainer.appendChild(starContainer);
+        // Function to format just time (for message timestamps)
+        function formatTimeOnly(dateString) {
+            if (!dateString) return '';
+            
+            try {
+                const date = new Date(dateString);
+                
+                if (isNaN(date.getTime())) {
+                    return dateString;
+                }
+                
+                return date.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            } catch (e) {
+                console.error('Error formatting time:', e);
+                return dateString;
+            }
+        }
         
-        // Add the custom rating control before the select
-        selectRating.parentNode.insertBefore(ratingContainer, selectRating);
+        // 1. Fix info values in the details card
+        document.querySelectorAll('.info-value').forEach(element => {
+            if (element.textContent.trim()) {
+                element.textContent = convertToLocalTime(element.textContent.trim());
+            }
+        });
         
-        // Style the submit button if it exists
-        const submitButton = document.querySelector('button[type="submit"]');
-        if (submitButton) {
-            submitButton.className = 'review-submit-btn';
+        // 2. Fix due date (which has a data attribute)
+        const dueDate = document.getElementById('due-date');
+        if (dueDate && dueDate.dataset.date) {
+            dueDate.textContent = convertToLocalTime(dueDate.dataset.date);
+        }
+        
+        // 3. Fix event times with data-iso-date attribute
+        document.querySelectorAll('[data-iso-date]').forEach(element => {
+            if (element.getAttribute('data-iso-date')) {
+                if (element.classList.contains('message-time')) {
+                    element.textContent = formatTimeOnly(element.getAttribute('data-iso-date'));
+                } else {
+                    element.textContent = convertToLocalTime(element.getAttribute('data-iso-date'));
+                }
+            }
+        });
+        
+        // Target specifically the messages in messages-container
+        const orderMessages = document.querySelectorAll('#messages-container .message, #messages-container .message-mine, #messages-container .message-other, #messages-container .timeline-event, #messages-container .date-divider');
+        
+        // Remove any auto-dismiss timeouts
+        orderMessages.forEach(message => {
+            message.style.opacity = '1';
+            message.style.visibility = 'visible';
+            message.style.display = 'block';
+        });
+        
+        // Scroll to bottom of messages container
+        const messagesContainer = document.getElementById('messages-container');
+        if (messagesContainer) {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        // File upload preview functionality
+        const fileInput = document.getElementById('id_attachments');
+        if (fileInput) {
+            fileInput.addEventListener('change', function(e) {
+                var fileList = document.getElementById('file-list');
+                fileList.innerHTML = '';
+                
+                if (this.files.length > 0) {
+                    fileList.classList.add('has-files');
+                    
+                    for (var i = 0; i < this.files.length; i++) {
+                        var fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        fileItem.innerHTML = '<i class="fas fa-file"></i> ' + this.files[i].name;
+                        fileList.appendChild(fileItem);
+                    }
+                } else {
+                    fileList.classList.remove('has-files');
+                }
+            });
+        }
+        
+        // Enter key sends message
+        const textarea = document.querySelector('.message-input-container textarea');
+        if (textarea) {
+            textarea.addEventListener('keydown', function(e) {
+                // Submit form on Enter without Shift
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Prevent newline
+                    const form = document.getElementById('message-form');
+                    
+                    // Only submit if there is content or files
+                    const fileInput = document.getElementById('id_attachments');
+                    if (this.value.trim() !== '' || (fileInput && fileInput.files.length > 0)) {
+                        form.dispatchEvent(new Event('submit'));
+                    }
+                }
+            });
+        }
+        
+        // Flag to prevent multiple submissions
+        let isSubmitting = false;
+        
+        // AJAX form submission
+        const form = document.getElementById('message-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Prevent multiple submissions
+                if (isSubmitting) return;
+                isSubmitting = true;
+                
+                const formData = new FormData(this);
+                const contentField = document.querySelector('textarea[name="message"]');
+                const content = contentField ? contentField.value.trim() : '';
+                const fileInput = document.getElementById('id_attachments');
+                const hasFiles = fileInput && fileInput.files.length > 0;
+                
+                if (!content && !hasFiles) {
+                    console.error('Message cannot be empty and must have either text or files');
+                    isSubmitting = false;
+                    return;
+                }
+                
+                // Get current time
+                const now = new Date();
+                const timeFormatted = formatTimeOnly(now.toISOString());
+                
+                // Get avatar HTML from existing messages
+                // IMPORTANT: Look for all .message-mine elements, not just one
+                let avatarHtml = '';
+                let username = 'You';
+                
+                const existingMessages = document.querySelectorAll('.message-mine');
+                if (existingMessages.length > 0) {
+                    // Look for an actual avatar image first
+                    for (let i = 0; i < existingMessages.length; i++) {
+                        const avatar = existingMessages[i].querySelector('.user-avatar img');
+                        if (avatar) {
+                            avatarHtml = `<img src="${avatar.src}" alt="${avatar.alt}">`;
+                            break;
+                        }
+                    }
+                    
+                    // If no image found, use the first avatar's HTML (might be a placeholder)
+                    if (!avatarHtml) {
+                        const avatarEl = existingMessages[0].querySelector('.user-avatar');
+                        if (avatarEl) {
+                            avatarHtml = avatarEl.innerHTML;
+                        }
+                    }
+                    
+                    // Get username
+                    const usernameEl = existingMessages[0].querySelector('.username');
+                    if (usernameEl) {
+                        username = usernameEl.textContent;
+                    }
+                }
+                
+                // If still no avatar, create placeholder
+                if (!avatarHtml) {
+                    avatarHtml = `<div class="avatar-placeholder">${username.charAt(0)}</div>`;
+                }
+                
+                // Create file attachments preview HTML
+                let attachmentsHtml = '';
+                if (hasFiles) {
+                    attachmentsHtml = '<div class="attachments">';
+                    for (let i = 0; i < fileInput.files.length; i++) {
+                        attachmentsHtml += `
+                            <a class="attachment-link">
+                                <i class="fas fa-paperclip"></i> ${fileInput.files[i].name}
+                            </a>
+                        `;
+                    }
+                    attachmentsHtml += '</div>';
+                }
+                
+                // Create message element
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message message-mine';
+                messageDiv.innerHTML = `
+                    <div class="message-header">
+                        <div class="message-user">
+                            <div class="user-avatar">
+                                ${avatarHtml}
+                            </div>
+                            <strong class="username">${username}</strong>
+                        </div>
+                        <small class="message-time" data-iso-date="${now.toISOString()}">${timeFormatted}</small>
+                    </div>
+                    <div class="message-body">
+                        ${content ? `<p>${content}</p>` : ''}
+                        ${attachmentsHtml}
+                    </div>
+                `;
+                
+                // Send to server first
+                fetch(window.location.href, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Message sent successfully');
+                    
+                    // After successful server response, add message to DOM
+                    messagesContainer.appendChild(messageDiv);
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    
+                    // Clear form
+                    if (contentField) {
+                        contentField.value = '';
+                    }
+                    
+                    // Clear file list
+                    const fileList = document.getElementById('file-list');
+                    if (fileList) {
+                        fileList.innerHTML = '';
+                        fileList.classList.remove('has-files');
+                    }
+                    
+                    // Reset file input
+                    if (fileInput) {
+                        fileInput.value = '';
+                    }
+                    
+                    // Focus on textarea
+                    if (contentField) {
+                        contentField.focus();
+                    }
+                    
+                    // Reset submission flag
+                    isSubmitting = false;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    isSubmitting = false;
+                    
+                    // Focus on textarea even if there's an error
+                    if (contentField) {
+                        contentField.focus();
+                    }
+                });
+            });
+        }
+        
+        // Rating System
+        const selectRating = document.querySelector('select[name="rating"]');
+        if (selectRating) {
+            // Create container for our rating system
+            const ratingContainer = document.createElement('div');
+            ratingContainer.className = 'rating-container';
+            
+            // Add a label
+            const ratingLabel = document.createElement('span');
+            ratingLabel.textContent = 'Rating:';
+            ratingLabel.className = 'rating-label';
+            
+            // Create the star container
+            const starContainer = document.createElement('div');
+            starContainer.className = 'star-rating';
+            
+            // Create 5 stars with radio buttons
+            for (let i = 5; i >= 1; i--) {
+                // Create radio input
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = 'star-rating';
+                input.id = `star-${i}`;
+                input.value = i;
+                
+                // Create label (star)
+                const label = document.createElement('label');
+                label.htmlFor = `star-${i}`;
+                label.innerHTML = '★';
+                
+                // When clicked, update the select value
+                input.addEventListener('change', function() {
+                    selectRating.value = this.value;
+                });
+                
+                // Add to container - input first, then label
+                starContainer.appendChild(input);
+                starContainer.appendChild(label);
+            }
+            
+            // Add elements to rating container
+            ratingContainer.appendChild(ratingLabel);
+            ratingContainer.appendChild(starContainer);
+            
+            // Add the custom rating control before the select
+            selectRating.parentNode.insertBefore(ratingContainer, selectRating);
+            
+            // Style the submit button if it exists
+            const submitButton = document.querySelector('.review-submit-btn');
+            if (submitButton) {
+                submitButton.className = 'review-submit-btn';
+            }
         }
     });
 </script>

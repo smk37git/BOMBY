@@ -365,6 +365,15 @@ input[type="file"] {
     .info-label {
         margin-bottom: 5px;
     }
+
+    .action-buttons {
+        flex-wrap: nowrap;
+    }
+
+    .action-button {
+        white-space: nowrap;
+        font-size: 0.7rem;
+    }
 }
 
 @media (max-width: 480px) {

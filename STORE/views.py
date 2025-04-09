@@ -527,7 +527,7 @@ def my_orders(request):
             order.unread_message_count = unread_count
     else:
         # Users see their own orders, excluding Stream Store access
-        orders = Order.objects.filter(user=request.user).exclude(product_id=4).order_by('-created_at')
+        orders = Order.objects.filter(user=request.user)
         
         # For each order, count unread messages
         for order in orders:

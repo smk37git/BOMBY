@@ -2,7 +2,7 @@
     text-align: center;
     font-size: 3.5rem;
     padding: 24px 40px;
-    margin: 100px auto 60px;
+    margin: 75px auto 0px;
     background-color: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
@@ -10,6 +10,40 @@
     color: white;
     position: relative;
     z-index: 4;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.promotional_wall-subtitle {
+    text-align: center;
+    font-size: 1rem;
+    padding: 12px 20px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    margin: 5px 10px;
+    color: white;
+    position: relative;
+    z-index: 4;
+    display: inline-block;
+}
+
+.profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.profile-header .promotional_wall-title {
+    margin-bottom: 15px;
+}
+
+.subtitle-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .promotional_wall-title p {
@@ -31,7 +65,7 @@
     color: #ffffff;
     margin: 40px auto;
     padding: 12px 30px;
-    background-color: #1a1a1a;
+    background-color: #0a0a0a;
     border: 1px solid white;
     border-radius: 8px;
     width: fit-content;
@@ -303,26 +337,65 @@
 }
 
 @media (max-width: 768px) {
-    .promotional_wall-title {
-        font-size: 2.5rem;
-        padding: 20px 30px;
+    .profile-header {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0;
     }
     
-    .user-card {
-        width: 280px;
+    .subtitle-container {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .promotional_wall-title {
+        font-size: 2.2rem;
+        padding: 15px 20px;
+        margin: 30px auto 15px;
+        text-align: center;
+        width: 90%;
+        left: 3%;
+    }
+    
+    .promotional_wall-subtitle {
+        width: 250px;
+        margin: 5px auto;
+        display: block;
+        box-sizing: border-box;
+        left: 6%;
     }
     
     .category-title {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
+        padding: 10px 20px;
+        background: linear-gradient(45deg, #0a0a0a, #0a0a0a);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        margin: 25px auto;
     }
     
     .category-title::before,
     .category-title::after {
-        width: 20vw;
+        width: 15vw;
+    }
+    
+    .profile-picture,
+    .profile-picture-placeholder {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .profile-picture-placeholder i {
+        font-size: 2rem;
     }
 }
 
 @media (max-width: 480px) {
+    .profile-header {
+        max-width: 90% !important;
+    }
+
     .promotional_wall-container {
         padding: 20px 15px;
     }
@@ -330,6 +403,7 @@
     .promotional_wall-title {
         font-size: 2rem;
         padding: 15px 20px;
+        max-width: 90%;
     }
     
     .profile-picture,
@@ -346,5 +420,10 @@
     .category-title::before,
     .category-title::after {
         width: 15vw;
+        height: 1vw;
+    }
+
+    .user-category {
+        margin-bottom: 25px;
     }
 }

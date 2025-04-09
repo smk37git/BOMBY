@@ -673,7 +673,7 @@
     }
     
     .window-content {
-        height: 250px;
+        height: 225px !important;
     }
     
     .window-footer {
@@ -682,6 +682,7 @@
         align-items: center;
         padding: 15px;
         gap: 8px;
+        max-height: 125px !important;
     }
     
     .product-status, 

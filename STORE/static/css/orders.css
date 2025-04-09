@@ -44,9 +44,26 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     margin-bottom: 2rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: block;
+    visibility: visible;
 }
 
 .order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.order-card-info {
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 2rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.order-card-info:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
 }
@@ -68,6 +85,8 @@
 }
 
 .card-body {
+    display: block;
+    visibility: visible;
     padding: 1.5rem;
     color: rgba(255, 255, 255, 0.9);
 }
@@ -602,6 +621,10 @@
 }
 
 .order-item {
+    opacity: 1;
+    transform: translateY(0);
+    display: block;
+    visibility: visible;
     transition: transform 0.3s ease;
 }
 
@@ -1161,6 +1184,12 @@ textarea[name="comment"]:focus {
         gap: 0;
     }
 
+    .order-card-info {
+        margin-top: 35px !important;
+        max-width: 95%;
+        margin: 0 auto;
+    }
+
     .orders-header {
         margin-bottom: 0px;
         padding-bottom: 0;
@@ -1222,6 +1251,10 @@ textarea[name="comment"]:focus {
         overflow: visible;
         text-overflow: clip;
         max-width: none;
+    }
+
+    .no-orders {
+        margin-bottom: 25px;
     }
     
     #messages-container .timeline-event {

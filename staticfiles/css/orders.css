@@ -44,9 +44,26 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     margin-bottom: 2rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: block;
+    visibility: visible;
 }
 
 .order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.order-card-info {
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 2rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.order-card-info:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
 }
@@ -68,6 +85,8 @@
 }
 
 .card-body {
+    display: block;
+    visibility: visible;
     padding: 1.5rem;
     color: rgba(255, 255, 255, 0.9);
 }
@@ -96,6 +115,7 @@
     text-transform: uppercase;
     letter-spacing: 1px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    margin-bottom: 25px;
 }
 
 /* Order Status Badge */
@@ -150,7 +170,7 @@
 /* Order Details Layout - Fiverr-like grid system */
 .order-grid {
     display: grid;
-    grid-template-columns: 1fr 2fr; /* Order details left, chat right (Fiverr style) */
+    grid-template-columns: 1fr 2fr;
     gap: 2rem;
     margin-bottom: 2rem;
 }
@@ -601,6 +621,10 @@
 }
 
 .order-item {
+    opacity: 1;
+    transform: translateY(0);
+    display: block;
+    visibility: visible;
     transition: transform 0.3s ease;
 }
 
@@ -849,6 +873,7 @@
     font-weight: 600;
     transition: all 0.3s ease;
     border: none;
+    margin-bottom: 25px;
 }
 
 .action-button:hover {
@@ -1143,4 +1168,148 @@ textarea[name="comment"]:focus {
 .order-item.fade-in {
     opacity: 1;
     transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+    .form-header-wrapper {
+        max-width: 80% !important;
+    }
+
+    .order-form-container {
+        max-width: 90%;
+    }
+
+    .speed-inputs {
+        font-size: 0.8rem;
+        gap: 0;
+    }
+
+    .order-card-info {
+        margin-top: 35px !important;
+        max-width: 95%;
+        margin: 0 auto;
+    }
+
+    .orders-header {
+        margin-bottom: 0px;
+        padding-bottom: 0;
+    }
+
+    .orders-header-wrapper {
+        margin-bottom: 25px;
+        padding-bottom: 5px;
+    }
+
+    .orders-container {
+        margin: 0 auto 0 12px;
+        max-width: 90% !important;
+    }
+    
+    .order-header h1 {
+        font-size: 2rem;
+    }
+    
+    .order-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .action-button {
+        max-width: 90%;
+        margin: 0 auto 25px;
+        display: block;
+        text-align: center;
+    }
+
+    .back-link {
+        margin: 0 auto 25px;
+        display: block;
+        text-align: center;
+    }
+
+    .product-navigation {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin-bottom: 30px;
+    }
+
+    .order-sidebar {
+        margin: 0 auto;
+        width: 90%;
+    }
+    
+    .order-badge {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+        white-space: nowrap;
+        display: inline-block;
+        width: auto;
+        min-width: 80px;
+        text-align: center;
+        overflow: visible;
+        text-overflow: clip;
+        max-width: none;
+    }
+
+    .no-orders {
+        margin-bottom: 25px;
+    }
+    
+    #messages-container .timeline-event {
+        display: flex;
+        flex-direction: column;
+        padding: 10px;
+        width: auto;
+        max-width: 100%;
+    }
+    
+    #messages-container .event-icon {
+        margin-bottom: 10px;
+        align-self: center;
+    }
+    
+    #messages-container .event-content {
+        width: 100%;
+    }
+    
+    #messages-container .event-title {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    #messages-container .event-time {
+        margin-top: 5px;
+        font-size: 0.8rem;
+    }
+    
+    .chat-container {
+        min-height: 800px !important;
+        margin: 0 auto;
+        max-width: 95%;
+    }
+    
+    .messages-container {
+        height: 500px;
+        max-height: 500px;
+    }
+    
+    .message-form {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .send-button {
+        width: 100%;
+    }
+
+    .message-actions {
+        gap: 15px;
+    }
+
+    .file-upload-btn {
+        white-space: nowrap;
+    }
 }
