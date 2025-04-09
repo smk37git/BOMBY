@@ -1,6 +1,6 @@
 FROM python:3.11-slim
 
-# Install PostgreSQL client and WeasyPrint (for invoices) dependencies
+# Install PostgreSQL client and WeasyPrint dependencies
 RUN apt-get update && apt-get install -y \
     postgresql-client \
     libcairo2 \
@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     gir1.2-gobject-2.0 \
     gir1.2-pango-1.0 \
     gir1.2-gtk-3.0 \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Set environment variables
@@ -26,8 +27,12 @@ ENV ALLOWED_HOSTS=localhost,127.0.0.1
 # Set work directory
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies with fixes
 COPY requirements.txt .
+RUN pip install --upgrade pip wheel setuptools
+# Install WeasyPrint separately to avoid dependency issues
+RUN pip install weasyprint==53.0
+# Install remaining requirements
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy project and entrypoint script
