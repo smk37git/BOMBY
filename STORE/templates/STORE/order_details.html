@@ -392,20 +392,17 @@
              }
          }
          
-         // 1. Fix info values in the details card
          document.querySelectorAll('.info-value').forEach(element => {
              if (element.textContent.trim()) {
                  element.textContent = convertToLocalTime(element.textContent.trim());
              }
          });
          
-         // 2. Fix due date (which has a data attribute)
          const dueDate = document.getElementById('due-date');
          if (dueDate && dueDate.dataset.date) {
              dueDate.textContent = convertToLocalTime(dueDate.dataset.date);
          }
          
-         // 3. Fix event times with data-iso-date attribute
          document.querySelectorAll('[data-iso-date]').forEach(element => {
              if (element.getAttribute('data-iso-date')) {
                  if (element.classList.contains('message-time')) {
