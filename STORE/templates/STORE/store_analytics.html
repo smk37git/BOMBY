@@ -17,6 +17,7 @@
     <div class="analytics-header">
         <h2>Performance Dashboard</h2>
         <div class="time-filter">
+            <a href="?time_frame=day" class="{% if time_frame == 'day' %}active{% endif %}">Last 24 hours</a>
             <a href="?time_frame=week" class="{% if time_frame == 'week' %}active{% endif %}">Last 7 days</a>
             <a href="?time_frame=month" class="{% if time_frame == 'month' %}active{% endif %}">Last 30 days</a>
             <a href="?time_frame=year" class="{% if time_frame == 'year' %}active{% endif %}">Last year</a>

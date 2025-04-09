@@ -1785,7 +1785,11 @@ def store_analytics(request):
     
     # Set current period ranges
     now = timezone.now()
-    if time_frame == 'week':
+    if time_frame == 'day':
+        current_start = now - timedelta(hours=24)
+        previous_start = current_start - timedelta(hours=24)
+        current_orders = Order.objects.filter(created_at__gte=current_start)
+    elif time_frame == 'week':
         current_start = now - timedelta(days=7)
         previous_start = current_start - timedelta(days=7)
         current_orders = Order.objects.filter(created_at__gte=current_start)
@@ -1811,12 +1815,16 @@ def store_analytics(request):
             previous_start = now - timedelta(days=365)
             current_start = previous_start
     
+    # Exclude Fiverr orders by filtering out orders with reviews marked as Fiverr
+    fiverr_order_ids = Review.objects.filter(is_fiverr=True).values_list('order_id', flat=True)
+    current_orders = current_orders.exclude(id__in=fiverr_order_ids)
+    
     # Get previous period orders
     if current_start and previous_start:
         previous_orders = Order.objects.filter(
             created_at__gte=previous_start,
             created_at__lt=current_start
-        )
+        ).exclude(id__in=fiverr_order_ids)
     else:
         previous_orders = Order.objects.none()
     
@@ -1887,30 +1895,41 @@ def store_analytics(request):
     # Sort by count
     product_sales = sorted(product_sales, key=lambda x: x['count'], reverse=True)
     
-    # Review metrics
-    avg_rating = Review.objects.filter(order__in=current_orders).aggregate(
+    # Review metrics - exclude Fiverr reviews
+    avg_rating = Review.objects.filter(
+        order__in=current_orders
+    ).filter(
+        is_fiverr=False
+    ).aggregate(
         avg=Avg('rating')
     )['avg'] or 0
     
-    review_count = Review.objects.filter(order__in=current_orders).count()
+    review_count = Review.objects.filter(
+        order__in=current_orders
+    ).filter(
+        is_fiverr=False
+    ).count()
     
     # Get all products for page views
     all_products = Product.objects.all()
     
     # Prepare product view data
     page_view_data = []
-    
+
     for product in all_products:
         # Get view count for this product within the time frame
         if time_frame != 'all' and current_start:
+            # This prevents counting multiple refreshes from the same visitor
             views_count = PageView.objects.filter(
                 product=product, 
                 timestamp__gte=current_start
-            ).count()
+            ).values('session_id').distinct().count()
         else:
-            views_count = PageView.objects.filter(product=product).count()
+            views_count = PageView.objects.filter(
+                product=product
+            ).values('session_id').distinct().count()
             
-        # Calculate conversion rate
+        # Count orders that aren't from Fiverr
         product_orders = current_orders.filter(product=product).count()
         conversion_rate = (product_orders / views_count * 100) if views_count > 0 else 0
         
