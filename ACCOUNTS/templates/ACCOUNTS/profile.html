@@ -12,11 +12,11 @@
 {% load tz %}
 
 {% block content %}
+<div class="profile-header">
+    <h1 class="profile-title">{{ profile_user.username }}'s Profile</h1>
+</div>
+
 <div class="profile-container">
-    <div class="profile-header">
-        <h1 class="profile-title">{{ profile_user.username }}'s Profile</h1>
-    </div>
-    
     <div class="profile-content">
         <div class="profile-section">
             <div class="section-header">
