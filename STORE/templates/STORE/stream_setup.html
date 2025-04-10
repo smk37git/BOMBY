@@ -25,24 +25,18 @@
         <div class="product-gallery-side">
             <div class="product-featured-image">
                 <div id="featured-container">
-                    <!-- Video container with data-src pointing to bucket -->
-                    <div class="video-container" id="videoContainer" data-src="https://storage.googleapis.com/bomby-user-uploads/stream_assets/media/Bomby_Stream_Setup.mp4">
-                        <img src="{% static 'images/stream_setup_1.jpg' %}" alt="Video thumbnail" class="video-thumbnail" id="videoThumbnail">
-                        <div class="placeholder-icon">
-                            <i class="fas fa-film"></i>
-                        </div>
-                        <div class="play-overlay">
-                            <div class="play-button">
-                                <i class="fas fa-play"></i>
-                            </div>
-                        </div>
-                    </div>
+                    <video id="featuredVideo" class="featured-image" controls style="display: none;">
+                        <source src="{% static 'videos/Bomby_Stream_Setup.mp4' %}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <img src="{% static 'images/stream_setup_1.jpg' %}" 
+                         alt="Basic Package" class="featured-image" id="featuredImage">
                 </div>
             </div>
             
             <div class="gallery-thumbnails">
                 <!-- Thumbnails -->
-                <div class="thumbnail video-thumb active" data-type="video" data-src="https://storage.googleapis.com/bomby-user-uploads/stream_assets/media/Bomby_Stream_Setup.mp4">
+                <div class="thumbnail video-thumb active" data-type="video" data-src="{% static 'videos/Bomby_Stream_Setup.mp4' %}">
                     <img src="{% static 'images/stream_setup_1.jpg' %}" alt="Video Thumbnail">
                     <div class="play-icon">
                         <i class="fas fa-play-circle"></i>
@@ -296,6 +290,9 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Global video cache object
+        window.videoCache = {};
+        
         // Add styling for video elements
         function addVideoStyles() {
             const style = document.createElement('style');
@@ -373,22 +370,6 @@
                     font-size: 1.5rem;
                     z-index: 2;
                 }
-
-                .manual-play-button {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    background: rgba(0,0,0,0.7);
-                    color: white;
-                    padding: 15px 20px;
-                    border-radius: 5px;
-                    cursor: pointer;
-                    z-index: 10;
-                    display: flex;
-                    align-items: center;
-                    gap: 8px;
-                }
             `;
             document.head.appendChild(style);
         }
@@ -406,45 +387,41 @@
                     videoElement.setAttribute('controls', true);
                     videoElement.setAttribute('playsinline', true); // Important for iOS
                     videoElement.setAttribute('webkit-playsinline', true); // Legacy iOS support
+                    videoElement.setAttribute('autoplay', true);
                     videoElement.className = 'featured-image';
                     
                     // Add source after appending to DOM (prevents Safari issues)
                     featuredContainer.innerHTML = '';
                     featuredContainer.appendChild(videoElement);
                     
-                    // Add manual play button for iOS Safari
-                    const playButton = document.createElement('div');
-                    playButton.className = 'manual-play-button';
-                    playButton.innerHTML = '<i class="fas fa-play"></i> Tap to Play';
-                    featuredContainer.appendChild(playButton);
-                    
-                    // Set video source
-                    videoElement.src = videoSrc;
-                    videoElement.load();
-                    
-                    // Handle manual play button click
-                    playButton.addEventListener('click', function() {
-                        videoElement.play()
-                            .then(() => {
-                                // Playback started successfully
-                                playButton.style.display = 'none';
-                            })
-                            .catch(error => {
+                    // Small delay before setting source (helps with Safari)
+                    setTimeout(() => {
+                        videoElement.src = videoSrc;
+                        videoElement.load();
+                        
+                        // Double check play on Safari
+                        const playPromise = videoElement.play();
+                        
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
                                 // Auto-play was prevented
-                                console.log('Play attempt failed. User must interact directly with the video.');
+                                console.log('Auto-play prevented. User must interact with the video.');
+                                
+                                // Add play button for user to click
+                                const playButton = document.createElement('div');
+                                playButton.className = 'manual-play-button';
+                                playButton.innerHTML = '<i class="fas fa-play"></i> Tap to Play';
+                                playButton.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 15px 20px; border-radius: 5px; cursor: pointer; z-index: 10;';
+                                
+                                featuredContainer.appendChild(playButton);
+                                
+                                playButton.addEventListener('click', () => {
+                                    videoElement.play();
+                                    playButton.remove();
+                                });
                             });
-                    });
-                    
-                    // Try auto-play (might work on desktop)
-                    videoElement.play()
-                        .then(() => {
-                            // Auto-play successful
-                            playButton.style.display = 'none';
-                        })
-                        .catch(error => {
-                            // Auto-play was prevented, button will remain visible
-                            console.log('Auto-play prevented. Using manual play button.');
-                        });
+                        }
+                    }, 50);
                 });
             }
         }
@@ -462,7 +439,7 @@
                     
                     if (this.classList.contains('video-thumb')) {
                         // Create video container with play button
-                        const videoSrc = this.dataset.src;
+                        const videoSrc = this.dataset.src || "{% static 'videos/Bomby_Stream_Setup.mp4' %}";
                         const videoContainer = document.createElement('div');
                         videoContainer.className = 'video-container';
                         videoContainer.id = 'videoContainer';
