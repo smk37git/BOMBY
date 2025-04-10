@@ -154,6 +154,11 @@
     <!-- JavaScript for mobile menu toggle and dropdowns -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize flag to track if dropdowns have been initialized
+            if (typeof window.isDropdownInitialized === 'undefined') {
+                window.isDropdownInitialized = false;
+            }
+            
             const mobileToggle = document.getElementById('mobile-menu-toggle');
             const navMenu = document.getElementById('nav-menu');
             
@@ -164,6 +169,15 @@
             
             // Handle dropdowns
             function initializeDropdowns() {
+                if (window.isDropdownInitialized) {
+                    // Remove all existing listeners first
+                    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                        const newToggle = toggle.cloneNode(true);
+                        toggle.parentNode.replaceChild(newToggle, toggle);
+                    });
+                }
+                window.isDropdownInitialized = true;
+                
                 // Desktop behavior
                 if (window.innerWidth > 768) {
                     document.querySelectorAll('.dropdown').forEach(dropdown => {
