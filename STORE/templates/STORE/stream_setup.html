@@ -291,9 +291,8 @@
     document.addEventListener('DOMContentLoaded', function() {
         // Global variables
         window.videoCache = {};
-        const signedUrlPath = '/get-video-url/stream_assets/media/Bomby_Stream_Setup.mp4';
         
-        // Fetch the signed URL for the video
+        // Fetch the signed URL for the video - FIX: correct path format
         fetch('/get-video-url/?path=stream_assets/media/Bomby_Stream_Setup.mp4')
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
@@ -303,20 +302,41 @@
                 window.signedVideoUrl = data.url;
                 console.log("Got signed URL:", data.url.substring(0, 50) + "...");
                 
-                // Update video element
+                // Update video thumbnail and video element
                 const videoEl = document.getElementById('featuredVideo');
                 if (videoEl) {
                     videoEl.src = data.url;
                     videoEl.style.display = 'block';
                     videoEl.load();
                 }
+                
+                // Initialize video thumbnail
+                const videoThumb = document.querySelector('.thumbnail.video-thumb');
+                if (videoThumb) videoThumb.click();
             })
-            .catch(error => console.error('Error fetching video URL:', error));
+            .catch(error => {
+                console.error('Error fetching video URL:', error);
+                // Show fallback image if video fails to load
+                const featuredContainer = document.getElementById('featured-container');
+                if (featuredContainer) {
+                    const placeholderImg = document.createElement('img');
+                    placeholderImg.src = featuredContainer.querySelector('img').src;
+                    placeholderImg.alt = "Stream Setup";
+                    placeholderImg.className = "featured-image";
+                    featuredContainer.innerHTML = '';
+                    featuredContainer.appendChild(placeholderImg);
+                }
+            });
         
         // Setup thumbnails and gallery
         function setupGallery() {
             const thumbnails = document.querySelectorAll('.thumbnail');
             const featuredContainer = document.getElementById('featured-container');
+            
+            if (!featuredContainer) {
+                console.error('Featured container not found');
+                return;
+            }
             
             thumbnails.forEach(thumb => {
                 thumb.addEventListener('click', function() {
@@ -325,16 +345,22 @@
                     this.classList.add('active');
                     
                     if (this.classList.contains('video-thumb')) {
+                        // Check if we have a signed URL
+                        if (!window.signedVideoUrl) {
+                            console.warn('No signed video URL available yet');
+                            return;
+                        }
+                        
                         // Create video container with play button
                         const videoContainer = document.createElement('div');
                         videoContainer.className = 'video-container';
                         videoContainer.id = 'videoContainer';
-                        videoContainer.dataset.src = window.signedVideoUrl || '';
+                        videoContainer.dataset.src = window.signedVideoUrl;
                         
                         // Create thumbnail image
                         const thumbnail = document.createElement('img');
                         thumbnail.className = 'video-thumbnail';
-                        thumbnail.src = "{% static 'images/stream_setup_1.jpg' %}";
+                        thumbnail.src = this.querySelector('img').src;
                         thumbnail.alt = 'Video thumbnail';
                         
                         // Create play overlay
@@ -345,6 +371,8 @@
                         // Assemble container
                         videoContainer.appendChild(thumbnail);
                         videoContainer.appendChild(playOverlay);
+                        
+                        // Clear and add to featured container
                         featuredContainer.innerHTML = '';
                         featuredContainer.appendChild(videoContainer);
                         
@@ -361,7 +389,7 @@
                             featuredContainer.innerHTML = '';
                             featuredContainer.appendChild(videoEl);
                         });
-                    } else {
+                    } else if (this.dataset.image) {
                         // Show image
                         const imgEl = document.createElement('img');
                         imgEl.src = this.dataset.image;
@@ -396,22 +424,28 @@
         function setupFAQ() {
             document.querySelectorAll('.faq-item').forEach(item => {
                 const question = item.querySelector('.faq-question');
-                question.addEventListener('click', function() {
-                    item.classList.toggle('active');
-                    const chevron = this.querySelector('.chevron-container');
-                    chevron.innerHTML = item.classList.contains('active') ? 
-                        '<i class="fas fa-chevron-down"></i>' : 
-                        '<i class="fas fa-chevron-right"></i>';
-                });
+                if (question) {
+                    question.addEventListener('click', function() {
+                        item.classList.toggle('active');
+                        const chevron = this.querySelector('.chevron-container');
+                        if (chevron) {
+                            chevron.innerHTML = item.classList.contains('active') ? 
+                                '<i class="fas fa-chevron-down"></i>' : 
+                                '<i class="fas fa-chevron-right"></i>';
+                        }
+                    });
+                }
             });
         }
         
-        // Review pagination
+        // Review pagination - FIX: adding null checks
         function setupReviews() {
+            const reviewsList = document.getElementById('reviewsList');
+            if (!reviewsList) return; // Exit if element doesn't exist
+            
             const reviewItems = document.querySelectorAll('.review-item');
             if (reviewItems.length === 0) return;
             
-            const reviewsList = document.getElementById('reviewsList');
             const reviews = Array.from(reviewItems);
             const reviewsPerPage = 5;
             
@@ -431,7 +465,8 @@
             
             // Calculate pages
             const totalPages = Math.ceil(reviews.length / reviewsPerPage);
-            document.getElementById('totalPages').textContent = totalPages;
+            const totalPagesEl = document.getElementById('totalPages');
+            if (totalPagesEl) totalPagesEl.textContent = totalPages;
             
             // Show first page
             reviews.slice(0, reviewsPerPage).forEach((item, index) => {
@@ -443,9 +478,12 @@
             const prevBtn = document.getElementById('prevReviews');
             const nextBtn = document.getElementById('nextReviews');
             const pageEl = document.getElementById('currentPage');
+            
+            if (!prevBtn || !nextBtn || !pageEl) return; // Exit if elements don't exist
+            
             let currentPage = 1;
             
-            if (totalPages <= 1) nextBtn.disabled = true;
+            if (totalPages <= 1 && nextBtn) nextBtn.disabled = true;
             
             nextBtn.addEventListener('click', function() {
                 if (currentPage >= totalPages) return;
@@ -516,18 +554,18 @@
             });
         }
         
-        // Initialize
+        // Initialize with proper error handling
         addStyles();
         setupGallery();
         setupFAQ();
         setupReviews();
         formatDates();
         
-        // Trigger video thumbnail click
+        // Safer way to trigger video thumbnail click
         setTimeout(() => {
             const videoThumb = document.querySelector('.thumbnail.video-thumb');
             if (videoThumb) videoThumb.click();
-        }, 100);
+        }, 500); // Slightly longer delay to ensure everything is loaded
     });
 </script>
 {% endblock %}
