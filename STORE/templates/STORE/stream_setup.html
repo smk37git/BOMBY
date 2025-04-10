@@ -418,12 +418,21 @@
         function setupGalleryThumbnails() {
             const thumbnails = document.querySelectorAll('.thumbnail');
             const featuredContainer = document.getElementById('featured-container');
+
+            const inactiveThumbnails = document.querySelectorAll('.thumbnail:not(.active)');
+            inactiveThumbnails.forEach(thumb => {
+                thumb.style.border = '2px solid #444';
+            });
             
             thumbnails.forEach(thumb => {
                 thumb.addEventListener('click', function() {
                     // Update active state
-                    thumbnails.forEach(t => t.classList.remove('active'));
+                    thumbnails.forEach(t => {
+                        t.classList.remove('active');
+                        t.style.border = '2px solid #444';
+                    });
                     this.classList.add('active');
+                    this.style.border = '2px solid #ffffff';
                     
                     if (this.classList.contains('video-thumb')) {
                         // Video thumbnail clicked

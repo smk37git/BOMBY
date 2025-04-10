@@ -261,14 +261,20 @@ def poll_results(request):
                 const thumbnails = document.querySelectorAll('.thumbnail');
                 
                 if (featuredImage && thumbnails.length > 0) {
+                    const inactiveThumbnails = document.querySelectorAll('.thumbnail:not(.active)');
+                    inactiveThumbnails.forEach(thumb => {
+                        thumb.style.border = '2px solid #444';
+                    });
+                    
                     thumbnails.forEach(thumb => {
                         thumb.addEventListener('click', function() {
-                            // Update main image
-                            featuredImage.src = this.getAttribute('data-image');
-                            
-                            // Update active state
-                            thumbnails.forEach(t => t.classList.remove('active'));
+                            featuredImage.src = this.dataset.image;
+                            thumbnails.forEach(t => {
+                                t.classList.remove('active');
+                                t.style.border = '2px solid #444';
+                            });
                             this.classList.add('active');
+                            this.style.border = '2px solid #ffffff';
                         });
                     });
                 }

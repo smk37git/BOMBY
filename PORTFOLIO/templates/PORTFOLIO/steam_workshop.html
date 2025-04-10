@@ -218,14 +218,21 @@ local hoursSurvived = math.floor(getGameTime():getWorldAgeHours())
             const featuredImage = document.getElementById('featuredImage');
             const thumbnails = document.querySelectorAll('.thumbnail');
             
-            thumbnails.forEach(function(thumb) {
-                // Increase z-index for mobile
-                thumb.style.zIndex = '50';
-                thumb.style.position = 'relative';
-                
-                // Handle both touch and click
-                thumb.addEventListener('click', handleThumbClick);
-                thumb.addEventListener('touchstart', handleThumbClick, {passive: false});
+            const inactiveThumbnails = document.querySelectorAll('.thumbnail:not(.active)');
+            inactiveThumbnails.forEach(thumb => {
+                thumb.style.border = '2px solid #444';
+            });
+            
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    featuredImage.src = this.dataset.image;
+                    thumbnails.forEach(t => {
+                        t.classList.remove('active');
+                        t.style.border = '2px solid #444';
+                    });
+                    this.classList.add('active');
+                    this.style.border = '2px solid #ffffff';
+                });
             });
             
             function handleThumbClick(e) {
