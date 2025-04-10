@@ -162,47 +162,25 @@
                 navMenu.classList.toggle('active');
             });
             
-            // Handle dropdowns
-            const dropdowns = document.querySelectorAll('.dropdown');
+            // Get all dropdown toggles
+            const toggles = document.querySelectorAll('.dropdown-toggle');
             
-            function setupDropdownBehavior() {
-                // First, remove all existing click handlers to prevent duplicates
-                document.removeEventListener('click', closeDropdownsOnClickOutside);
-                
-                // Set up new dropdown behavior
-                dropdowns.forEach(dropdown => {
-                    const toggle = dropdown.querySelector('.dropdown-toggle');
-                    const content = dropdown.querySelector('.dropdown-content');
-                    
-                    // Remove old event listeners by cloning
-                    if (toggle) {
-                        const newToggle = toggle.cloneNode(true);
-                        toggle.parentNode.replaceChild(newToggle, toggle);
-                        
-                        if (window.innerWidth <= 768) {
-                            // Mobile: Direct click handlers (no cloning the whole dropdown)
-                            newToggle.addEventListener('click', function(e) {
-                                e.preventDefault(); // Prevent navigation
-                                e.stopPropagation(); // Prevent bubbling
-                                
-                                // Close all other dropdowns first
-                                dropdowns.forEach(otherDropdown => {
-                                    if (otherDropdown !== dropdown) {
-                                        const otherContent = otherDropdown.querySelector('.dropdown-content');
-                                        if (otherContent) otherContent.classList.remove('show');
-                                    }
-                                });
-                                
-                                // Toggle this dropdown
-                                content.classList.toggle('show');
-                            });
-                        }
-                    }
+            // Simple mobile toggle handlers (no cloning, direct event binding)
+            function setupMobileDropdowns() {
+                // First reset all dropdowns to closed state
+                document.querySelectorAll('.dropdown-content').forEach(content => {
+                    content.classList.remove('show');
                 });
                 
-                // Add desktop hover behavior
+                // Remove any existing click handlers from toggles
+                toggles.forEach(toggle => {
+                    toggle.removeEventListener('click', mobileToggleHandler);
+                });
+                
+                // Setup desktop or mobile behavior based on screen width
                 if (window.innerWidth > 768) {
-                    dropdowns.forEach(dropdown => {
+                    // Desktop: hover behavior
+                    document.querySelectorAll('.dropdown').forEach(dropdown => {
                         dropdown.addEventListener('mouseenter', function() {
                             const content = this.querySelector('.dropdown-content');
                             if (content) content.classList.add('show');
@@ -213,36 +191,54 @@
                             if (content) content.classList.remove('show');
                         });
                     });
-                }
-                
-                // Add click outside listener
-                document.addEventListener('click', closeDropdownsOnClickOutside);
-            }
-            
-            // Separate function for closing dropdowns when clicking outside
-            function closeDropdownsOnClickOutside(e) {
-                if (window.innerWidth <= 768 && !e.target.closest('.dropdown')) {
-                    document.querySelectorAll('.dropdown-content').forEach(el => {
-                        el.classList.remove('show');
+                } else {
+                    // Mobile: click behavior
+                    toggles.forEach(toggle => {
+                        toggle.addEventListener('click', mobileToggleHandler);
+                    });
+                    
+                    // Close dropdowns when clicking outside
+                    document.addEventListener('click', function(e) {
+                        if (!e.target.closest('.dropdown')) {
+                            document.querySelectorAll('.dropdown-content').forEach(el => {
+                                el.classList.remove('show');
+                            });
+                        }
                     });
                 }
             }
             
+            // Mobile toggle handler function
+            function mobileToggleHandler(e) {
+                e.preventDefault();
+                const dropdown = this.closest('.dropdown');
+                const content = dropdown.querySelector('.dropdown-content');
+                
+                // Close all other dropdowns first
+                document.querySelectorAll('.dropdown-content').forEach(el => {
+                    if (el !== content) {
+                        el.classList.remove('show');
+                    }
+                });
+                
+                // Toggle this dropdown
+                content.classList.toggle('show');
+                e.stopPropagation();
+            }
+            
             // Set up initial behavior
-            setupDropdownBehavior();
+            setupMobileDropdowns();
             
             // Update behavior on window resize
-            window.addEventListener('resize', setupDropdownBehavior);
+            window.addEventListener('resize', setupMobileDropdowns);
             
             // Auto-dismiss messages
             const messages = document.querySelectorAll('.message');
             messages.forEach(message => {
-                // Skip messages in message containers (chat messages)
                 if (message.closest('#messages-container') || message.closest('#chat-messages')) {
                     return; // Skip this message - it's in a chat
                 }
                 
-                // Auto-dismiss after 5 seconds for non-chat messages
                 setTimeout(() => {
                     message.style.opacity = '0';
                     setTimeout(() => {
@@ -250,7 +246,6 @@
                     }, 500);
                 }, 5000);
                 
-                // Manual dismiss with close button
                 const closeBtn = message.querySelector('.message-close');
                 if (closeBtn) {
                     closeBtn.addEventListener('click', () => {
@@ -266,7 +261,7 @@
             checkUnreadMessages();
             checkUnreadOrderMessages();
             
-            // Check periodically (every 30 seconds)
+            // Check periodically
             setInterval(checkUnreadMessages, 30000);
             setInterval(checkUnreadOrderMessages, 30000);
         });
