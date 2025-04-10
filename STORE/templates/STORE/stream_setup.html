@@ -18,6 +18,14 @@
             <i class="fas fa-arrow-left"></i> Back to Store
         </a>
     </div>
+
+    {% if user.is_staff %}
+    <div class="admin-actions" style="text-align: right; margin: 10px 0;">
+        <a href="{% url 'STORE:add_stream_store_media' %}?stream_setup=true" class="action-button">
+            <i class="fas fa-plus"></i> Add Media
+        </a>
+    </div>
+   {% endif %}
     
     <!-- Split layout for product -->
     <div class="product-split">
@@ -51,26 +59,6 @@
                             </div>
                         {% endif %}
                     {% endfor %}
-                {% else %}
-                    <!-- Fallback to static content if no media is available -->
-                    <div class="thumbnail video-thumb active" data-type="video" data-src="{% static 'videos/Bomby_Stream_Setup.mp4' %}">
-                        <img src="{% static 'images/stream_setup_1.jpg' %}" alt="Video Thumbnail">
-                        <div class="play-icon">
-                            <i class="fas fa-play-circle"></i>
-                        </div>
-                    </div>
-                    <div class="thumbnail" data-image="{% static 'images/my_stream_setup_2.jpg' %}">
-                        <img src="{% static 'images/my_stream_setup_2.jpg' %}" alt="Gallery Image 2">
-                    </div>
-                    <div class="thumbnail" data-image="{% static 'images/my_stream_setup_3.jpg' %}">
-                        <img src="{% static 'images/my_stream_setup_3.jpg' %}" alt="Gallery Image 3">
-                    </div>
-                    <div class="thumbnail" data-image="{% static 'images/my_stream_setup_4.jpg' %}">
-                        <img src="{% static 'images/my_stream_setup_4.jpg' %}" alt="Gallery Image 4">
-                    </div>
-                    <div class="thumbnail" data-image="{% static 'images/my_stream_setup_5.jpg' %}">
-                        <img src="{% static 'images/my_stream_setup_5.jpg' %}" alt="Gallery Image 5">
-                    </div>
                 {% endif %}
             </div>
 
