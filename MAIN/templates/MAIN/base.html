@@ -164,10 +164,15 @@
             
             // Handle dropdowns
             function initializeDropdowns() {
+                // Remove any existing event listeners first to avoid duplicates
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    const clone = toggle.cloneNode(true);
+                    toggle.parentNode.replaceChild(clone, toggle);
+                });
+                
                 // Desktop behavior
                 if (window.innerWidth > 768) {
                     document.querySelectorAll('.dropdown').forEach(dropdown => {
-                        // Add hover behavior
                         dropdown.addEventListener('mouseenter', function() {
                             this.querySelector('.dropdown-content').classList.add('show');
                         });
@@ -179,83 +184,48 @@
                 } 
                 // Mobile behavior
                 else {
-                    // Get all toggles and attach click handlers directly to them
+                    // Simple unified approach for mobile
                     document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-                        // Add touch event listener for mobile Safari
-                        toggle.addEventListener('touchstart', function(event) {
-                            event.preventDefault();
-                            event.stopPropagation();
-                            
-                            const content = this.nextElementSibling;
-                            const arrow = this.querySelector('.dropdown-arrow');
-                            
-                            // Toggle dropdown visibility
-                            const isOpen = content.classList.contains('show');
-                            
-                            // Close all dropdowns first
-                            document.querySelectorAll('.dropdown-content').forEach(el => {
-                                el.classList.remove('show');
-                            });
-                            
-                            document.querySelectorAll('.dropdown-arrow').forEach(el => {
-                                el.style.transform = '';
-                            });
-                            
-                            // Then open this one if it wasn't already open
-                            if (!isOpen) {
-                                content.classList.add('show');
-                                if (arrow) {
-                                    arrow.style.transform = 'rotate(180deg) translateY(1px)';
-                                }
-                            }
-                        });
-                        
-                        // Also keep click handler for other devices
-                        toggle.addEventListener('click', function(event) {
-                            // Only execute if not already handled by touchstart
-                            if (event.pointerType !== 'touch') {
-                                event.preventDefault();
-                                event.stopPropagation();
-                                
-                                const content = this.nextElementSibling;
-                                const arrow = this.querySelector('.dropdown-arrow');
-                                
-                                // Toggle dropdown visibility
-                                const isOpen = content.classList.contains('show');
-                                
-                                // Close all dropdowns first
-                                document.querySelectorAll('.dropdown-content').forEach(el => {
-                                    el.classList.remove('show');
-                                });
-                                
-                                document.querySelectorAll('.dropdown-arrow').forEach(el => {
-                                    el.style.transform = '';
-                                });
-                                
-                                // Then open this one if it wasn't already open
-                                if (!isOpen) {
-                                    content.classList.add('show');
-                                    if (arrow) {
-                                        arrow.style.transform = 'rotate(180deg) translateY(1px)';
-                                    }
-                                }
-                            }
-                        });
+                        toggle.addEventListener('click', handleDropdownClick);
                     });
                     
                     // Handle clicks outside dropdowns
                     document.addEventListener('click', function(event) {
                         if (!event.target.closest('.dropdown')) {
-                            document.querySelectorAll('.dropdown-content').forEach(el => {
-                                el.classList.remove('show');
-                            });
-                            
-                            document.querySelectorAll('.dropdown-arrow').forEach(el => {
-                                el.style.transform = '';
-                            });
+                            closeAllDropdowns();
                         }
                     });
                 }
+            }
+            
+            function handleDropdownClick(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const content = this.nextElementSibling;
+                const arrow = this.querySelector('.dropdown-arrow');
+                const isOpen = content.classList.contains('show');
+                
+                // Close all dropdowns first
+                closeAllDropdowns();
+                
+                // Then open this one if it wasn't already open
+                if (!isOpen) {
+                    content.classList.add('show');
+                    if (arrow) {
+                        arrow.style.transform = 'rotate(180deg) translateY(1px)';
+                    }
+                }
+            }
+            
+            function closeAllDropdowns() {
+                document.querySelectorAll('.dropdown-content').forEach(content => {
+                    content.classList.remove('show');
+                });
+                
+                document.querySelectorAll('.dropdown-arrow').forEach(arrow => {
+                    arrow.style.transform = '';
+                });
             }
             
             // Initialize on page load
@@ -265,9 +235,7 @@
             let resizeTimer;
             window.addEventListener('resize', function() {
                 clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(function() {
-                    initializeDropdowns();
-                }, 250);
+                resizeTimer = setTimeout(initializeDropdowns, 250);
             });
             
             // Auto-dismiss messages
