@@ -7,6 +7,9 @@ urlpatterns = [
     # Main store page
     path('', views.store, name='store'),
     
+    # Serve media files from GCS (development environment only)
+    path('gcs-media/<path:path>', views.serve_gcs_media, name='serve_gcs_media'),
+    
     # Stream setup service pages
     path('basic-package/', views.basic_package, name='basic_package'),
     path('standard-package/', views.standard_package, name='standard_package'),

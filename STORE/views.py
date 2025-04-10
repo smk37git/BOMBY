@@ -30,6 +30,46 @@ from django.db.models import Count, Avg, Sum, Q, F
 from datetime import timedelta
 from .models import PageView, ProductInteraction, Donation
 from django.db import models
+from django.core.mail import send_mail
+from django.core.paginator import Paginator
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.views.decorators.csrf import csrf_exempt
+from django.http import Http404
+
+def serve_gcs_media(request, path):
+    """Serve media files directly from Google Cloud Storage"""
+    try:
+        # Initialize the GCS client
+        client = storage.Client()
+        bucket = client.bucket('bomby-user-uploads')
+        
+        # Get the blob
+        blob = bucket.blob(path)
+        
+        if not blob.exists():
+            raise Http404(f"File {path} not found in GCS bucket")
+        
+        # Download the content
+        content = blob.download_as_bytes()
+        
+        # Set the content type based on file extension
+        content_type = 'application/octet-stream'  # Default
+        if path.endswith('.mp4'):
+            content_type = 'video/mp4'
+        elif path.endswith('.jpg') or path.endswith('.jpeg'):
+            content_type = 'image/jpeg'
+        elif path.endswith('.png'):
+            content_type = 'image/png'
+        elif path.endswith('.gif'):
+            content_type = 'image/gif'
+        
+        # Return the response
+        response = HttpResponse(content, content_type=content_type)
+        response['Content-Disposition'] = f'inline; filename="{os.path.basename(path)}"'
+        return response
+    except Exception as e:
+        return HttpResponse(f"Error serving file: {str(e)}", status=500)
 
 def store(request):
     products = [

@@ -68,8 +68,8 @@
                         {% if media.type == 'video' %}
                             <div class="thumbnail video-thumb {% if forloop.first %}active{% endif %}" 
                                  data-type="video" 
-                                 data-src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}/media/{{ media.file_path }}{% endif %}">
-                                <img src="{% if media.is_thumbnail and media.file %}{{ media.file.url }}{% elif media.is_thumbnail and media.file_path %}/media/{{ media.file_path }}{% else %}{{ media.file.url|default:'/media/stream_assets/thumbnails/video_placeholder.jpg' }}{% endif %}" 
+                                 data-src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}{% url 'STORE:serve_gcs_media' path=media.file_path %}{% endif %}">
+                                <img src="{% if media.is_thumbnail and media.file %}{{ media.file.url }}{% elif media.is_thumbnail and media.file_path %}{% url 'STORE:serve_gcs_media' path=media.file_path %}{% else %}{{ media.file.url|default:'/media/stream_assets/thumbnails/video_placeholder.jpg' }}{% endif %}" 
                                      alt="Video Thumbnail">
                                 <div class="play-icon">
                                     <i class="fas fa-play-circle"></i>
@@ -77,8 +77,8 @@
                             </div>
                         {% else %}
                             <div class="thumbnail {% if forloop.first %}active{% endif %}" 
-                                 data-image="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}/media/{{ media.file_path }}{% endif %}">
-                                <img src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}/media/{{ media.file_path }}{% endif %}" 
+                                 data-image="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}{% url 'STORE:serve_gcs_media' path=media.file_path %}{% endif %}">
+                                <img src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}{% url 'STORE:serve_gcs_media' path=media.file_path %}{% endif %}" 
                                      alt="Gallery Image {{ forloop.counter }}">
                             </div>
                         {% endif %}
