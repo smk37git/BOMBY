@@ -81,4 +81,7 @@ urlpatterns = [
 
     # Store Analytics
     path('admin/analytics/', views.store_analytics, name='store_analytics'),
+
+    # Add Stream Media
+    path('admin/stream-assets/add-media/', views.add_stream_store_media, name='add_stream_store_media'),
 ]

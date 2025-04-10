@@ -167,8 +167,21 @@ def donation_success(request):
     return redirect('STORE:store')
 
 def stream_setup(request):
+    media_items = AssetMedia.objects.filter(
+        asset__name__icontains='My Custom Setup'
+    ).order_by('order')
+    
+    if not media_items.exists():
+        media_items = AssetMedia.objects.filter(
+            asset__name__icontains='stream'
+        ).order_by('order')[:5]  # Limit to 5 items
+    
     product_reviews = get_all_reviews()
-    return render(request, 'STORE/stream_setup.html', {'product_reviews': product_reviews})
+    
+    return render(request, 'STORE/stream_setup.html', {
+        'product_reviews': product_reviews,
+        'media_items': media_items
+    })
 
 
 def stream_store(request):
@@ -1949,3 +1962,65 @@ def store_analytics(request):
     }
     
     return render(request, 'STORE/store_analytics.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def add_stream_store_media(request):
+    """Add media to an existing stream asset"""
+    
+    # Get all stream assets
+    assets = StreamAsset.objects.all().order_by('name')
+    
+    if request.method == 'POST':
+        asset_id = request.POST.get('asset_id')
+        media_types = request.POST.getlist('media_types[]')
+        media_file_paths = request.POST.getlist('media_file_paths[]')
+        is_thumbnail_values = request.POST.getlist('is_thumbnail[]')
+        
+        # Get the asset
+        try:
+            asset = StreamAsset.objects.get(id=asset_id)
+        except StreamAsset.DoesNotExist:
+            messages.error(request, 'Asset not found')
+            return redirect('STORE:stream_asset_management')
+        
+        # Process thumbnail selection
+        thumbnail_index = -1
+        for i, value in enumerate(is_thumbnail_values):
+            if value == 'true':
+                thumbnail_index = i
+                break
+        
+        # Add media files
+        for i, file_path in enumerate(media_file_paths):
+            if not file_path:
+                continue
+                
+            # Determine if this should be thumbnail
+            is_thumb = (i == thumbnail_index)
+            
+            # If this is a thumbnail, unset any existing thumbnails
+            if is_thumb:
+                asset.media.filter(is_thumbnail=True).update(is_thumbnail=False)
+            
+            # Create the media object
+            media_type = media_types[i] if i < len(media_types) else 'image'
+            
+            # Calculate next order position
+            next_order = asset.media.aggregate(models.Max('order'))['order__max'] or 0
+            next_order += 1
+            
+            AssetMedia.objects.create(
+                asset=asset,
+                type=media_type,
+                file_path=file_path,
+                is_thumbnail=is_thumb,
+                order=next_order
+            )
+        
+        messages.success(request, f'Media files added successfully to {asset.name}')
+        return redirect('STORE:stream_asset_detail', asset_id=asset.id)
+    
+    return render(request, 'STORE/add_stream_store_media.html', {
+        'assets': assets
+    })

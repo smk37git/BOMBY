@@ -1,0 +1,355 @@
+
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/product_management.css' %}">
+    <style>
+        .media-item {
+            border: 1px solid #2a2a2a;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            background-color: rgba(30, 30, 30, 0.5);
+            position: relative;
+        }
+        
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #cc0000;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        
+        .section-title {
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        
+        .add-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 8px 15px;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #2a2a2a;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: #28a745;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .upload-status {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .media-preview {
+            margin-top: 10px;
+            max-width: 200px;
+            max-height: 150px;
+            display: none;
+        }
+        
+        .upload-complete .media-preview {
+            display: block;
+        }
+    </style>
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1 class="user_management-title">Add Stream Media</h1>
+    </div>
+    
+    <!-- Messages -->
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="profile-section">
+        <form method="post" enctype="multipart/form-data" class="admin-form" id="media-form">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="asset_id">Asset</label>
+                <select id="asset_id" name="asset_id" class="form-control" required>
+                    <option value="">Select an asset</option>
+                    {% for asset in assets %}
+                        <option value="{{ asset.id }}">{{ asset.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <h3 class="section-title">Media Items</h3>
+            <div id="media-container">
+                <div class="media-item">
+                    <button type="button" class="remove-btn remove-media-btn">×</button>
+                    <div class="form-group">
+                        <label>Media Type</label>
+                        <select name="media_types[]" class="form-control media-type-select">
+                            <option value="image">Image</option>
+                            <option value="video">Video</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Media File</label>
+                        <input type="file" class="form-control file-input media-file-input">
+                        <input type="hidden" name="media_file_paths[]" class="media-file-path">
+                        <div class="progress-bar media-progress">
+                            <div class="progress-bar-fill"></div>
+                        </div>
+                        <div class="upload-status media-status">Ready to upload</div>
+                        <img src="" alt="" class="media-preview">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-container">
+                            <input type="checkbox" name="is_thumbnail[]" value="true" class="thumbnail-checkbox">
+                            <span class="checkbox-label">Use as thumbnail</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <button type="button" id="add-media-btn" class="add-btn">Add Media</button>
+            
+            <div class="form-actions">
+                <a href="{% url 'STORE:stream_asset_management' %}" class="action-button cancel">Cancel</a>
+                <button type="button" id="submit-form" class="action-button">Save Media</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Load the chunked uploader script -->
+<script src="{% static 'js/chunked-upload.js' %}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize chunked uploader
+        const uploader = new ChunkedUploader({
+            chunkSize: 1024 * 1024, // 1MB chunks
+            concurrentUploads: 2,
+            onProgress: function(progress) {
+                // Update progress bar for the correct file
+                const { uploadId, filename, percentage } = progress;
+                const progressBar = document.querySelector(`[data-upload-id="${uploadId}"]`);
+                if (progressBar) {
+                    const fill = progressBar.querySelector('.progress-bar-fill');
+                    const status = progressBar.nextElementSibling;
+                    fill.style.width = `${percentage}%`;
+                    status.textContent = `Uploading: ${percentage}%`;
+                }
+            },
+            onComplete: function(result, filename) {
+                // Handle successful upload - store file path in hidden input
+                const { file_path, status } = result;
+                if (status === 'complete') {
+                    const fileInput = document.querySelector(`[data-filename="${filename}"]`);
+                    if (fileInput) {
+                        const pathInput = fileInput.nextElementSibling;
+                        const progressBar = fileInput.nextElementSibling.nextElementSibling;
+                        const statusText = progressBar.nextElementSibling;
+                        const mediaPreview = statusText.nextElementSibling;
+                        const mediaItem = fileInput.closest('.media-item');
+                        
+                        pathInput.value = file_path;
+                        statusText.textContent = 'Upload complete';
+                        statusText.style.color = '#28a745';
+                        
+                        // Show preview if it's an image
+                        if (file_path.match(/\.(jpeg|jpg|gif|png)$/i)) {
+                            mediaPreview.src = `/media/${file_path}`;
+                            mediaPreview.style.display = 'block';
+                        }
+                        
+                        mediaItem.classList.add('upload-complete');
+                    }
+                }
+            },
+            onError: function(error, filename) {
+                // Handle upload error
+                const fileInput = document.querySelector(`[data-filename="${filename}"]`);
+                if (fileInput) {
+                    const statusText = fileInput.nextElementSibling.nextElementSibling.nextElementSibling;
+                    statusText.textContent = `Error: ${error.message}`;
+                    statusText.style.color = '#cc0000';
+                }
+                console.error('Upload error:', error);
+            }
+        });
+        
+        // Media handling
+        const mediaContainer = document.getElementById('media-container');
+        const addMediaBtn = document.getElementById('add-media-btn');
+        
+        // Add event listeners for remove buttons
+        document.querySelectorAll('.remove-media-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (mediaContainer.children.length > 1) {
+                    this.closest('.media-item').remove();
+                } else {
+                    alert('You need at least one media item');
+                }
+            });
+        });
+        
+        // Setup file upload listeners for initial items
+        document.querySelectorAll('.media-file-input').forEach(setupFileUploadListeners);
+        
+        // Handle adding new media items
+        addMediaBtn.addEventListener('click', function() {
+            const newItem = document.createElement('div');
+            newItem.className = 'media-item';
+            newItem.innerHTML = `
+                <button type="button" class="remove-btn remove-media-btn">×</button>
+                <div class="form-group">
+                    <label>Media Type</label>
+                    <select name="media_types[]" class="form-control media-type-select">
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Media File</label>
+                    <input type="file" class="form-control file-input media-file-input">
+                    <input type="hidden" name="media_file_paths[]" class="media-file-path">
+                    <div class="progress-bar media-progress">
+                        <div class="progress-bar-fill"></div>
+                    </div>
+                    <div class="upload-status media-status">Ready to upload</div>
+                    <img src="" alt="" class="media-preview">
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-container">
+                        <input type="checkbox" name="is_thumbnail[]" value="true" class="thumbnail-checkbox">
+                        <span class="checkbox-label">Use as thumbnail</span>
+                    </label>
+                </div>
+            `;
+            mediaContainer.appendChild(newItem);
+            
+            // Add event listener to new remove button
+            newItem.querySelector('.remove-media-btn').addEventListener('click', function() {
+                if (mediaContainer.children.length > 1) {
+                    this.closest('.media-item').remove();
+                } else {
+                    alert('You need at least one media item');
+                }
+            });
+            
+            // Add file input event listener
+            setupFileUploadListeners(newItem.querySelector('.media-file-input'));
+        });
+        
+        // Setup thumbnail checkbox behavior - only one can be selected
+        mediaContainer.addEventListener('change', function(e) {
+            if (e.target.classList.contains('thumbnail-checkbox') && e.target.checked) {
+                document.querySelectorAll('.thumbnail-checkbox').forEach(cb => {
+                    if (cb !== e.target) cb.checked = false;
+                });
+            }
+        });
+        
+        // Setup file upload handlers
+        function setupFileUploadListeners(fileInput) {
+            fileInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    const file = this.files[0];
+                    
+                    // Set data attributes for tracking
+                    this.setAttribute('data-filename', file.name);
+                    
+                    // Get media type
+                    const mediaType = this.closest('.media-item').querySelector('.media-type-select').value;
+                    
+                    // Show progress bar
+                    const progressBar = this.closest('.form-group').querySelector('.media-progress');
+                    const statusText = this.closest('.form-group').querySelector('.media-status');
+                    progressBar.style.display = 'block';
+                    
+                    // Generate unique upload ID
+                    const uploadId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+                    progressBar.setAttribute('data-upload-id', uploadId);
+                    
+                    // Start upload
+                    statusText.textContent = 'Starting upload...';
+                    uploader.uploadFile(file, { type: mediaType })
+                        .then(uploadId => {
+                            console.log(`Upload started with ID: ${uploadId}`);
+                        })
+                        .catch(error => {
+                            statusText.textContent = `Upload failed to start: ${error.message}`;
+                            statusText.style.color = '#cc0000';
+                            console.error('Error starting upload:', error);
+                        });
+                }
+            });
+        }
+        
+        // Handle form submission
+        document.getElementById('submit-form').addEventListener('click', function() {
+            // Check if an asset is selected
+            const assetId = document.getElementById('asset_id').value;
+            if (!assetId) {
+                alert('Please select an asset');
+                return;
+            }
+            
+            // Check if all uploads are complete
+            const incomplete = Array.from(document.querySelectorAll('.upload-status')).some(
+                status => status.textContent.includes('Uploading')
+            );
+            
+            if (incomplete) {
+                alert('Please wait for all uploads to complete before submitting');
+                return;
+            }
+            
+            // Check if at least one file path is provided
+            const filePaths = Array.from(document.querySelectorAll('.media-file-path')).filter(
+                input => input.value.trim()
+            );
+            
+            if (filePaths.length === 0) {
+                alert('Please upload at least one media file');
+                return;
+            }
+            
+            // Submit the form
+            document.getElementById('media-form').submit();
+        });
+    });
+</script>
+{% endblock %}

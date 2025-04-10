@@ -25,35 +25,53 @@
         <div class="product-gallery-side">
             <div class="product-featured-image">
                 <div id="featured-container">
-                    <video id="featuredVideo" class="featured-image" controls style="display: none;">
-                        <source src="{% static 'videos/Bomby_Stream_Setup.mp4' %}" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                    <img src="{% static 'images/stream_setup_1.jpg' %}" 
-                         alt="Basic Package" class="featured-image" id="featuredImage">
+                    <!-- This will be populated by JavaScript -->
                 </div>
             </div>
             
             <div class="gallery-thumbnails">
-                <!-- Thumbnails -->
-                <div class="thumbnail video-thumb active" data-type="video" data-src="{% static 'videos/Bomby_Stream_Setup.mp4' %}">
-                    <img src="{% static 'images/stream_setup_1.jpg' %}" alt="Video Thumbnail">
-                    <div class="play-icon">
-                        <i class="fas fa-play-circle"></i>
+                <!-- Dynamic thumbnails from media -->
+                {% if media_items %}
+                    {% for media in media_items %}
+                        {% if media.type == 'video' %}
+                            <div class="thumbnail video-thumb {% if forloop.first %}active{% endif %}" 
+                                 data-type="video" 
+                                 data-src="{% if media.file %}{{ media.file.url }}{% else %}/media/{{ media.file_path }}{% endif %}">
+                                <img src="{% if media.is_thumbnail and media.file %}{{ media.file.url }}{% elif media.is_thumbnail and media.file_path %}/media/{{ media.file_path }}{% else %}{% static 'images/stream_setup_1.jpg' %}{% endif %}" 
+                                     alt="Video Thumbnail">
+                                <div class="play-icon">
+                                    <i class="fas fa-play-circle"></i>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="thumbnail {% if forloop.first %}active{% endif %}" 
+                                 data-image="{% if media.file %}{{ media.file.url }}{% else %}/media/{{ media.file_path }}{% endif %}">
+                                <img src="{% if media.file %}{{ media.file.url }}{% else %}/media/{{ media.file_path }}{% endif %}" 
+                                     alt="Gallery Image {{ forloop.counter }}">
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    <!-- Fallback to static content if no media is available -->
+                    <div class="thumbnail video-thumb active" data-type="video" data-src="{% static 'videos/Bomby_Stream_Setup.mp4' %}">
+                        <img src="{% static 'images/stream_setup_1.jpg' %}" alt="Video Thumbnail">
+                        <div class="play-icon">
+                            <i class="fas fa-play-circle"></i>
+                        </div>
                     </div>
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_2.jpg' %}">
-                    <img src="{% static 'images/my_stream_setup_2.jpg' %}" alt="Gallery Image 2">
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_3.jpg' %}">
-                    <img src="{% static 'images/my_stream_setup_3.jpg' %}" alt="Gallery Image 3">
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_4.jpg' %}">
-                    <img src="{% static 'images/my_stream_setup_4.jpg' %}" alt="Gallery Image 4">
-                </div>
-                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_5.jpg' %}">
-                    <img src="{% static 'images/my_stream_setup_5.jpg' %}" alt="Gallery Image 5">
-                </div>
+                    <div class="thumbnail" data-image="{% static 'images/my_stream_setup_2.jpg' %}">
+                        <img src="{% static 'images/my_stream_setup_2.jpg' %}" alt="Gallery Image 2">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/my_stream_setup_3.jpg' %}">
+                        <img src="{% static 'images/my_stream_setup_3.jpg' %}" alt="Gallery Image 3">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/my_stream_setup_4.jpg' %}">
+                        <img src="{% static 'images/my_stream_setup_4.jpg' %}" alt="Gallery Image 4">
+                    </div>
+                    <div class="thumbnail" data-image="{% static 'images/my_stream_setup_5.jpg' %}">
+                        <img src="{% static 'images/my_stream_setup_5.jpg' %}" alt="Gallery Image 5">
+                    </div>
+                {% endif %}
             </div>
 
             <div class="gallery-message-button">
@@ -293,145 +311,6 @@
         // Global cache to store preloaded videos and thumbnails
         window.videoCache = {};
         
-        // Preload the video and generate thumbnail
-        function preloadVideo() {
-            const videoSrc = "{% static 'videos/Bomby_Stream_Setup.mp4' %}";
-            
-            // Create video element for preloading
-            const video = document.createElement('video');
-            video.muted = true;
-            video.preload = 'auto';
-            video.crossOrigin = 'anonymous';
-            video.style.display = 'none';
-            
-            // Add to cache
-            window.videoCache[videoSrc] = {
-                video: video,
-                loaded: false,
-                thumbnail: null
-            };
-            
-            // Set video attributes
-            const sourceElement = document.createElement('source');
-            sourceElement.src = videoSrc;
-            sourceElement.type = 'video/mp4';
-            video.appendChild(sourceElement);
-            document.body.appendChild(video);
-            
-            // Generate thumbnail on metadata load
-            video.addEventListener('loadeddata', function onDataLoaded() {
-                video.currentTime = 0.1;
-                
-                video.addEventListener('seeked', function onSeeked() {
-                    // Create canvas and generate thumbnail
-                    const canvas = document.createElement('canvas');
-                    const scale = 0.5;
-                    canvas.width = video.videoWidth * scale;
-                    canvas.height = video.videoHeight * scale;
-                    
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    
-                    try {
-                        // Save thumbnail to cache
-                        const dataURL = canvas.toDataURL('image/jpeg', 0.7);
-                        window.videoCache[videoSrc].thumbnail = dataURL;
-                        window.videoCache[videoSrc].loaded = true;
-                        
-                        // Apply thumbnail to video thumb
-                        const videoThumb = document.querySelector('.thumbnail.video-thumb img');
-                        if (videoThumb) {
-                            videoThumb.src = dataURL;
-                        }
-                    } catch(e) {
-                        console.error("Could not generate thumbnail", e);
-                    }
-                    
-                    video.removeEventListener('seeked', onSeeked);
-                });
-                
-                video.removeEventListener('loadeddata', onDataLoaded);
-            });
-            
-            // Start loading
-            video.load();
-        }
-        
-        // Setup video thumbnails and click handlers
-        function setupVideoHandling() {
-            const thumbnails = document.querySelectorAll('.thumbnail');
-            const featuredContainer = document.getElementById('featured-container');
-            
-            thumbnails.forEach(thumb => {
-                thumb.addEventListener('click', function() {
-                    // Update active state
-                    thumbnails.forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    if (this.classList.contains('video-thumb')) {
-                        // Create video container with play button
-                        const videoSrc = "{% static 'videos/Bomby_Stream_Setup.mp4' %}";
-                        const videoContainer = document.createElement('div');
-                        videoContainer.className = 'video-container';
-                        videoContainer.id = 'videoContainer';
-                        videoContainer.dataset.src = videoSrc;
-                        
-                        // Add thumbnail
-                        const thumbnail = document.createElement('img');
-                        thumbnail.className = 'video-thumbnail';
-                        thumbnail.id = 'videoThumbnail';
-                        thumbnail.alt = 'Video thumbnail';
-                        
-                        // Use cached thumbnail if available
-                        if (window.videoCache[videoSrc] && window.videoCache[videoSrc].thumbnail) {
-                            thumbnail.src = window.videoCache[videoSrc].thumbnail;
-                            thumbnail.style.opacity = 1;
-                        } else {
-                            // Fallback to static thumbnail
-                            thumbnail.src = "{% static 'images/stream_setup_1.jpg' %}";
-                        }
-                        
-                        // Add play overlay
-                        const playOverlay = document.createElement('div');
-                        playOverlay.className = 'play-overlay';
-                        playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
-                        
-                        // Assemble container
-                        videoContainer.appendChild(thumbnail);
-                        videoContainer.appendChild(playOverlay);
-                        
-                        // Replace content in featured container
-                        featuredContainer.innerHTML = '';
-                        featuredContainer.appendChild(videoContainer);
-                        
-                        // Set up click handler for playing the video
-                        videoContainer.addEventListener('click', function() {
-                            const videoElement = document.createElement('video');
-                            videoElement.setAttribute('controls', true);
-                            videoElement.setAttribute('autoplay', true);
-                            videoElement.className = 'featured-image';
-                            videoElement.src = this.dataset.src;
-                            
-                            // Replace container with video
-                            featuredContainer.innerHTML = '';
-                            featuredContainer.appendChild(videoElement);
-                            videoElement.play();
-                        });
-                    } else {
-                        // Handle image content
-                        const imageElement = document.createElement('img');
-                        imageElement.src = this.dataset.image;
-                        imageElement.alt = 'Featured image';
-                        imageElement.className = 'featured-image';
-                        imageElement.id = 'featuredImage';
-                        
-                        featuredContainer.innerHTML = '';
-                        featuredContainer.appendChild(imageElement);
-                    }
-                });
-            });
-        }
-        
         // Add styling for video elements
         function addVideoStyles() {
             const style = document.createElement('style');
@@ -503,211 +382,375 @@
             document.head.appendChild(style);
         }
         
-        // Initialize video functionality
-        function initVideo() {
-            addVideoStyles();
-            preloadVideo();
-            setupVideoHandling();
+        // Preload all videos
+        function preloadAllVideos() {
+            // Find all video thumbnails
+            const videoThumbs = document.querySelectorAll('.thumbnail.video-thumb');
             
-            // Click the video thumbnail to show it initially
-            setTimeout(() => {
-                const videoThumb = document.querySelector('.thumbnail.video-thumb');
-                if (videoThumb) {
-                    videoThumb.click();
-                }
-            }, 100);
+            videoThumbs.forEach(thumb => {
+                const videoSrc = thumb.dataset.src;
+                if (!videoSrc) return;
+                
+                // Create video element for preloading
+                const video = document.createElement('video');
+                video.muted = true;
+                video.preload = 'auto';
+                video.crossOrigin = 'anonymous';
+                video.style.display = 'none';
+                
+                // Add to cache
+                window.videoCache[videoSrc] = {
+                    video: video,
+                    loaded: false,
+                    thumbnail: null
+                };
+                
+                // Set video attributes
+                const sourceElement = document.createElement('source');
+                sourceElement.src = videoSrc;
+                sourceElement.type = 'video/mp4';
+                video.appendChild(sourceElement);
+                document.body.appendChild(video);
+                
+                // Generate thumbnail on metadata load
+                video.addEventListener('loadeddata', function onDataLoaded() {
+                    video.currentTime = 0.1;
+                    
+                    video.addEventListener('seeked', function onSeeked() {
+                        // Create canvas and generate thumbnail
+                        const canvas = document.createElement('canvas');
+                        const scale = 0.5;
+                        canvas.width = video.videoWidth * scale;
+                        canvas.height = video.videoHeight * scale;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        try {
+                            // Save thumbnail to cache
+                            const dataURL = canvas.toDataURL('image/jpeg', 0.7);
+                            window.videoCache[videoSrc].thumbnail = dataURL;
+                            window.videoCache[videoSrc].loaded = true;
+                            
+                            // Apply thumbnail to video thumb
+                            const videoThumbImg = thumb.querySelector('img');
+                            if (videoThumbImg) {
+                                videoThumbImg.src = dataURL;
+                            }
+                            
+                            // If this is the active thumbnail, update the featured image too
+                            if (thumb.classList.contains('active')) {
+                                updateFeaturedMedia(thumb);
+                            }
+                        } catch(e) {
+                            console.error("Could not generate thumbnail", e);
+                        }
+                        
+                        video.removeEventListener('seeked', onSeeked);
+                    });
+                    
+                    video.removeEventListener('loadeddata', onDataLoaded);
+                });
+                
+                // Start loading
+                video.load();
+            });
         }
         
-        // Run video initialization
-        initVideo();
+        // Update featured media based on the selected thumbnail
+        function updateFeaturedMedia(thumb) {
+            const featuredContainer = document.getElementById('featured-container');
+            
+            if (thumb.classList.contains('video-thumb')) {
+                // Create video container with play button
+                const videoSrc = thumb.dataset.src;
+                const videoContainer = document.createElement('div');
+                videoContainer.className = 'video-container';
+                videoContainer.id = 'videoContainer';
+                videoContainer.dataset.src = videoSrc;
+                
+                // Add thumbnail
+                const thumbnail = document.createElement('img');
+                thumbnail.className = 'video-thumbnail';
+                thumbnail.id = 'videoThumbnail';
+                thumbnail.alt = 'Video thumbnail';
+                
+                // Use cached thumbnail if available
+                if (window.videoCache[videoSrc] && window.videoCache[videoSrc].thumbnail) {
+                    thumbnail.src = window.videoCache[videoSrc].thumbnail;
+                    thumbnail.style.opacity = 1;
+                } else {
+                    // Fallback to the thumbnail image
+                    const thumbImg = thumb.querySelector('img');
+                    if (thumbImg) {
+                        thumbnail.src = thumbImg.src;
+                    }
+                }
+                
+                // Add play overlay
+                const playOverlay = document.createElement('div');
+                playOverlay.className = 'play-overlay';
+                playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
+                
+                // Assemble container
+                videoContainer.appendChild(thumbnail);
+                videoContainer.appendChild(playOverlay);
+                
+                // Replace content in featured container
+                featuredContainer.innerHTML = '';
+                featuredContainer.appendChild(videoContainer);
+                
+                // Set up click handler for playing the video
+                videoContainer.addEventListener('click', function() {
+                    const videoElement = document.createElement('video');
+                    videoElement.setAttribute('controls', true);
+                    videoElement.setAttribute('autoplay', true);
+                    videoElement.className = 'featured-image';
+                    videoElement.src = this.dataset.src;
+                    
+                    // Replace container with video
+                    featuredContainer.innerHTML = '';
+                    featuredContainer.appendChild(videoElement);
+                    videoElement.play();
+                });
+            } else {
+                // Handle image content
+                const imageElement = document.createElement('img');
+                imageElement.src = thumb.dataset.image;
+                imageElement.alt = 'Featured image';
+                imageElement.className = 'featured-image';
+                imageElement.id = 'featuredImage';
+                
+                featuredContainer.innerHTML = '';
+                featuredContainer.appendChild(imageElement);
+            }
+        }
+        
+        // Setup thumbnail gallery functionality
+        function setupGalleryThumbnails() {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            
+            thumbnails.forEach(thumb => {
+                thumb.addEventListener('click', function() {
+                    // Update active state
+                    thumbnails.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update featured media
+                    updateFeaturedMedia(this);
+                });
+            });
+            
+            // Set initial featured media
+            const activeThumb = document.querySelector('.thumbnail.active');
+            if (activeThumb) {
+                updateFeaturedMedia(activeThumb);
+            }
+        }
         
         // FAQ dropdown functionality
-        const faqItems = document.querySelectorAll('.faq-item');
-        
-        faqItems.forEach(item => {
-            const question = item.querySelector('.faq-question');
+        function setupFAQHandlers() {
+            const faqItems = document.querySelectorAll('.faq-item');
             
-            question.addEventListener('click', function() {
-                // Toggle active class
-                item.classList.toggle('active');
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
                 
-                // Get the chevron container
-                const chevronContainer = this.querySelector('.chevron-container');
-                
-                // Toggle chevron direction
-                if(item.classList.contains('active')) {
-                    chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
-                } else {
-                    chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                }
+                question.addEventListener('click', function() {
+                    // Toggle active class
+                    item.classList.toggle('active');
+                    
+                    // Get the chevron container
+                    const chevronContainer = this.querySelector('.chevron-container');
+                    
+                    // Toggle chevron direction
+                    if(item.classList.contains('active')) {
+                        chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                    } else {
+                        chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                    }
+                });
             });
-        });
-
-        // Add date/time conversion to review dates
-        // Format dates to local timezone
-        const formatLocalDate = (dateString) => {
-            if (!dateString) return '';
-            try {
-                const date = new Date(dateString);
-                if (isNaN(date.getTime())) {
+        }
+        
+        // Handle review pagination
+        function setupReviewPagination() {
+            // Format dates to local timezone
+            const formatLocalDate = (dateString) => {
+                if (!dateString) return '';
+                try {
+                    const date = new Date(dateString);
+                    if (isNaN(date.getTime())) {
+                        return dateString;
+                    }
+                    return new Intl.DateTimeFormat('en-US', {
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric'
+                    }).format(date);
+                } catch (e) {
                     return dateString;
                 }
-                return new Intl.DateTimeFormat('en-US', {
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric'
-                }).format(date);
-            } catch (e) {
-                return dateString;
-            }
-        };
-        
-        // Convert review dates to local timezone
-        document.querySelectorAll('.review-date').forEach(element => {
-            if (element.textContent.trim()) {
-                element.textContent = formatLocalDate(element.textContent.trim());
-            }
-        });
+            };
+            
+            // Convert review dates to local timezone
+            document.querySelectorAll('.review-date').forEach(element => {
+                if (element.textContent.trim()) {
+                    element.textContent = formatLocalDate(element.textContent.trim());
+                }
+            });
 
-        // Handle review pagination with randomization
-        const reviewItems = document.querySelectorAll('.review-item');
-        if (reviewItems.length > 0) {
-            const reviewsList = document.getElementById('reviewsList');
-            const reviews = Array.from(reviewItems);
-            const reviewsPerPage = 5; // Changed from 3 to 5
-            
-            // Shuffle array using Fisher-Yates algorithm
-            for (let i = reviews.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [reviews[i], reviews[j]] = [reviews[j], reviews[i]];
-            }
-            
-            // Remove all reviews from DOM
-            reviews.forEach(review => review.remove());
-            
-            // Reappend in new random order
-            reviews.forEach(review => {
-                review.style.display = 'none';
-                review.classList.remove('fade-in');
-                reviewsList.appendChild(review);
-            });
-            
-            const totalPages = Math.ceil(reviews.length / reviewsPerPage);
-            
-            // Set the total pages in pagination info
-            const totalPagesElement = document.getElementById('totalPages');
-            if (totalPagesElement) {
-                totalPagesElement.textContent = totalPages;
-            }
-            
-            // Show first page of reviews
-            reviews.forEach((item, index) => {
-                if (index < reviewsPerPage) {
-                    item.style.display = 'block';
-                    setTimeout(() => {
-                        item.classList.add('fade-in');
-                    }, index * 100);
-                }
-            });
-            
-            // Handle pagination
-            const prevButton = document.getElementById('prevReviews');
-            const nextButton = document.getElementById('nextReviews');
-            const currentPageElement = document.getElementById('currentPage');
-            
-            if (prevButton && nextButton && currentPageElement) {
-                let currentPage = 1;
+            // Handle review pagination with randomization
+            const reviewItems = document.querySelectorAll('.review-item');
+            if (reviewItems.length > 0) {
+                const reviewsList = document.getElementById('reviewsList');
+                const reviews = Array.from(reviewItems);
+                const reviewsPerPage = 5;
                 
-                // Disable next button if only one page
-                if (totalPages <= 1) {
-                    nextButton.disabled = true;
+                // Shuffle array using Fisher-Yates algorithm
+                for (let i = reviews.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [reviews[i], reviews[j]] = [reviews[j], reviews[i]];
                 }
                 
-                nextButton.addEventListener('click', function() {
-                    if (currentPage < totalPages) {
-                        // Hide current page reviews
-                        reviews.forEach((item, index) => {
-                            const startIndex = (currentPage - 1) * reviewsPerPage;
-                            const endIndex = startIndex + reviewsPerPage - 1;
-                            
-                            if (index >= startIndex && index <= endIndex) {
-                                item.classList.remove('fade-in');
-                                setTimeout(() => {
-                                    item.style.display = 'none';
-                                }, 300);
-                            }
-                        });
-                        
-                        // Increment page and update UI
-                        currentPage++;
-                        currentPageElement.textContent = currentPage;
-                        prevButton.disabled = false;
-                        
-                        // Show new page reviews
+                // Remove all reviews from DOM
+                reviews.forEach(review => review.remove());
+                
+                // Reappend in new random order
+                reviews.forEach(review => {
+                    review.style.display = 'none';
+                    review.classList.remove('fade-in');
+                    reviewsList.appendChild(review);
+                });
+                
+                const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+                
+                // Set the total pages in pagination info
+                const totalPagesElement = document.getElementById('totalPages');
+                if (totalPagesElement) {
+                    totalPagesElement.textContent = totalPages;
+                }
+                
+                // Show first page of reviews
+                reviews.forEach((item, index) => {
+                    if (index < reviewsPerPage) {
+                        item.style.display = 'block';
                         setTimeout(() => {
+                            item.classList.add('fade-in');
+                        }, index * 100);
+                    }
+                });
+                
+                // Handle pagination
+                const prevButton = document.getElementById('prevReviews');
+                const nextButton = document.getElementById('nextReviews');
+                const currentPageElement = document.getElementById('currentPage');
+                
+                if (prevButton && nextButton && currentPageElement) {
+                    let currentPage = 1;
+                    
+                    // Disable next button if only one page
+                    if (totalPages <= 1) {
+                        nextButton.disabled = true;
+                    }
+                    
+                    nextButton.addEventListener('click', function() {
+                        if (currentPage < totalPages) {
+                            // Hide current page reviews
                             reviews.forEach((item, index) => {
                                 const startIndex = (currentPage - 1) * reviewsPerPage;
                                 const endIndex = startIndex + reviewsPerPage - 1;
                                 
                                 if (index >= startIndex && index <= endIndex) {
-                                    item.style.display = 'block';
+                                    item.classList.remove('fade-in');
                                     setTimeout(() => {
-                                        item.classList.add('fade-in');
-                                    }, 50);
+                                        item.style.display = 'none';
+                                    }, 300);
                                 }
                             });
-                        }, 300);
-                        
-                        // Disable next button if last page
-                        if (currentPage >= totalPages) {
-                            nextButton.disabled = true;
-                        }
-                    }
-                });
-                
-                prevButton.addEventListener('click', function() {
-                    if (currentPage > 1) {
-                        // Hide current page reviews
-                        reviews.forEach((item, index) => {
-                            const startIndex = (currentPage - 1) * reviewsPerPage;
-                            const endIndex = startIndex + reviewsPerPage - 1;
                             
-                            if (index >= startIndex && index <= endIndex) {
-                                item.classList.remove('fade-in');
-                                setTimeout(() => {
-                                    item.style.display = 'none';
-                                }, 300);
+                            // Increment page and update UI
+                            currentPage++;
+                            currentPageElement.textContent = currentPage;
+                            prevButton.disabled = false;
+                            
+                            // Show new page reviews
+                            setTimeout(() => {
+                                reviews.forEach((item, index) => {
+                                    const startIndex = (currentPage - 1) * reviewsPerPage;
+                                    const endIndex = startIndex + reviewsPerPage - 1;
+                                    
+                                    if (index >= startIndex && index <= endIndex) {
+                                        item.style.display = 'block';
+                                        setTimeout(() => {
+                                            item.classList.add('fade-in');
+                                        }, 50);
+                                    }
+                                });
+                            }, 300);
+                            
+                            // Disable next button if last page
+                            if (currentPage >= totalPages) {
+                                nextButton.disabled = true;
                             }
-                        });
-                        
-                        // Decrement page and update UI
-                        currentPage--;
-                        currentPageElement.textContent = currentPage;
-                        nextButton.disabled = false;
-                        
-                        // Show new page reviews
-                        setTimeout(() => {
+                        }
+                    });
+                    
+                    prevButton.addEventListener('click', function() {
+                        if (currentPage > 1) {
+                            // Hide current page reviews
                             reviews.forEach((item, index) => {
                                 const startIndex = (currentPage - 1) * reviewsPerPage;
                                 const endIndex = startIndex + reviewsPerPage - 1;
                                 
                                 if (index >= startIndex && index <= endIndex) {
-                                    item.style.display = 'block';
+                                    item.classList.remove('fade-in');
                                     setTimeout(() => {
-                                        item.classList.add('fade-in');
-                                    }, 50);
+                                        item.style.display = 'none';
+                                    }, 300);
                                 }
                             });
-                        }, 300);
-                        
-                        // Disable prev button if first page
-                        if (currentPage <= 1) {
-                            prevButton.disabled = true;
+                            
+                            // Decrement page and update UI
+                            currentPage--;
+                            currentPageElement.textContent = currentPage;
+                            nextButton.disabled = false;
+                            
+                            // Show new page reviews
+                            setTimeout(() => {
+                                reviews.forEach((item, index) => {
+                                    const startIndex = (currentPage - 1) * reviewsPerPage;
+                                    const endIndex = startIndex + reviewsPerPage - 1;
+                                    
+                                    if (index >= startIndex && index <= endIndex) {
+                                        item.style.display = 'block';
+                                        setTimeout(() => {
+                                            item.classList.add('fade-in');
+                                        }, 50);
+                                    }
+                                });
+                            }, 300);
+                            
+                            // Disable prev button if first page
+                            if (currentPage <= 1) {
+                                prevButton.disabled = true;
+                            }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
+        
+        // Initialize everything
+        function init() {
+            addVideoStyles();
+            preloadAllVideos();
+            setupGalleryThumbnails();
+            setupFAQHandlers();
+            setupReviewPagination();
+        }
+        
+        // Start initialization
+        init();
     });
 </script>
 {% endblock %}
