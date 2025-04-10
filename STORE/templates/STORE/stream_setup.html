@@ -292,8 +292,8 @@
         // Global variables
         window.videoCache = {};
         
-        // Fetch the signed URL for the video - FIX: correct path format
-        fetch('/get-video-url/?path=stream_assets/media/Bomby_Stream_Setup.mp4')
+        // Fetch the signed URL for the video - FIXED PATH FORMAT
+        fetch('/get-video-url/?path=Bomby_Stream_Setup.mp4')
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                 return response.json();
@@ -302,7 +302,7 @@
                 window.signedVideoUrl = data.url;
                 console.log("Got signed URL:", data.url.substring(0, 50) + "...");
                 
-                // Update video thumbnail and video element
+                // Update video element
                 const videoEl = document.getElementById('featuredVideo');
                 if (videoEl) {
                     videoEl.src = data.url;
@@ -320,7 +320,7 @@
                 const featuredContainer = document.getElementById('featured-container');
                 if (featuredContainer) {
                     const placeholderImg = document.createElement('img');
-                    placeholderImg.src = featuredContainer.querySelector('img').src;
+                    placeholderImg.src = "{% static 'images/stream_setup_1.jpg' %}";
                     placeholderImg.alt = "Stream Setup";
                     placeholderImg.className = "featured-image";
                     featuredContainer.innerHTML = '';
@@ -345,17 +345,11 @@
                     this.classList.add('active');
                     
                     if (this.classList.contains('video-thumb')) {
-                        // Check if we have a signed URL
-                        if (!window.signedVideoUrl) {
-                            console.warn('No signed video URL available yet');
-                            return;
-                        }
-                        
                         // Create video container with play button
                         const videoContainer = document.createElement('div');
                         videoContainer.className = 'video-container';
                         videoContainer.id = 'videoContainer';
-                        videoContainer.dataset.src = window.signedVideoUrl;
+                        videoContainer.dataset.src = window.signedVideoUrl || '';
                         
                         // Create thumbnail image
                         const thumbnail = document.createElement('img');
@@ -378,7 +372,10 @@
                         
                         // Setup click handler for playing video
                         videoContainer.addEventListener('click', function() {
-                            if (!window.signedVideoUrl) return;
+                            if (!window.signedVideoUrl) {
+                                console.warn('No signed video URL available');
+                                return;
+                            }
                             
                             const videoEl = document.createElement('video');
                             videoEl.controls = true;
@@ -438,7 +435,7 @@
             });
         }
         
-        // Review pagination - FIX: adding null checks
+        // Review pagination with proper error handling
         function setupReviews() {
             const reviewsList = document.getElementById('reviewsList');
             if (!reviewsList) return; // Exit if element doesn't exist
@@ -554,12 +551,39 @@
             });
         }
         
+        // Fix for dropdown behavior error from console log
+        function setupDropdownBehavior() {
+            const dropdowns = document.querySelectorAll('.dropdown-container');
+            if (!dropdowns || dropdowns.length === 0) return; // Skip if no dropdowns
+            
+            dropdowns.forEach(container => {
+                const button = container.querySelector('.dropdown-button');
+                const content = container.querySelector('.dropdown-content');
+                
+                if (!button || !content) return; // Skip if elements missing
+                
+                button.addEventListener('click', function() {
+                    content.classList.toggle('show');
+                    button.classList.toggle('active');
+                });
+            });
+        }
+        
         // Initialize with proper error handling
         addStyles();
         setupGallery();
         setupFAQ();
         setupReviews();
         formatDates();
+        
+        // Add setup for dropdown if it exists (to fix the error)
+        if (typeof setupDropdownBehavior === 'function') {
+            try {
+                setupDropdownBehavior();
+            } catch (e) {
+                console.error('Error in dropdown setup:', e);
+            }
+        }
         
         // Safer way to trigger video thumbnail click
         setTimeout(() => {
