@@ -183,52 +183,54 @@
                 } 
                 // Mobile behavior
                 else {
-                    // Get all toggles
-                    const toggles = document.querySelectorAll('.dropdown-toggle');
-                    
-                    // Remove existing listeners and add new ones
-                    toggles.forEach(toggle => {
-                        // Clone to remove any existing event listeners
-                        const parent = toggle.parentNode;
-                        const newToggle = toggle.cloneNode(true);
-                        parent.replaceChild(newToggle, toggle);
+                    // Get all toggles and attach click handlers directly to them
+                    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                        // Create a completely new element to avoid any event listener issues
+                        const originalHTML = toggle.innerHTML;
+                        const originalHref = toggle.getAttribute('href');
+                        const originalClasses = toggle.className;
+                        const newToggle = document.createElement('a');
                         
-                        // Add direct click handler that works on first click
-                        newToggle.addEventListener('click', function(e) {
-                            e.preventDefault();
-                            e.stopPropagation();
+                        newToggle.innerHTML = originalHTML;
+                        newToggle.className = originalClasses;
+                        newToggle.setAttribute('href', originalHref || '#');
+                        
+                        // Replace the original toggle with the new one
+                        toggle.parentNode.replaceChild(newToggle, toggle);
+                        
+                        // Add the click handler to the new toggle
+                        newToggle.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            event.stopPropagation();
                             
                             const content = this.nextElementSibling;
                             const arrow = this.querySelector('.dropdown-arrow');
                             
-                            // Close all other dropdowns and reset arrows
+                            // Toggle dropdown visibility
+                            const isOpen = content.classList.contains('show');
+                            
+                            // Close all dropdowns first
                             document.querySelectorAll('.dropdown-content').forEach(el => {
-                                if (el !== content) {
-                                    el.classList.remove('show');
-                                }
+                                el.classList.remove('show');
                             });
                             
                             document.querySelectorAll('.dropdown-arrow').forEach(el => {
-                                if (el !== arrow) {
-                                    el.style.transform = '';
-                                }
+                                el.style.transform = '';
                             });
                             
-                            // Toggle this dropdown immediately
-                            content.classList.toggle('show');
-                            
-                            // Toggle the arrow rotation
-                            if (content.classList.contains('show')) {
-                                arrow.style.transform = 'rotate(180deg) translateY(1px)';
-                            } else {
-                                arrow.style.transform = '';
+                            // Then open this one if it wasn't already open
+                            if (!isOpen) {
+                                content.classList.add('show');
+                                if (arrow) {
+                                    arrow.style.transform = 'rotate(180deg) translateY(1px)';
+                                }
                             }
                         });
                     });
                     
-                    // Close dropdowns when clicking outside
-                    document.addEventListener('click', function(e) {
-                        if (!e.target.closest('.dropdown')) {
+                    // Handle clicks outside dropdowns
+                    document.addEventListener('click', function(event) {
+                        if (!event.target.closest('.dropdown')) {
                             document.querySelectorAll('.dropdown-content').forEach(el => {
                                 el.classList.remove('show');
                             });
@@ -244,9 +246,13 @@
             // Initialize on page load
             initializeDropdowns();
             
-            // Reinitialize on window resize
+            // Reinitialize on window resize with debounce
+            let resizeTimer;
             window.addEventListener('resize', function() {
-                initializeDropdowns();
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    initializeDropdowns();
+                }, 250);
             });
             
             // Auto-dismiss messages
