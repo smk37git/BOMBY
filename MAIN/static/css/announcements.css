@@ -212,6 +212,26 @@
     gap: 15px;
     margin-top: 20px;
   }
+
+  .action-button {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-block;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 20px;
+  }
+
+  .action-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+  }
   
   .panel-button {
     display: flex;
@@ -384,6 +404,10 @@
       max-width: 80%;
       font-size: 2.5rem;
       padding: 15px 30px;
+    }
+
+    .action-button {
+      transform: translateX(50%);
     }
 
     .panel-button {

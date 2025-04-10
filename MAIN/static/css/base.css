@@ -37,7 +37,7 @@ body {
 
 /* Announcement Bar */
 .announcement-bar {
-  width: 100%;
+  width: auto;
   padding: 10px 20px;
   display: flex;
   justify-content: center;
@@ -93,6 +93,21 @@ body {
 
 .announcement-dc3545 {
   background-color: #dc3545;
+  color: white;
+}
+
+.announcement-007bff {
+  background-color: #007bff;
+  color: white;
+}
+
+.announcement-28a745 {
+  background-color: #28a745;
+    color: white;
+}
+
+.annoucement-343a40 {
+  background-color: #343a40;
   color: white;
 }
 
@@ -891,10 +906,6 @@ main {
   .announcement-bar {
     padding: 10px;
     font-size: 0.85rem;
-  }
-  
-  .announcement-message {
-    margin-right: 30px;
   }
   
   .announcement-edit-link {

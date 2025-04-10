@@ -106,11 +106,6 @@
                         <a href="{{ announcement.link }}" class="announcement-link">{{ announcement.link_text|default:"Learn More" }}</a>
                     {% endif %}
                 </div>
-                {% if user.is_admin_user %}
-                <a href="{% url 'MAIN:manage_announcements' %}" class="announcement-edit-link">
-                    <i class="fas fa-pencil-alt"></i>
-                </a>
-                {% endif %}
             </div>
             {% endif %}
         </div>
