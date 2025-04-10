@@ -29,6 +29,7 @@ from django.db import connection
 from django.db.models import Count, Avg, Sum, Q, F
 from datetime import timedelta
 from .models import PageView, ProductInteraction, Donation
+from django.db import models
 
 def store(request):
     products = [
@@ -2031,7 +2032,8 @@ def add_stream_store_media(request):
             media_type = media_types[i] if i < len(media_types) else 'image'
             
             # Calculate next order position
-            next_order = asset.media.aggregate(models.Max('order'))['order__max'] or 0
+            from django.db.models import Max  # Or use this inline import
+            next_order = asset.media.aggregate(Max('order'))['order__max'] or 0
             next_order += 1
             
             AssetMedia.objects.create(
