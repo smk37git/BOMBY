@@ -1,6 +1,7 @@
 /* Messages Styling */
 .messages-outer-container {
     max-width: 1100px;
+    height: 800px;
     margin: 50px auto;
     padding: 20px;
     background-color: #0a0a0a;
@@ -14,7 +15,7 @@
     text-align: center;
     font-size: 2.5em;
     padding: 10px 20px;
-    margin: 0 auto 20px;
+    margin: 50px auto 0;
     background-color: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
@@ -26,8 +27,7 @@
 .messages-content {
     display: grid;
     grid-template-columns: 300px 1fr;
-    gap: 20px;
-    height: 600px;
+    height: 750px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     overflow: hidden;
@@ -38,7 +38,7 @@
     overflow-y: auto;
     padding: 10px;
     background-color: rgba(0, 0, 0, 0.2);
-    height: 600px;
+    height: 750px;
     display: flex;
     flex-direction: column;
 }
@@ -155,7 +155,7 @@
 .chat-area {
     display: flex;
     flex-direction: column;
-    height: 600px;
+    height: 750px;
     background: linear-gradient(180deg, #000000, #0d0d0d);
 }
 
@@ -367,8 +367,8 @@
 }
 
 .user-avatar {
-    width: 32px;
-    height: 32px;
+    width: 35px;
+    height: 35px;
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.788);
     margin-bottom: 5px;
@@ -400,14 +400,6 @@
     text-align: center;
     line-height: 32px;
     margin: 0;
-}
-
-.user-avatar, .conversation-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.788);
-    overflow: hidden;
 }
 
 .message-body {
@@ -764,13 +756,6 @@
     gap: 15px;
 }
 
-.user-avatar {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
 .user-details {
     display: flex !important;
     flex-direction: row !important;
@@ -1017,6 +1002,7 @@
     .messages-title {
         font-size: 2em;
         padding: 10px 15px;
+        margin: 0px auto 0;
     }
     
     .messages-content {
@@ -1027,8 +1013,8 @@
     }
     
     .conversations-list {
-        height: 300px;
-        max-height: 300px;
+        height: 335px;
+        max-height: 335px;
         width: 100%;
         border-right: none;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -1050,9 +1036,13 @@
     }
     
     .message, .message-mine, .message-other {
-        max-width: 100%;
+        max-width: 90%;
         margin-bottom: 20px;
         padding: 12px;
+    }
+
+    .message-other {
+        max-height: auto;
     }
     
     .message-body {
@@ -1187,8 +1177,10 @@
     }
     
     .product-image {
-        width: 100%;
-        height: auto;
+        width: 50%;
+        height: 50%;
+        border-radius: 8px;
+        margin-top: 10px;
     }
     
     .product-details {
@@ -1238,8 +1230,8 @@
     }
     
     .user-avatar, .avatar-placeholder {
-        width: 60px;
-        height: 60px;
+        width: 35px;
+        height: 35px;
     }
     
     .user-details {
