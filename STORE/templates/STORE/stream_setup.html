@@ -294,7 +294,7 @@
         const signedUrlPath = '/get-video-url/stream_assets/media/Bomby_Stream_Setup.mp4';
         
         // Fetch the signed URL for the video
-        fetch(signedUrlPath)
+        fetch('/get-video-url/?path=stream_assets/media/Bomby_Stream_Setup.mp4')
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
                 return response.json();

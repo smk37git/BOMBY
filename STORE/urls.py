@@ -83,5 +83,5 @@ urlpatterns = [
     path('admin/analytics/', views.store_analytics, name='store_analytics'),
 
     # Google Bucket Video
-    path('get-video-url/<path:video_path>/', views.get_video_url, name='get_video_url'),
+    path('get-video-url/', views.get_video_url, name='get_video_url'),
 ]

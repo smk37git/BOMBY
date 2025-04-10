@@ -172,7 +172,11 @@ def stream_setup(request):
     product_reviews = get_all_reviews()
     return render(request, 'STORE/stream_setup.html', {'product_reviews': product_reviews})
 
-def get_video_url(request, video_path):
+def get_video_url(request):
+    video_path = request.GET.get('path')
+    if not video_path:
+        return JsonResponse({"error": "No path provided"}, status=400)
+    
     try:
         storage_client = storage.Client()
         bucket = storage_client.bucket('bomby-user-uploads')
