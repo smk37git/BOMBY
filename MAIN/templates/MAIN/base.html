@@ -151,14 +151,9 @@
         </div>
     </footer>
     
-    <!-- JavaScript for mobile menu toggle and dropdowns -->
+   <!-- JavaScript for mobile menu toggle and dropdowns -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Initialize flag to track if dropdowns have been initialized
-            if (typeof window.isDropdownInitialized === 'undefined') {
-                window.isDropdownInitialized = false;
-            }
-            
             const mobileToggle = document.getElementById('mobile-menu-toggle');
             const navMenu = document.getElementById('nav-menu');
             
@@ -169,28 +164,15 @@
             
             // Handle dropdowns
             function initializeDropdowns() {
-                if (window.isDropdownInitialized) {
-                    // Remove all existing listeners first
-                    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-                        const newToggle = toggle.cloneNode(true);
-                        toggle.parentNode.replaceChild(newToggle, toggle);
-                    });
-                }
-                window.isDropdownInitialized = true;
-                
                 // Desktop behavior
                 if (window.innerWidth > 768) {
                     document.querySelectorAll('.dropdown').forEach(dropdown => {
-                        // Remove any existing event listeners
-                        const newDropdown = dropdown.cloneNode(true);
-                        dropdown.parentNode.replaceChild(newDropdown, dropdown);
-                        
                         // Add hover behavior
-                        newDropdown.addEventListener('mouseenter', function() {
+                        dropdown.addEventListener('mouseenter', function() {
                             this.querySelector('.dropdown-content').classList.add('show');
                         });
                         
-                        newDropdown.addEventListener('mouseleave', function() {
+                        dropdown.addEventListener('mouseleave', function() {
                             this.querySelector('.dropdown-content').classList.remove('show');
                         });
                     });
@@ -199,21 +181,8 @@
                 else {
                     // Get all toggles and attach click handlers directly to them
                     document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-                        // Create a completely new element to avoid any event listener issues
-                        const originalHTML = toggle.innerHTML;
-                        const originalHref = toggle.getAttribute('href');
-                        const originalClasses = toggle.className;
-                        const newToggle = document.createElement('a');
-                        
-                        newToggle.innerHTML = originalHTML;
-                        newToggle.className = originalClasses;
-                        newToggle.setAttribute('href', originalHref || '#');
-                        
-                        // Replace the original toggle with the new one
-                        toggle.parentNode.replaceChild(newToggle, toggle);
-                        
-                        // Add the click handler to the new toggle
-                        newToggle.addEventListener('click', function(event) {
+                        // Add touch event listener for mobile Safari
+                        toggle.addEventListener('touchstart', function(event) {
                             event.preventDefault();
                             event.stopPropagation();
                             
@@ -237,6 +206,38 @@
                                 content.classList.add('show');
                                 if (arrow) {
                                     arrow.style.transform = 'rotate(180deg) translateY(1px)';
+                                }
+                            }
+                        });
+                        
+                        // Also keep click handler for other devices
+                        toggle.addEventListener('click', function(event) {
+                            // Only execute if not already handled by touchstart
+                            if (event.pointerType !== 'touch') {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                
+                                const content = this.nextElementSibling;
+                                const arrow = this.querySelector('.dropdown-arrow');
+                                
+                                // Toggle dropdown visibility
+                                const isOpen = content.classList.contains('show');
+                                
+                                // Close all dropdowns first
+                                document.querySelectorAll('.dropdown-content').forEach(el => {
+                                    el.classList.remove('show');
+                                });
+                                
+                                document.querySelectorAll('.dropdown-arrow').forEach(el => {
+                                    el.style.transform = '';
+                                });
+                                
+                                // Then open this one if it wasn't already open
+                                if (!isOpen) {
+                                    content.classList.add('show');
+                                    if (arrow) {
+                                        arrow.style.transform = 'rotate(180deg) translateY(1px)';
+                                    }
                                 }
                             }
                         });
