@@ -184,21 +184,29 @@ def stream_setup(request):
     })
 
 
-def stream_store(request):
-    """Stream store view with access control"""
-    # Check if user can access (supporter, client, admin)
-    if request.user.is_authenticated and user_can_access_stream_store(request.user):
-        # User has access, show the actual store    
-        assets = StreamAsset.objects.filter(is_active=True)
-        return render(request, 'STORE/stream_store.html', {'assets': assets})
-    else:
-        # Show the purchase page (not purchase history)
-        product = Product.objects.get(id=4)
-        product_reviews = get_all_reviews()
-        return render(request, 'STORE/stream_store_purchase.html', {
-            'product': product,
-            'product_reviews': product_reviews
-        })
+def stream_setup(request):
+    # Get the dedicated stream setup asset
+    try:
+        setup_asset = StreamAsset.objects.get(name="My Stream Setup")
+        media_items = setup_asset.media.all().order_by('order')
+    except StreamAsset.DoesNotExist:
+        # Fallback to the old query if the asset doesn't exist
+        media_items = AssetMedia.objects.filter(
+            asset__name__icontains='My Custom Setup'
+        ).order_by('order')
+        
+        # If still nothing, try to get any media that might be relevant
+        if not media_items.exists():
+            media_items = AssetMedia.objects.filter(
+                asset__name__icontains='stream'
+            ).order_by('order')[:5]  # Limit to 5 items
+    
+    product_reviews = get_all_reviews()
+    
+    return render(request, 'STORE/stream_setup.html', {
+        'product_reviews': product_reviews,
+        'media_items': media_items
+    })
 
 def basic_website(request):
     product = Product.objects.get(id=5)
@@ -1966,13 +1974,31 @@ def store_analytics(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def add_stream_store_media(request):
-    """Add media to an existing stream asset"""
+    """Add media to an existing stream asset or to the Stream Setup page"""
     
-    # Get all stream assets
+    # Check if we're adding to stream setup
+    is_stream_setup = request.GET.get('stream_setup') == 'true'
+    
+    # Get or create the special "My Stream Setup" asset if needed
+    stream_setup_asset = None
+    if is_stream_setup:
+        stream_setup_asset, created = StreamAsset.objects.get_or_create(
+            name="My Stream Setup",
+            defaults={
+                "description": "My personal streaming setup showcase",
+                "price": 0.00,
+                "is_active": True,
+                "file_path": "stream_setup/setup.zip"  # Default placeholder
+            }
+        )
+    
+    # Get all stream assets for dropdown
     assets = StreamAsset.objects.all().order_by('name')
     
     if request.method == 'POST':
+        # Get the asset ID
         asset_id = request.POST.get('asset_id')
+        
         media_types = request.POST.getlist('media_types[]')
         media_file_paths = request.POST.getlist('media_file_paths[]')
         is_thumbnail_values = request.POST.getlist('is_thumbnail[]')
@@ -2018,9 +2044,15 @@ def add_stream_store_media(request):
                 order=next_order
             )
         
-        messages.success(request, f'Media files added successfully to {asset.name}')
-        return redirect('STORE:stream_asset_detail', asset_id=asset.id)
+        if is_stream_setup:
+            messages.success(request, 'Media files added to your stream setup')
+            return redirect('STORE:stream_setup')
+        else:
+            messages.success(request, f'Media files added successfully to {asset.name}')
+            return redirect('STORE:stream_asset_detail', asset_id=asset.id)
     
     return render(request, 'STORE/add_stream_store_media.html', {
-        'assets': assets
+        'assets': assets,
+        'is_stream_setup': is_stream_setup,
+        'stream_setup_asset': stream_setup_asset
     })
