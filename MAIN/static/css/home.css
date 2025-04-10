@@ -5,10 +5,11 @@
     box-sizing: border-box;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    color: #fff;
+body, html {
+    overflow-x: hidden;
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 h1, h2, h3 {
@@ -61,8 +62,9 @@ p {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6rem 2rem;
-    min-height: 100vh;
+
+    padding: 0 2rem;
+    min-height: 50vh;
 }
 
 .hero-content {

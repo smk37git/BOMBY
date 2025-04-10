@@ -1,0 +1,282 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/announcements.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="announcements-container">
+  <div class="announcements-header">
+    <h1 class="page-title">Manage Announcements</h1>
+  </div>
+
+  <div class="add-new-container">
+    <button id="toggleFormBtn" class="panel-button">
+      <i class="fas fa-plus"></i> Add New Announcement
+    </button>
+  </div>
+
+  <div id="formContainer" class="form-container" {% if not editing %}style="display: none;"{% endif %}>
+    <h3 class="section-title">{% if editing %}Edit{% else %}Create{% endif %} Announcement</h3>
+    <form method="post" action="{% if editing %}{% url 'MAIN:edit_announcement' editing.id %}{% else %}{% url 'MAIN:manage_announcements' %}{% endif %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label for="message">Announcement Text</label>
+        <textarea name="message" id="message" class="form-control" rows="3" required>{% if editing %}{{ editing.message }}{% endif %}</textarea>
+      </div>
+      
+      <div class="form-group">
+        <label for="link">Link URL (optional)</label>
+        <input type="url" name="link" id="link" class="form-control" value="{% if editing %}{{ editing.link }}{% endif %}">
+      </div>
+      
+      <div class="form-group">
+        <label for="link_text">Link Text (optional)</label>
+        <input type="text" name="link_text" id="link_text" class="form-control" value="{% if editing %}{{ editing.link_text }}{% endif %}" placeholder="Learn More">
+      </div>
+      
+      <div class="form-group color-options">
+        <label>Background Color</label>
+        <div class="color-grid">
+          <div class="color-option">
+            <input type="radio" name="bg_color" id="bg_color_purple" value="#7b00fe" {% if not editing or editing.bg_color == '#7b00fe' %}checked{% endif %}>
+            <label for="bg_color_purple" class="color-preview bg-purple">Purple</label>
+          </div>
+          
+          <div class="color-option">
+            <input type="radio" name="bg_color" id="bg_color_red" value="#dc3545" {% if editing and editing.bg_color == '#dc3545' %}checked{% endif %}>
+            <label for="bg_color_red" class="color-preview bg-red">Red</label>
+          </div>
+          
+          <div class="color-option">
+            <input type="radio" name="bg_color" id="bg_color_blue" value="#007bff" {% if editing and editing.bg_color == '#007bff' %}checked{% endif %}>
+            <label for="bg_color_blue" class="color-preview bg-blue">Blue</label>
+          </div>
+          
+          <div class="color-option">
+            <input type="radio" name="bg_color" id="bg_color_green" value="#28a745" {% if editing and editing.bg_color == '#28a745' %}checked{% endif %}>
+            <label for="bg_color_green" class="color-preview bg-green">Green</label>
+          </div>
+          
+          <div class="color-option">
+            <input type="radio" name="bg_color" id="bg_color_dark" value="#343a40" {% if editing and editing.bg_color == '#343a40' %}checked{% endif %}>
+            <label for="bg_color_dark" class="color-preview bg-dark">Dark</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-group color-options">
+        <label>Text Color</label>
+        <div class="color-grid">
+          <div class="color-option">
+            <input type="radio" name="text_color" id="text_color_white" value="white" {% if not editing or editing.text_color == 'white' %}checked{% endif %}>
+            <label for="text_color_white" class="color-preview text-white">White</label>
+          </div>
+          
+          <div class="color-option">
+            <input type="radio" name="text_color" id="text_color_black" value="black" {% if editing and editing.text_color == 'black' %}checked{% endif %}>
+            <label for="text_color_black" class="color-preview text-black">Black</label>
+          </div>
+        </div>
+      </div>
+      
+      <div class="form-check">
+        <input type="checkbox" name="is_active" id="is_active" {% if editing and editing.is_active %}checked{% elif not editing %}checked{% endif %}>
+        <label for="is_active">Active</label>
+      </div>
+      
+      <div id="preview-container" class="preview-container">
+        <label>Preview</label>
+        <div id="announcementPreview" class="announcement-preview">
+          <span id="previewText">{% if editing %}{{ editing.message }}{% else %}Preview of your announcement{% endif %}</span>
+          <span id="previewLink" class="preview-link {% if not editing or not editing.link %}hidden{% endif %}">
+            {% if editing and editing.link_text %}{{ editing.link_text }}{% else %}Learn More{% endif %}
+          </span>
+        </div>
+      </div>
+      
+      <div class="form-actions">
+        <button type="submit" class="panel-button green">
+          <i class="fas fa-save"></i> {% if editing %}Update{% else %}Create{% endif %} Announcement
+        </button>
+        {% if editing %}
+          <a href="{% url 'MAIN:manage_announcements' %}" class="panel-button secondary">
+            <i class="fas fa-times"></i> Cancel
+          </a>
+        {% else %}
+          <button type="button" id="cancelBtn" class="panel-button secondary">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+
+  {% if announcements %}
+    <div class="admin-panels">
+      {% for announcement in announcements %}
+        <div class="admin-panel announcement-card">
+          <div class="panel-header">
+            <span class="status-badge {% if announcement.is_active %}active{% else %}inactive{% endif %}">
+              {% if announcement.is_active %}Active{% else %}Inactive{% endif %}
+            </span>
+            <h3>Announcement #{{ announcement.id }}</h3>
+          </div>
+          
+          <div class="panel-content">
+            <div class="announcement-message">{{ announcement.message }}</div>
+            
+            {% if announcement.link %}
+              <div class="announcement-link">
+                <strong>Link:</strong> <a href="{{ announcement.link }}" target="_blank">{{ announcement.link }}</a> 
+                <span class="link-text">({{ announcement.link_text|default:"Learn More" }})</span>
+              </div>
+            {% endif %}
+            
+            <div class="announcement-preview-static" data-bg-color="{{ announcement.bg_color }}" data-text-color="{{ announcement.text_color }}">
+              {{ announcement.message }}
+              {% if announcement.link %}
+                <span class="preview-link-static">{{ announcement.link_text|default:"Learn More" }}</span>
+              {% endif %}
+            </div>
+            
+            <div class="panel-actions announcement-actions">
+              <a href="{% url 'MAIN:edit_announcement' announcement.id %}" class="panel-button">
+                <i class="fas fa-edit"></i> Edit
+              </a>
+              
+              {% if announcement.is_active %}
+                <a href="{% url 'MAIN:toggle_announcement' announcement.id %}" class="panel-button secondary">
+                  <i class="fas fa-eye-slash"></i> Deactivate
+                </a>
+              {% else %}
+                <a href="{% url 'MAIN:toggle_announcement' announcement.id %}" class="panel-button green">
+                  <i class="fas fa-eye"></i> Activate
+                </a>
+              {% endif %}
+              
+              <a href="{% url 'MAIN:delete_announcement' announcement.id %}" class="panel-button red" 
+                 onclick="return confirm('Are you sure you want to delete this announcement?')">
+                <i class="fas fa-trash"></i> Delete
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="no-announcements">
+      <p>No announcements have been created yet.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
+    const toggleFormBtn = document.getElementById('toggleFormBtn');
+    const formContainer = document.getElementById('formContainer');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const messageInput = document.getElementById('message');
+    const previewText = document.getElementById('previewText');
+    const linkInput = document.getElementById('link');
+    const linkTextInput = document.getElementById('link_text');
+    const previewLink = document.getElementById('previewLink');
+    const bgColorInputs = document.querySelectorAll('input[name="bg_color"]');
+    const textColorInputs = document.querySelectorAll('input[name="text_color"]');
+    const announcementPreview = document.getElementById('announcementPreview');
+    
+    // Initialize static previews
+    const staticPreviews = document.querySelectorAll('.announcement-preview-static');
+    staticPreviews.forEach(function(preview) {
+      const bgColor = preview.getAttribute('data-bg-color');
+      const textColor = preview.getAttribute('data-text-color');
+      
+      preview.style.backgroundColor = bgColor;
+      preview.style.color = textColor;
+      
+      const previewLink = preview.querySelector('.preview-link-static');
+      if (previewLink) {
+        previewLink.style.color = textColor;
+      }
+    });
+    
+    // Toggle form visibility
+    if (toggleFormBtn) {
+      toggleFormBtn.addEventListener('click', function() {
+        formContainer.style.display = 'block';
+        toggleFormBtn.style.display = 'none';
+      });
+    }
+    
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', function() {
+        formContainer.style.display = 'none';
+        toggleFormBtn.style.display = 'block';
+      });
+    }
+    
+    // Live preview - message
+    if (messageInput && previewText) {
+      messageInput.addEventListener('input', function() {
+        previewText.textContent = this.value || 'Preview of your announcement';
+      });
+    }
+    
+    // Live preview - link
+    if (linkInput && linkTextInput && previewLink) {
+      function updateLinkPreview() {
+        if (linkInput.value) {
+          previewLink.style.display = 'inline-block';
+          previewLink.textContent = linkTextInput.value || 'Learn More';
+        } else {
+          previewLink.style.display = 'none';
+        }
+      }
+      
+      linkInput.addEventListener('input', updateLinkPreview);
+      linkTextInput.addEventListener('input', updateLinkPreview);
+    }
+    
+    // Live preview - colors
+    function updatePreviewColors() {
+      // Get selected colors
+      let selectedBgColor = '#7b00fe'; // Default
+      let selectedTextColor = 'white'; // Default
+      
+      bgColorInputs.forEach(function(input) {
+        if (input.checked) {
+          selectedBgColor = input.value;
+        }
+      });
+      
+      textColorInputs.forEach(function(input) {
+        if (input.checked) {
+          selectedTextColor = input.value;
+        }
+      });
+      
+      // Apply colors to preview
+      announcementPreview.style.backgroundColor = selectedBgColor;
+      announcementPreview.style.color = selectedTextColor;
+      previewLink.style.color = selectedTextColor;
+    }
+    
+    // Add event listeners for color changes
+    bgColorInputs.forEach(function(input) {
+      input.addEventListener('change', updatePreviewColors);
+    });
+    
+    textColorInputs.forEach(function(input) {
+      input.addEventListener('change', updatePreviewColors);
+    });
+    
+    // Initialize preview colors
+    updatePreviewColors();
+    updateLinkPreview();
+  });
+</script>
+{% endblock %}

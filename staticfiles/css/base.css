@@ -19,6 +19,74 @@ body {
   background-color: #000;
 }
 
+/* Announcement Bar */
+.announcement-bar {
+  width: 100%;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1100;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.announcement-message {
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  font-size: 1rem;
+}
+
+.announcement-link {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: inherit;
+  text-decoration: none;
+  transition: background-color var(--transition-speed) ease;
+}
+
+.announcement-link:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  text-decoration: none;
+}
+
+.announcement-edit-link {
+  position: absolute;
+  right: 15px;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity var(--transition-speed) ease;
+}
+
+.announcement-edit-link:hover {
+  opacity: 1;
+}
+
+.custom-navbar.with-announcement {
+  top: 42px;
+}
+
+main.with-announcement {
+  padding-top: 132px;
+}
+
+.announcement-7b00fe {
+  background-color: #7b00fe;
+  color: white;
+}
+
+.announcement-dc3545 {
+  background-color: #dc3545;
+  color: white;
+}
+
 /* Navigation bar */
 .custom-navbar {
   display: flex;
@@ -642,6 +710,8 @@ main {
 
   .dropdown-toggle {
     pointer-events: auto;
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
   }
   
   .nav-menu {
@@ -664,6 +734,7 @@ main {
     max-height: 1500px;
     padding: 1rem 0;
     text-align: center;
+    border-bottom: solid 2px rgba(255, 255, 255, 0.34);
   }
   
   .nav-link {
@@ -671,14 +742,25 @@ main {
     text-align: center;
     padding: 0.8rem 0;
   }
+
+  .nav-link::after {
+    display: none;
+  }
   
   .dropdown {
     width: 100%;
     text-align: center;
   }
+
+  .dropdown:hover .dropdown-arrow {
+    transform: none;
+  }
+
+  .dropdown-arrow {
+    transition: transform var(--transition-speed) ease;
+  }
   
   .dropdown-content {
-    display: none;
     width: 100%;
     margin: 0 auto;
     background-color: rgba(0, 0, 0, 0.3);
@@ -690,14 +772,24 @@ main {
     padding: 0;
     left: 0;
     top: 100%;
-    border-bottom: solid 2px rgba(255, 255, 255, 0.34);
     position: static;
     transform: none;
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s, visibility 0.3s;
   }
   
   .dropdown-content.show {
     max-height: 500px;
+    width: 100%;
     display: block !important;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
   }
 
   .dropdown-content a {
@@ -755,8 +847,8 @@ main {
   }
   
   .bomb-icon {
-    width: 20px;
-    height: 20px;
+    max-width: 20px;
+    max-height: 20px;
   }
   
   .footer-container {
@@ -779,5 +871,33 @@ main {
   
   .footer-legal {
     justify-content: center;
+  }
+
+  .announcement-bar {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+  
+  .announcement-message {
+    margin-right: 30px;
+  }
+  
+  .announcement-edit-link {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  .announcement-link {
+    margin-left: 5px;
+    padding: 1px 5px;
+    font-size: 0.8rem;
+  }
+  
+  .custom-navbar.with-announcement {
+    top: 36px;
+  }
+  
+  main.with-announcement {
+    padding-top: 120px;
   }
 }
