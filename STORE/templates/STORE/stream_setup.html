@@ -293,6 +293,28 @@
         // Global cache to store preloaded videos and thumbnails
         window.videoCache = {};
         
+        // Fetch signed URL for video immediately
+        fetch('/get-video-url/stream_assets/media/Bomby_Setup_Public.mp4')
+            .then(response => response.json())
+            .then(data => {
+                const videoElement = document.getElementById('featuredVideo');
+                if (videoElement) {
+                    videoElement.querySelector('source').src = data.url;
+                    videoElement.load();
+                }
+                
+                // Also store the signed URL for thumbnail video
+                const videoSrc = "{% static 'videos/Bomby_Stream_Setup.mp4' %}";
+                if (!window.videoCache[videoSrc]) {
+                    window.videoCache[videoSrc] = {
+                        signedUrl: data.url,
+                        loaded: false,
+                        thumbnail: null
+                    };
+                }
+            })
+            .catch(error => console.error('Error fetching video URL:', error));
+        
         // Preload the video and generate thumbnail
         function preloadVideo() {
             const videoSrc = "{% static 'videos/Bomby_Stream_Setup.mp4' %}";
@@ -304,12 +326,16 @@
             video.crossOrigin = 'anonymous';
             video.style.display = 'none';
             
-            // Add to cache
-            window.videoCache[videoSrc] = {
-                video: video,
-                loaded: false,
-                thumbnail: null
-            };
+            // Add to cache if not already there
+            if (!window.videoCache[videoSrc]) {
+                window.videoCache[videoSrc] = {
+                    video: video,
+                    loaded: false,
+                    thumbnail: null
+                };
+            } else {
+                window.videoCache[videoSrc].video = video;
+            }
             
             // Set video attributes
             const sourceElement = document.createElement('source');
@@ -374,7 +400,13 @@
                         const videoContainer = document.createElement('div');
                         videoContainer.className = 'video-container';
                         videoContainer.id = 'videoContainer';
-                        videoContainer.dataset.src = videoSrc;
+                        
+                        // Use signed URL if available
+                        if (window.videoCache[videoSrc] && window.videoCache[videoSrc].signedUrl) {
+                            videoContainer.dataset.src = window.videoCache[videoSrc].signedUrl;
+                        } else {
+                            videoContainer.dataset.src = videoSrc;
+                        }
                         
                         // Add thumbnail
                         const thumbnail = document.createElement('img');

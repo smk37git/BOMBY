@@ -29,6 +29,8 @@ from django.db import connection
 from django.db.models import Count, Avg, Sum, Q, F
 from datetime import timedelta
 from .models import PageView, ProductInteraction, Donation
+from google.cloud import storage
+import datetime
 
 def store(request):
     products = [
@@ -170,6 +172,22 @@ def stream_setup(request):
     product_reviews = get_all_reviews()
     return render(request, 'STORE/stream_setup.html', {'product_reviews': product_reviews})
 
+def get_video_url(request, video_path):
+    try:
+        storage_client = storage.Client()
+        bucket = storage_client.bucket('bomby-user-uploads')
+        blob = bucket.blob(video_path)
+        
+        # Generate signed URL valid for 7 days
+        url = blob.generate_signed_url(
+            version="v4",
+            expiration=datetime.timedelta(days=7),
+            method="GET"
+        )
+        
+        return JsonResponse({"url": url})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 def stream_store(request):
     """Stream store view with access control"""
