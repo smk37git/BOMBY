@@ -191,33 +191,14 @@
                             const href = toggle.getAttribute('href');
                             
                             toggle.addEventListener('click', function(e) {
-                                // Always prevent default first
+                                // Always prevent default to stop navigation
                                 e.preventDefault();
                                 
                                 // Toggle dropdown visibility
-                                if (content.classList.contains('show')) {
-                                    // If dropdown is already open, close it
-                                    content.classList.remove('show');
-                                } else {
-                                    // Close all other dropdowns first
-                                    document.querySelectorAll('.dropdown-content').forEach(el => {
-                                        if (el !== content) {
-                                            el.classList.remove('show');
-                                        }
-                                    });
-                                    
-                                    // Show this dropdown
-                                    content.classList.add('show');
-                                }
+                                content.classList.toggle('show');
                                 
                                 // Stop propagation
                                 e.stopPropagation();
-                            });
-                            
-                            // Add a double-click handler for navigation
-                            toggle.addEventListener('dblclick', function(e) {
-                                e.preventDefault();
-                                window.location.href = href;
                             });
                         }
                     }

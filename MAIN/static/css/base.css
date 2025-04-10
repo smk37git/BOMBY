@@ -642,6 +642,8 @@ main {
 
   .dropdown-toggle {
     pointer-events: auto;
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
   }
   
   .nav-menu {
@@ -664,12 +666,17 @@ main {
     max-height: 1500px;
     padding: 1rem 0;
     text-align: center;
+    border-bottom: solid 2px rgba(255, 255, 255, 0.34);
   }
   
   .nav-link {
     width: 100%;
     text-align: center;
     padding: 0.8rem 0;
+  }
+
+  .nav-link::after {
+    display: none;
   }
   
   .dropdown {
@@ -690,14 +697,16 @@ main {
     padding: 0;
     left: 0;
     top: 100%;
-    border-bottom: solid 2px rgba(255, 255, 255, 0.34);
     position: static;
     transform: none;
   }
   
   .dropdown-content.show {
     max-height: 500px;
+    width: 100%;
     display: block !important;
+    margin-bottom: 0;
+    padding-bottom: 0;
   }
 
   .dropdown-content a {
