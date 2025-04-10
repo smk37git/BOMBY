@@ -166,52 +166,66 @@
             const dropdowns = document.querySelectorAll('.dropdown');
             
             function setupDropdownBehavior() {
+                // First, remove all existing click handlers to prevent duplicates
+                document.removeEventListener('click', closeDropdownsOnClickOutside);
+                
+                // Set up new dropdown behavior
                 dropdowns.forEach(dropdown => {
-                    // Remove existing event listeners first
-                    const clone = dropdown.cloneNode(true);
-                    dropdown.parentNode.replaceChild(clone, dropdown);
+                    const toggle = dropdown.querySelector('.dropdown-toggle');
+                    const content = dropdown.querySelector('.dropdown-content');
                     
-                    // Get the new dropdown element and its toggle
-                    const newDropdown = clone;
-                    const toggle = newDropdown.querySelector('.dropdown-toggle');
-                    const content = newDropdown.querySelector('.dropdown-content');
-                    
-                    if (window.innerWidth > 768) {
-                        // Desktop: Use hover
-                        newDropdown.addEventListener('mouseenter', function() {
-                            content.classList.add('show');
-                        });
-                        newDropdown.addEventListener('mouseleave', function() {
-                            content.classList.remove('show');
-                        });
-                    } else {
-                        // Mobile: Use click to toggle
-                        if (toggle) {
-                            // Store the href for navigation
-                            const href = toggle.getAttribute('href');
-                            
-                            toggle.addEventListener('click', function(e) {
-                                // Always prevent default to stop navigation
-                                e.preventDefault();
+                    // Remove old event listeners by cloning
+                    if (toggle) {
+                        const newToggle = toggle.cloneNode(true);
+                        toggle.parentNode.replaceChild(newToggle, toggle);
+                        
+                        if (window.innerWidth <= 768) {
+                            // Mobile: Direct click handlers (no cloning the whole dropdown)
+                            newToggle.addEventListener('click', function(e) {
+                                e.preventDefault(); // Prevent navigation
+                                e.stopPropagation(); // Prevent bubbling
                                 
-                                // Toggle dropdown visibility
+                                // Close all other dropdowns first
+                                dropdowns.forEach(otherDropdown => {
+                                    if (otherDropdown !== dropdown) {
+                                        const otherContent = otherDropdown.querySelector('.dropdown-content');
+                                        if (otherContent) otherContent.classList.remove('show');
+                                    }
+                                });
+                                
+                                // Toggle this dropdown
                                 content.classList.toggle('show');
-                                
-                                // Stop propagation
-                                e.stopPropagation();
                             });
                         }
                     }
                 });
                 
-                // Close dropdowns when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (window.innerWidth <= 768 && !e.target.closest('.dropdown')) {
-                        document.querySelectorAll('.dropdown-content').forEach(el => {
-                            el.classList.remove('show');
+                // Add desktop hover behavior
+                if (window.innerWidth > 768) {
+                    dropdowns.forEach(dropdown => {
+                        dropdown.addEventListener('mouseenter', function() {
+                            const content = this.querySelector('.dropdown-content');
+                            if (content) content.classList.add('show');
                         });
-                    }
-                });
+                        
+                        dropdown.addEventListener('mouseleave', function() {
+                            const content = this.querySelector('.dropdown-content');
+                            if (content) content.classList.remove('show');
+                        });
+                    });
+                }
+                
+                // Add click outside listener
+                document.addEventListener('click', closeDropdownsOnClickOutside);
+            }
+            
+            // Separate function for closing dropdowns when clicking outside
+            function closeDropdownsOnClickOutside(e) {
+                if (window.innerWidth <= 768 && !e.target.closest('.dropdown')) {
+                    document.querySelectorAll('.dropdown-content').forEach(el => {
+                        el.classList.remove('show');
+                    });
+                }
             }
             
             // Set up initial behavior
