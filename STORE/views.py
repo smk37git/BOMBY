@@ -178,6 +178,10 @@ def get_video_url(request, video_path):
         bucket = storage_client.bucket('bomby-user-uploads')
         blob = bucket.blob(video_path)
         
+        # Check if the blob exists
+        if not blob.exists():
+            return JsonResponse({"error": f"File not found: {video_path}"}, status=404)
+            
         # Generate signed URL valid for 7 days
         url = blob.generate_signed_url(
             version="v4",
@@ -187,6 +191,9 @@ def get_video_url(request, video_path):
         
         return JsonResponse({"url": url})
     except Exception as e:
+        import traceback
+        print(f"Error generating signed URL: {e}")
+        print(traceback.format_exc())
         return JsonResponse({"error": str(e)}, status=500)
 
 def stream_store(request):
