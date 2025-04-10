@@ -693,7 +693,6 @@ main {
   }
   
   .dropdown-content {
-    display: none;
     width: 100%;
     margin: 0 auto;
     background-color: rgba(0, 0, 0, 0.3);
@@ -707,6 +706,11 @@ main {
     top: 100%;
     position: static;
     transform: none;
+    display: block;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s, visibility 0.3s;
   }
   
   .dropdown-content.show {
@@ -715,6 +719,9 @@ main {
     display: block !important;
     margin-bottom: 0;
     padding-bottom: 0;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
   }
 
   .dropdown-content a {

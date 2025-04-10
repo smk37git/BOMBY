@@ -162,12 +162,16 @@
                 navMenu.classList.toggle('active');
             });
             
-            // Handle dropdowns
+            // Handle dropdowns - Safari compatible approach
             function initializeDropdowns() {
-                // Remove any existing event listeners first to avoid duplicates
+                // Remove any existing event listeners to avoid duplicates
                 document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    // Make a copy of the toggle element to remove all event listeners
                     const clone = toggle.cloneNode(true);
                     toggle.parentNode.replaceChild(clone, toggle);
+                    
+                    // Add the "clickable" attribute for Safari recognition
+                    clone.setAttribute('onclick', 'void(0)');
                 });
                 
                 // Desktop behavior
@@ -182,50 +186,51 @@
                         });
                     });
                 } 
-                // Mobile behavior
+                // Mobile behavior - unified approach for all browsers
                 else {
-                    // Simple unified approach for mobile
                     document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
-                        toggle.addEventListener('click', handleDropdownClick);
+                        // Use a single handler for all interactions
+                        toggle.addEventListener('click', function(e) {
+                            // Always prevent default link behavior
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            const content = this.nextElementSibling;
+                            const arrow = this.querySelector('.dropdown-arrow');
+                            const isOpen = content.classList.contains('show');
+                            
+                            // Close all dropdowns first
+                            document.querySelectorAll('.dropdown-content').forEach(el => {
+                                el.classList.remove('show');
+                            });
+                            
+                            document.querySelectorAll('.dropdown-arrow').forEach(el => {
+                                el.style.transform = '';
+                            });
+                            
+                            // Then open this one if it wasn't already open
+                            if (!isOpen) {
+                                content.classList.add('show');
+                                if (arrow) {
+                                    arrow.style.transform = 'rotate(180deg) translateY(1px)';
+                                }
+                            }
+                        });
                     });
                     
                     // Handle clicks outside dropdowns
                     document.addEventListener('click', function(event) {
                         if (!event.target.closest('.dropdown')) {
-                            closeAllDropdowns();
+                            document.querySelectorAll('.dropdown-content').forEach(el => {
+                                el.classList.remove('show');
+                            });
+                            
+                            document.querySelectorAll('.dropdown-arrow').forEach(el => {
+                                el.style.transform = '';
+                            });
                         }
                     });
                 }
-            }
-            
-            function handleDropdownClick(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const content = this.nextElementSibling;
-                const arrow = this.querySelector('.dropdown-arrow');
-                const isOpen = content.classList.contains('show');
-                
-                // Close all dropdowns first
-                closeAllDropdowns();
-                
-                // Then open this one if it wasn't already open
-                if (!isOpen) {
-                    content.classList.add('show');
-                    if (arrow) {
-                        arrow.style.transform = 'rotate(180deg) translateY(1px)';
-                    }
-                }
-            }
-            
-            function closeAllDropdowns() {
-                document.querySelectorAll('.dropdown-content').forEach(content => {
-                    content.classList.remove('show');
-                });
-                
-                document.querySelectorAll('.dropdown-arrow').forEach(arrow => {
-                    arrow.style.transform = '';
-                });
             }
             
             // Initialize on page load
@@ -235,7 +240,9 @@
             let resizeTimer;
             window.addEventListener('resize', function() {
                 clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(initializeDropdowns, 250);
+                resizeTimer = setTimeout(function() {
+                    initializeDropdowns();
+                }, 250);
             });
             
             // Auto-dismiss messages
