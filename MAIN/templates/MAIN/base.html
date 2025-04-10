@@ -199,16 +199,30 @@
                             e.stopPropagation();
                             
                             const content = this.nextElementSibling;
+                            const arrow = this.querySelector('.dropdown-arrow');
                             
-                            // Close all other dropdowns
+                            // Close all other dropdowns and reset arrows
                             document.querySelectorAll('.dropdown-content').forEach(el => {
                                 if (el !== content) {
                                     el.classList.remove('show');
                                 }
                             });
                             
+                            document.querySelectorAll('.dropdown-arrow').forEach(el => {
+                                if (el !== arrow) {
+                                    el.style.transform = '';
+                                }
+                            });
+                            
                             // Toggle this dropdown immediately
                             content.classList.toggle('show');
+                            
+                            // Toggle the arrow rotation
+                            if (content.classList.contains('show')) {
+                                arrow.style.transform = 'rotate(180deg) translateY(1px)';
+                            } else {
+                                arrow.style.transform = '';
+                            }
                         });
                     });
                     
@@ -217,6 +231,10 @@
                         if (!e.target.closest('.dropdown')) {
                             document.querySelectorAll('.dropdown-content').forEach(el => {
                                 el.classList.remove('show');
+                            });
+                            
+                            document.querySelectorAll('.dropdown-arrow').forEach(el => {
+                                el.style.transform = '';
                             });
                         }
                     });

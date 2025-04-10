@@ -683,6 +683,14 @@ main {
     width: 100%;
     text-align: center;
   }
+
+  .dropdown:hover .dropdown-arrow {
+    transform: none;
+  }
+
+  .dropdown-arrow {
+    transition: transform var(--transition-speed) ease;
+  }
   
   .dropdown-content {
     display: none;
@@ -764,8 +772,8 @@ main {
   }
   
   .bomb-icon {
-    width: 20px;
-    height: 20px;
+    max-width: 20px;
+    max-height: 20px;
   }
   
   .footer-container {
