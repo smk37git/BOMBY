@@ -29,8 +29,6 @@ from django.db import connection
 from django.db.models import Count, Avg, Sum, Q, F
 from datetime import timedelta
 from .models import PageView, ProductInteraction, Donation
-from google.cloud import storage
-import datetime
 
 def store(request):
     products = [
@@ -172,33 +170,6 @@ def stream_setup(request):
     product_reviews = get_all_reviews()
     return render(request, 'STORE/stream_setup.html', {'product_reviews': product_reviews})
 
-def get_video_url(request):
-    video_path = request.GET.get('path')
-    if not video_path:
-        return JsonResponse({"error": "No path provided"}, status=400)
-    
-    try:
-        storage_client = storage.Client()
-        bucket = storage_client.bucket('bomby-user-uploads')
-        blob = bucket.blob(video_path)
-        
-        # Check if the blob exists
-        if not blob.exists():
-            return JsonResponse({"error": f"File not found: {video_path}"}, status=404)
-            
-        # Generate signed URL valid for 7 days
-        url = blob.generate_signed_url(
-            version="v4",
-            expiration=datetime.timedelta(days=7),
-            method="GET"
-        )
-        
-        return JsonResponse({"url": url})
-    except Exception as e:
-        import traceback
-        print(f"Error generating signed URL: {e}")
-        print(traceback.format_exc())
-        return JsonResponse({"error": str(e)}, status=500)
 
 def stream_store(request):
     """Stream store view with access control"""
@@ -1814,11 +1785,7 @@ def store_analytics(request):
     
     # Set current period ranges
     now = timezone.now()
-    if time_frame == 'day':
-        current_start = now - timedelta(hours=24)
-        previous_start = current_start - timedelta(hours=24)
-        current_orders = Order.objects.filter(created_at__gte=current_start)
-    elif time_frame == 'week':
+    if time_frame == 'week':
         current_start = now - timedelta(days=7)
         previous_start = current_start - timedelta(days=7)
         current_orders = Order.objects.filter(created_at__gte=current_start)
@@ -1844,16 +1811,12 @@ def store_analytics(request):
             previous_start = now - timedelta(days=365)
             current_start = previous_start
     
-    # Exclude Fiverr orders by filtering out orders with reviews marked as Fiverr
-    fiverr_order_ids = Review.objects.filter(is_fiverr=True).values_list('order_id', flat=True)
-    current_orders = current_orders.exclude(id__in=fiverr_order_ids)
-    
     # Get previous period orders
     if current_start and previous_start:
         previous_orders = Order.objects.filter(
             created_at__gte=previous_start,
             created_at__lt=current_start
-        ).exclude(id__in=fiverr_order_ids)
+        )
     else:
         previous_orders = Order.objects.none()
     
@@ -1924,41 +1887,30 @@ def store_analytics(request):
     # Sort by count
     product_sales = sorted(product_sales, key=lambda x: x['count'], reverse=True)
     
-    # Review metrics - exclude Fiverr reviews
-    avg_rating = Review.objects.filter(
-        order__in=current_orders
-    ).filter(
-        is_fiverr=False
-    ).aggregate(
+    # Review metrics
+    avg_rating = Review.objects.filter(order__in=current_orders).aggregate(
         avg=Avg('rating')
     )['avg'] or 0
     
-    review_count = Review.objects.filter(
-        order__in=current_orders
-    ).filter(
-        is_fiverr=False
-    ).count()
+    review_count = Review.objects.filter(order__in=current_orders).count()
     
     # Get all products for page views
     all_products = Product.objects.all()
     
     # Prepare product view data
     page_view_data = []
-
+    
     for product in all_products:
         # Get view count for this product within the time frame
         if time_frame != 'all' and current_start:
-            # This prevents counting multiple refreshes from the same visitor
             views_count = PageView.objects.filter(
                 product=product, 
                 timestamp__gte=current_start
-            ).values('session_id').distinct().count()
+            ).count()
         else:
-            views_count = PageView.objects.filter(
-                product=product
-            ).values('session_id').distinct().count()
+            views_count = PageView.objects.filter(product=product).count()
             
-        # Count orders that aren't from Fiverr
+        # Calculate conversion rate
         product_orders = current_orders.filter(product=product).count()
         conversion_rate = (product_orders / views_count * 100) if views_count > 0 else 0
         

@@ -4,7 +4,7 @@ from . import views
 app_name = 'STORE'
 
 urlpatterns = [
-     # Main store page
+    # Main store page
     path('', views.store, name='store'),
     
     # Stream setup service pages
@@ -81,7 +81,4 @@ urlpatterns = [
 
     # Store Analytics
     path('admin/analytics/', views.store_analytics, name='store_analytics'),
-
-    # Google Bucket Video
-    path('get-video-url/', views.get_video_url, name='get_video_url'),
 ]

@@ -26,7 +26,8 @@
             <div class="product-featured-image">
                 <div id="featured-container">
                     <video id="featuredVideo" class="featured-image" controls style="display: none;">
-                        <!-- Source will be set by JavaScript -->
+                        <source src="{% static 'videos/Bomby_Stream_Setup.mp4' %}" type="video/mp4">
+                        Your browser does not support the video tag.
                     </video>
                     <img src="{% static 'images/stream_setup_1.jpg' %}" 
                          alt="Basic Package" class="featured-image" id="featuredImage">
@@ -289,54 +290,77 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Global variables
+        // Global cache to store preloaded videos and thumbnails
         window.videoCache = {};
         
-        // Fetch the signed URL for the video - FIXED PATH FORMAT
-        fetch('/get-video-url/?path=Bomby_Stream_Setup.mp4')
-            .then(response => {
-                if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-                return response.json();
-            })
-            .then(data => {
-                window.signedVideoUrl = data.url;
-                console.log("Got signed URL:", data.url.substring(0, 50) + "...");
+        // Preload the video and generate thumbnail
+        function preloadVideo() {
+            const videoSrc = "{% static 'videos/Bomby_Stream_Setup.mp4' %}";
+            
+            // Create video element for preloading
+            const video = document.createElement('video');
+            video.muted = true;
+            video.preload = 'auto';
+            video.crossOrigin = 'anonymous';
+            video.style.display = 'none';
+            
+            // Add to cache
+            window.videoCache[videoSrc] = {
+                video: video,
+                loaded: false,
+                thumbnail: null
+            };
+            
+            // Set video attributes
+            const sourceElement = document.createElement('source');
+            sourceElement.src = videoSrc;
+            sourceElement.type = 'video/mp4';
+            video.appendChild(sourceElement);
+            document.body.appendChild(video);
+            
+            // Generate thumbnail on metadata load
+            video.addEventListener('loadeddata', function onDataLoaded() {
+                video.currentTime = 0.1;
                 
-                // Update video element
-                const videoEl = document.getElementById('featuredVideo');
-                if (videoEl) {
-                    videoEl.src = data.url;
-                    videoEl.style.display = 'block';
-                    videoEl.load();
-                }
+                video.addEventListener('seeked', function onSeeked() {
+                    // Create canvas and generate thumbnail
+                    const canvas = document.createElement('canvas');
+                    const scale = 0.5;
+                    canvas.width = video.videoWidth * scale;
+                    canvas.height = video.videoHeight * scale;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    try {
+                        // Save thumbnail to cache
+                        const dataURL = canvas.toDataURL('image/jpeg', 0.7);
+                        window.videoCache[videoSrc].thumbnail = dataURL;
+                        window.videoCache[videoSrc].loaded = true;
+                        
+                        // Apply thumbnail to video thumb
+                        const videoThumb = document.querySelector('.thumbnail.video-thumb img');
+                        if (videoThumb) {
+                            videoThumb.src = dataURL;
+                        }
+                    } catch(e) {
+                        console.error("Could not generate thumbnail", e);
+                    }
+                    
+                    video.removeEventListener('seeked', onSeeked);
+                });
                 
-                // Initialize video thumbnail
-                const videoThumb = document.querySelector('.thumbnail.video-thumb');
-                if (videoThumb) videoThumb.click();
-            })
-            .catch(error => {
-                console.error('Error fetching video URL:', error);
-                // Show fallback image if video fails to load
-                const featuredContainer = document.getElementById('featured-container');
-                if (featuredContainer) {
-                    const placeholderImg = document.createElement('img');
-                    placeholderImg.src = "{% static 'images/stream_setup_1.jpg' %}";
-                    placeholderImg.alt = "Stream Setup";
-                    placeholderImg.className = "featured-image";
-                    featuredContainer.innerHTML = '';
-                    featuredContainer.appendChild(placeholderImg);
-                }
+                video.removeEventListener('loadeddata', onDataLoaded);
             });
+            
+            // Start loading
+            video.load();
+        }
         
-        // Setup thumbnails and gallery
-        function setupGallery() {
+        // Setup video thumbnails and click handlers
+        function setupVideoHandling() {
             const thumbnails = document.querySelectorAll('.thumbnail');
             const featuredContainer = document.getElementById('featured-container');
-            
-            if (!featuredContainer) {
-                console.error('Featured container not found');
-                return;
-            }
             
             thumbnails.forEach(thumb => {
                 thumb.addEventListener('click', function() {
@@ -346,18 +370,28 @@
                     
                     if (this.classList.contains('video-thumb')) {
                         // Create video container with play button
+                        const videoSrc = "{% static 'videos/Bomby_Stream_Setup.mp4' %}";
                         const videoContainer = document.createElement('div');
                         videoContainer.className = 'video-container';
                         videoContainer.id = 'videoContainer';
-                        videoContainer.dataset.src = window.signedVideoUrl || '';
+                        videoContainer.dataset.src = videoSrc;
                         
-                        // Create thumbnail image
+                        // Add thumbnail
                         const thumbnail = document.createElement('img');
                         thumbnail.className = 'video-thumbnail';
-                        thumbnail.src = this.querySelector('img').src;
+                        thumbnail.id = 'videoThumbnail';
                         thumbnail.alt = 'Video thumbnail';
                         
-                        // Create play overlay
+                        // Use cached thumbnail if available
+                        if (window.videoCache[videoSrc] && window.videoCache[videoSrc].thumbnail) {
+                            thumbnail.src = window.videoCache[videoSrc].thumbnail;
+                            thumbnail.style.opacity = 1;
+                        } else {
+                            // Fallback to static thumbnail
+                            thumbnail.src = "{% static 'images/stream_setup_1.jpg' %}";
+                        }
+                        
+                        // Add play overlay
                         const playOverlay = document.createElement('div');
                         playOverlay.className = 'play-overlay';
                         playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
@@ -366,230 +400,314 @@
                         videoContainer.appendChild(thumbnail);
                         videoContainer.appendChild(playOverlay);
                         
-                        // Clear and add to featured container
+                        // Replace content in featured container
                         featuredContainer.innerHTML = '';
                         featuredContainer.appendChild(videoContainer);
                         
-                        // Setup click handler for playing video
+                        // Set up click handler for playing the video
                         videoContainer.addEventListener('click', function() {
-                            if (!window.signedVideoUrl) {
-                                console.warn('No signed video URL available');
-                                return;
-                            }
+                            const videoElement = document.createElement('video');
+                            videoElement.setAttribute('controls', true);
+                            videoElement.setAttribute('autoplay', true);
+                            videoElement.className = 'featured-image';
+                            videoElement.src = this.dataset.src;
                             
-                            const videoEl = document.createElement('video');
-                            videoEl.controls = true;
-                            videoEl.autoplay = true;
-                            videoEl.className = 'featured-image';
-                            videoEl.src = window.signedVideoUrl;
-                            
+                            // Replace container with video
                             featuredContainer.innerHTML = '';
-                            featuredContainer.appendChild(videoEl);
+                            featuredContainer.appendChild(videoElement);
+                            videoElement.play();
                         });
-                    } else if (this.dataset.image) {
-                        // Show image
-                        const imgEl = document.createElement('img');
-                        imgEl.src = this.dataset.image;
-                        imgEl.alt = 'Featured image';
-                        imgEl.className = 'featured-image';
-                        imgEl.id = 'featuredImage';
+                    } else {
+                        // Handle image content
+                        const imageElement = document.createElement('img');
+                        imageElement.src = this.dataset.image;
+                        imageElement.alt = 'Featured image';
+                        imageElement.className = 'featured-image';
+                        imageElement.id = 'featuredImage';
                         
                         featuredContainer.innerHTML = '';
-                        featuredContainer.appendChild(imgEl);
+                        featuredContainer.appendChild(imageElement);
                     }
                 });
             });
         }
         
-        // Add CSS styles
-        function addStyles() {
+        // Add styling for video elements
+        function addVideoStyles() {
             const style = document.createElement('style');
             style.textContent = `
-                .video-container { position: relative; width: 100%; height: 100%; background: linear-gradient(45deg, #333, #222); cursor: pointer; }
-                .video-thumbnail { width: 100%; height: 100%; object-fit: cover; opacity: 1; transition: opacity 0.3s; }
-                .play-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background-color: rgba(0,0,0,0.3); transition: background-color 0.3s; }
-                .play-button { width: 60px; height: 60px; border-radius: 50%; background-color: rgba(255,255,255,0.8); display: flex; align-items: center; justify-content: center; }
-                .play-button i { font-size: 24px; color: #333; margin-left: 5px; }
-                .video-container:hover .play-overlay { background-color: rgba(0,0,0,0.2); }
-                .thumbnail.video-thumb { position: relative; background: linear-gradient(45deg, #333, #222); }
-                .thumbnail.video-thumb .play-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255,255,255,0.8); font-size: 1.5rem; z-index: 2; }
+                .video-container {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(45deg, #333333, #222222);
+                    cursor: pointer;
+                }
+                
+                .video-thumbnail {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    opacity: 1;
+                    transition: opacity 0.3s ease;
+                }
+                
+                .play-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: rgba(0, 0, 0, 0.3);
+                    transition: background-color 0.3s ease;
+                }
+                
+                .play-button {
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 50%;
+                    background-color: rgba(255, 255, 255, 0.8);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .play-button i {
+                    font-size: 24px;
+                    color: #333;
+                    margin-left: 5px;
+                }
+                
+                .video-container:hover .play-overlay {
+                    background-color: rgba(0, 0, 0, 0.2);
+                }
+                
+                .thumbnail.video-thumb {
+                    position: relative;
+                    background: linear-gradient(45deg, #333333, #222222);
+                }
+                
+                .thumbnail.video-thumb .play-icon {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: rgba(255, 255, 255, 0.8);
+                    font-size: 1.5rem;
+                    z-index: 2;
+                }
             `;
             document.head.appendChild(style);
         }
         
-        // FAQ functionality
-        function setupFAQ() {
-            document.querySelectorAll('.faq-item').forEach(item => {
-                const question = item.querySelector('.faq-question');
-                if (question) {
-                    question.addEventListener('click', function() {
-                        item.classList.toggle('active');
-                        const chevron = this.querySelector('.chevron-container');
-                        if (chevron) {
-                            chevron.innerHTML = item.classList.contains('active') ? 
-                                '<i class="fas fa-chevron-down"></i>' : 
-                                '<i class="fas fa-chevron-right"></i>';
-                        }
-                    });
+        // Initialize video functionality
+        function initVideo() {
+            addVideoStyles();
+            preloadVideo();
+            setupVideoHandling();
+            
+            // Click the video thumbnail to show it initially
+            setTimeout(() => {
+                const videoThumb = document.querySelector('.thumbnail.video-thumb');
+                if (videoThumb) {
+                    videoThumb.click();
                 }
-            });
+            }, 100);
         }
         
-        // Review pagination with proper error handling
-        function setupReviews() {
+        // Run video initialization
+        initVideo();
+        
+        // FAQ dropdown functionality
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            
+            question.addEventListener('click', function() {
+                // Toggle active class
+                item.classList.toggle('active');
+                
+                // Get the chevron container
+                const chevronContainer = this.querySelector('.chevron-container');
+                
+                // Toggle chevron direction
+                if(item.classList.contains('active')) {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                } else {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                }
+            });
+        });
+
+        // Add date/time conversion to review dates
+        // Format dates to local timezone
+        const formatLocalDate = (dateString) => {
+            if (!dateString) return '';
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) {
+                    return dateString;
+                }
+                return new Intl.DateTimeFormat('en-US', {
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric'
+                }).format(date);
+            } catch (e) {
+                return dateString;
+            }
+        };
+        
+        // Convert review dates to local timezone
+        document.querySelectorAll('.review-date').forEach(element => {
+            if (element.textContent.trim()) {
+                element.textContent = formatLocalDate(element.textContent.trim());
+            }
+        });
+
+        // Handle review pagination with randomization
+        const reviewItems = document.querySelectorAll('.review-item');
+        if (reviewItems.length > 0) {
             const reviewsList = document.getElementById('reviewsList');
-            if (!reviewsList) return; // Exit if element doesn't exist
-            
-            const reviewItems = document.querySelectorAll('.review-item');
-            if (reviewItems.length === 0) return;
-            
             const reviews = Array.from(reviewItems);
-            const reviewsPerPage = 5;
+            const reviewsPerPage = 5; // Changed from 3 to 5
             
-            // Shuffle reviews
+            // Shuffle array using Fisher-Yates algorithm
             for (let i = reviews.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [reviews[i], reviews[j]] = [reviews[j], reviews[i]];
             }
             
-            // Remove and reappend
+            // Remove all reviews from DOM
             reviews.forEach(review => review.remove());
+            
+            // Reappend in new random order
             reviews.forEach(review => {
                 review.style.display = 'none';
                 review.classList.remove('fade-in');
                 reviewsList.appendChild(review);
             });
             
-            // Calculate pages
             const totalPages = Math.ceil(reviews.length / reviewsPerPage);
-            const totalPagesEl = document.getElementById('totalPages');
-            if (totalPagesEl) totalPagesEl.textContent = totalPages;
             
-            // Show first page
-            reviews.slice(0, reviewsPerPage).forEach((item, index) => {
-                item.style.display = 'block';
-                setTimeout(() => item.classList.add('fade-in'), index * 100);
-            });
+            // Set the total pages in pagination info
+            const totalPagesElement = document.getElementById('totalPages');
+            if (totalPagesElement) {
+                totalPagesElement.textContent = totalPages;
+            }
             
-            // Pagination controls
-            const prevBtn = document.getElementById('prevReviews');
-            const nextBtn = document.getElementById('nextReviews');
-            const pageEl = document.getElementById('currentPage');
-            
-            if (!prevBtn || !nextBtn || !pageEl) return; // Exit if elements don't exist
-            
-            let currentPage = 1;
-            
-            if (totalPages <= 1 && nextBtn) nextBtn.disabled = true;
-            
-            nextBtn.addEventListener('click', function() {
-                if (currentPage >= totalPages) return;
-                
-                // Hide current page
-                const startIdx = (currentPage - 1) * reviewsPerPage;
-                const endIdx = startIdx + reviewsPerPage;
-                reviews.slice(startIdx, endIdx).forEach(item => {
-                    item.classList.remove('fade-in');
-                    setTimeout(() => item.style.display = 'none', 300);
-                });
-                
-                // Update page
-                currentPage++;
-                pageEl.textContent = currentPage;
-                prevBtn.disabled = false;
-                if (currentPage >= totalPages) nextBtn.disabled = true;
-                
-                // Show new page
-                setTimeout(() => {
-                    const newStartIdx = (currentPage - 1) * reviewsPerPage;
-                    const newEndIdx = newStartIdx + reviewsPerPage;
-                    reviews.slice(newStartIdx, newEndIdx).forEach((item, i) => {
-                        item.style.display = 'block';
-                        setTimeout(() => item.classList.add('fade-in'), i * 50);
-                    });
-                }, 300);
-            });
-            
-            prevBtn.addEventListener('click', function() {
-                if (currentPage <= 1) return;
-                
-                // Hide current page
-                const startIdx = (currentPage - 1) * reviewsPerPage;
-                const endIdx = startIdx + reviewsPerPage;
-                reviews.slice(startIdx, endIdx).forEach(item => {
-                    item.classList.remove('fade-in');
-                    setTimeout(() => item.style.display = 'none', 300);
-                });
-                
-                // Update page
-                currentPage--;
-                pageEl.textContent = currentPage;
-                nextBtn.disabled = false;
-                if (currentPage <= 1) prevBtn.disabled = true;
-                
-                // Show new page
-                setTimeout(() => {
-                    const newStartIdx = (currentPage - 1) * reviewsPerPage;
-                    const newEndIdx = newStartIdx + reviewsPerPage;
-                    reviews.slice(newStartIdx, newEndIdx).forEach((item, i) => {
-                        item.style.display = 'block';
-                        setTimeout(() => item.classList.add('fade-in'), i * 50);
-                    });
-                }, 300);
-            });
-        }
-        
-        // Format dates to local timezone
-        function formatDates() {
-            document.querySelectorAll('.review-date').forEach(el => {
-                const date = new Date(el.textContent.trim());
-                if (!isNaN(date.getTime())) {
-                    el.textContent = new Intl.DateTimeFormat('en-US', {
-                        year: 'numeric', month: 'long', day: 'numeric'
-                    }).format(date);
+            // Show first page of reviews
+            reviews.forEach((item, index) => {
+                if (index < reviewsPerPage) {
+                    item.style.display = 'block';
+                    setTimeout(() => {
+                        item.classList.add('fade-in');
+                    }, index * 100);
                 }
             });
-        }
-        
-        // Fix for dropdown behavior error from console log
-        function setupDropdownBehavior() {
-            const dropdowns = document.querySelectorAll('.dropdown-container');
-            if (!dropdowns || dropdowns.length === 0) return; // Skip if no dropdowns
             
-            dropdowns.forEach(container => {
-                const button = container.querySelector('.dropdown-button');
-                const content = container.querySelector('.dropdown-content');
+            // Handle pagination
+            const prevButton = document.getElementById('prevReviews');
+            const nextButton = document.getElementById('nextReviews');
+            const currentPageElement = document.getElementById('currentPage');
+            
+            if (prevButton && nextButton && currentPageElement) {
+                let currentPage = 1;
                 
-                if (!button || !content) return; // Skip if elements missing
+                // Disable next button if only one page
+                if (totalPages <= 1) {
+                    nextButton.disabled = true;
+                }
                 
-                button.addEventListener('click', function() {
-                    content.classList.toggle('show');
-                    button.classList.toggle('active');
+                nextButton.addEventListener('click', function() {
+                    if (currentPage < totalPages) {
+                        // Hide current page reviews
+                        reviews.forEach((item, index) => {
+                            const startIndex = (currentPage - 1) * reviewsPerPage;
+                            const endIndex = startIndex + reviewsPerPage - 1;
+                            
+                            if (index >= startIndex && index <= endIndex) {
+                                item.classList.remove('fade-in');
+                                setTimeout(() => {
+                                    item.style.display = 'none';
+                                }, 300);
+                            }
+                        });
+                        
+                        // Increment page and update UI
+                        currentPage++;
+                        currentPageElement.textContent = currentPage;
+                        prevButton.disabled = false;
+                        
+                        // Show new page reviews
+                        setTimeout(() => {
+                            reviews.forEach((item, index) => {
+                                const startIndex = (currentPage - 1) * reviewsPerPage;
+                                const endIndex = startIndex + reviewsPerPage - 1;
+                                
+                                if (index >= startIndex && index <= endIndex) {
+                                    item.style.display = 'block';
+                                    setTimeout(() => {
+                                        item.classList.add('fade-in');
+                                    }, 50);
+                                }
+                            });
+                        }, 300);
+                        
+                        // Disable next button if last page
+                        if (currentPage >= totalPages) {
+                            nextButton.disabled = true;
+                        }
+                    }
                 });
-            });
-        }
-        
-        // Initialize with proper error handling
-        addStyles();
-        setupGallery();
-        setupFAQ();
-        setupReviews();
-        formatDates();
-        
-        // Add setup for dropdown if it exists (to fix the error)
-        if (typeof setupDropdownBehavior === 'function') {
-            try {
-                setupDropdownBehavior();
-            } catch (e) {
-                console.error('Error in dropdown setup:', e);
+                
+                prevButton.addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        // Hide current page reviews
+                        reviews.forEach((item, index) => {
+                            const startIndex = (currentPage - 1) * reviewsPerPage;
+                            const endIndex = startIndex + reviewsPerPage - 1;
+                            
+                            if (index >= startIndex && index <= endIndex) {
+                                item.classList.remove('fade-in');
+                                setTimeout(() => {
+                                    item.style.display = 'none';
+                                }, 300);
+                            }
+                        });
+                        
+                        // Decrement page and update UI
+                        currentPage--;
+                        currentPageElement.textContent = currentPage;
+                        nextButton.disabled = false;
+                        
+                        // Show new page reviews
+                        setTimeout(() => {
+                            reviews.forEach((item, index) => {
+                                const startIndex = (currentPage - 1) * reviewsPerPage;
+                                const endIndex = startIndex + reviewsPerPage - 1;
+                                
+                                if (index >= startIndex && index <= endIndex) {
+                                    item.style.display = 'block';
+                                    setTimeout(() => {
+                                        item.classList.add('fade-in');
+                                    }, 50);
+                                }
+                            });
+                        }, 300);
+                        
+                        // Disable prev button if first page
+                        if (currentPage <= 1) {
+                            prevButton.disabled = true;
+                        }
+                    }
+                });
             }
         }
-        
-        // Safer way to trigger video thumbnail click
-        setTimeout(() => {
-            const videoThumb = document.querySelector('.thumbnail.video-thumb');
-            if (videoThumb) videoThumb.click();
-        }, 500); // Slightly longer delay to ensure everything is loaded
     });
 </script>
 {% endblock %}
