@@ -25,36 +25,33 @@
         <div class="product-gallery-side">
             <div class="product-featured-image">
                 <div id="featured-container">
-                    <!-- Video thumbnail container -->
-                    <div class="video-thumbnail-container" id="videoThumbnailContainer">
-                        <img src="{% static 'images/stream_setup_1.jpg' %}" alt="Video thumbnail" class="featured-image">
-                        <div class="play-button-overlay">
-                            <div class="play-button">
-                                <i class="fas fa-play"></i>
-                            </div>
-                        </div>
-                    </div>
+                    <video id="featuredVideo" class="featured-image" controls style="display: none;">
+                        <source src="{% static 'videos/Bomby_Stream_Setup.mp4' %}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <img src="{% static 'images/stream_setup_1.jpg' %}" 
+                         alt="Basic Package" class="featured-image" id="featuredImage">
                 </div>
             </div>
             
             <div class="gallery-thumbnails">
                 <!-- Thumbnails -->
-                <div class="thumbnail video-thumb active" data-type="video">
+                <div class="thumbnail video-thumb active" data-type="video" data-src="{% static 'videos/Bomby_Stream_Setup.mp4' %}">
                     <img src="{% static 'images/stream_setup_1.jpg' %}" alt="Video Thumbnail">
                     <div class="play-icon">
                         <i class="fas fa-play-circle"></i>
                     </div>
                 </div>
-                <div class="thumbnail" data-media-type="image" data-src="{% static 'images/my_stream_setup_2.jpg' %}">
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_2.jpg' %}">
                     <img src="{% static 'images/my_stream_setup_2.jpg' %}" alt="Gallery Image 2">
                 </div>
-                <div class="thumbnail" data-media-type="image" data-src="{% static 'images/my_stream_setup_3.jpg' %}">
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_3.jpg' %}">
                     <img src="{% static 'images/my_stream_setup_3.jpg' %}" alt="Gallery Image 3">
                 </div>
-                <div class="thumbnail" data-media-type="image" data-src="{% static 'images/my_stream_setup_4.jpg' %}">
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_4.jpg' %}">
                     <img src="{% static 'images/my_stream_setup_4.jpg' %}" alt="Gallery Image 4">
                 </div>
-                <div class="thumbnail" data-media-type="image" data-src="{% static 'images/my_stream_setup_5.jpg' %}">
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_5.jpg' %}">
                     <img src="{% static 'images/my_stream_setup_5.jpg' %}" alt="Gallery Image 5">
                 </div>
             </div>
@@ -291,118 +288,77 @@
     </div>
 </div>
 
-<style>
-    .video-container {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        cursor: pointer;
-        background: linear-gradient(45deg, #333333, #222222);
-    }
-    
-    .video-thumbnail {
-        opacity: 0;
-        transition: opacity 0.3s ease;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .placeholder-icon {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 36px;
-        color: rgba(255, 255, 255, 0.5);
-        z-index: 1;
-    }
-    
-    .play-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: rgba(0, 0, 0, 0.3);
-        transition: background-color 0.3s ease;
-    }
-    
-    .play-button {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background-color: rgba(255, 255, 255, 0.8);
-        transition: transform 0.3s ease;
-    }
-    
-    .play-button i {
-        font-size: 24px;
-        color: #333;
-        margin-left: 5px;
-    }
-    
-    .video-container:hover .play-button {
-        transform: scale(1.1);
-    }
-    
-    .video-container:hover .play-overlay {
-        background-color: rgba(0, 0, 0, 0.2);
-    }
-    
-    .thumbnail.video-thumb {
-        position: relative;
-    }
-    
-    .thumbnail[data-media-type="video"] {
-        background: linear-gradient(45deg, #333333, #222222);
-    }
-    
-    .thumbnail.video-thumb .play-icon {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: rgba(255, 255, 255, 0.8);
-        font-size: 1.5rem;
-        z-index: 2;
-    }
-</style>
-
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Global cache to store preloaded videos and thumbnails
         window.videoCache = {};
         
-        // Set up video click handler - simplified approach for mobile
-        function setupVideoClickHandlers() {
-            const videoThumbnailContainer = document.getElementById('videoThumbnailContainer');
-            const featuredContainer = document.getElementById('featured-container');
+        // Preload the video and generate thumbnail
+        function preloadVideo() {
+            const videoSrc = "{% static 'videos/Bomby_Stream_Setup.mp4' %}";
             
-            if (videoThumbnailContainer) {
-                videoThumbnailContainer.addEventListener('click', function() {
-                    // Create iframe for video (works better on Safari mobile)
-                    const iframe = document.createElement('iframe');
-                    iframe.className = 'featured-image';
-                    iframe.setAttribute('allowfullscreen', '');
-                    iframe.setAttribute('frameborder', '0');
-                    iframe.src = 'https://bomby-user-uploads.storage.googleapis.com/stream_assets/media/Bomby_Stream_Setup.mp4';
+            // Create video element for preloading
+            const video = document.createElement('video');
+            video.muted = true;
+            video.preload = 'auto';
+            video.crossOrigin = 'anonymous';
+            video.style.display = 'none';
+            
+            // Add to cache
+            window.videoCache[videoSrc] = {
+                video: video,
+                loaded: false,
+                thumbnail: null
+            };
+            
+            // Set video attributes
+            const sourceElement = document.createElement('source');
+            sourceElement.src = videoSrc;
+            sourceElement.type = 'video/mp4';
+            video.appendChild(sourceElement);
+            document.body.appendChild(video);
+            
+            // Generate thumbnail on metadata load
+            video.addEventListener('loadeddata', function onDataLoaded() {
+                video.currentTime = 0.1;
+                
+                video.addEventListener('seeked', function onSeeked() {
+                    // Create canvas and generate thumbnail
+                    const canvas = document.createElement('canvas');
+                    const scale = 0.5;
+                    canvas.width = video.videoWidth * scale;
+                    canvas.height = video.videoHeight * scale;
                     
-                    // Replace container with iframe
-                    featuredContainer.innerHTML = '';
-                    featuredContainer.appendChild(iframe);
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    try {
+                        // Save thumbnail to cache
+                        const dataURL = canvas.toDataURL('image/jpeg', 0.7);
+                        window.videoCache[videoSrc].thumbnail = dataURL;
+                        window.videoCache[videoSrc].loaded = true;
+                        
+                        // Apply thumbnail to video thumb
+                        const videoThumb = document.querySelector('.thumbnail.video-thumb img');
+                        if (videoThumb) {
+                            videoThumb.src = dataURL;
+                        }
+                    } catch(e) {
+                        console.error("Could not generate thumbnail", e);
+                    }
+                    
+                    video.removeEventListener('seeked', onSeeked);
                 });
-            }
+                
+                video.removeEventListener('loadeddata', onDataLoaded);
+            });
+            
+            // Start loading
+            video.load();
         }
         
-        // Setup gallery thumbnails
-        function setupGalleryThumbnails() {
+        // Setup video thumbnails and click handlers
+        function setupVideoHandling() {
             const thumbnails = document.querySelectorAll('.thumbnail');
             const featuredContainer = document.getElementById('featured-container');
             
@@ -413,40 +369,61 @@
                     this.classList.add('active');
                     
                     if (this.classList.contains('video-thumb')) {
-                        // Recreate video thumbnail container
-                        featuredContainer.innerHTML = `
-                            <div class="video-thumbnail-container" id="videoThumbnailContainer">
-                                <img src="{% static 'images/stream_setup_1.jpg' %}" alt="Video thumbnail" class="featured-image">
-                                <div class="play-button-overlay">
-                                    <div class="play-button">
-                                        <i class="fas fa-play"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
+                        // Create video container with play button
+                        const videoSrc = "{% static 'videos/Bomby_Stream_Setup.mp4' %}";
+                        const videoContainer = document.createElement('div');
+                        videoContainer.className = 'video-container';
+                        videoContainer.id = 'videoContainer';
+                        videoContainer.dataset.src = videoSrc;
                         
-                        // Re-add click handler to new container
-                        const newVideoContainer = document.getElementById('videoThumbnailContainer');
-                        if (newVideoContainer) {
-                            newVideoContainer.addEventListener('click', function() {
-                                // Create iframe for video
-                                const iframe = document.createElement('iframe');
-                                iframe.className = 'featured-image';
-                                iframe.setAttribute('allowfullscreen', '');
-                                iframe.setAttribute('frameborder', '0');
-                                iframe.src = 'https://bomby-user-uploads.storage.googleapis.com/stream_assets/media/Bomby_Stream_Setup.mp4';
-                                
-                                // Replace container with iframe
-                                featuredContainer.innerHTML = '';
-                                featuredContainer.appendChild(iframe);
-                            });
+                        // Add thumbnail
+                        const thumbnail = document.createElement('img');
+                        thumbnail.className = 'video-thumbnail';
+                        thumbnail.id = 'videoThumbnail';
+                        thumbnail.alt = 'Video thumbnail';
+                        
+                        // Use cached thumbnail if available
+                        if (window.videoCache[videoSrc] && window.videoCache[videoSrc].thumbnail) {
+                            thumbnail.src = window.videoCache[videoSrc].thumbnail;
+                            thumbnail.style.opacity = 1;
+                        } else {
+                            // Fallback to static thumbnail
+                            thumbnail.src = "{% static 'images/stream_setup_1.jpg' %}";
                         }
+                        
+                        // Add play overlay
+                        const playOverlay = document.createElement('div');
+                        playOverlay.className = 'play-overlay';
+                        playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
+                        
+                        // Assemble container
+                        videoContainer.appendChild(thumbnail);
+                        videoContainer.appendChild(playOverlay);
+                        
+                        // Replace content in featured container
+                        featuredContainer.innerHTML = '';
+                        featuredContainer.appendChild(videoContainer);
+                        
+                        // Set up click handler for playing the video
+                        videoContainer.addEventListener('click', function() {
+                            const videoElement = document.createElement('video');
+                            videoElement.setAttribute('controls', true);
+                            videoElement.setAttribute('autoplay', true);
+                            videoElement.className = 'featured-image';
+                            videoElement.src = this.dataset.src;
+                            
+                            // Replace container with video
+                            featuredContainer.innerHTML = '';
+                            featuredContainer.appendChild(videoElement);
+                            videoElement.play();
+                        });
                     } else {
                         // Handle image content
                         const imageElement = document.createElement('img');
                         imageElement.src = this.dataset.image;
                         imageElement.alt = 'Featured image';
                         imageElement.className = 'featured-image';
+                        imageElement.id = 'featuredImage';
                         
                         featuredContainer.innerHTML = '';
                         featuredContainer.appendChild(imageElement);
@@ -455,211 +432,282 @@
             });
         }
         
-        // FAQ dropdown functionality
-        function setupFAQHandlers() {
-            const faqItems = document.querySelectorAll('.faq-item');
-            
-            faqItems.forEach(item => {
-                const question = item.querySelector('.faq-question');
+        // Add styling for video elements
+        function addVideoStyles() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .video-container {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(45deg, #333333, #222222);
+                    cursor: pointer;
+                }
                 
-                question.addEventListener('click', function() {
-                    // Toggle active class
-                    item.classList.toggle('active');
-                    
-                    // Get the chevron container
-                    const chevronContainer = this.querySelector('.chevron-container');
-                    
-                    // Toggle chevron direction
-                    if(item.classList.contains('active')) {
-                        chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
-                    } else {
-                        chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
-                    }
-                });
-            });
+                .video-thumbnail {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    opacity: 1;
+                    transition: opacity 0.3s ease;
+                }
+                
+                .play-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: rgba(0, 0, 0, 0.3);
+                    transition: background-color 0.3s ease;
+                }
+                
+                .play-button {
+                    width: 60px;
+                    height: 60px;
+                    border-radius: 50%;
+                    background-color: rgba(255, 255, 255, 0.8);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                
+                .play-button i {
+                    font-size: 24px;
+                    color: #333;
+                    margin-left: 5px;
+                }
+                
+                .video-container:hover .play-overlay {
+                    background-color: rgba(0, 0, 0, 0.2);
+                }
+                
+                .thumbnail.video-thumb {
+                    position: relative;
+                    background: linear-gradient(45deg, #333333, #222222);
+                }
+                
+                .thumbnail.video-thumb .play-icon {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: rgba(255, 255, 255, 0.8);
+                    font-size: 1.5rem;
+                    z-index: 2;
+                }
+            `;
+            document.head.appendChild(style);
         }
         
+        // Initialize video functionality
+        function initVideo() {
+            addVideoStyles();
+            preloadVideo();
+            setupVideoHandling();
+            
+            // Click the video thumbnail to show it initially
+            setTimeout(() => {
+                const videoThumb = document.querySelector('.thumbnail.video-thumb');
+                if (videoThumb) {
+                    videoThumb.click();
+                }
+            }, 100);
+        }
+        
+        // Run video initialization
+        initVideo();
+        
+        // FAQ dropdown functionality
+        const faqItems = document.querySelectorAll('.faq-item');
+        
+        faqItems.forEach(item => {
+            const question = item.querySelector('.faq-question');
+            
+            question.addEventListener('click', function() {
+                // Toggle active class
+                item.classList.toggle('active');
+                
+                // Get the chevron container
+                const chevronContainer = this.querySelector('.chevron-container');
+                
+                // Toggle chevron direction
+                if(item.classList.contains('active')) {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-down"></i>';
+                } else {
+                    chevronContainer.innerHTML = '<i class="fas fa-chevron-right"></i>';
+                }
+            });
+        });
+
+        // Add date/time conversion to review dates
         // Format dates to local timezone
-        function setupDateFormatting() {
-            const formatLocalDate = (dateString) => {
-                if (!dateString) return '';
-                try {
-                    const date = new Date(dateString);
-                    if (isNaN(date.getTime())) {
-                        return dateString;
-                    }
-                    return new Intl.DateTimeFormat('en-US', {
-                        year: 'numeric', 
-                        month: 'long', 
-                        day: 'numeric'
-                    }).format(date);
-                } catch (e) {
+        const formatLocalDate = (dateString) => {
+            if (!dateString) return '';
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) {
                     return dateString;
                 }
-            };
+                return new Intl.DateTimeFormat('en-US', {
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric'
+                }).format(date);
+            } catch (e) {
+                return dateString;
+            }
+        };
+        
+        // Convert review dates to local timezone
+        document.querySelectorAll('.review-date').forEach(element => {
+            if (element.textContent.trim()) {
+                element.textContent = formatLocalDate(element.textContent.trim());
+            }
+        });
+
+        // Handle review pagination with randomization
+        const reviewItems = document.querySelectorAll('.review-item');
+        if (reviewItems.length > 0) {
+            const reviewsList = document.getElementById('reviewsList');
+            const reviews = Array.from(reviewItems);
+            const reviewsPerPage = 5; // Changed from 3 to 5
             
-            // Convert review dates to local timezone
-            document.querySelectorAll('.review-date').forEach(element => {
-                if (element.textContent.trim()) {
-                    element.textContent = formatLocalDate(element.textContent.trim());
+            // Shuffle array using Fisher-Yates algorithm
+            for (let i = reviews.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [reviews[i], reviews[j]] = [reviews[j], reviews[i]];
+            }
+            
+            // Remove all reviews from DOM
+            reviews.forEach(review => review.remove());
+            
+            // Reappend in new random order
+            reviews.forEach(review => {
+                review.style.display = 'none';
+                review.classList.remove('fade-in');
+                reviewsList.appendChild(review);
+            });
+            
+            const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+            
+            // Set the total pages in pagination info
+            const totalPagesElement = document.getElementById('totalPages');
+            if (totalPagesElement) {
+                totalPagesElement.textContent = totalPages;
+            }
+            
+            // Show first page of reviews
+            reviews.forEach((item, index) => {
+                if (index < reviewsPerPage) {
+                    item.style.display = 'block';
+                    setTimeout(() => {
+                        item.classList.add('fade-in');
+                    }, index * 100);
                 }
             });
-        }
-        
-        // Handle review pagination
-        function setupReviewPagination() {
-            const reviewItems = document.querySelectorAll('.review-item');
-            if (reviewItems.length > 0) {
-                const reviewsList = document.getElementById('reviewsList');
-                const reviews = Array.from(reviewItems);
-                const reviewsPerPage = 5;
+            
+            // Handle pagination
+            const prevButton = document.getElementById('prevReviews');
+            const nextButton = document.getElementById('nextReviews');
+            const currentPageElement = document.getElementById('currentPage');
+            
+            if (prevButton && nextButton && currentPageElement) {
+                let currentPage = 1;
                 
-                // Shuffle array using Fisher-Yates algorithm
-                for (let i = reviews.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [reviews[i], reviews[j]] = [reviews[j], reviews[i]];
+                // Disable next button if only one page
+                if (totalPages <= 1) {
+                    nextButton.disabled = true;
                 }
                 
-                // Remove all reviews from DOM
-                reviews.forEach(review => review.remove());
-                
-                // Reappend in new random order
-                reviews.forEach(review => {
-                    review.style.display = 'none';
-                    review.classList.remove('fade-in');
-                    reviewsList.appendChild(review);
-                });
-                
-                const totalPages = Math.ceil(reviews.length / reviewsPerPage);
-                
-                // Set the total pages in pagination info
-                const totalPagesElement = document.getElementById('totalPages');
-                if (totalPagesElement) {
-                    totalPagesElement.textContent = totalPages;
-                }
-                
-                // Show first page of reviews
-                reviews.forEach((item, index) => {
-                    if (index < reviewsPerPage) {
-                        item.style.display = 'block';
+                nextButton.addEventListener('click', function() {
+                    if (currentPage < totalPages) {
+                        // Hide current page reviews
+                        reviews.forEach((item, index) => {
+                            const startIndex = (currentPage - 1) * reviewsPerPage;
+                            const endIndex = startIndex + reviewsPerPage - 1;
+                            
+                            if (index >= startIndex && index <= endIndex) {
+                                item.classList.remove('fade-in');
+                                setTimeout(() => {
+                                    item.style.display = 'none';
+                                }, 300);
+                            }
+                        });
+                        
+                        // Increment page and update UI
+                        currentPage++;
+                        currentPageElement.textContent = currentPage;
+                        prevButton.disabled = false;
+                        
+                        // Show new page reviews
                         setTimeout(() => {
-                            item.classList.add('fade-in');
-                        }, index * 100);
+                            reviews.forEach((item, index) => {
+                                const startIndex = (currentPage - 1) * reviewsPerPage;
+                                const endIndex = startIndex + reviewsPerPage - 1;
+                                
+                                if (index >= startIndex && index <= endIndex) {
+                                    item.style.display = 'block';
+                                    setTimeout(() => {
+                                        item.classList.add('fade-in');
+                                    }, 50);
+                                }
+                            });
+                        }, 300);
+                        
+                        // Disable next button if last page
+                        if (currentPage >= totalPages) {
+                            nextButton.disabled = true;
+                        }
                     }
                 });
                 
-                // Handle pagination
-                const prevButton = document.getElementById('prevReviews');
-                const nextButton = document.getElementById('nextReviews');
-                const currentPageElement = document.getElementById('currentPage');
-                
-                if (prevButton && nextButton && currentPageElement) {
-                    let currentPage = 1;
-                    
-                    // Disable next button if only one page
-                    if (totalPages <= 1) {
-                        nextButton.disabled = true;
+                prevButton.addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        // Hide current page reviews
+                        reviews.forEach((item, index) => {
+                            const startIndex = (currentPage - 1) * reviewsPerPage;
+                            const endIndex = startIndex + reviewsPerPage - 1;
+                            
+                            if (index >= startIndex && index <= endIndex) {
+                                item.classList.remove('fade-in');
+                                setTimeout(() => {
+                                    item.style.display = 'none';
+                                }, 300);
+                            }
+                        });
+                        
+                        // Decrement page and update UI
+                        currentPage--;
+                        currentPageElement.textContent = currentPage;
+                        nextButton.disabled = false;
+                        
+                        // Show new page reviews
+                        setTimeout(() => {
+                            reviews.forEach((item, index) => {
+                                const startIndex = (currentPage - 1) * reviewsPerPage;
+                                const endIndex = startIndex + reviewsPerPage - 1;
+                                
+                                if (index >= startIndex && index <= endIndex) {
+                                    item.style.display = 'block';
+                                    setTimeout(() => {
+                                        item.classList.add('fade-in');
+                                    }, 50);
+                                }
+                            });
+                        }, 300);
+                        
+                        // Disable prev button if first page
+                        if (currentPage <= 1) {
+                            prevButton.disabled = true;
+                        }
                     }
-                    
-                    nextButton.addEventListener('click', function() {
-                        if (currentPage < totalPages) {
-                            // Hide current page reviews
-                            reviews.forEach((item, index) => {
-                                const startIndex = (currentPage - 1) * reviewsPerPage;
-                                const endIndex = startIndex + reviewsPerPage - 1;
-                                
-                                if (index >= startIndex && index <= endIndex) {
-                                    item.classList.remove('fade-in');
-                                    setTimeout(() => {
-                                        item.style.display = 'none';
-                                    }, 300);
-                                }
-                            });
-                            
-                            // Increment page and update UI
-                            currentPage++;
-                            currentPageElement.textContent = currentPage;
-                            prevButton.disabled = false;
-                            
-                            // Show new page reviews
-                            setTimeout(() => {
-                                reviews.forEach((item, index) => {
-                                    const startIndex = (currentPage - 1) * reviewsPerPage;
-                                    const endIndex = startIndex + reviewsPerPage - 1;
-                                    
-                                    if (index >= startIndex && index <= endIndex) {
-                                        item.style.display = 'block';
-                                        setTimeout(() => {
-                                            item.classList.add('fade-in');
-                                        }, 50);
-                                    }
-                                });
-                            }, 300);
-                            
-                            // Disable next button if last page
-                            if (currentPage >= totalPages) {
-                                nextButton.disabled = true;
-                            }
-                        }
-                    });
-                    
-                    prevButton.addEventListener('click', function() {
-                        if (currentPage > 1) {
-                            // Hide current page reviews
-                            reviews.forEach((item, index) => {
-                                const startIndex = (currentPage - 1) * reviewsPerPage;
-                                const endIndex = startIndex + reviewsPerPage - 1;
-                                
-                                if (index >= startIndex && index <= endIndex) {
-                                    item.classList.remove('fade-in');
-                                    setTimeout(() => {
-                                        item.style.display = 'none';
-                                    }, 300);
-                                }
-                            });
-                            
-                            // Decrement page and update UI
-                            currentPage--;
-                            currentPageElement.textContent = currentPage;
-                            nextButton.disabled = false;
-                            
-                            // Show new page reviews
-                            setTimeout(() => {
-                                reviews.forEach((item, index) => {
-                                    const startIndex = (currentPage - 1) * reviewsPerPage;
-                                    const endIndex = startIndex + reviewsPerPage - 1;
-                                    
-                                    if (index >= startIndex && index <= endIndex) {
-                                        item.style.display = 'block';
-                                        setTimeout(() => {
-                                            item.classList.add('fade-in');
-                                        }, 50);
-                                    }
-                                });
-                            }, 300);
-                            
-                            // Disable prev button if first page
-                            if (currentPage <= 1) {
-                                prevButton.disabled = true;
-                            }
-                        }
-                    });
-                }
+                });
             }
         }
-        
-        // Initialize everything
-        function init() {
-            // Setup event handlers
-            setupVideoClickHandlers();
-            setupGalleryThumbnails();
-            setupFAQHandlers();
-            setupDateFormatting();
-            setupReviewPagination();
-        }
-        
-        // Start initialization
-        init();
     });
 </script>
 {% endblock %}
