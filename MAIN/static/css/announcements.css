@@ -1,4 +1,9 @@
 /* Announcement Management Page Styles */
+
+.announcement-bar {
+  display: none !important;
+}
+
 .announcements-container {
     max-width: 1100px;
     margin: 50px auto 30px;
@@ -36,12 +41,15 @@
   
   /* Form Styles */
   .form-container {
+    flex: 1;
     background-color: #0a0a0a;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 10px;
     padding: 25px;
-    margin-bottom: 30px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+    max-height: 725px;
+    overflow: visible;
+    z-index: 4;
   }
   
   .form-group {
@@ -58,18 +66,18 @@
   
   .form-control {
     width: 100%;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background-color: rgba(255, 255, 255, 0.05);
+    padding: 10px;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
     color: white;
-    font-size: 1rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    font-size: 1em;
   }
   
   .form-control:focus {
-    border-color: rgba(123, 0, 254, 0.5);
-    box-shadow: 0 0 8px rgba(123, 0, 254, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
     outline: none;
   }
   
@@ -80,7 +88,6 @@
   }
   
   .form-check input {
-    margin-right: 10px;
     width: 18px;
     height: 18px;
   }
@@ -162,7 +169,7 @@
   }
   
   .text-black {
-    background-color: #ddd;
+    background-color: #484848;
     color: black;
   }
   
@@ -265,6 +272,7 @@
   
   .admin-panel {
     background-color: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -368,9 +376,34 @@
   
   /* Responsive Styles */
   @media (max-width: 768px) {
+    main {
+      margin-top: -35px;
+    }
+
     .page-title {
+      max-width: 80%;
       font-size: 2.5rem;
       padding: 15px 30px;
+    }
+
+    .panel-button {
+      margin-left: 20px;
+    }
+
+    .no-announcements {
+      margin: 0 auto;
+      max-width: 80%;
+    }
+
+    .form-container {
+      max-width: 80%;
+      margin: 0 auto;
+      max-height: 825px;
+      margin-bottom: 25px;
+    }
+
+    .panel-button {
+      margin: 0 auto;
     }
     
     .admin-panels {

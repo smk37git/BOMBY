@@ -1171,6 +1171,10 @@ textarea[name="comment"]:focus {
 }
 
 @media (max-width: 768px) {
+    main {
+        margin-top: -25px;
+    }
+
     .form-header-wrapper {
         max-width: 80% !important;
     }

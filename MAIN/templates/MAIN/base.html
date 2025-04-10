@@ -116,7 +116,7 @@
         </div>
 
         <!-- Main Content Block with proper spacing for fixed navbar -->
-        <main{% if announcement %} class="with-announcement"{% endif %}>
+        <main{% if announcement %} {% endif %}>
             {% block content %}{% endblock %}
         </main>
 
@@ -184,8 +184,124 @@
                 navMenu.classList.toggle('active');
             });
             
-            // Rest of JavaScript remains unchanged
-            // ...
+            // Handle dropdowns - Safari compatible approach
+            function initializeDropdowns() {
+                // Remove any existing event listeners to avoid duplicates
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    // Make a copy of the toggle element to remove all event listeners
+                    const clone = toggle.cloneNode(true);
+                    toggle.parentNode.replaceChild(clone, toggle);
+                    
+                    // Add the "clickable" attribute for Safari recognition
+                    clone.setAttribute('onclick', 'void(0)');
+                });
+                
+                // Desktop behavior
+                if (window.innerWidth > 768) {
+                    document.querySelectorAll('.dropdown').forEach(dropdown => {
+                        dropdown.addEventListener('mouseenter', function() {
+                            this.querySelector('.dropdown-content').classList.add('show');
+                        });
+                        
+                        dropdown.addEventListener('mouseleave', function() {
+                            this.querySelector('.dropdown-content').classList.remove('show');
+                        });
+                    });
+                } 
+                // Mobile behavior - unified approach for all browsers
+                else {
+                    document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                        // Use a single handler for all interactions
+                        toggle.addEventListener('click', function(e) {
+                            // Always prevent default link behavior
+                            e.preventDefault();
+                            e.stopPropagation();
+                            
+                            const content = this.nextElementSibling;
+                            const arrow = this.querySelector('.dropdown-arrow');
+                            const isOpen = content.classList.contains('show');
+                            
+                            // Close all dropdowns first
+                            document.querySelectorAll('.dropdown-content').forEach(el => {
+                                el.classList.remove('show');
+                            });
+                            
+                            document.querySelectorAll('.dropdown-arrow').forEach(el => {
+                                el.style.transform = '';
+                            });
+                            
+                            // Then open this one if it wasn't already open
+                            if (!isOpen) {
+                                content.classList.add('show');
+                                if (arrow) {
+                                    arrow.style.transform = 'rotate(180deg) translateY(1px)';
+                                }
+                            }
+                        });
+                    });
+                    
+                    // Handle clicks outside dropdowns
+                    document.addEventListener('click', function(event) {
+                        if (!event.target.closest('.dropdown')) {
+                            document.querySelectorAll('.dropdown-content').forEach(el => {
+                                el.classList.remove('show');
+                            });
+                            
+                            document.querySelectorAll('.dropdown-arrow').forEach(el => {
+                                el.style.transform = '';
+                            });
+                        }
+                    });
+                }
+            }
+            
+            // Initialize on page load
+            initializeDropdowns();
+            
+            // Reinitialize on window resize with debounce
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    initializeDropdowns();
+                }, 250);
+            });
+            
+            // Auto-dismiss messages
+            const messages = document.querySelectorAll('.message');
+            messages.forEach(message => {
+                // Skip messages in message containers (chat messages)
+                if (message.closest('#messages-container') || message.closest('#chat-messages')) {
+                    return; // Skip this message - it's in a chat
+                }
+                
+                // Auto-dismiss after 5 seconds for non-chat messages
+                setTimeout(() => {
+                    message.style.opacity = '0';
+                    setTimeout(() => {
+                        message.remove();
+                    }, 500);
+                }, 5000);
+                
+                // Manual dismiss with close button
+                const closeBtn = message.querySelector('.message-close');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        message.style.opacity = '0';
+                        setTimeout(() => {
+                            message.remove();
+                        }, 500);
+                    });
+                }
+            });
+            
+            // Initial checks
+            checkUnreadMessages();
+            checkUnreadOrderMessages();
+            
+            // Check periodically (every 30 seconds)
+            setInterval(checkUnreadMessages, 30000);
+            setInterval(checkUnreadOrderMessages, 30000);
         });
     </script>
 

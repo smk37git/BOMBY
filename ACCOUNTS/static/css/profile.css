@@ -426,6 +426,7 @@ html, body {
     .profile-title {
         font-size: 2em;
         padding: 10px 15px;
+        margin-top: -5px;
         width: auto;
     }
     

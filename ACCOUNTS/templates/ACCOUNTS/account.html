@@ -154,11 +154,12 @@
                 <p class="promo-instructions" style="margin-top: 10px; color: white;">Select up to 2 social links to display on the promotional wall.</p>
                 <p class="promo-instructions" style="margin-top: 10px; color: white;">Don't worry, your other social links will still show on your profile!</p>
                 
+                <!-- Messages -->
                 {% if messages %}
                 <div class="messages">
                     {% for message in messages %}
-                        {% if 'order' not in message|lower and 'created' not in message|lower and 'payment' not in message|lower %}
-                            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}" style="background-color: #37000556; color: white; font-size: 16px;">
+                        {% if 'order' not in message|lower and 'created' not in message|lower and 'activated' not in message|lower and 'deactivated' not in message|lower and 'payment' not in message|lower %}
+                            <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
                                 {{ message }}
                             </div>
                         {% endif %}

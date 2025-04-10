@@ -908,12 +908,4 @@ main {
     padding: 1px 5px;
     font-size: 0.8rem;
   }
-  
-  .custom-navbar.with-announcement {
-    top: 36px;
-  }
-  
-  main.with-announcement {
-    padding-top: 120px;
-  }
 }

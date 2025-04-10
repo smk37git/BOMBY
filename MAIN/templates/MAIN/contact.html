@@ -83,15 +83,14 @@
 
     <!-- Popup Modal -->
     {% if messages %}
-    <div id="popup-modal" class="popup-modal">
-        <div class="popup-content">
-            <span id="close-modal" class="close-btn">&times;</span>
-            {% for message in messages %}
-                <div class="popup-message popup-{{ message.tags }}">
+    <div class="messages">
+        {% for message in messages %}
+            {% if 'order' not in message|lower and 'created' not in message|lower and 'activated' not in message|lower and 'deactivated' not in message|lower and 'payment' not in message|lower %}
+                <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
                     {{ message }}
                 </div>
-            {% endfor %}
-        </div>
+            {% endif %}
+        {% endfor %}
     </div>
     {% endif %}
 
