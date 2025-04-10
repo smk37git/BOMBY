@@ -29,47 +29,6 @@ from django.db import connection
 from django.db.models import Count, Avg, Sum, Q, F
 from datetime import timedelta
 from .models import PageView, ProductInteraction, Donation
-from django.db import models
-from django.core.mail import send_mail
-from django.core.paginator import Paginator
-from django.template.loader import render_to_string
-from django.utils.html import strip_tags
-from django.views.decorators.csrf import csrf_exempt
-from django.http import Http404
-
-def serve_gcs_media(request, path):
-    """Serve media files directly from Google Cloud Storage"""
-    try:
-        # Initialize the GCS client
-        client = storage.Client()
-        bucket = client.bucket('bomby-user-uploads')
-        
-        # Get the blob
-        blob = bucket.blob(path)
-        
-        if not blob.exists():
-            raise Http404(f"File {path} not found in GCS bucket")
-        
-        # Download the content
-        content = blob.download_as_bytes()
-        
-        # Set the content type based on file extension
-        content_type = 'application/octet-stream'  # Default
-        if path.endswith('.mp4'):
-            content_type = 'video/mp4'
-        elif path.endswith('.jpg') or path.endswith('.jpeg'):
-            content_type = 'image/jpeg'
-        elif path.endswith('.png'):
-            content_type = 'image/png'
-        elif path.endswith('.gif'):
-            content_type = 'image/gif'
-        
-        # Return the response
-        response = HttpResponse(content, content_type=content_type)
-        response['Content-Disposition'] = f'inline; filename="{os.path.basename(path)}"'
-        return response
-    except Exception as e:
-        return HttpResponse(f"Error serving file: {str(e)}", status=500)
 
 def store(request):
     products = [
@@ -208,27 +167,8 @@ def donation_success(request):
     return redirect('STORE:store')
 
 def stream_setup(request):
-    try:
-        setup_asset = StreamAsset.objects.get(name="My Stream Setup")
-        media_items = setup_asset.media.all().order_by('order')
-    except StreamAsset.DoesNotExist:
-        # Fallback to the old query if the asset doesn't exist
-        media_items = AssetMedia.objects.filter(
-            asset__name__icontains='My Custom Setup'
-        ).order_by('order')
-        
-        # If still nothing, try to get any media that might be relevant
-        if not media_items.exists():
-            media_items = AssetMedia.objects.filter(
-                asset__name__icontains='stream'
-            ).order_by('order')[:5]  # Limit to 5 items
-    
     product_reviews = get_all_reviews()
-    
-    return render(request, 'STORE/stream_setup.html', {
-        'product_reviews': product_reviews,
-        'media_items': media_items
-    })
+    return render(request, 'STORE/stream_setup.html', {'product_reviews': product_reviews})
 
 
 def stream_store(request):
@@ -1845,7 +1785,11 @@ def store_analytics(request):
     
     # Set current period ranges
     now = timezone.now()
-    if time_frame == 'week':
+    if time_frame == 'day':
+        current_start = now - timedelta(hours=24)
+        previous_start = current_start - timedelta(hours=24)
+        current_orders = Order.objects.filter(created_at__gte=current_start)
+    elif time_frame == 'week':
         current_start = now - timedelta(days=7)
         previous_start = current_start - timedelta(days=7)
         current_orders = Order.objects.filter(created_at__gte=current_start)
@@ -1871,12 +1815,16 @@ def store_analytics(request):
             previous_start = now - timedelta(days=365)
             current_start = previous_start
     
+    # Exclude Fiverr orders by filtering out orders with reviews marked as Fiverr
+    fiverr_order_ids = Review.objects.filter(is_fiverr=True).values_list('order_id', flat=True)
+    current_orders = current_orders.exclude(id__in=fiverr_order_ids)
+    
     # Get previous period orders
     if current_start and previous_start:
         previous_orders = Order.objects.filter(
             created_at__gte=previous_start,
             created_at__lt=current_start
-        )
+        ).exclude(id__in=fiverr_order_ids)
     else:
         previous_orders = Order.objects.none()
     
@@ -1947,30 +1895,41 @@ def store_analytics(request):
     # Sort by count
     product_sales = sorted(product_sales, key=lambda x: x['count'], reverse=True)
     
-    # Review metrics
-    avg_rating = Review.objects.filter(order__in=current_orders).aggregate(
+    # Review metrics - exclude Fiverr reviews
+    avg_rating = Review.objects.filter(
+        order__in=current_orders
+    ).filter(
+        is_fiverr=False
+    ).aggregate(
         avg=Avg('rating')
     )['avg'] or 0
     
-    review_count = Review.objects.filter(order__in=current_orders).count()
+    review_count = Review.objects.filter(
+        order__in=current_orders
+    ).filter(
+        is_fiverr=False
+    ).count()
     
     # Get all products for page views
     all_products = Product.objects.all()
     
     # Prepare product view data
     page_view_data = []
-    
+
     for product in all_products:
         # Get view count for this product within the time frame
         if time_frame != 'all' and current_start:
+            # This prevents counting multiple refreshes from the same visitor
             views_count = PageView.objects.filter(
                 product=product, 
                 timestamp__gte=current_start
-            ).count()
+            ).values('session_id').distinct().count()
         else:
-            views_count = PageView.objects.filter(product=product).count()
+            views_count = PageView.objects.filter(
+                product=product
+            ).values('session_id').distinct().count()
             
-        # Calculate conversion rate
+        # Count orders that aren't from Fiverr
         product_orders = current_orders.filter(product=product).count()
         conversion_rate = (product_orders / views_count * 100) if views_count > 0 else 0
         
@@ -2009,90 +1968,3 @@ def store_analytics(request):
     }
     
     return render(request, 'STORE/store_analytics.html', context)
-
-@login_required
-@user_passes_test(lambda u: u.is_staff)
-def add_stream_store_media(request):
-    """Add media to an existing stream asset or to the Stream Setup page"""
-    
-    # Check if we're adding to stream setup
-    is_stream_setup = request.GET.get('stream_setup') == 'true'
-    
-    # Get or create the special "My Stream Setup" asset if needed
-    stream_setup_asset = None
-    if is_stream_setup:
-        stream_setup_asset, created = StreamAsset.objects.get_or_create(
-            name="My Stream Setup",
-            defaults={
-                "description": "My personal streaming setup showcase",
-                "price": 0.00,
-                "is_active": True,
-                "file_path": "stream_setup/setup.zip"  # Default placeholder
-            }
-        )
-    
-    # Get all stream assets for dropdown
-    assets = StreamAsset.objects.all().order_by('name')
-    
-    if request.method == 'POST':
-        # Get the asset ID
-        asset_id = request.POST.get('asset_id')
-        
-        media_types = request.POST.getlist('media_types[]')
-        media_file_paths = request.POST.getlist('media_file_paths[]')
-        is_thumbnail_values = request.POST.getlist('is_thumbnail[]')
-        
-        # Get the asset
-        try:
-            asset = StreamAsset.objects.get(id=asset_id)
-        except StreamAsset.DoesNotExist:
-            messages.error(request, 'Asset not found')
-            return redirect('STORE:stream_asset_management')
-        
-        # Process thumbnail selection
-        thumbnail_index = -1
-        for i, value in enumerate(is_thumbnail_values):
-            if value == 'true':
-                thumbnail_index = i
-                break
-        
-        # Add media files
-        for i, file_path in enumerate(media_file_paths):
-            if not file_path:
-                continue
-                
-            # Determine if this should be thumbnail
-            is_thumb = (i == thumbnail_index)
-            
-            # If this is a thumbnail, unset any existing thumbnails
-            if is_thumb:
-                asset.media.filter(is_thumbnail=True).update(is_thumbnail=False)
-            
-            # Create the media object
-            media_type = media_types[i] if i < len(media_types) else 'image'
-            
-            # Calculate next order position
-            from django.db.models import Max  # Or use this inline import
-            next_order = asset.media.aggregate(Max('order'))['order__max'] or 0
-            next_order += 1
-            
-            AssetMedia.objects.create(
-                asset=asset,
-                type=media_type,
-                file_path=file_path,
-                is_thumbnail=is_thumb,
-                order=next_order
-            )
-        
-        if is_stream_setup:
-            messages.success(request, 'Media files added to your stream setup')
-            return redirect('STORE:stream_setup')
-        else:
-            messages.success(request, f'Media files added successfully to {asset.name}')
-            return redirect('STORE:stream_asset_detail', asset_id=asset.id)
-    
-    return render(request, 'STORE/add_stream_store_media.html', {
-        'assets': assets,
-        'is_stream_setup': is_stream_setup,
-        'stream_setup_asset': stream_setup_asset
-    })

@@ -4,11 +4,8 @@ from . import views
 app_name = 'STORE'
 
 urlpatterns = [
-    # Main store page
+     # Main store page
     path('', views.store, name='store'),
-    
-    # Serve media files from GCS (development environment only)
-    path('gcs-media/<path:path>', views.serve_gcs_media, name='serve_gcs_media'),
     
     # Stream setup service pages
     path('basic-package/', views.basic_package, name='basic_package'),
@@ -84,7 +81,4 @@ urlpatterns = [
 
     # Store Analytics
     path('admin/analytics/', views.store_analytics, name='store_analytics'),
-
-    # Add Stream Media
-    path('admin/stream-assets/add-media/', views.add_stream_store_media, name='add_stream_store_media'),
 ]

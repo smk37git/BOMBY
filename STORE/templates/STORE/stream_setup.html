@@ -4,30 +4,6 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/store_item.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        .video-error-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
-        
-        .video-error-message {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .video-error-message i {
-            font-size: 48px;
-            color: #ff5555;
-            margin-bottom: 10px;
-        }
-    </style>
 {% endblock %}
 
 {% block background %}
@@ -42,14 +18,6 @@
             <i class="fas fa-arrow-left"></i> Back to Store
         </a>
     </div>
-
-    {% if user.is_staff %}
-    <div class="admin-actions" style="text-align: right; margin: 10px 0;">
-        <a href="{% url 'STORE:add_stream_store_media' %}?stream_setup=true" class="action-button">
-            <i class="fas fa-plus"></i> Add Media
-        </a>
-    </div>
-   {% endif %}
     
     <!-- Split layout for product -->
     <div class="product-split">
@@ -57,33 +25,35 @@
         <div class="product-gallery-side">
             <div class="product-featured-image">
                 <div id="featured-container">
-                    <!-- This will be populated by JavaScript -->
+                    <video id="featuredVideo" class="featured-image" controls style="display: none;">
+                        <source src="{% static 'videos/Bomby_Stream_Setup.mp4' %}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <img src="{% static 'images/stream_setup_1.jpg' %}" 
+                         alt="Basic Package" class="featured-image" id="featuredImage">
                 </div>
             </div>
             
             <div class="gallery-thumbnails">
-                <!-- Dynamic thumbnails from media -->
-                {% if media_items %}
-                    {% for media in media_items %}
-                        {% if media.type == 'video' %}
-                            <div class="thumbnail video-thumb {% if forloop.first %}active{% endif %}" 
-                                 data-type="video" 
-                                 data-src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}{% url 'STORE:serve_gcs_media' path=media.file_path %}{% endif %}">
-                                <img src="{% if media.is_thumbnail and media.file %}{{ media.file.url }}{% elif media.is_thumbnail and media.file_path %}{% url 'STORE:serve_gcs_media' path=media.file_path %}{% else %}{{ media.file.url|default:'/media/stream_assets/thumbnails/video_placeholder.jpg' }}{% endif %}" 
-                                     alt="Video Thumbnail">
-                                <div class="play-icon">
-                                    <i class="fas fa-play-circle"></i>
-                                </div>
-                            </div>
-                        {% else %}
-                            <div class="thumbnail {% if forloop.first %}active{% endif %}" 
-                                 data-image="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}{% url 'STORE:serve_gcs_media' path=media.file_path %}{% endif %}">
-                                <img src="{% if media.file %}{{ media.file.url }}{% elif media.file_path %}{% url 'STORE:serve_gcs_media' path=media.file_path %}{% endif %}" 
-                                     alt="Gallery Image {{ forloop.counter }}">
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
+                <!-- Thumbnails -->
+                <div class="thumbnail video-thumb active" data-type="video" data-src="{% static 'videos/Bomby_Stream_Setup.mp4' %}">
+                    <img src="{% static 'images/stream_setup_1.jpg' %}" alt="Video Thumbnail">
+                    <div class="play-icon">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_2.jpg' %}">
+                    <img src="{% static 'images/my_stream_setup_2.jpg' %}" alt="Gallery Image 2">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_3.jpg' %}">
+                    <img src="{% static 'images/my_stream_setup_3.jpg' %}" alt="Gallery Image 3">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_4.jpg' %}">
+                    <img src="{% static 'images/my_stream_setup_4.jpg' %}" alt="Gallery Image 4">
+                </div>
+                <div class="thumbnail" data-image="{% static 'images/my_stream_setup_5.jpg' %}">
+                    <img src="{% static 'images/my_stream_setup_5.jpg' %}" alt="Gallery Image 5">
+                </div>
             </div>
 
             <div class="gallery-message-button">
@@ -320,7 +290,7 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Global cache to store preloaded videos and thumbnails
+        // Global video cache object
         window.videoCache = {};
         
         // Add styling for video elements
@@ -341,6 +311,16 @@
                     object-fit: cover;
                     opacity: 1;
                     transition: opacity 0.3s ease;
+                }
+                
+                .placeholder-icon {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 36px;
+                    color: rgba(255, 255, 255, 0.5);
+                    z-index: 1;
                 }
                 
                 .play-overlay {
@@ -394,248 +374,62 @@
             document.head.appendChild(style);
         }
         
-        // Preload all videos
-        function preloadAllVideos() {
-            // Find all video thumbnails
-            const videoThumbs = document.querySelectorAll('.thumbnail.video-thumb');
-            
-            videoThumbs.forEach(thumb => {
-                const videoSrc = thumb.dataset.src;
-                if (!videoSrc || videoSrc === "undefined" || videoSrc === "") {
-                    console.warn("Invalid or missing video source for thumbnail");
-                    return;
-                }
-                
-                console.log("Preloading video:", videoSrc);
-                
-                // Create video element for preloading
-                const video = document.createElement('video');
-                video.muted = true;
-                video.preload = 'metadata';  // Changed from 'auto' to just load metadata
-                video.crossOrigin = 'anonymous';
-                video.style.display = 'none';
-                
-                // Add to cache
-                window.videoCache[videoSrc] = {
-                    video: video,
-                    loaded: false,
-                    thumbnail: null
-                };
-                
-                // Set video attributes
-                const sourceElement = document.createElement('source');
-                sourceElement.src = videoSrc;
-                sourceElement.type = 'video/mp4';
-                video.appendChild(sourceElement);
-                document.body.appendChild(video);
-                
-                // Add error handling
-                video.addEventListener('error', function(e) {
-                    console.error("Video load error:", e);
-                    console.error("Failed to load video:", videoSrc);
+        // Handle click on the video container
+        function setupVideoClickHandlers() {
+            const videoContainer = document.getElementById('videoContainer');
+            if (videoContainer) {
+                videoContainer.addEventListener('click', function() {
+                    const videoSrc = this.dataset.src;
+                    const featuredContainer = document.getElementById('featured-container');
                     
-                    // Use original thumbnail image
-                    const thumbImg = thumb.querySelector('img');
-                    if (thumbImg && thumbImg.src) {
-                        window.videoCache[videoSrc].thumbnail = thumbImg.src;
-                    }
-                });
-                
-                // Generate thumbnail on metadata load
-                video.addEventListener('loadeddata', function onDataLoaded() {
-                    try {
-                        video.currentTime = 0.1;
-                        
-                        video.addEventListener('seeked', function onSeeked() {
-                            try {
-                                // Create canvas and generate thumbnail
-                                const canvas = document.createElement('canvas');
-                                const scale = 0.5;
-                                canvas.width = video.videoWidth * scale;
-                                canvas.height = video.videoHeight * scale;
-                                
-                                const ctx = canvas.getContext('2d');
-                                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                                
-                                // Save thumbnail to cache
-                                const dataURL = canvas.toDataURL('image/jpeg', 0.7);
-                                window.videoCache[videoSrc].thumbnail = dataURL;
-                                window.videoCache[videoSrc].loaded = true;
-                                
-                                // Apply thumbnail to video thumb
-                                const videoThumbImg = thumb.querySelector('img');
-                                if (videoThumbImg) {
-                                    videoThumbImg.src = dataURL;
-                                }
-                                
-                                // If this is the active thumbnail, update the featured image too
-                                if (thumb.classList.contains('active')) {
-                                    updateFeaturedMedia(thumb);
-                                }
-                            } catch(e) {
-                                console.error("Could not generate thumbnail:", e);
-                            }
-                            
-                            video.removeEventListener('seeked', onSeeked);
-                        });
-                    } catch(e) {
-                        console.error("Error in loadeddata handler:", e);
-                    }
+                    // Create a new video element
+                    const videoElement = document.createElement('video');
+                    videoElement.setAttribute('controls', true);
+                    videoElement.setAttribute('playsinline', true); // Important for iOS
+                    videoElement.setAttribute('webkit-playsinline', true); // Legacy iOS support
+                    videoElement.setAttribute('autoplay', true);
+                    videoElement.className = 'featured-image';
                     
-                    video.removeEventListener('loadeddata', onDataLoaded);
-                });
-                
-                // Start loading with timeout to prevent hanging
-                setTimeout(() => {
-                    try {
-                        video.load();
-                    } catch(e) {
-                        console.error("Error loading video:", e);
-                    }
-                }, 100);
-            });
-        }
-        
-        // Update featured media based on the selected thumbnail
-        function updateFeaturedMedia(thumb) {
-            if (!thumb) {
-                console.error("No thumbnail provided to updateFeaturedMedia");
-                return;
-            }
-            
-            const featuredContainer = document.getElementById('featured-container');
-            if (!featuredContainer) {
-                console.error("Featured container not found");
-                return;
-            }
-            
-            try {
-                if (thumb.classList.contains('video-thumb')) {
-                    // Create video container with play button
-                    const videoSrc = thumb.dataset.src;
-                    if (!videoSrc) {
-                        console.error("Video thumbnail has no source");
-                        
-                        // Create fallback image instead
-                        const imageElement = document.createElement('img');
-                        const thumbImg = thumb.querySelector('img');
-                        if (thumbImg && thumbImg.src) {
-                            imageElement.src = thumbImg.src;
-                        } else {
-                            imageElement.src = "/media/stream_assets/thumbnails/video_placeholder.jpg";
-                        }
-                        imageElement.alt = 'Video thumbnail (fallback)';
-                        imageElement.className = 'featured-image';
-                        
-                        // Replace container with fallback image
-                        featuredContainer.innerHTML = '';
-                        featuredContainer.appendChild(imageElement);
-                        return;
-                    }
-                    
-                    const videoContainer = document.createElement('div');
-                    videoContainer.className = 'video-container';
-                    videoContainer.id = 'videoContainer';
-                    videoContainer.dataset.src = videoSrc;
-                    
-                    // Add thumbnail
-                    const thumbnail = document.createElement('img');
-                    thumbnail.className = 'video-thumbnail';
-                    thumbnail.id = 'videoThumbnail';
-                    thumbnail.alt = 'Video thumbnail';
-                    
-                    // Use cached thumbnail if available
-                    if (window.videoCache[videoSrc] && window.videoCache[videoSrc].thumbnail) {
-                        thumbnail.src = window.videoCache[videoSrc].thumbnail;
-                        thumbnail.style.opacity = 1;
-                    } else {
-                        // Fallback to the thumbnail image
-                        const thumbImg = thumb.querySelector('img');
-                        if (thumbImg) {
-                            thumbnail.src = thumbImg.src;
-                        }
-                    }
-                    
-                    // Add play overlay
-                    const playOverlay = document.createElement('div');
-                    playOverlay.className = 'play-overlay';
-                    playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
-                    
-                    // Assemble container
-                    videoContainer.appendChild(thumbnail);
-                    videoContainer.appendChild(playOverlay);
-                    
-                    // Replace content in featured container
+                    // Add source after appending to DOM (prevents Safari issues)
                     featuredContainer.innerHTML = '';
-                    featuredContainer.appendChild(videoContainer);
+                    featuredContainer.appendChild(videoElement);
                     
-                    // Set up click handler for playing the video
-                    videoContainer.addEventListener('click', function() {
-                        try {
-                            const videoElement = document.createElement('video');
-                            videoElement.setAttribute('controls', true);
-                            videoElement.setAttribute('autoplay', true);
-                            videoElement.className = 'featured-image';
-                            videoElement.src = this.dataset.src;
-                            
-                            // Add error handling
-                            videoElement.addEventListener('error', function(e) {
-                                console.error('Video loading error:', e);
-                                // Show error message in container
-                                featuredContainer.innerHTML = `
-                                    <div class="video-error-container">
-                                        <div class="video-error-message">
-                                            <i class="fas fa-exclamation-triangle"></i>
-                                            <p>Error loading video. Please try again later.</p>
-                                        </div>
-                                    </div>
-                                `;
+                    // Small delay before setting source (helps with Safari)
+                    setTimeout(() => {
+                        videoElement.src = videoSrc;
+                        videoElement.load();
+                        
+                        // Double check play on Safari
+                        const playPromise = videoElement.play();
+                        
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                // Auto-play was prevented
+                                console.log('Auto-play prevented. User must interact with the video.');
+                                
+                                // Add play button for user to click
+                                const playButton = document.createElement('div');
+                                playButton.className = 'manual-play-button';
+                                playButton.innerHTML = '<i class="fas fa-play"></i> Tap to Play';
+                                playButton.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 15px 20px; border-radius: 5px; cursor: pointer; z-index: 10;';
+                                
+                                featuredContainer.appendChild(playButton);
+                                
+                                playButton.addEventListener('click', () => {
+                                    videoElement.play();
+                                    playButton.remove();
+                                });
                             });
-                            
-                            // Replace container with video
-                            featuredContainer.innerHTML = '';
-                            featuredContainer.appendChild(videoElement);
-                            
-                            // Try playing with catch for any errors
-                            videoElement.play().catch(err => {
-                                console.error('Video play error:', err);
-                            });
-                        } catch(e) {
-                            console.error("Error creating video element:", e);
                         }
-                    });
-                } else {
-                    // Handle image content
-                    const imageElement = document.createElement('img');
-                    
-                    if (!thumb.dataset.image) {
-                        console.warn("Image thumbnail has no source");
-                        // Try to get from the img element instead
-                        const thumbImg = thumb.querySelector('img');
-                        if (thumbImg && thumbImg.src) {
-                            imageElement.src = thumbImg.src;
-                        } else {
-                            return;
-                        }
-                    } else {
-                        imageElement.src = thumb.dataset.image;
-                    }
-                    
-                    imageElement.alt = 'Featured image';
-                    imageElement.className = 'featured-image';
-                    imageElement.id = 'featuredImage';
-                    
-                    featuredContainer.innerHTML = '';
-                    featuredContainer.appendChild(imageElement);
-                }
-            } catch(e) {
-                console.error("Error in updateFeaturedMedia:", e);
+                    }, 50);
+                });
             }
         }
         
-        // Setup thumbnail gallery functionality
+        // Setup gallery thumbnails
         function setupGalleryThumbnails() {
             const thumbnails = document.querySelectorAll('.thumbnail');
+            const featuredContainer = document.getElementById('featured-container');
             
             thumbnails.forEach(thumb => {
                 thumb.addEventListener('click', function() {
@@ -643,16 +437,55 @@
                     thumbnails.forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
                     
-                    // Update featured media
-                    updateFeaturedMedia(this);
+                    if (this.classList.contains('video-thumb')) {
+                        // Create video container with play button
+                        const videoSrc = this.dataset.src || "{% static 'videos/Bomby_Stream_Setup.mp4' %}";
+                        const videoContainer = document.createElement('div');
+                        videoContainer.className = 'video-container';
+                        videoContainer.id = 'videoContainer';
+                        videoContainer.dataset.src = videoSrc;
+                        
+                        // Add thumbnail image
+                        const thumbnail = document.createElement('img');
+                        thumbnail.className = 'video-thumbnail';
+                        thumbnail.id = 'videoThumbnail';
+                        thumbnail.alt = 'Video thumbnail';
+                        thumbnail.src = "{% static 'images/stream_setup_1.jpg' %}";
+                        
+                        // Add placeholder icon
+                        const placeholderIcon = document.createElement('div');
+                        placeholderIcon.className = 'placeholder-icon';
+                        placeholderIcon.innerHTML = '<i class="fas fa-film"></i>';
+                        
+                        // Add play overlay
+                        const playOverlay = document.createElement('div');
+                        playOverlay.className = 'play-overlay';
+                        playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
+                        
+                        // Assemble container
+                        videoContainer.appendChild(thumbnail);
+                        videoContainer.appendChild(placeholderIcon);
+                        videoContainer.appendChild(playOverlay);
+                        
+                        // Replace content in featured container
+                        featuredContainer.innerHTML = '';
+                        featuredContainer.appendChild(videoContainer);
+                        
+                        // Setup click handler for the new container
+                        setupVideoClickHandlers();
+                    } else {
+                        // Handle image content
+                        const imageElement = document.createElement('img');
+                        imageElement.src = this.dataset.image;
+                        imageElement.alt = 'Featured image';
+                        imageElement.className = 'featured-image';
+                        imageElement.id = 'featuredImage';
+                        
+                        featuredContainer.innerHTML = '';
+                        featuredContainer.appendChild(imageElement);
+                    }
                 });
             });
-            
-            // Set initial featured media
-            const activeThumb = document.querySelector('.thumbnail.active');
-            if (activeThumb) {
-                updateFeaturedMedia(activeThumb);
-            }
         }
         
         // FAQ dropdown functionality
@@ -679,9 +512,8 @@
             });
         }
         
-        // Handle review pagination
-        function setupReviewPagination() {
-            // Format dates to local timezone
+        // Format dates to local timezone
+        function setupDateFormatting() {
             const formatLocalDate = (dateString) => {
                 if (!dateString) return '';
                 try {
@@ -705,8 +537,10 @@
                     element.textContent = formatLocalDate(element.textContent.trim());
                 }
             });
-
-            // Handle review pagination with randomization
+        }
+        
+        // Handle review pagination
+        function setupReviewPagination() {
             const reviewItems = document.querySelectorAll('.review-item');
             if (reviewItems.length > 0) {
                 const reviewsList = document.getElementById('reviewsList');
@@ -847,39 +681,20 @@
             }
         }
         
-        // Initialize everything with error handling
+        // Initialize everything
         function init() {
-            try {
-                addVideoStyles();
-                preloadAllVideos();
-                setupGalleryThumbnails();
-                setupFAQHandlers();
-                setupReviewPagination();
-            } catch(e) {
-                console.error("Error during initialization:", e);
-                // At least try to show thumbnails and images if video handling fails
-                const thumbnails = document.querySelectorAll('.thumbnail');
-                const activeThumb = document.querySelector('.thumbnail.active');
-                
-                if (activeThumb && !activeThumb.classList.contains('video-thumb')) {
-                    try {
-                        // Just show the image if it's not a video
-                        const featuredContainer = document.getElementById('featured-container');
-                        const imageElement = document.createElement('img');
-                        imageElement.src = activeThumb.dataset.image || activeThumb.querySelector('img').src;
-                        imageElement.alt = 'Featured image';
-                        imageElement.className = 'featured-image';
-                        
-                        featuredContainer.innerHTML = '';
-                        featuredContainer.appendChild(imageElement);
-                    } catch(e2) {
-                        console.error("Failed fallback initialization:", e2);
-                    }
-                }
-            }
+            // Add default styling
+            addVideoStyles();
+            
+            // Set up all event handlers
+            setupVideoClickHandlers();
+            setupGalleryThumbnails();
+            setupFAQHandlers();
+            setupDateFormatting();
+            setupReviewPagination();
         }
         
-        // Start initialization
+        // Run initialization
         init();
     });
 </script>
