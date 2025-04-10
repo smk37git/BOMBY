@@ -24,13 +24,12 @@
         <!-- Left side: Gallery -->
         <div class="product-gallery-side">
             <div class="product-featured-image">
-                <div id="featured-container">
+                <div id="featured-container" style="background: #0a0a0a;">
                     <video id="featuredVideo" class="featured-image" controls style="display: none;">
                         <source src="{% static 'videos/Bomby_Stream_Setup.mp4' %}" type="video/mp4">
                         Your browser does not support the video tag.
                     </video>
-                    <img src="{% static 'images/stream_setup_1.jpg' %}" 
-                         alt="Basic Package" class="featured-image" id="featuredImage">
+                    <img src="{% static 'images/stream_setup_1.jpg' %}" alt="Basic Package" class="featured-image" id="featuredImage">
                 </div>
             </div>
             
@@ -374,59 +373,48 @@
             document.head.appendChild(style);
         }
         
-        // Handle click on the video container
-        function setupVideoClickHandlers() {
-            const videoContainer = document.getElementById('videoContainer');
-            if (videoContainer) {
-                videoContainer.addEventListener('click', function() {
-                    const videoSrc = this.dataset.src;
-                    const featuredContainer = document.getElementById('featured-container');
-                    
-                    // Create a new video element
+        // Setup direct video playback
+        function setupDirectVideoPlayback() {
+            const featuredContainer = document.getElementById('featured-container');
+            const featuredImage = document.getElementById('featuredImage');
+            const featuredVideo = document.getElementById('featuredVideo');
+            
+            // Hide the default video element
+            if (featuredVideo) featuredVideo.style.display = 'none';
+            
+            // Create a simple play button overlay for the image
+            const playOverlay = document.createElement('div');
+            playOverlay.className = 'play-overlay';
+            playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
+            
+            // Add the play overlay to the container
+            featuredContainer.style.position = 'relative';
+            featuredContainer.appendChild(playOverlay);
+            
+            // Direct play handler
+            const videoThumb = document.querySelector('.video-thumb');
+            if (videoThumb) {
+                const videoSrc = videoThumb.dataset.src;
+                playOverlay.addEventListener('click', function() {
                     const videoElement = document.createElement('video');
                     videoElement.setAttribute('controls', true);
-                    videoElement.setAttribute('playsinline', true); // Important for iOS
-                    videoElement.setAttribute('webkit-playsinline', true); // Legacy iOS support
+                    videoElement.setAttribute('playsinline', true);
                     videoElement.setAttribute('autoplay', true);
                     videoElement.className = 'featured-image';
                     
-                    // Add source after appending to DOM (prevents Safari issues)
                     featuredContainer.innerHTML = '';
                     featuredContainer.appendChild(videoElement);
                     
-                    // Small delay before setting source (helps with Safari)
                     setTimeout(() => {
                         videoElement.src = videoSrc;
                         videoElement.load();
-                        
-                        // Double check play on Safari
-                        const playPromise = videoElement.play();
-                        
-                        if (playPromise !== undefined) {
-                            playPromise.catch(error => {
-                                // Auto-play was prevented
-                                console.log('Auto-play prevented. User must interact with the video.');
-                                
-                                // Add play button for user to click
-                                const playButton = document.createElement('div');
-                                playButton.className = 'manual-play-button';
-                                playButton.innerHTML = '<i class="fas fa-play"></i> Tap to Play';
-                                playButton.style.cssText = 'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 15px 20px; border-radius: 5px; cursor: pointer; z-index: 10;';
-                                
-                                featuredContainer.appendChild(playButton);
-                                
-                                playButton.addEventListener('click', () => {
-                                    videoElement.play();
-                                    playButton.remove();
-                                });
-                            });
-                        }
+                        videoElement.play();
                     }, 50);
                 });
             }
         }
         
-        // Setup gallery thumbnails
+        // Handle gallery thumbnails
         function setupGalleryThumbnails() {
             const thumbnails = document.querySelectorAll('.thumbnail');
             const featuredContainer = document.getElementById('featured-container');
@@ -438,41 +426,38 @@
                     this.classList.add('active');
                     
                     if (this.classList.contains('video-thumb')) {
-                        // Create video container with play button
+                        // Video thumbnail clicked
+                        featuredContainer.innerHTML = '';
+                        
                         const videoSrc = this.dataset.src || "{% static 'videos/Bomby_Stream_Setup.mp4' %}";
-                        const videoContainer = document.createElement('div');
-                        videoContainer.className = 'video-container';
-                        videoContainer.id = 'videoContainer';
-                        videoContainer.dataset.src = videoSrc;
+                        const imageThumb = document.createElement('img');
+                        imageThumb.src = "{% static 'images/stream_setup_1.jpg' %}";
+                        imageThumb.className = 'featured-image';
                         
-                        // Add thumbnail image
-                        const thumbnail = document.createElement('img');
-                        thumbnail.className = 'video-thumbnail';
-                        thumbnail.id = 'videoThumbnail';
-                        thumbnail.alt = 'Video thumbnail';
-                        thumbnail.src = "{% static 'images/stream_setup_1.jpg' %}";
-                        
-                        // Add placeholder icon
-                        const placeholderIcon = document.createElement('div');
-                        placeholderIcon.className = 'placeholder-icon';
-                        placeholderIcon.innerHTML = '<i class="fas fa-film"></i>';
-                        
-                        // Add play overlay
                         const playOverlay = document.createElement('div');
                         playOverlay.className = 'play-overlay';
                         playOverlay.innerHTML = '<div class="play-button"><i class="fas fa-play"></i></div>';
                         
-                        // Assemble container
-                        videoContainer.appendChild(thumbnail);
-                        videoContainer.appendChild(placeholderIcon);
-                        videoContainer.appendChild(playOverlay);
+                        featuredContainer.style.position = 'relative';
+                        featuredContainer.appendChild(imageThumb);
+                        featuredContainer.appendChild(playOverlay);
                         
-                        // Replace content in featured container
-                        featuredContainer.innerHTML = '';
-                        featuredContainer.appendChild(videoContainer);
-                        
-                        // Setup click handler for the new container
-                        setupVideoClickHandlers();
+                        playOverlay.addEventListener('click', function() {
+                            const videoElement = document.createElement('video');
+                            videoElement.setAttribute('controls', true);
+                            videoElement.setAttribute('playsinline', true);
+                            videoElement.setAttribute('autoplay', true);
+                            videoElement.className = 'featured-image';
+                            
+                            featuredContainer.innerHTML = '';
+                            featuredContainer.appendChild(videoElement);
+                            
+                            setTimeout(() => {
+                                videoElement.src = videoSrc;
+                                videoElement.load();
+                                videoElement.play();
+                            }, 50);
+                        });
                     } else {
                         // Handle image content
                         const imageElement = document.createElement('img');
@@ -686,8 +671,10 @@
             // Add default styling
             addVideoStyles();
             
+            // Set up direct video playback first
+            setupDirectVideoPlayback();
+            
             // Set up all event handlers
-            setupVideoClickHandlers();
             setupGalleryThumbnails();
             setupFAQHandlers();
             setupDateFormatting();
