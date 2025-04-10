@@ -167,25 +167,6 @@ def donation_success(request):
     return redirect('STORE:store')
 
 def stream_setup(request):
-    media_items = AssetMedia.objects.filter(
-        asset__name__icontains='My Custom Setup'
-    ).order_by('order')
-    
-    if not media_items.exists():
-        media_items = AssetMedia.objects.filter(
-            asset__name__icontains='stream'
-        ).order_by('order')[:5]  # Limit to 5 items
-    
-    product_reviews = get_all_reviews()
-    
-    return render(request, 'STORE/stream_setup.html', {
-        'product_reviews': product_reviews,
-        'media_items': media_items
-    })
-
-
-def stream_setup(request):
-    # Get the dedicated stream setup asset
     try:
         setup_asset = StreamAsset.objects.get(name="My Stream Setup")
         media_items = setup_asset.media.all().order_by('order')
@@ -207,6 +188,23 @@ def stream_setup(request):
         'product_reviews': product_reviews,
         'media_items': media_items
     })
+
+
+def stream_store(request):
+    """Stream store view with access control"""
+    # Check if user can access (supporter, client, admin)
+    if request.user.is_authenticated and user_can_access_stream_store(request.user):
+        # User has access, show the actual store    
+        assets = StreamAsset.objects.filter(is_active=True)
+        return render(request, 'STORE/stream_store.html', {'assets': assets})
+    else:
+        # Show the purchase page (not purchase history)
+        product = Product.objects.get(id=4)
+        product_reviews = get_all_reviews()
+        return render(request, 'STORE/stream_store_purchase.html', {
+            'product': product,
+            'product_reviews': product_reviews
+        })
 
 def basic_website(request):
     product = Product.objects.get(id=5)
