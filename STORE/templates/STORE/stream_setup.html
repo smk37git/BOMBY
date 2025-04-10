@@ -300,22 +300,14 @@
                 return response.json();
             })
             .then(data => {
-                console.log("Got signed URL");
                 window.signedVideoUrl = data.url;
+                console.log("Got signed URL:", data.url.substring(0, 50) + "...");
                 
-                // Update video source
+                // Update video element
                 const videoEl = document.getElementById('featuredVideo');
                 if (videoEl) {
-                    // Create source element if it doesn't exist
-                    let sourceEl = videoEl.querySelector('source');
-                    if (!sourceEl) {
-                        sourceEl = document.createElement('source');
-                        sourceEl.type = 'video/mp4';
-                        videoEl.appendChild(sourceEl);
-                    }
-                    
-                    // Set the source to the signed URL
-                    sourceEl.src = data.url;
+                    videoEl.src = data.url;
+                    videoEl.style.display = 'block';
                     videoEl.load();
                 }
             })
