@@ -3,6 +3,8 @@ from django.http import JsonResponse
 import requests
 import json
 
+from STORE.models import Review
+
 def portfolio(request):
     return render(request, 'PORTFOLIO/portfolio.html')
 
@@ -68,3 +70,11 @@ def college_project(request):
 
 def steam_workshop(request):
     return render(request, 'PORTFOLIO/steam_workshop.html')
+
+def get_all_reviews():
+    """Helper function to get all reviews across products"""
+    return Review.objects.all().select_related('order__user', 'order__product')
+
+def stream_setup(request):
+    product_reviews = get_all_reviews()
+    return render(request, 'PORTFOLIO/stream_setup.html', {'product_reviews': product_reviews})

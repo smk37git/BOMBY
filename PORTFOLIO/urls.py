@@ -12,5 +12,6 @@ urlpatterns = [
     path('github-project/', views.github_project, name='github_project'),
     path('college-project/', views.college_project, name='college_project'),
     path('steam-workshop/', views.steam_workshop, name='steam_workshop'),
+    path('stream-setup/', views.stream_setup, name='stream_setup'),
     path('api/github-commit/<str:username>/<str:repo>/', views.github_latest_fraternity_commit, name='github_commit'),
 ]

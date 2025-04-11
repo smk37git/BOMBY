@@ -11,7 +11,6 @@ urlpatterns = [
     path('basic-package/', views.basic_package, name='basic_package'),
     path('standard-package/', views.standard_package, name='standard_package'),
     path('premium-package/', views.premium_package, name='premium_package'),
-    path('stream-setup/', views.stream_setup, name='stream_setup'),
     path('stream-store/', views.stream_store, name='stream_store'),
 
     # Stream Store pages

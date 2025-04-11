@@ -103,31 +103,6 @@
                 </a>
             </div>
 
-            <!-- My Stream Setup -->
-            <div class="product-item">
-                <a href="{% url 'STORE:stream_setup' %}" class="product-link">
-                    <div class="window">
-                        <div class="window-header">
-                            <div class="window-controls">
-                                <div class="control red"></div>
-                                <div class="control yellow"></div>
-                                <div class="control green"></div>
-                            </div>
-                            <div class="window-title">SebeTVs-Setup.exe</div>
-                        </div>
-                        <div class="window-content">
-                            <img src="{% static 'images/Custom_Setup.jpeg' %}" alt="Stream Setup">
-                        </div>
-                        <div class="window-footer">
-                            <div class="product-status {% if products.3.is_active %}active{% else %}inactive{% endif %}">
-                                {% if products.3.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
-                            </div>
-                            <a href="{% url 'STORE:stream_setup' %}" class="buy-button">VIEW CUSTOM SETUP</a>
-                        </div>
-                    </div>
-                </a>
-            </div>
-
             <!-- Stream Store -->
             <div class="product-item">
                 <a href="{% url 'STORE:stream_store' %}" class="product-link">

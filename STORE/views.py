@@ -166,11 +166,6 @@ def donation_success(request):
         
     return redirect('STORE:store')
 
-def stream_setup(request):
-    product_reviews = get_all_reviews()
-    return render(request, 'STORE/stream_setup.html', {'product_reviews': product_reviews})
-
-
 def stream_store(request):
     """Stream store view with access control"""
     # Check if user can access (supporter, client, admin)
