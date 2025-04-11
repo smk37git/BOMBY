@@ -71,7 +71,7 @@ gcloud run deploy $SERVICE_NAME \
   --timeout 30m \
   --mount type=cloud-storage,bucket=$BUCKET_NAME,path=/app/media \
   --set-env-vars="DEBUG=False,\
-ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,\
+ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,bomby.us,www.bomby.us,\
 SENDGRID_SANDBOX_MODE=False,\
 DB_NAME=$DB_NAME,\
 DB_USER=$DB_USER,\
