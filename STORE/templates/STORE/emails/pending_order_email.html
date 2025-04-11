@@ -135,11 +135,11 @@
             <p>To begin processing your order, please <strong>complete the requirements form</strong> by clicking the button below.</p>
         </div>
         
-        <a href="{{ protocol }}://{{ domain }}{% url 'STORE:order_form' order.id %}" style="color: #ffffff !important;" class="action-button">Complete Requirements Form</a>
+        <a href="https://bomby.us{% url 'STORE:order_form' order.id %}" style="color: #ffffff !important;" class="action-button">Complete Requirements Form</a>
         
         <p class="note">If the button above doesn't work, copy and paste the following link into your browser:</p>
         <p style="word-break: break-all; font-size: 13px; opacity: 0.7;">
-            {{ protocol }}://{{ domain }}{% url 'STORE:order_form' order.id %}
+            https://bomby.us{% url 'STORE:order_form' order.id %}
         </p>
         
         <div class="footer">
