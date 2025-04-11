@@ -7,8 +7,8 @@ body, html {
 
 .project-container {
     min-height: 100vh;
+    margin-top: -100px;
     position: relative;
-    padding-top: 1px;
 }
 
 /* Split hero section */
@@ -680,6 +680,7 @@ body, html {
 @media (max-width: 768px) {
     /* Hero section */
     .project-container {
+        margin-top: -35px;
         max-width: 99%;
     }
 
@@ -835,7 +836,7 @@ body, html {
     /* CTA section */
     .contact-cta {
         padding: 3rem 1rem;
-        margin: 2rem 1rem;
+        margin: 0 1rem 25px;
         max-width: calc(100% - 2rem);
     }
     

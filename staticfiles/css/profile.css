@@ -13,7 +13,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-top: 25px;
     padding-bottom: 20px;
 }
 
@@ -426,6 +425,7 @@ html, body {
     .profile-title {
         font-size: 2em;
         padding: 10px 15px;
+        margin-top: -5px;
         width: auto;
     }
     

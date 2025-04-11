@@ -19,19 +19,36 @@ body {
   background-color: #000;
 }
 
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.nav-wrapper {
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Announcement Bar */
 .announcement-bar {
-  width: 100%;
+  width: auto;
   padding: 10px 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 1100;
   font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 999;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  margin-bottom: 10px;
 }
 
 .announcement-message {
@@ -69,14 +86,6 @@ body {
   opacity: 1;
 }
 
-.custom-navbar.with-announcement {
-  top: 42px;
-}
-
-main.with-announcement {
-  padding-top: 132px;
-}
-
 .announcement-7b00fe {
   background-color: #7b00fe;
   color: white;
@@ -87,13 +96,28 @@ main.with-announcement {
   color: white;
 }
 
+.announcement-007bff {
+  background-color: #007bff;
+  color: white;
+}
+
+.announcement-28a745 {
+  background-color: #28a745;
+    color: white;
+}
+
+.annoucement-343a40 {
+  background-color: #343a40;
+  color: white;
+}
+
 /* Navigation bar */
 .custom-navbar {
   display: flex;
   align-items: center;
   padding: 1.5rem 3rem;
   width: 100%;
-  position: absolute;
+  position: relative;
   justify-content: space-between;
   top: 0;
   left: 0;
@@ -372,8 +396,9 @@ main.with-announcement {
 
 /* Main content */
 main {
-  padding-top: 90px;
+  padding-top: 20px;
   min-height: calc(100vh - 300px);
+  flex: 1;
 }
 
 /* Footer */
@@ -699,6 +724,10 @@ main {
   body {
     overflow-x: hidden;
   }
+
+  .nav-wrapper {
+    width: 100%;
+  }
   
   .custom-navbar {
     padding: 1rem;
@@ -728,6 +757,7 @@ main {
     top: 100%;
     left: 0;
     background-color: rgba(0, 0, 0, 0.9);
+    z-index: 1001;
   }
   
   .nav-menu.active {
@@ -878,26 +908,15 @@ main {
     font-size: 0.85rem;
   }
   
-  .announcement-message {
-    margin-right: 30px;
-  }
-  
   .announcement-edit-link {
     top: 50%;
     transform: translateY(-50%);
+    right: 10px;
   }
   
   .announcement-link {
     margin-left: 5px;
     padding: 1px 5px;
     font-size: 0.8rem;
-  }
-  
-  .custom-navbar.with-announcement {
-    top: 36px;
-  }
-  
-  main.with-announcement {
-    padding-top: 120px;
   }
 }
