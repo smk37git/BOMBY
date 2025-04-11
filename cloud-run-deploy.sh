@@ -9,53 +9,37 @@ SERVICE_NAME="bomby"
 REGION="us-central1"
 IMAGE_NAME="gcr.io/$PROJECT_ID/$SERVICE_NAME"
 INSTANCE_CONNECTION_NAME="$PROJECT_ID:$REGION:bomby-database"
-DB_NAME="postgres"
-DB_USER="postgres"
+BUCKET_NAME="bomby-user-uploads"
+
+# Load secrets from .env
 DB_PASSWORD=$(grep DB_PASSWORD .env | cut -d'=' -f2)
 SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
 PAYPAL_CLIENT_ID=$(grep PAYPAL_CLIENT_ID .env | cut -d'=' -f2)
 PAYPAL_SECRET=$(grep PAYPAL_SECRET .env | cut -d'=' -f2)
-BUCKET_NAME="bomby-user-uploads"
 
-# Build the Docker image
-echo "Building Docker image..."
+# Build and push Docker image
+echo "Building and pushing Docker image..."
 docker build -t $IMAGE_NAME .
-
-# Configure Docker to use gcloud as a credential helper
-echo "Configuring Docker authentication..."
 gcloud auth configure-docker
-
-# Push the image to Google Container Registry
-echo "Pushing image to Google Container Registry..."
 docker push $IMAGE_NAME
 
-# Create secrets
+# Create or update secrets
 echo "Setting up secrets..."
+for SECRET_NAME in django-secret-key postgres-password sendgrid-api-key paypal-client-id paypal-secret; do
+  gcloud secrets describe $SECRET_NAME > /dev/null 2>&1 || \
+  gcloud secrets create $SECRET_NAME --replication-policy="automatic"
+done
 
-# Existing secrets
-gcloud secrets describe django-secret-key > /dev/null 2>&1 || \
-gcloud secrets create django-secret-key --replication-policy="automatic"
+# Set secret values
+echo -n "$DB_PASSWORD" | gcloud secrets versions add postgres-password --data-file=-
+echo -n "$SENDGRID_KEY" | gcloud secrets versions add sendgrid-api-key --data-file=-
+echo -n "$PAYPAL_CLIENT_ID" | gcloud secrets versions add paypal-client-id --data-file=-
+echo -n "$PAYPAL_SECRET" | gcloud secrets versions add paypal-secret --data-file=-
 
-gcloud secrets describe postgres-password > /dev/null 2>&1 || \
-gcloud secrets create postgres-password --replication-policy="automatic" --data-file=<(echo -n "$DB_PASSWORD")
-
-gcloud secrets describe sendgrid-api-key > /dev/null 2>&1 || \
-gcloud secrets create sendgrid-api-key --replication-policy="automatic" --data-file=<(echo -n "$SENDGRID_KEY")
-
-# PayPal secrets
-gcloud secrets describe paypal-client-id > /dev/null 2>&1 || \
-gcloud secrets create paypal-client-id --replication-policy="automatic" --data-file=<(echo -n "$PAYPAL_CLIENT_ID")
-
-gcloud secrets describe paypal-secret > /dev/null 2>&1 || \
-gcloud secrets create paypal-secret --replication-policy="automatic" --data-file=<(echo -n "$PAYPAL_SECRET")
-
-# Ensure the bucket exists with correct permissions
-echo "Ensuring the storage bucket exists..."
-gsutil ls -b gs://$BUCKET_NAME > /dev/null 2>&1 || \
-gsutil mb -l $REGION gs://$BUCKET_NAME
-
-# Make bucket publicly readable
+# Create and configure storage bucket
+echo "Setting up storage bucket..."
+gsutil ls -b gs://$BUCKET_NAME > /dev/null 2>&1 || gsutil mb -l $REGION gs://$BUCKET_NAME
 gsutil iam ch allUsers:objectViewer gs://$BUCKET_NAME
 
 # Deploy to Cloud Run
@@ -70,20 +54,19 @@ gcloud run deploy $SERVICE_NAME \
   --memory 1Gi \
   --timeout 30m \
   --mount type=cloud-storage,bucket=$BUCKET_NAME,path=/app/media \
-  --set-env-vars="DEBUG=False,\
-ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,\
+  --set-env-vars="ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,\
 SENDGRID_SANDBOX_MODE=False,\
-DB_NAME=$DB_NAME,\
-DB_USER=$DB_USER,\
-DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME" \
+DB_USER=postgres,\
+DB_NAME=postgres,\
+DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME,\
+DEFAULT_FROM_EMAIL=$DEFAULT_FROM_EMAIL" \
   --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
 DB_PASSWORD=postgres-password:latest,\
 AWS_ACCESS_KEY_ID=aws-access-key:latest,\
 AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
 SENDGRID_API_KEY=sendgrid-api-key:latest,\
-DEFAULT_FROM_EMAIL=default-from-email:latest,\
 PAYPAL_CLIENT_ID=paypal-client-id:latest,\
 PAYPAL_SECRET=paypal-secret:latest" \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
-echo "Deployment complete! Your website should be available soon at the URL above."
+echo "Deployment complete!"
