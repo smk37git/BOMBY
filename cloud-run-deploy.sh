@@ -70,21 +70,8 @@ gcloud run deploy $SERVICE_NAME \
   --memory 1Gi \
   --timeout 30m \
   --mount type=cloud-storage,bucket=$BUCKET_NAME,path=/app/media \
-  --set-env-vars="DEBUG=False,\
-  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=bomby.us,www.bomby.us,.run.app,$SERVICE_NAME.run.app"
-ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,bomby.us,www.bomby.us,\
-SENDGRID_SANDBOX_MODE=False,\
-DB_NAME=$DB_NAME,\
-DB_USER=$DB_USER,\
-DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME" \
-  --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
-DB_PASSWORD=postgres-password:latest,\
-AWS_ACCESS_KEY_ID=aws-access-key:latest,\
-AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
-SENDGRID_API_KEY=sendgrid-api-key:latest,\
-DEFAULT_FROM_EMAIL=default-from-email:latest,\
-PAYPAL_CLIENT_ID=paypal-client-id:latest,\
-PAYPAL_SECRET=paypal-secret:latest" \
+  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=bomby.us,www.bomby.us,.run.app,$SERVICE_NAME.run.app,SENDGRID_SANDBOX_MODE=False,DB_NAME=$DB_NAME,DB_USER=$DB_USER,DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME" \
+  --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,DB_PASSWORD=postgres-password:latest,AWS_ACCESS_KEY_ID=aws-access-key:latest,AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,SENDGRID_API_KEY=sendgrid-api-key:latest,DEFAULT_FROM_EMAIL=default-from-email:latest,PAYPAL_CLIENT_ID=paypal-client-id:latest,PAYPAL_SECRET=paypal-secret:latest" \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
 echo "Deployment complete! Your website should be available soon at the URL above."
