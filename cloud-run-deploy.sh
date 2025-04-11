@@ -16,7 +16,7 @@ SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
 PAYPAL_CLIENT_ID=$(grep PAYPAL_CLIENT_ID .env | cut -d'=' -f2)
 PAYPAL_SECRET=$(grep PAYPAL_SECRET .env | cut -d'=' -f2)
-BUCKET_NAME="bomby-user-uploads"
+BUCKET_NAME="bomby-user-uploads-volume"
 
 # Build the Docker image
 echo "Building Docker image..."
