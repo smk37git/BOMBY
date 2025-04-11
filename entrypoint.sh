@@ -3,6 +3,8 @@
 # Exit on error
 set -e
 
+echo "ALLOWED_HOSTS value: $ALLOWED_HOSTS"
+
 # Wait for PostgreSQL
 if [ -n "$DB_HOST" ]; then
   echo "Waiting for PostgreSQL..."
