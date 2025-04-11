@@ -9,11 +9,6 @@ from ACCOUNTS.models import Message
 from STORE.models import Order, Product, Review
 from MAIN.decorators import *
 from .models import Announcement
-from django.views.static import serve
-from django.conf import settings
-from django.http import HttpResponseForbidden
-
-
 # Create your views here.
 
 # Homepage View
@@ -167,11 +162,3 @@ def get_active_announcement():
         return Announcement.objects.filter(is_active=True).latest('created_at')
     except Announcement.DoesNotExist:
         return None
-
-# Google Bucket stuff
-def protected_media_serve(request, path):
-    """
-    Custom view to serve media files in production
-    The middleware will handle the permissions checks
-    """
-    return serve(request, path, document_root=settings.MEDIA_ROOT)

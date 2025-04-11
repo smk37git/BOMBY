@@ -72,7 +72,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'STORE.middleware.AnalyticsMiddleware',
-    'MAIN.middleware.MediaAccessMiddleware',
 ]
 
 ROOT_URLCONF = 'mywebsite.urls'
@@ -195,18 +194,15 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # For Cloud Run with mounted bucket
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# For Cloud Run with mounted bucket
 if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
     # Path where the bucket is mounted
     GS_MEDIA_BUCKET_PATH = '/app/media'
     # Set media root to the mount point
     MEDIA_ROOT = GS_MEDIA_BUCKET_PATH
-    
-    # Define custom URL patterns based on media type
-    MEDIA_URL = '/media/'
-    PROFILE_PICTURES_URL = '/media/profile_pictures/'
-    ORDER_ATTACHMENTS_URL = '/media/order_attachments/'
-    STREAM_ASSETS_URL = '/media/stream_assets/'
-    CHUNK_UPLOADS_URL = '/media/chunk_uploads/'
 
 # Payment Details
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'YOUR_SANDBOX_CLIENT_ID')
