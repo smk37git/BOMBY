@@ -1,6 +1,4 @@
 #!/bin/bash
-
-# Exit on any error
 set -e
 
 # Configuration
@@ -24,20 +22,20 @@ docker build -t $IMAGE_NAME .
 gcloud auth configure-docker
 docker push $IMAGE_NAME
 
-# Create or update secrets
+# Set up secrets
 echo "Setting up secrets..."
 for SECRET_NAME in django-secret-key postgres-password sendgrid-api-key paypal-client-id paypal-secret; do
   gcloud secrets describe $SECRET_NAME > /dev/null 2>&1 || \
   gcloud secrets create $SECRET_NAME --replication-policy="automatic"
 done
 
-# Set secret values
+# Update secret values
 echo -n "$DB_PASSWORD" | gcloud secrets versions add postgres-password --data-file=-
 echo -n "$SENDGRID_KEY" | gcloud secrets versions add sendgrid-api-key --data-file=-
 echo -n "$PAYPAL_CLIENT_ID" | gcloud secrets versions add paypal-client-id --data-file=-
 echo -n "$PAYPAL_SECRET" | gcloud secrets versions add paypal-secret --data-file=-
 
-# Create and configure storage bucket
+# Set up storage bucket
 echo "Setting up storage bucket..."
 gsutil ls -b gs://$BUCKET_NAME > /dev/null 2>&1 || gsutil mb -l $REGION gs://$BUCKET_NAME
 gsutil iam ch allUsers:objectViewer gs://$BUCKET_NAME
@@ -54,7 +52,8 @@ gcloud run deploy $SERVICE_NAME \
   --memory 1Gi \
   --timeout 30m \
   --mount type=cloud-storage,bucket=$BUCKET_NAME,path=/app/media \
-  --set-env-vars="ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,\
+  --set-env-vars="DEBUG=False,\
+ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,\
 SENDGRID_SANDBOX_MODE=False,\
 DB_USER=postgres,\
 DB_NAME=postgres,\
