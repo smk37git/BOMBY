@@ -16,7 +16,7 @@ SENDGRID_KEY=$(grep SENDGRID_API_KEY .env | cut -d'=' -f2)
 DEFAULT_FROM_EMAIL=$(grep DEFAULT_FROM_EMAIL .env | cut -d'=' -f2)
 PAYPAL_CLIENT_ID=$(grep PAYPAL_CLIENT_ID .env | cut -d'=' -f2)
 PAYPAL_SECRET=$(grep PAYPAL_SECRET .env | cut -d'=' -f2)
-BUCKET_NAME="bomby-user-uploads-volume"
+BUCKET_NAME="bomby-user-uploads"
 
 # Build the Docker image
 echo "Building Docker image..."
@@ -50,13 +50,22 @@ gcloud secrets create paypal-client-id --replication-policy="automatic" --data-f
 gcloud secrets describe paypal-secret > /dev/null 2>&1 || \
 gcloud secrets create paypal-secret --replication-policy="automatic" --data-file=<(echo -n "$PAYPAL_SECRET")
 
-# Ensure the bucket exists with correct permissions
+# Ensure the bucket exists
 echo "Ensuring the storage bucket exists..."
 gsutil ls -b gs://$BUCKET_NAME > /dev/null 2>&1 || \
 gsutil mb -l $REGION gs://$BUCKET_NAME
 
-# Make bucket publicly readable
-gsutil iam ch allUsers:objectViewer gs://$BUCKET_NAME
+# Configure bucket permissions
+echo "Setting bucket permissions..."
+
+# First disable uniform bucket-level access to allow fine-grained control
+gsutil uniformbucketlevelaccess set off gs://$BUCKET_NAME
+
+# Remove any existing all-user permissions
+gsutil iam ch -d allUsers:objectViewer gs://$BUCKET_NAME 2>/dev/null || true
+
+# Grant public access only to profile_pictures folder
+gsutil -m acl ch -r -u AllUsers:R gs://$BUCKET_NAME/profile_pictures
 
 # Deploy to Cloud Run
 echo "Deploying to Cloud Run..."

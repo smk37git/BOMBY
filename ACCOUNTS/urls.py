@@ -64,4 +64,7 @@ urlpatterns = [
      path('message-monitor/', views.message_monitor, name='message_monitor'),
      path('message-monitor/mark-read/', views.mark_message_read, name='mark_message_read'),
      path('message-monitor/delete/', views.delete_messages, name='delete_messages'),
+
+     # GOOGLE BUCKET PERMISSIONS
+     path('protected-media/<path:path>', protected_media_view, name='protected_media'),
 ]

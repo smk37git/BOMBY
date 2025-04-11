@@ -194,13 +194,13 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # For Cloud Run with mounted bucket
-if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
+if os.environ.get('K_SERVICE'):
     # Path where the bucket is mounted
     GS_MEDIA_BUCKET_PATH = '/app/media'
     # Set media root to the mount point
     MEDIA_ROOT = GS_MEDIA_BUCKET_PATH
-    # Use FileSystemStorage for mounted bucket
-    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+    # Use custom storage backend
+    DEFAULT_FILE_STORAGE = 'storage.CustomFileSystemStorage'
 
 # Payment Details
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'YOUR_SANDBOX_CLIENT_ID')
