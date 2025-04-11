@@ -20,13 +20,17 @@ if [ -d "/app/media" ]; then
   echo "Preparing media directories..."
   # Create necessary directories
   mkdir -p /app/media/profile_pictures
+  mkdir -p /app/media/stream_assets
+  mkdir -p /app/media/order_attachments
   mkdir -p /app/media/chunk_uploads
   
   # Make sure the directories are writable
   chmod -R 777 /app/media
-  chown -R nobody:nogroup /app/media
   
   # Display permissions for debugging
+  echo "Media directory structure:"
+  find /app/media -type d | sort
+  
   echo "Media directory permissions:"
   ls -la /app/media
 fi
@@ -34,6 +38,7 @@ fi
 # Run migrations
 python manage.py migrate
 
+# Collect static files
 python manage.py collectstatic --noinput --clear
 
 # Start the server with increased timeout for large uploads

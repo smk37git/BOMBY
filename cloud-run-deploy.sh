@@ -59,13 +59,23 @@ gsutil mb -l $REGION gs://$BUCKET_NAME
 echo "Setting bucket permissions..."
 
 # First disable uniform bucket-level access to allow fine-grained control
-gsutil uniformbucketlevelaccess set off gs://$BUCKET_NAME
+gsutil uniformbucketlevelaccess set off gs://$BUCKET_NAME || true
 
 # Remove any existing all-user permissions
 gsutil iam ch -d allUsers:objectViewer gs://$BUCKET_NAME 2>/dev/null || true
 
-# Grant public access only to profile_pictures folder
-gsutil -m acl ch -r -u AllUsers:R gs://$BUCKET_NAME/profile_pictures
+# Create directory structure in bucket
+echo "Creating directory structure in bucket..."
+for dir in "profile_pictures" "stream_assets" "order_attachments" "chunk_uploads"; do
+  echo "Creating $dir directory..."
+  echo "" > /tmp/keep.txt
+  gsutil cp /tmp/keep.txt gs://$BUCKET_NAME/$dir/.keep || true
+done
+rm -f /tmp/keep.txt
+
+# Grant public access to profile_pictures folder only
+echo "Setting public permissions on profile_pictures directory..."
+gsutil -m acl ch -r -u AllUsers:R gs://$BUCKET_NAME/profile_pictures || true
 
 # Deploy to Cloud Run
 echo "Deploying to Cloud Run..."
