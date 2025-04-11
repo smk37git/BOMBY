@@ -31,5 +31,7 @@ if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 else:
-    # For production
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # For production: custom media serving with authentication
+    urlpatterns += [
+        path('media/<path:path>', views.protected_media_serve, name='protected_media'),
+    ]
