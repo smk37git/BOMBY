@@ -34,9 +34,6 @@ import os
 from django.core.paginator import Paginator
 from .decorators import admin_required
 from datetime import datetime, timedelta
-from django.http import FileResponse, Http404
-from django.conf import settings
-import mimetypes
 
 # Signup Form
 def signup(request):
@@ -791,47 +788,3 @@ def delete_messages(request):
             messages.error(request, "No messages selected for deletion.")
     
     return redirect('ACCOUNTS:message_monitor')
-
-
-# BUCKET STORAGE PERMISSIONS
-@login_required
-def protected_media_view(request, path):
-    file_path = os.path.join(settings.MEDIA_ROOT, path)
-    
-    # Security check - prevent directory traversal attacks
-    if not os.path.normpath(file_path).startswith(settings.MEDIA_ROOT):
-        raise Http404("Invalid path")
-    
-    # Check if file exists
-    if not os.path.exists(file_path) or not os.path.isfile(file_path):
-        raise Http404("File not found")
-    
-    # Determine if user has permission to access this file
-    if path.startswith('stream_assets/'):
-        # Only allow users with stream store access
-        from STORE.views import user_can_access_stream_store
-        if not user_can_access_stream_store(request.user):
-            raise Http404("Access denied")
-    
-    elif path.startswith('order_attachments/'):
-        # Check if the user has access to this order attachment
-        # Extract order ID from path or metadata
-        if not request.user.is_staff and not is_user_order_owner(request.user, path):
-            raise Http404("Access denied")
-    
-    # Get content type
-    content_type, encoding = mimetypes.guess_type(file_path)
-    content_type = content_type or 'application/octet-stream'
-    
-    # Serve the file
-    return FileResponse(open(file_path, 'rb'), content_type=content_type)
-
-def is_user_order_owner(user, file_path):
-    # Implement your logic to determine if user owns the order
-    from STORE.models import OrderAttachment
-    try:
-        filename = os.path.basename(file_path)
-        attachment = OrderAttachment.objects.get(file__endswith=filename)
-        return attachment.message.order.user == user
-    except OrderAttachment.DoesNotExist:
-        return False

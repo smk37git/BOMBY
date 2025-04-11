@@ -38,8 +38,7 @@ DEBUG = True
 #DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
-ALLOWED_HOSTS += ['bomby.us', 'www.bomby.us', 'bomby-799218251279.us-central1.run.app']
-CSRF_TRUSTED_ORIGINS = ['https://bomby.us', 'http://bomby.us', 'https://bomby-799218251279.us-central1.run.app']
+CSRF_TRUSTED_ORIGINS = ['https://bomby-799218251279.us-central1.run.app']
 
 
 # Application definition
@@ -65,9 +64,9 @@ SITE_ID = 1
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -194,13 +193,13 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # For Cloud Run with mounted bucket
-if os.environ.get('K_SERVICE'):
+if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
     # Path where the bucket is mounted
     GS_MEDIA_BUCKET_PATH = '/app/media'
     # Set media root to the mount point
     MEDIA_ROOT = GS_MEDIA_BUCKET_PATH
-    # Use custom storage backend
-    DEFAULT_FILE_STORAGE = 'storage.CustomFileSystemStorage'
+    # Use FileSystemStorage for mounted bucket
+    DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 # Payment Details
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'YOUR_SANDBOX_CLIENT_ID')
@@ -262,7 +261,3 @@ CSP_FONT_SRC = (
     "https://unpkg.com",
     "https://maxcdn.bootstrapcdn.com"
 )
-
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True

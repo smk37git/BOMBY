@@ -50,32 +50,13 @@ gcloud secrets create paypal-client-id --replication-policy="automatic" --data-f
 gcloud secrets describe paypal-secret > /dev/null 2>&1 || \
 gcloud secrets create paypal-secret --replication-policy="automatic" --data-file=<(echo -n "$PAYPAL_SECRET")
 
-# Ensure the bucket exists
+# Ensure the bucket exists with correct permissions
 echo "Ensuring the storage bucket exists..."
 gsutil ls -b gs://$BUCKET_NAME > /dev/null 2>&1 || \
 gsutil mb -l $REGION gs://$BUCKET_NAME
 
-# Configure bucket permissions
-echo "Setting bucket permissions..."
-
-# First disable uniform bucket-level access to allow fine-grained control
-gsutil uniformbucketlevelaccess set off gs://$BUCKET_NAME || true
-
-# Remove any existing all-user permissions
-gsutil iam ch -d allUsers:objectViewer gs://$BUCKET_NAME 2>/dev/null || true
-
-# Create directory structure in bucket
-echo "Creating directory structure in bucket..."
-for dir in "profile_pictures" "stream_assets" "order_attachments" "chunk_uploads"; do
-  echo "Creating $dir directory..."
-  echo "" > /tmp/keep.txt
-  gsutil cp /tmp/keep.txt gs://$BUCKET_NAME/$dir/.keep || true
-done
-rm -f /tmp/keep.txt
-
-# Grant public access to profile_pictures folder only
-echo "Setting public permissions on profile_pictures directory..."
-gsutil -m acl ch -r -u AllUsers:R gs://$BUCKET_NAME/profile_pictures || true
+# Make bucket publicly readable
+gsutil iam ch allUsers:objectViewer gs://$BUCKET_NAME
 
 # Deploy to Cloud Run
 echo "Deploying to Cloud Run..."
@@ -89,8 +70,20 @@ gcloud run deploy $SERVICE_NAME \
   --memory 1Gi \
   --timeout 30m \
   --mount type=cloud-storage,bucket=$BUCKET_NAME,path=/app/media \
-  --set-env-vars="DEBUG=False,ALLOWED_HOSTS=bomby.us,www.bomby.us,.run.app,$SERVICE_NAME.run.app,SENDGRID_SANDBOX_MODE=False,DB_NAME=$DB_NAME,DB_USER=$DB_USER,DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME" \
-  --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,DB_PASSWORD=postgres-password:latest,AWS_ACCESS_KEY_ID=aws-access-key:latest,AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,SENDGRID_API_KEY=sendgrid-api-key:latest,DEFAULT_FROM_EMAIL=default-from-email:latest,PAYPAL_CLIENT_ID=paypal-client-id:latest,PAYPAL_SECRET=paypal-secret:latest" \
+  --set-env-vars="DEBUG=False,\
+ALLOWED_HOSTS=.run.app,$SERVICE_NAME.run.app,\
+SENDGRID_SANDBOX_MODE=False,\
+DB_NAME=$DB_NAME,\
+DB_USER=$DB_USER,\
+DB_HOST=/cloudsql/$INSTANCE_CONNECTION_NAME" \
+  --set-secrets="DJANGO_SECRET_KEY=django-secret-key:latest,\
+DB_PASSWORD=postgres-password:latest,\
+AWS_ACCESS_KEY_ID=aws-access-key:latest,\
+AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
+SENDGRID_API_KEY=sendgrid-api-key:latest,\
+DEFAULT_FROM_EMAIL=default-from-email:latest,\
+PAYPAL_CLIENT_ID=paypal-client-id:latest,\
+PAYPAL_SECRET=paypal-secret:latest" \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
 echo "Deployment complete! Your website should be available soon at the URL above."

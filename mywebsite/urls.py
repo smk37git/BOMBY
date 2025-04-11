@@ -18,8 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from ACCOUNTS.views import protected_media_view
-
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,9 +25,6 @@ urlpatterns = [
     path('accounts/', include('ACCOUNTS.urls', namespace='ACCOUNTS')),
     path('portfolio/', include('PORTFOLIO.urls', namespace='PORTFOLIO')),
     path('store/', include('STORE.urls', namespace='STORE')),
-
-    # GOOGLE BUCKET PERMISSIONS
-    path('protected-media/<path:path>', protected_media_view, name='protected_media'),
 ]
 # Add static and media URLs for development
 if settings.DEBUG:
