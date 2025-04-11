@@ -22,10 +22,9 @@
         </div>
         
         <div class="hero-video">
-            <div class="video-container">
-                <video autoplay loop muted playsinline>
-                    <source src="{% static 'videos/eye-animation.webm' %}" type="video/mp4">
-                    Your browser does not support the video tag.
+            <div class="video-container-bomby">
+                <video autoplay loop muted playsinline preload="auto" id="bomby-animation-video">
+                    <source src="{% static 'videos/bomby-animation.webm' %}" type="video/webm">
                 </video>
             </div>
         </div>
@@ -107,6 +106,22 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+
+            document.querySelectorAll('video').forEach(video => {
+                video.addEventListener('timeupdate', function() {
+                    // Restart just before the end to prevent unloading
+                    if (this.currentTime > this.duration - 0.2) {
+                    this.currentTime = 0;
+                    }
+                });
+            });
+
+             // Control bomby animation video speed
+             const bombyVideo = document.getElementById('bomby-animation-video');
+            if (bombyVideo) {
+                bombyVideo.playbackRate = 0.8;
+            }
+
             // Control eye animation video speed
             const eyeVideo = document.getElementById('eye-animation-video');
             if (eyeVideo) {
