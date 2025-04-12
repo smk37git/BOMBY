@@ -9,7 +9,7 @@ from ACCOUNTS.models import Message
 from STORE.models import Order, Product, Review
 from MAIN.decorators import *
 from .models import Announcement
-# Create your views here.
+from django.conf import settings
 
 # Homepage View
 def home(request):
@@ -38,12 +38,12 @@ def contact(request):
             Message:
             {message}
             """
-            # Send email
+            # Send email using settings from project configuration
             send_mail(
-                f'New Message: {subject}',  # Email subject
+                f'New Message: {subject}',
                 email_message,
-                'your-gmail@gmail.com',  # From email
-                ['sebetvbusiness@gmail.com'],  # To email
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.DEFAULT_FROM_EMAIL],
                 fail_silently=False,
             )
             
@@ -51,8 +51,8 @@ def contact(request):
             messages.success(request, 'Your message was sent successfully!')
         
         except Exception as e:
-            # Add error message
-            messages.error(request, 'There was an error sending your message. Please try again.')
+            # Add error message with more info for debugging
+            messages.error(request, f'There was an error sending your message: {str(e)}')
     
     return render(request, 'MAIN/contact.html')
 

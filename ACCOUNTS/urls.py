@@ -52,6 +52,7 @@ urlpatterns = [
 
      # Messaging URLs
      path('messages/', views.inbox, name='inbox'),
+     path('conversation/<int:user_id>/check_new/', views.check_new_messages, name='check_new_messages'),
      path('messages/search/', views.user_search, name='user_search'),
      path('messages/start/<int:user_id>/', views.start_conversation, name='start_conversation'),
      path('messages/<int:user_id>/', views.conversation, name='conversation'),

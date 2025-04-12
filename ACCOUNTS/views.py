@@ -622,6 +622,64 @@ def start_conversation(request, user_id):
     
     return redirect('ACCOUNTS:conversation', user_id=user_id)
 
+# Live Messages
+@login_required
+def check_new_messages(request, user_id):
+    try:
+        other_user = get_object_or_404(User, id=user_id)
+        
+        # Get conversation without using get_or_create_conversation
+        conversation = Conversation.objects.filter(
+            participants=request.user
+        ).filter(
+            participants=other_user
+        ).first()
+        
+        if not conversation:
+            return JsonResponse({'status': 'success', 'new_messages': []})
+        
+        # Get timestamp from query param
+        since = request.GET.get('since', None)
+        if since:
+            try:
+                # Parse ISO format date with timezone
+                since_datetime = datetime.fromisoformat(since.replace('Z', '+00:00'))
+                # Add a small buffer to avoid duplicates
+                since_datetime = since_datetime + timedelta(seconds=1)
+                
+                # Query for new messages
+                new_messages = Message.objects.filter(
+                    conversation=conversation,
+                    created_at__gt=since_datetime
+                ).exclude(sender=request.user).order_by('created_at')
+            except ValueError:
+                # If date parsing fails, return empty
+                return JsonResponse({'status': 'success', 'new_messages': []})
+        else:
+            # If no timestamp provided, return empty
+            return JsonResponse({'status': 'success', 'new_messages': []})
+        
+        # Format messages for JSON response
+        messages_data = []
+        for msg in new_messages:
+            messages_data.append({
+                'content': msg.content,
+                'created_at': msg.created_at.isoformat(),
+                'username': msg.sender.username,
+                'avatar_url': msg.sender.profile_picture.url if msg.sender.profile_picture else None,
+                'is_mine': msg.sender == request.user
+            })
+        
+        return JsonResponse({
+            'status': 'success',
+            'new_messages': messages_data
+        })
+    except Exception as e:
+        import traceback
+        print(f"Error in check_new_messages: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
 # Admin View User Management
 def is_admin(user):
     return user.is_admin_user

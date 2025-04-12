@@ -16,6 +16,19 @@
             <h1>Contact Me</h1>
         </div>
 
+         <!-- Popup Modal -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                {% if 'order' not in message|lower and 'created' not in message|lower and 'activated' not in message|lower and 'deactivated' not in message|lower and 'payment' not in message|lower %}
+                    <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <div class="contactpage-container">
             <div class="contactpage-form-section">
                 <div style="display: inline-block;">
@@ -80,20 +93,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Popup Modal -->
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-            {% if 'order' not in message|lower and 'created' not in message|lower and 'activated' not in message|lower and 'deactivated' not in message|lower and 'payment' not in message|lower %}
-                <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
-                    {{ message }}
-                </div>
-            {% endif %}
-        {% endfor %}
-    </div>
-    {% endif %}
-
 </main>
 
 {% block extra_js %}

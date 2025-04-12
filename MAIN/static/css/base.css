@@ -635,13 +635,13 @@ main {
 }
 
 .message.success {
-  background-color: #00671851;
+  background-color: #0b541c;
   color: white;
   border-left: 4px solid #28a745;
 }
 
 .message.error {
-  background-color: #37000556;
+  background-color: #370005;
   color: white;
   border-left: 4px solid #dc3545;
 }

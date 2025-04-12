@@ -257,7 +257,11 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="review-date">{{ review.created_at|date:"F j, Y" }}</div>
+                                    {% if review.is_fiverr %}
+                                        <a class="review-date" href="https://www.fiverr.com/sebe_tv/stream-setup-and-stream-coaching">View Fiverr</a>
+                                    {% else %}
+                                        <div class="review-date">{{ review.created_at|date:"F j, Y" }}</div>
+                                    {% endif %}
                                 </div>
                                 <div class="review-content">
                                     <p class="review-comment">{{ review.comment }}</p>

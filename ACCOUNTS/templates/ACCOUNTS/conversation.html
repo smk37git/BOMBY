@@ -195,6 +195,8 @@
                 
                 <form method="post" action="{% url 'ACCOUNTS:send_message' user_id=other_user.id %}" id="message-form" class="message-form">
                     {% csrf_token %}
+                    <input type="hidden" id="current_username" value="{{ request.user.username }}">
+                    <input type="hidden" id="current_user_avatar" value="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% endif %}">
                     <div class="message-input-container">
                         <textarea name="content" placeholder="Type your message here..." required></textarea>
                     </div>
@@ -314,6 +316,89 @@
             }
         });
 
+        // Function to check for new messages
+        function checkForNewMessages() {
+            // Get the timestamp of the last message
+            const lastMessageTime = document.querySelector('#chat-messages .message:last-child .message-time')?.getAttribute('data-iso-date');
+            
+            // Construct the URL with the timestamp
+            const url = `{% url 'ACCOUNTS:check_new_messages' user_id=other_user.id %}${lastMessageTime ? `?since=${encodeURIComponent(lastMessageTime)}` : ''}`;
+            
+            // Make the AJAX request
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server responded with status ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.new_messages && data.new_messages.length > 0) {
+                    const messagesContainer = document.getElementById('chat-messages');
+                    
+                    data.new_messages.forEach(msg => {
+                        // Check if the message already exists to avoid duplicates
+                        if (document.querySelector(`.message-time[data-iso-date="${msg.created_at}"]`)) {
+                            return;
+                        }
+                        
+                        // Check if we need to add a date divider
+                        const msgDate = new Date(msg.created_at);
+                        const msgDateStr = msgDate.toLocaleDateString();
+                        const lastDateDivider = document.querySelector('#chat-messages .date-divider:last-of-type');
+                        
+                        if (!lastDateDivider || lastDateDivider.textContent !== msgDateStr) {
+                            const dateDivider = document.createElement('div');
+                            dateDivider.className = 'date-divider';
+                            dateDivider.textContent = msgDateStr;
+                            messagesContainer.appendChild(dateDivider);
+                        }
+                        
+                        // Create message element
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = `message ${msg.is_mine ? 'message-mine' : 'message-other'}`;
+                        
+                        // Format time
+                        const timeFormatted = formatTimeOnly(msg.created_at);
+                        
+                        // Create HTML
+                        messageDiv.innerHTML = `
+                            <div class="message-header">
+                                <div class="message-user">
+                                    <div class="user-avatar">
+                                        ${msg.avatar_url ? 
+                                        `<img src="${msg.avatar_url}" alt="${msg.username}">` : 
+                                        `<div class="avatar-placeholder small">${msg.username.charAt(0)}</div>`}
+                                    </div>
+                                    <strong class="username">${msg.username}</strong>
+                                </div>
+                                <small class="message-time" data-iso-date="${msg.created_at}">${timeFormatted}</small>
+                            </div>
+                            <div class="message-body">
+                                <p>${msg.content}</p>
+                            </div>
+                        `;
+                        
+                        // Add to container
+                        messagesContainer.appendChild(messageDiv);
+                    });
+                    
+                    // Scroll to bottom if new messages
+                    if (data.new_messages.length > 0) {
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error checking for new messages:', error);
+            });
+        }
+
         // Target specifically the messages in chat-messages and prevent auto-dismissal
         const chatMessages = document.querySelectorAll('#chat-messages .message, #chat-messages .message-mine, #chat-messages .message-other, #chat-messages .date-divider');
         
@@ -423,10 +508,19 @@
                         const messageDiv = document.createElement('div');
                         messageDiv.className = 'message message-mine';
                         
-                        // Get current user's data
-                        const currentUserName = document.querySelector('.message-mine .username')?.textContent || 'You';
-                        const currentUserAvatar = document.querySelector('.message-mine .user-avatar')?.innerHTML || 
-                            `<div class="avatar-placeholder small">${currentUserName.charAt(0)}</div>`;
+                        // Get user data from hidden fields
+                        const currentUserName = document.getElementById('current_username').value;
+                        const avatarUrl = document.getElementById('current_user_avatar').value;
+                        
+                        // Get avatar HTML
+                        let avatarHtml = '';
+                        if (avatarUrl) {
+                            avatarHtml = `<img src="${avatarUrl}" alt="${currentUserName}">`;
+                        } else {
+                            // Create a placeholder with first letter
+                            const firstLetter = currentUserName.charAt(0).toUpperCase();
+                            avatarHtml = `<div class="avatar-placeholder small">${firstLetter}</div>`;
+                        }
                         
                         // Get current time
                         const now = new Date();
@@ -437,7 +531,7 @@
                             <div class="message-header">
                                 <div class="message-user">
                                     <div class="user-avatar">
-                                        ${currentUserAvatar}
+                                        ${avatarHtml}
                                     </div>
                                     <strong class="username">${currentUserName}</strong>
                                 </div>
@@ -472,7 +566,7 @@
             });
         }
         
-        // Function to check for new messages
+        // Function to check for unread messages
         function checkUnreadMessages() {
             fetch('{% url "ACCOUNTS:get_unread_count" %}', {
                 headers: {
@@ -492,6 +586,12 @@
                 }
             });
         }
+        
+        // Call the function every 5 seconds
+        setInterval(checkForNewMessages, 5000);
+        
+        // Initial check
+        checkForNewMessages();
         
         // Check for new messages every 30 seconds
         setInterval(checkUnreadMessages, 30000);

@@ -29,6 +29,7 @@ urlpatterns = [
     path('purchase/<int:product_id>/', views.purchase_product, name='purchase_product'),
     path('order/<int:order_id>/form/', views.order_form, name='order_form'),
     path('order/<int:order_id>/', views.order_details, name='order_details'),
+    path('order/<int:order_id>/check-new-messages/', views.check_new_order_messages, name='check_new_order_messages'),
     path('orders/unread-count/', views.get_unread_order_messages_count, name='get_unread_order_messages_count'),
     path('order/<int:order_id>/complete/', views.mark_completed, name='mark_completed'),
     path('order/<int:order_id>/review/', views.submit_review, name='submit_review'),

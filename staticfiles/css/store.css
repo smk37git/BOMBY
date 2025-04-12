@@ -286,8 +286,9 @@
     background: linear-gradient(45deg, #c833e6, #d75050);
     padding: 4px 10px;
     border-radius: 6px;
+    align-items: center;
+    justify-content: center;
     text-align: center;
-    white-space: nowrap;
 }
 
 .product-status {

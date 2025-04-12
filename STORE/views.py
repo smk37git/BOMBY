@@ -14,7 +14,7 @@ from ACCOUNTS.models import Message, Conversation
 import json
 from django.http import HttpResponse
 from google.cloud import storage
-import datetime
+from datetime import datetime
 from .models import StreamAsset, UserAsset, AssetVersion, AssetMedia
 from .utils.email_utils import (
     send_pending_order_email,
@@ -299,6 +299,71 @@ def start_message_from_product(request, product_id):
     conversation.save()
     
     return redirect('ACCOUNTS:conversation', user_id=staff_user.id)
+
+@login_required
+def check_new_order_messages(request, order_id):
+    try:
+        order = get_object_or_404(Order, id=order_id)
+        
+        # Verify permission - only owner or staff can view
+        if request.user != order.user and not request.user.is_staff:
+            return JsonResponse({'status': 'error', 'message': 'Permission denied'}, status=403)
+        
+        # Get timestamp from query param
+        since = request.GET.get('since', None)
+        if not since:
+            return JsonResponse({'status': 'success', 'new_messages': []})
+        
+        try:
+            # Parse ISO format date with timezone
+            since_datetime = datetime.fromisoformat(since.replace('Z', '+00:00'))
+            # Add a small buffer to avoid duplicates
+            since_datetime = since_datetime + timedelta(seconds=1)
+            
+            # Query for new messages
+            new_messages = OrderMessage.objects.filter(
+                order=order,
+                created_at__gt=since_datetime
+            ).exclude(sender=request.user).order_by('created_at')
+            
+        except ValueError:
+            # If date parsing fails, return empty
+            return JsonResponse({'status': 'success', 'new_messages': []})
+        
+        # Format messages for JSON response
+        messages_data = []
+        for msg in new_messages:
+            # Mark as read
+            if not msg.is_read and msg.sender != request.user:
+                msg.is_read = True
+                msg.save()
+            
+            # Get attachments
+            attachments_data = []
+            for attachment in msg.attachments.all():
+                attachments_data.append({
+                    'url': attachment.file.url,
+                    'filename': attachment.filename or attachment.file.name.split('/')[-1]
+                })
+            
+            messages_data.append({
+                'message': msg.message,
+                'created_at': msg.created_at.isoformat(),
+                'sender_username': msg.sender.username,
+                'avatar_url': msg.sender.profile_picture.url if hasattr(msg.sender, 'profile_picture') and msg.sender.profile_picture else None,
+                'is_mine': msg.sender == request.user,
+                'attachments': attachments_data
+            })
+        
+        return JsonResponse({
+            'status': 'success',
+            'new_messages': messages_data
+        })
+    except Exception as e:
+        import traceback
+        print(f"Error in check_new_order_messages: {str(e)}")
+        print(traceback.format_exc())
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 # Orders
 @login_required

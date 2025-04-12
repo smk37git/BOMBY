@@ -40,7 +40,7 @@
                 <div class="profile-picture-section">
                     <div class="profile-picture-container">
                         {% if user.profile_picture and not profile_pic_error %}
-                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="edit_current-profile-picture" id="profile-preview" onerror="this.style.display='none'; document.getElementById('profile-placeholder').style.display='flex';">
+                            <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="edit_current-profile-picture" id="profile-preview" onerror="this.style.display='none'; document.getElementById('edit_profile-placeholder').style.display='flex';">
                             <div class="profile-picture-placeholder" id="profile-placeholder" style="display: none;">
                                 <i class="fas fa-user"></i>
                             </div>
@@ -82,6 +82,22 @@
                             <button type="submit" class="action-button">
                                 <i class="fas fa-save"></i> Save Changes
                             </button>
+                        </div>
+                    </div>
+
+                    <div class="buttons-container photo-container">
+                        <div class="container-title">Having issues?</div>
+                        <div class="upload-info">
+                            <div class="info-row">
+                                <div class="info-label">
+                                    <b>Profile Pictures and all Text Entries are evaluated by AI</b>
+                                    <br></br>
+                                    If your profile picture or text is blocked and you don't know why, contact support here:
+                                </div>
+                            </div>
+                            <a href="{% url 'MAIN:contact' %}" class="action-button">
+                                <i class="fa-solid fa-phone"></i> Contact Support
+                            </a>
                         </div>
                     </div>
                 
@@ -219,29 +235,27 @@
         const bioValidationMessage = document.getElementById('bioValidationMessage');
         
         // Initial count
-        if (bioField && charCount) {
-            charCount.textContent = bioField.value.length;
+        charCount.textContent = bioField.value.length;
+        
+        // Update count and reset validation on input
+        bioField.addEventListener('input', function() {
+            // Update character count
+            charCount.textContent = this.value.length;
             
-            // Update count and reset validation on input
-            bioField.addEventListener('input', function() {
-                // Update character count
-                charCount.textContent = this.value.length;
-                
-                // Change color when approaching limit
-                if (this.value.length > 450) {
-                    charCount.style.color = '#ff0000';
-                } else if (this.value.length > 400) {
-                    charCount.style.color = '#ff9900';
-                } else {
-                    charCount.style.color = '';
-                }
-                
-                // Hide validation message when user starts typing
-                if (bioValidationMessage) {
-                    bioValidationMessage.style.display = 'none';
-                }
-            });
-        }
+            // Change color when approaching limit
+            if (this.value.length > 400) {
+                charCount.style.color = '#ff9900';
+            } else if (this.value.length > 450) {
+                charCount.style.color = '#ff0000';
+            } else {
+                charCount.style.color = '';
+            }
+            
+            // Hide validation message when user starts typing
+            if (bioValidationMessage) {
+                bioValidationMessage.style.display = 'none';
+            }
+        });
 
         const bioErrorContainer = document.getElementById('bio-error-container');
         if (bioErrorContainer) {
@@ -256,23 +270,23 @@
             }, 4500);
             
             // Also hide on input in the bio field
-            if (bioField) {
-                bioField.addEventListener('input', function() {
-                    bioErrorContainer.classList.add('fading');
-                    setTimeout(() => {
-                        bioErrorContainer.style.display = 'none';
-                    }, 500);
-                });
-            }
+            document.getElementById('id_bio').addEventListener('input', function() {
+                bioErrorContainer.classList.add('fading');
+                setTimeout(() => {
+                    bioErrorContainer.style.display = 'none';
+                }, 500);
+            });
         }
 
         // Profile picture handling
-        const fileInput = document.getElementById('id_profile_picture');
+        const fileInput = document.getElementById('{{ form.profile_picture.id_for_label }}');
         const previewImg = document.getElementById('profile-preview');
         const placeholder = document.getElementById('profile-placeholder');
         const clearBtn = document.getElementById('clear-photo-btn');
         const clearInput = document.getElementById('clear-picture-input');
         const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+        const maxWidth = 800;
+        const maxHeight = 800;
         
         // Show/hide clear button based on whether profile picture exists
         if (previewImg && previewImg.src && previewImg.src !== window.location.href) {
@@ -300,19 +314,97 @@
                 if (placeholder) {
                     placeholder.style.display = 'flex';
                 }
-                if (previewImg) {
-                    previewImg.style.display = 'none';
-                    previewImg.src = '';
-                }
-                if (fileInput) {
-                    fileInput.value = '';
-                }
-                if (clearInput) {
-                    clearInput.value = 'true';
-                }
+                previewImg.style.display = 'none';
+                previewImg.src = '';
+                fileInput.value = '';
+                clearInput.value = 'true';
                 clearBtn.style.display = 'none';
             });
         }
+        
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            if (!file) return;
+            
+            // Check file size
+            if (file.size > maxSize) {
+                alert('File is too large. Maximum size is 10MB.');
+                fileInput.value = '';
+                return;
+            }
+            
+            // Check file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                alert('Invalid file type. Please upload a JPEG, PNG, or GIF image.');
+                fileInput.value = '';
+                return;
+            }
+            
+            // Preview the image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                // Create temp image to check dimensions
+                const img = new Image();
+                img.onload = function() {
+                    // Check if dimensions need resizing
+                    if (img.width > maxWidth || img.height > maxHeight) {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Calculate new dimensions while maintaining aspect ratio
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height = Math.round(height * (maxWidth / width));
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width = Math.round(width * (maxHeight / height));
+                                height = maxHeight;
+                            }
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Convert to file and update preview
+                        previewImg.src = canvas.toDataURL(file.type);
+                        
+                        // Optional: Convert canvas image to Blob for form submission
+                        canvas.toBlob(function(blob) {
+                            // Create a new File object
+                            const resizedFile = new File([blob], file.name, {
+                                type: file.type,
+                                lastModified: new Date().getTime()
+                            });
+                            
+                            // Replace the original file with resized one (requires custom handling)
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(resizedFile);
+                            fileInput.files = dataTransfer.files;
+                        }, file.type);
+                    } else {
+                        previewImg.src = e.target.result;
+                    }
+                    
+                    if (placeholder) {
+                        placeholder.style.display = 'none';
+                    }
+                    previewImg.style.display = 'block';
+                    if (clearBtn) {
+                        clearBtn.style.display = 'inline-flex';
+                    }
+                    clearInput.value = 'false';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
 
         // Social link validation
         const socialLinks = [
@@ -354,614 +446,31 @@
         ];
 
         socialLinks.forEach(link => {
-            if (link.input && link.popup) {
-                link.input.addEventListener('input', function() {
-                    const value = this.value.trim();
-                    const popup = link.popup;
+            link.input.addEventListener('input', function() {
+                const value = this.value.trim();
+                const popup = link.popup;
 
-                    if (value && !link.regex.test(value)) {
-                        popup.textContent = 'Invalid link format';
-                        popup.style.padding = '10px 15px';
-                        popup.style.marginTop = '10px';
-                        popup.style.marginBottom = '10px';
-                        popup.style.borderRadius = '8px';
-                        popup.style.borderLeft = '4px solid #dc3545';
-                        popup.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
-                        popup.style.backgroundColor = '#37000556';
-                        popup.style.color = '#ffffff';
-                        popup.style.position = 'relative';
-                        popup.style.opacity = '1';
-                        popup.style.transition = 'opacity 0.5s ease';
-                        popup.style.display = 'block';
-                    } else {
-                        popup.textContent = '';
-                        popup.style.display = 'none';
-                    }
-                });
-            }
+                if (value && !link.regex.test(value)) {
+                    popup.textContent = 'Invalid link format';
+                    popup.style.padding = '10px 15px';
+                    popup.style.marginTop = '10px';
+                    popup.style.marginBottom = '10px';
+                    popup.style.borderRadius = '8px';
+                    popup.style.borderLeft = '4px solid #dc3545';
+                    popup.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+                    popup.style.backgroundColor = '#37000556';
+                    popup.style.color = 'ffffff';
+                    popup.style.position = 'relative';
+                    popup.style.opacity = '1';
+                    popup.style.transition = 'opacity 0.5s ease';
+                    popup.style.display = 'block';
+
+                } else {
+                    popup.textContent = '';
+                    popup.style.display = 'none';
+                }
+            });
         });
-
-        // Create modal elements for cropping
-        const cropperModal = document.createElement('div');
-        cropperModal.className = 'cropper-modal';
-        cropperModal.style.position = 'fixed';
-        cropperModal.style.top = '0';
-        cropperModal.style.left = '0';
-        cropperModal.style.width = '100%';
-        cropperModal.style.height = '100%';
-        cropperModal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-        cropperModal.style.zIndex = '1000';
-        cropperModal.style.display = 'none';
-        cropperModal.style.alignItems = 'center';
-        cropperModal.style.justifyContent = 'center';
-        
-        cropperModal.innerHTML = `
-            <div class="cropper-container">
-                <div class="cropper-header">
-                    <h2>Crop & Rotate</h2>
-                    <button type="button" class="close-cropper">×</button>
-                </div>
-                <div class="cropper-content">
-                    <div class="image-container">
-                        <img id="crop-image" src="">
-                        <div class="crop-box">
-                            <div class="resize-handle nw"></div>
-                            <div class="resize-handle ne"></div>
-                            <div class="resize-handle sw"></div>
-                            <div class="resize-handle se"></div>
-                        </div>
-                    </div>
-                    <div class="cropper-actions">
-                        <button type="button" class="rotate-btn">
-                            <i class="fas fa-sync-alt"></i> Rotate
-                        </button>
-                        <button type="button" class="apply-crop">Select</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(cropperModal);
-        
-        const cropperModalEl = document.querySelector('.cropper-modal');
-        const closeCropperBtn = document.querySelector('.close-cropper');
-        const applyBtn = document.querySelector('.apply-crop');
-        const rotateBtn = document.querySelector('.rotate-btn');
-        const cropImage = document.getElementById('crop-image');
-        const cropBox = document.querySelector('.crop-box');
-        
-        let currentRotation = 0;
-        let selectedFile = null;
-        
-        // Initialize file input handler
-        if (fileInput) {
-            fileInput.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                // Basic validation
-                if (file.size > maxSize) {
-                    alert('File is too large. Maximum size is 10MB.');
-                    fileInput.value = '';
-                    return;
-                }
-                
-                if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-                    alert('Invalid file type. Please upload a JPEG, PNG, or GIF.');
-                    fileInput.value = '';
-                    return;
-                }
-                
-                // Store selected file for later use
-                selectedFile = file;
-                
-                // Load image
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    cropImage.src = e.target.result;
-                    currentRotation = 0;
-                    cropImage.style.transform = `rotate(${currentRotation}deg)`;
-                    
-                    cropImage.onload = function() {
-                        cropperModalEl.style.display = 'flex';
-                        initCropBox();
-                    };
-                };
-                reader.readAsDataURL(file);
-            });
-        }
-        
-        // Initialize crop box
-        function initCropBox() {
-            const imgRect = cropImage.getBoundingClientRect();
-            
-            // Size the crop box to 70% of the smaller dimension
-            const size = Math.min(imgRect.width, imgRect.height) * 0.7;
-            
-            // Center the crop box
-            const left = (imgRect.width - size) / 2;
-            const top = (imgRect.height - size) / 2;
-            
-            cropBox.style.width = `${size}px`;
-            cropBox.style.height = `${size}px`;
-            cropBox.style.left = `${left}px`;
-            cropBox.style.top = `${top}px`;
-            
-            setupDragging();
-        }
-        
-        // Setup dragging and resizing
-        function setupDragging() {
-            let isDragging = false;
-            let isResizing = false;
-            let activeHandle = null;
-            let startX, startY, startWidth, startLeft, startTop;
-            
-            // Mouse down on crop box
-            cropBox.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                
-                startX = e.clientX;
-                startY = e.clientY;
-                startWidth = parseInt(cropBox.style.width);
-                startLeft = parseInt(cropBox.style.left);
-                startTop = parseInt(cropBox.style.top);
-                
-                if (e.target.classList.contains('resize-handle')) {
-                    isResizing = true;
-                    activeHandle = e.target.classList[1]; // nw, ne, sw, se
-                } else {
-                    isDragging = true;
-                }
-                
-                document.addEventListener('mousemove', handleMouseMove);
-                document.addEventListener('mouseup', handleMouseUp);
-            });
-            
-            // Touch start for mobile
-            cropBox.addEventListener('touchstart', function(e) {
-                if (e.touches.length !== 1) return;
-                e.preventDefault();
-                
-                const touch = e.touches[0];
-                startX = touch.clientX;
-                startY = touch.clientY;
-                startWidth = parseInt(cropBox.style.width);
-                startLeft = parseInt(cropBox.style.left);
-                startTop = parseInt(cropBox.style.top);
-                
-                if (e.target.classList.contains('resize-handle')) {
-                    isResizing = true;
-                    activeHandle = e.target.classList[1]; // nw, ne, sw, se
-                } else {
-                    isDragging = true;
-                }
-                
-                document.addEventListener('touchmove', handleTouchMove, { passive: false });
-                document.addEventListener('touchend', handleTouchEnd);
-            });
-            
-            // Mouse move handler
-            function handleMouseMove(e) {
-                e.preventDefault();
-                
-                const deltaX = e.clientX - startX;
-                const deltaY = e.clientY - startY;
-                const imgRect = cropImage.getBoundingClientRect();
-                
-                if (isDragging) {
-                    // Simple drag - just update position within boundaries
-                    let newLeft = startLeft + deltaX;
-                    let newTop = startTop + deltaY;
-                    
-                    // Boundary check
-                    newLeft = Math.max(0, Math.min(newLeft, imgRect.width - startWidth));
-                    newTop = Math.max(0, Math.min(newTop, imgRect.height - startWidth));
-                    
-                    cropBox.style.left = `${newLeft}px`;
-                    cropBox.style.top = `${newTop}px`;
-                } 
-                else if (isResizing) {
-                    // Resizing logic
-                    let newSize, newLeft, newTop;
-                    
-                    // Handle resize for each corner
-                    if (activeHandle === 'se') {
-                        // Southeast - size increases with positive deltas
-                        newSize = Math.max(80, startWidth + Math.min(deltaX, deltaY));
-                        newLeft = startLeft;
-                        newTop = startTop;
-                    } 
-                    else if (activeHandle === 'sw') {
-                        // Southwest - width decreases, height increases
-                        const widthChange = -deltaX;
-                        const heightChange = deltaY;
-                        newSize = Math.max(80, startWidth + Math.min(widthChange, heightChange));
-                        newLeft = startLeft + (startWidth - newSize);
-                        newTop = startTop;
-                        
-                        // Handle direction switch
-                        if (deltaX > startWidth) {
-                            activeHandle = 'ne';
-                            newLeft = startLeft + startWidth;
-                            newSize = Math.max(80, deltaX - startWidth);
-                            newTop = startTop;
-                        }
-                    } 
-                    else if (activeHandle === 'ne') {
-                        // Northeast - width increases, height decreases
-                        const widthChange = deltaX;
-                        const heightChange = -deltaY;
-                        newSize = Math.max(80, startWidth + Math.min(widthChange, heightChange));
-                        newLeft = startLeft;
-                        newTop = startTop + (startWidth - newSize);
-                        
-                        // Handle direction switch
-                        if (deltaY > startWidth) {
-                            activeHandle = 'sw';
-                            newTop = startTop + startWidth;
-                            newSize = Math.max(80, deltaY - startWidth);
-                            newLeft = startLeft;
-                        }
-                    } 
-                    else if (activeHandle === 'nw') {
-                        // Northwest - both decrease
-                        const widthChange = -deltaX;
-                        const heightChange = -deltaY;
-                        newSize = Math.max(80, startWidth + Math.min(widthChange, heightChange));
-                        newLeft = startLeft + (startWidth - newSize);
-                        newTop = startTop + (startWidth - newSize);
-                        
-                        // Handle direction switch
-                        if (deltaX > startWidth && deltaY > startWidth) {
-                            activeHandle = 'se';
-                            newLeft = startLeft + startWidth;
-                            newTop = startTop + startWidth;
-                            newSize = Math.max(80, Math.min(deltaX - startWidth, deltaY - startWidth));
-                        }
-                        else if (deltaX > startWidth) {
-                            activeHandle = 'ne';
-                            newLeft = startLeft + startWidth;
-                            newTop = startTop;
-                            newSize = Math.max(80, deltaX - startWidth);
-                        }
-                        else if (deltaY > startWidth) {
-                            activeHandle = 'sw';
-                            newLeft = startLeft;
-                            newTop = startTop + startWidth;
-                            newSize = Math.max(80, deltaY - startWidth);
-                        }
-                    }
-                    
-                    // Boundary checks
-                    newSize = Math.min(newSize, imgRect.width, imgRect.height);
-                    
-                    if (newLeft < 0) {
-                        newLeft = 0;
-                    }
-                    if (newTop < 0) {
-                        newTop = 0;
-                    }
-                    if (newLeft + newSize > imgRect.width) {
-                        newSize = imgRect.width - newLeft;
-                    }
-                    if (newTop + newSize > imgRect.height) {
-                        newSize = imgRect.height - newTop;
-                    }
-                    
-                    // Apply new dimensions
-                    cropBox.style.width = `${newSize}px`;
-                    cropBox.style.height = `${newSize}px`;
-                    cropBox.style.left = `${newLeft}px`;
-                    cropBox.style.top = `${newTop}px`;
-                }
-            }
-            
-            // Touch move handler - mirrors mouse move handler
-            function handleTouchMove(e) {
-                if (e.touches.length !== 1) return;
-                e.preventDefault();
-                
-                const touch = e.touches[0];
-                const deltaX = touch.clientX - startX;
-                const deltaY = touch.clientY - startY;
-                const imgRect = cropImage.getBoundingClientRect();
-                
-                if (isDragging) {
-                    // Simple drag - just update position within boundaries
-                    let newLeft = startLeft + deltaX;
-                    let newTop = startTop + deltaY;
-                    
-                    // Boundary check
-                    newLeft = Math.max(0, Math.min(newLeft, imgRect.width - startWidth));
-                    newTop = Math.max(0, Math.min(newTop, imgRect.height - startWidth));
-                    
-                    cropBox.style.left = `${newLeft}px`;
-                    cropBox.style.top = `${newTop}px`;
-                } 
-                else if (isResizing) {
-                    // Resizing logic
-                    let newSize, newLeft, newTop;
-                    
-                    // Handle resize for each corner
-                    if (activeHandle === 'se') {
-                        // Southeast - size increases with positive deltas
-                        newSize = Math.max(80, startWidth + Math.min(deltaX, deltaY));
-                        newLeft = startLeft;
-                        newTop = startTop;
-                    } 
-                    else if (activeHandle === 'sw') {
-                        // Southwest - width decreases, height increases
-                        const widthChange = -deltaX;
-                        const heightChange = deltaY;
-                        newSize = Math.max(80, startWidth + Math.min(widthChange, heightChange));
-                        newLeft = startLeft + (startWidth - newSize);
-                        newTop = startTop;
-                        
-                        // Handle direction switch
-                        if (deltaX > startWidth) {
-                            activeHandle = 'ne';
-                            newLeft = startLeft + startWidth;
-                            newSize = Math.max(80, deltaX - startWidth);
-                            newTop = startTop;
-                        }
-                    } 
-                    else if (activeHandle === 'ne') {
-                        // Northeast - width increases, height decreases
-                        const widthChange = deltaX;
-                        const heightChange = -deltaY;
-                        newSize = Math.max(80, startWidth + Math.min(widthChange, heightChange));
-                        newLeft = startLeft;
-                        newTop = startTop + (startWidth - newSize);
-                        
-                        // Handle direction switch
-                        if (deltaY > startWidth) {
-                            activeHandle = 'sw';
-                            newTop = startTop + startWidth;
-                            newSize = Math.max(80, deltaY - startWidth);
-                            newLeft = startLeft;
-                        }
-                    } 
-                    else if (activeHandle === 'nw') {
-                        // Northwest - both decrease
-                        const widthChange = -deltaX;
-                        const heightChange = -deltaY;
-                        newSize = Math.max(80, startWidth + Math.min(widthChange, heightChange));
-                        newLeft = startLeft + (startWidth - newSize);
-                        newTop = startTop + (startWidth - newSize);
-                        
-                        // Handle direction switch
-                        if (deltaX > startWidth && deltaY > startWidth) {
-                            activeHandle = 'se';
-                            newLeft = startLeft + startWidth;
-                            newTop = startTop + startWidth;
-                            newSize = Math.max(80, Math.min(deltaX - startWidth, deltaY - startWidth));
-                        }
-                        else if (deltaX > startWidth) {
-                            activeHandle = 'ne';
-                            newLeft = startLeft + startWidth;
-                            newTop = startTop;
-                            newSize = Math.max(80, deltaX - startWidth);
-                        }
-                        else if (deltaY > startWidth) {
-                            activeHandle = 'sw';
-                            newLeft = startLeft;
-                            newTop = startTop + startWidth;
-                            newSize = Math.max(80, deltaY - startWidth);
-                        }
-                    }
-                    
-                    // Boundary checks
-                    newSize = Math.min(newSize, imgRect.width, imgRect.height);
-                    
-                    if (newLeft < 0) {
-                        newLeft = 0;
-                    }
-                    if (newTop < 0) {
-                        newTop = 0;
-                    }
-                    if (newLeft + newSize > imgRect.width) {
-                        newSize = imgRect.width - newLeft;
-                    }
-                    if (newTop + newSize > imgRect.height) {
-                        newSize = imgRect.height - newTop;
-                    }
-                    
-                    // Apply new dimensions
-                    cropBox.style.width = `${newSize}px`;
-                    cropBox.style.height = `${newSize}px`;
-                    cropBox.style.left = `${newLeft}px`;
-                    cropBox.style.top = `${newTop}px`;
-                }
-            }
-            
-            // Mouse up handler
-            function handleMouseUp() {
-                isDragging = false;
-                isResizing = false;
-                document.removeEventListener('mousemove', handleMouseMove);
-                document.removeEventListener('mouseup', handleMouseUp);
-            }
-            
-            // Touch end handler
-            function handleTouchEnd() {
-                isDragging = false;
-                isResizing = false;
-                document.removeEventListener('touchmove', handleTouchMove);
-                document.removeEventListener('touchend', handleTouchEnd);
-            }
-        }
-        
-        // Rotate image
-        if (rotateBtn) {
-            rotateBtn.addEventListener('click', function() {
-                currentRotation = (currentRotation + 90) % 360;
-                cropImage.style.transform = `rotate(${currentRotation}deg)`;
-            });
-        }
-        
-        // Close modal
-        if (closeCropperBtn) {
-            closeCropperBtn.addEventListener('click', function() {
-                cropperModalEl.style.display = 'none';
-                if (fileInput) fileInput.value = '';
-                selectedFile = null;
-            });
-        }
-        
-        // Apply crop
-        if (applyBtn && cropperModalEl) {
-            applyBtn.addEventListener('click', function() {
-                if (!selectedFile) {
-                    cropperModalEl.style.display = 'none';
-                    return;
-                }
-                
-                // Get crop dimensions
-                const imgRect = cropImage.getBoundingClientRect();
-                const boxLeft = parseInt(cropBox.style.left);
-                const boxTop = parseInt(cropBox.style.top);
-                const boxSize = parseInt(cropBox.style.width);
-                
-                // Calculate scale factors
-                const scaleX = cropImage.naturalWidth / imgRect.width;
-                const scaleY = cropImage.naturalHeight / imgRect.height;
-                
-                // Calculate crop coordinates
-                const cropLeft = boxLeft * scaleX;
-                const cropTop = boxTop * scaleY;
-                const cropSize = boxSize * scaleX;
-                
-                // Create canvas
-                const canvas = document.createElement('canvas');
-                canvas.width = cropSize;
-                canvas.height = cropSize;
-                const ctx = canvas.getContext('2d');
-                
-                // Create temp image
-                const tempImg = new Image();
-                tempImg.onload = function() {
-                    // Handle rotation and cropping
-                    if (currentRotation !== 0) {
-                        ctx.save();
-                        ctx.translate(canvas.width/2, canvas.height/2);
-                        ctx.rotate(currentRotation * Math.PI/180);
-                        ctx.drawImage(
-                            tempImg,
-                            cropLeft, cropTop, cropSize, cropSize,
-                            -canvas.width/2, -canvas.height/2,
-                            canvas.width, canvas.height
-                        );
-                        ctx.restore();
-                    } else {
-                        ctx.drawImage(
-                            tempImg,
-                            cropLeft, cropTop, cropSize, cropSize,
-                            0, 0, canvas.width, canvas.height
-                        );
-                    }
-                    
-                    // Preserve original image format if possible
-                    const outputType = selectedFile.type === 'image/jpeg' ? 'image/jpeg' : 'image/png';
-                    const outputQuality = 0.95;
-                    
-                    // Create blob with original file extension
-                    canvas.toBlob(function(blob) {
-                        // Get original file extension
-                        const originalExt = selectedFile.name.split('.').pop().toLowerCase();
-                        const validExts = ['jpg', 'jpeg', 'png', 'gif'];
-                        const fileExt = validExts.includes(originalExt) ? originalExt : (outputType === 'image/jpeg' ? 'jpg' : 'png');
-                        
-                        // Create filename with timestamp
-                        const timestamp = new Date().getTime();
-                        const fileName = `profile_picture_${timestamp}.${fileExt}`;
-                        
-                        // Create file with proper type
-                        const file = new File([blob], fileName, {
-                            type: outputType,
-                            lastModified: timestamp
-                        });
-                        
-                        // Update preview image
-                        const objectURL = URL.createObjectURL(blob);
-                        if (previewImg) {
-                            previewImg.onload = function() {
-                                URL.revokeObjectURL(this.src);
-                            };
-                            previewImg.src = objectURL;
-                            previewImg.style.display = 'block';
-                        }
-                        
-                        // Hide placeholder and show clear button
-                        if (placeholder) placeholder.style.display = 'none';
-                        if (clearBtn) clearBtn.style.display = 'inline-flex';
-                        
-                        // Set clear input value to false
-                        if (clearInput) clearInput.value = 'false';
-                        
-                        try {
-                            // Try using DataTransfer API (works on most browsers)
-                            const dataTransfer = new DataTransfer();
-                            dataTransfer.items.add(file);
-                            fileInput.files = dataTransfer.files;
-                        } catch (e) {
-                            // Fallback for browsers without DataTransfer support
-                            // Create hidden input with base64 data
-                            const base64Data = canvas.toDataURL(outputType, outputQuality);
-                            let hiddenInput = document.getElementById('mobile_image_data');
-                            if (!hiddenInput) {
-                                hiddenInput = document.createElement('input');
-                                hiddenInput.type = 'hidden';
-                                hiddenInput.name = 'mobile_image_data';
-                                hiddenInput.id = 'mobile_image_data';
-                                document.querySelector('form.edit-profile-form').appendChild(hiddenInput);
-                            }
-                            hiddenInput.value = base64Data;
-                        }
-                        
-                        // Show save notification
-                        const saveNotice = document.createElement('div');
-                        saveNotice.className = 'save-notification';
-                        saveNotice.innerHTML = '<strong>Image updated!</strong> Click "Save Changes" to apply.';
-                        saveNotice.style.backgroundColor = '#28a745';
-                        saveNotice.style.color = 'white';
-                        saveNotice.style.padding = '10px';
-                        saveNotice.style.borderRadius = '4px';
-                        saveNotice.style.marginTop = '10px';
-                        saveNotice.style.textAlign = 'center';
-                        saveNotice.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
-                        
-                        // Find container to add notification
-                        const buttonsContainer = document.querySelector('.profile-picture-section');
-                        if (buttonsContainer) {
-                            // Remove any existing notifications
-                            const existingNotice = buttonsContainer.querySelector('.save-notification');
-                            if (existingNotice) {
-                                existingNotice.remove();
-                            }
-                            
-                            // Add new notification at the end
-                            buttonsContainer.appendChild(saveNotice);
-                            
-                            // Remove after 8 seconds
-                            setTimeout(() => {
-                                saveNotice.style.opacity = '0';
-                                saveNotice.style.transition = 'opacity 0.5s';
-                                setTimeout(() => {
-                                    saveNotice.remove();
-                                }, 500);
-                            }, 8000);
-                        }
-                        
-                        // Close modal
-                        cropperModalEl.style.display = 'none';
-                        
-                    }, outputType, outputQuality);
-                };
-                
-                // Load original file
-                tempImg.src = URL.createObjectURL(selectedFile);
-            });
-        }
     });
 </script>
 {% endblock %}
