@@ -706,12 +706,17 @@
         cropBox.className = 'crop-box';
         
         // Calculate size for crop box (square for profile picture)
-        const imgWidth = cropImage.offsetWidth;
-        const imgHeight = cropImage.offsetHeight;
-        const size = Math.min(imgWidth, imgHeight) * 0.8; // 80% of the smaller dimension
+        const imgRect = cropImage.getBoundingClientRect();
+        const size = Math.min(imgRect.width, imgRect.height) * 0.8; // 80% of the smaller dimension
         
         cropBox.style.width = `${size}px`;
         cropBox.style.height = `${size}px`;
+        
+        // Position directly on the image instead of using transform
+        cropBox.style.position = 'absolute';
+        cropBox.style.top = `${(imgRect.height - size) / 2}px`;
+        cropBox.style.left = `${(imgRect.width - size) / 2}px`;
+        cropBox.style.transform = 'none'; // Remove the transform
         
         // Add resize handles
         const positions = ['nw', 'ne', 'sw', 'se'];
