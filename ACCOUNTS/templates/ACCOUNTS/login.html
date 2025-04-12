@@ -27,11 +27,15 @@
                 </div>
             {% endif %}
             
-            <label for="username">Username</label>
-            <input type="text" id="username" name="username" required autofocus>
+            <div class="form-group">
+                <label for="id_username">Username</label>
+                <input type="text" id="id_username" name="username" required autofocus>
+            </div>
             
-            <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
+            <div class="form-group">
+                <label for="id_password">Password</label>
+                <input type="password" id="id_password" name="password" required>
+            </div>
             
             <button type="submit" class="auth-button">Sign In</button>
 
@@ -60,5 +64,4 @@
         </div>
     </div>
 </div>
-{% csrf_token %}
 {% endblock %}
