@@ -522,7 +522,7 @@ input[type="file"] {
     }
 
     .cropper-header {
-        margin-bottom: -100px;
+        margin-bottom: -40px;
     }
 
     .action-buttons {
@@ -537,7 +537,7 @@ input[type="file"] {
     .cropper-actions {
         flex-direction: column;
         gap: 15px;
-        bottom: 20px;
+        bottom: -40px;
         align-items: center;
     }
     
