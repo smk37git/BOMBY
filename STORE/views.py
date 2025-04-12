@@ -147,7 +147,7 @@ def donation_success(request):
             # Promote user to supporter if donation is $10 or more
             if float(amount) >= 10 and not request.user.is_supporter and hasattr(request.user, 'promote_to_supporter'):
                 request.user.promote_to_supporter()
-                messages.success(request, "Thank you for your donation! You have been promoted to supporter status.")
+                messages.success(request, "Thank you for your donation payment! You have been promoted to supporter status.")
             
         donation.save()
         
@@ -158,11 +158,11 @@ def donation_success(request):
         except Exception as e:
             print(f"Error sending donation receipt: {e}")
         
-        messages.success(request, "Thank you for your generous donation!")
+        messages.success(request, "Thank you for your generous donation payment!")
             
     except Exception as e:
         print(f"Error processing donation: {str(e)}")
-        messages.error(request, "There was an error processing your donation.")
+        messages.error(request, "There was an error processing your donation payment.")
         
     return redirect('STORE:store')
 
