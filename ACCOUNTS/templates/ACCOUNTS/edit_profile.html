@@ -826,49 +826,33 @@
                 const scaleX = cropImage.naturalWidth / imgRect.width;
                 const scaleY = cropImage.naturalHeight / imgRect.height;
                 
-                // Calculate crop coordinates in original image space
+                // Calculate crop coordinates
                 const cropLeft = boxLeft * scaleX;
                 const cropTop = boxTop * scaleY;
                 const cropSize = boxSize * scaleX;
                 
-                // Create canvas for cropping
+                // Create canvas
                 const canvas = document.createElement('canvas');
                 canvas.width = cropSize;
                 canvas.height = cropSize;
                 const ctx = canvas.getContext('2d');
                 
-                // Create temporary image for processing
+                // Create temp image
                 const tempImg = new Image();
                 tempImg.onload = function() {
                     // Handle rotation and cropping
                     if (currentRotation !== 0) {
-                        // For rotated images
                         ctx.save();
-                        ctx.translate(canvas.width / 2, canvas.height / 2);
-                        ctx.rotate(currentRotation * Math.PI / 180);
-                        
-                        let drawX, drawY;
-                        if (currentRotation === 90 || currentRotation === 270) {
-                            // Adjust for aspect ratio change in 90/270 rotation
-                            drawX = -canvas.height / 2;
-                            drawY = -canvas.width / 2;
-                            ctx.drawImage(
-                                tempImg,
-                                cropTop, cropLeft, cropSize, cropSize,
-                                drawX, drawY, canvas.height, canvas.width
-                            );
-                        } else {
-                            drawX = -canvas.width / 2;
-                            drawY = -canvas.height / 2;
-                            ctx.drawImage(
-                                tempImg,
-                                cropLeft, cropTop, cropSize, cropSize,
-                                drawX, drawY, canvas.width, canvas.height
-                            );
-                        }
+                        ctx.translate(canvas.width/2, canvas.height/2);
+                        ctx.rotate(currentRotation * Math.PI/180);
+                        ctx.drawImage(
+                            tempImg,
+                            cropLeft, cropTop, cropSize, cropSize,
+                            -canvas.width/2, -canvas.height/2,
+                            canvas.width, canvas.height
+                        );
                         ctx.restore();
                     } else {
-                        // No rotation
                         ctx.drawImage(
                             tempImg,
                             cropLeft, cropTop, cropSize, cropSize,
@@ -876,35 +860,30 @@
                         );
                     }
                     
-                    // Convert to blob with proper MIME type
+                    // Preserve original image format if possible
+                    const outputType = selectedFile.type === 'image/jpeg' ? 'image/jpeg' : 'image/png';
+                    const outputQuality = 0.95;
+                    
+                    // Create blob with original file extension
                     canvas.toBlob(function(blob) {
-                        // Append timestamp to ensure unique filename and avoid caching issues
-                        const timestamp = new Date().getTime();
-                        const fileName = `profile_picture_${timestamp}.png`;
+                        // Get original file extension
+                        const originalExt = selectedFile.name.split('.').pop().toLowerCase();
+                        const validExts = ['jpg', 'jpeg', 'png', 'gif'];
+                        const fileExt = validExts.includes(originalExt) ? originalExt : (outputType === 'image/jpeg' ? 'jpg' : 'png');
                         
-                        // Create a new File object
-                        const croppedFile = new File([blob], fileName, {
-                            type: 'image/png',
+                        // Create filename with timestamp
+                        const timestamp = new Date().getTime();
+                        const fileName = `profile_picture_${timestamp}.${fileExt}`;
+                        
+                        // Create file with proper type
+                        const file = new File([blob], fileName, {
+                            type: outputType,
                             lastModified: timestamp
                         });
                         
-                        // Create a new FileList-like object
-                        const dataTransfer = new DataTransfer();
-                        dataTransfer.items.add(croppedFile);
-                        
-                        // Update file input with the new file
-                        if (fileInput) {
-                            fileInput.files = dataTransfer.files;
-                        }
-                        
-                        // Set clear picture input to false
-                        if (clearInput) {
-                            clearInput.value = 'false';
-                        }
-                        
-                        // Update the preview image
+                        // Update preview image
+                        const objectURL = URL.createObjectURL(blob);
                         if (previewImg) {
-                            const objectURL = URL.createObjectURL(blob);
                             previewImg.onload = function() {
                                 URL.revokeObjectURL(this.src);
                             };
@@ -916,12 +895,70 @@
                         if (placeholder) placeholder.style.display = 'none';
                         if (clearBtn) clearBtn.style.display = 'inline-flex';
                         
+                        // Set clear input value to false
+                        if (clearInput) clearInput.value = 'false';
+                        
+                        try {
+                            // Try using DataTransfer API (works on most browsers)
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(file);
+                            fileInput.files = dataTransfer.files;
+                        } catch (e) {
+                            // Fallback for browsers without DataTransfer support
+                            // Create hidden input with base64 data
+                            const base64Data = canvas.toDataURL(outputType, outputQuality);
+                            let hiddenInput = document.getElementById('mobile_image_data');
+                            if (!hiddenInput) {
+                                hiddenInput = document.createElement('input');
+                                hiddenInput.type = 'hidden';
+                                hiddenInput.name = 'mobile_image_data';
+                                hiddenInput.id = 'mobile_image_data';
+                                document.querySelector('form.edit-profile-form').appendChild(hiddenInput);
+                            }
+                            hiddenInput.value = base64Data;
+                        }
+                        
+                        // Show save notification
+                        const saveNotice = document.createElement('div');
+                        saveNotice.className = 'save-notification';
+                        saveNotice.innerHTML = '<strong>Image updated!</strong> Click "Save Changes" to apply.';
+                        saveNotice.style.backgroundColor = '#28a745';
+                        saveNotice.style.color = 'white';
+                        saveNotice.style.padding = '10px';
+                        saveNotice.style.borderRadius = '4px';
+                        saveNotice.style.marginTop = '10px';
+                        saveNotice.style.textAlign = 'center';
+                        saveNotice.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+                        
+                        // Find container to add notification
+                        const buttonsContainer = document.querySelector('.profile-picture-section');
+                        if (buttonsContainer) {
+                            // Remove any existing notifications
+                            const existingNotice = buttonsContainer.querySelector('.save-notification');
+                            if (existingNotice) {
+                                existingNotice.remove();
+                            }
+                            
+                            // Add new notification at the end
+                            buttonsContainer.appendChild(saveNotice);
+                            
+                            // Remove after 8 seconds
+                            setTimeout(() => {
+                                saveNotice.style.opacity = '0';
+                                saveNotice.style.transition = 'opacity 0.5s';
+                                setTimeout(() => {
+                                    saveNotice.remove();
+                                }, 500);
+                            }, 8000);
+                        }
+                        
                         // Close modal
                         cropperModalEl.style.display = 'none';
-                    }, 'image/png', 0.95); // Use high quality
+                        
+                    }, outputType, outputQuality);
                 };
                 
-                // Load the original file
+                // Load original file
                 tempImg.src = URL.createObjectURL(selectedFile);
             });
         }
