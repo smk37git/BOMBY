@@ -45,7 +45,6 @@ CSRF_COOKIE_DOMAIN = '.bomby.us'
 SESSION_COOKIE_DOMAIN = '.bomby.us'
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',

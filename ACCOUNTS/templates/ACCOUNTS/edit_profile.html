@@ -455,8 +455,447 @@
                 }
             });
         });
-    });
 
+        // Create modal elements for cropping
+        const cropperModal = document.createElement('div');
+        cropperModal.className = 'cropper-modal';
+        cropperModal.innerHTML = `
+            <div class="cropper-container">
+                <div class="cropper-header">
+                    <h2>Crop & Rotate</h2>
+                    <button type="button" class="close-cropper">×</button>
+                </div>
+                <div class="cropper-content">
+                    <div class="image-container">
+                        <img id="crop-image" src="">
+                        <div class="crop-box">
+                            <div class="resize-handle nw"></div>
+                            <div class="resize-handle ne"></div>
+                            <div class="resize-handle sw"></div>
+                            <div class="resize-handle se"></div>
+                        </div>
+                    </div>
+                    <div class="cropper-actions">
+                        <button type="button" class="rotate-btn">
+                            <i class="fas fa-sync-alt"></i> Rotate
+                        </button>
+                        <button type="button" class="apply-crop">Select</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(cropperModal);
+        
+        // Fixed CSS for crop box
+        const cropBoxStyle = document.createElement('style');
+        cropBoxStyle.textContent = `
+            .crop-box {
+                position: absolute;
+                border: 2px solid white;
+                box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+                cursor: move;
+                z-index: 1;
+                border-radius: 50%;
+                width: 200px;
+                height: 200px;
+                display: none;
+            }
+            
+            .resize-handle {
+                position: absolute;
+                width: 10px;
+                height: 10px;
+                background: white;
+                border-radius: 50%;
+                z-index: 2;
+                box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+            }
+            
+            .resize-handle.nw { top: -5px; left: -5px; cursor: nwse-resize; }
+            .resize-handle.ne { top: -5px; right: -5px; cursor: nesw-resize; }
+            .resize-handle.sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+            .resize-handle.se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+        `;
+        document.head.appendChild(cropBoxStyle);
+        
+        const cropperModalEl = document.querySelector('.cropper-modal');
+        const closeCropperBtn = document.querySelector('.close-cropper');
+        const applyBtn = document.querySelector('.apply-crop');
+        const rotateBtn = document.querySelector('.rotate-btn');
+        const cropImage = document.getElementById('crop-image');
+        const cropBox = document.querySelector('.crop-box');
+        
+        let currentRotation = 0;
+        
+        // File selection handler
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Basic validation
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File is too large. Maximum size is 10MB.');
+                fileInput.value = '';
+                return;
+            }
+            
+            if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
+                alert('Invalid file type. Please upload a JPEG, PNG, or GIF.');
+                fileInput.value = '';
+                return;
+            }
+            
+            // Load image
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                cropImage.src = e.target.result;
+                currentRotation = 0;
+                cropImage.style.transform = `rotate(${currentRotation}deg)`;
+                
+                cropImage.onload = function() {
+                    cropperModalEl.style.display = 'block';
+                    initCropBox();
+                };
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        // Initialize crop box
+        function initCropBox() {
+            const imgRect = cropImage.getBoundingClientRect();
+            
+            // Size the crop box to 70% of the smaller dimension
+            const size = Math.min(imgRect.width, imgRect.height) * 0.7;
+            
+            cropBox.style.width = `${size}px`;
+            cropBox.style.height = `${size}px`;
+            
+            // Center the crop box
+            cropBox.style.left = `${(imgRect.width - size) / 2}px`;
+            cropBox.style.top = `${(imgRect.height - size) / 2}px`;
+            
+            // Show the crop box
+            cropBox.style.display = 'block';
+            
+            // Make draggable and resizable
+            setupDragging();
+        }
+        
+        // Simple dragging implementation
+        function setupDragging() {
+            let isDragging = false;
+            let isResizing = false;
+            let activeHandle = null;
+            let startX, startY, startWidth, startLeft, startTop;
+            
+            // Mouse down on crop box
+            cropBox.addEventListener('mousedown', function(e) {
+                e.preventDefault();
+                
+                startX = e.clientX;
+                startY = e.clientY;
+                startWidth = parseInt(cropBox.style.width);
+                startLeft = parseInt(cropBox.style.left);
+                startTop = parseInt(cropBox.style.top);
+                
+                if (e.target.classList.contains('resize-handle')) {
+                    isResizing = true;
+                    activeHandle = e.target.classList[1];
+                } else {
+                    isDragging = true;
+                }
+                
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+            });
+            
+            // Touch start on crop box
+            cropBox.addEventListener('touchstart', function(e) {
+                if (e.touches.length !== 1) return;
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                startX = touch.clientX;
+                startY = touch.clientY;
+                startWidth = parseInt(cropBox.style.width);
+                startLeft = parseInt(cropBox.style.left);
+                startTop = parseInt(cropBox.style.top);
+                
+                if (e.target.classList.contains('resize-handle')) {
+                    isResizing = true;
+                    activeHandle = e.target.classList[1];
+                } else {
+                    isDragging = true;
+                }
+                
+                document.addEventListener('touchmove', handleTouchMove, { passive: false });
+                document.addEventListener('touchend', handleTouchEnd);
+            });
+            
+            // Mouse move handler
+            function handleMouseMove(e) {
+                e.preventDefault();
+                
+                const imgRect = cropImage.getBoundingClientRect();
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                
+                if (isDragging) {
+                    // Simple drag - just update position within boundaries
+                    let newLeft = startLeft + deltaX;
+                    let newTop = startTop + deltaY;
+                    
+                    // Boundary check - allow going exactly to the edge
+                    newLeft = Math.max(0, Math.min(newLeft, imgRect.width - startWidth));
+                    newTop = Math.max(0, Math.min(newTop, imgRect.height - startWidth));
+                    
+                    cropBox.style.left = `${newLeft}px`;
+                    cropBox.style.top = `${newTop}px`;
+                } 
+                
+                if (isResizing) {
+                    let newSize, newLeft, newTop;
+                    
+                    // Calculate new size based on handle position
+                    if (activeHandle === 'se') {
+                        newSize = startWidth + Math.min(deltaX, deltaY);
+                        newLeft = startLeft;
+                        newTop = startTop;
+                        
+                        // Max size check
+                        newSize = Math.min(newSize, imgRect.width - newLeft, imgRect.height - newTop);
+                    } 
+                    else if (activeHandle === 'sw') {
+                        newSize = startWidth - Math.max(deltaX, -deltaY);
+                        newLeft = startLeft + (startWidth - newSize);
+                        newTop = startTop;
+                        
+                        // Max size check
+                        newSize = Math.min(newSize, newLeft + newSize, imgRect.height - newTop);
+                    } 
+                    else if (activeHandle === 'ne') {
+                        newSize = startWidth + Math.min(deltaX, -deltaY);
+                        newLeft = startLeft;
+                        newTop = startTop + (startWidth - newSize);
+                        
+                        // Max size check
+                        newSize = Math.min(newSize, imgRect.width - newLeft, newTop + newSize);
+                    } 
+                    else if (activeHandle === 'nw') {
+                        newSize = startWidth - Math.max(deltaX, deltaY);
+                        newLeft = startLeft + (startWidth - newSize);
+                        newTop = startTop + (startWidth - newSize);
+                        
+                        // Max size check
+                        newSize = Math.min(newSize, newLeft + newSize, newTop + newSize);
+                    }
+                    
+                    // Ensure minimum size
+                    const minSize = 80;
+                    newSize = Math.max(minSize, newSize);
+                    
+                    // Apply new dimensions
+                    cropBox.style.width = `${newSize}px`;
+                    cropBox.style.height = `${newSize}px`;
+                    cropBox.style.left = `${newLeft}px`;
+                    cropBox.style.top = `${newTop}px`;
+                }
+            }
+            
+            // Touch move handler - mirrors mouse move handler
+            function handleTouchMove(e) {
+                if (e.touches.length !== 1) return;
+                e.preventDefault();
+                
+                const touch = e.touches[0];
+                const imgRect = cropImage.getBoundingClientRect();
+                const deltaX = touch.clientX - startX;
+                const deltaY = touch.clientY - startY;
+                
+                if (isDragging) {
+                    // Simple drag - just update position within boundaries
+                    let newLeft = startLeft + deltaX;
+                    let newTop = startTop + deltaY;
+                    
+                    // Boundary check - allow going exactly to the edge
+                    newLeft = Math.max(0, Math.min(newLeft, imgRect.width - startWidth));
+                    newTop = Math.max(0, Math.min(newTop, imgRect.height - startWidth));
+                    
+                    cropBox.style.left = `${newLeft}px`;
+                    cropBox.style.top = `${newTop}px`;
+                } 
+                
+                if (isResizing) {
+                    let newSize, newLeft, newTop;
+                    
+                    // Calculate new size based on handle position
+                    if (activeHandle === 'se') {
+                        newSize = startWidth + Math.min(deltaX, deltaY);
+                        newLeft = startLeft;
+                        newTop = startTop;
+                        
+                        // Max size check
+                        newSize = Math.min(newSize, imgRect.width - newLeft, imgRect.height - newTop);
+                    } 
+                    else if (activeHandle === 'sw') {
+                        newSize = startWidth - Math.max(deltaX, -deltaY);
+                        newLeft = startLeft + (startWidth - newSize);
+                        newTop = startTop;
+                        
+                        // Max size check
+                        newSize = Math.min(newSize, newLeft + newSize, imgRect.height - newTop);
+                    } 
+                    else if (activeHandle === 'ne') {
+                        newSize = startWidth + Math.min(deltaX, -deltaY);
+                        newLeft = startLeft;
+                        newTop = startTop + (startWidth - newSize);
+                        
+                        // Max size check
+                        newSize = Math.min(newSize, imgRect.width - newLeft, newTop + newSize);
+                    } 
+                    else if (activeHandle === 'nw') {
+                        newSize = startWidth - Math.max(deltaX, deltaY);
+                        newLeft = startLeft + (startWidth - newSize);
+                        newTop = startTop + (startWidth - newSize);
+                        
+                        // Max size check
+                        newSize = Math.min(newSize, newLeft + newSize, newTop + newSize);
+                    }
+                    
+                    // Ensure minimum size
+                    const minSize = 80;
+                    newSize = Math.max(minSize, newSize);
+                    
+                    // Apply new dimensions
+                    cropBox.style.width = `${newSize}px`;
+                    cropBox.style.height = `${newSize}px`;
+                    cropBox.style.left = `${newLeft}px`;
+                    cropBox.style.top = `${newTop}px`;
+                }
+            }
+            
+            // Mouse up handler
+            function handleMouseUp() {
+                isDragging = false;
+                isResizing = false;
+                activeHandle = null;
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            }
+            
+            // Touch end handler
+            function handleTouchEnd() {
+                isDragging = false;
+                isResizing = false;
+                activeHandle = null;
+                document.removeEventListener('touchmove', handleTouchMove);
+                document.removeEventListener('touchend', handleTouchEnd);
+            }
+        }
+        
+        // Rotate image
+        rotateBtn.addEventListener('click', function() {
+            currentRotation = (currentRotation + 90) % 360;
+            cropImage.style.transform = `rotate(${currentRotation}deg)`;
+        });
+        
+        // Close without applying
+        closeCropperBtn.addEventListener('click', function() {
+            cropperModalEl.style.display = 'none';
+            fileInput.value = '';
+        });
+        
+        // Apply crop
+        applyBtn.addEventListener('click', function() {
+            // Get crop dimensions
+            const imgRect = cropImage.getBoundingClientRect();
+            const boxLeft = parseInt(cropBox.style.left);
+            const boxTop = parseInt(cropBox.style.top);
+            const boxSize = parseInt(cropBox.style.width);
+            
+            // Calculate crop coordinates
+            const scaleX = cropImage.naturalWidth / imgRect.width;
+            const scaleY = cropImage.naturalHeight / imgRect.height;
+            
+            const cropLeft = boxLeft * scaleX;
+            const cropTop = boxTop * scaleY;
+            const cropSize = boxSize * scaleX;
+            
+            // Create canvas
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = cropSize;
+            canvas.height = cropSize;
+            
+            // Create temp image for processing
+            const tempImg = new Image();
+            tempImg.src = cropImage.src;
+            
+            tempImg.onload = function() {
+                // Handle rotation and cropping
+                if (currentRotation !== 0) {
+                    // For rotated images
+                    ctx.save();
+                    ctx.translate(canvas.width/2, canvas.height/2);
+                    ctx.rotate(currentRotation * Math.PI/180);
+                    ctx.drawImage(
+                        tempImg,
+                        cropLeft, cropTop, cropSize, cropSize,
+                        -canvas.width/2, -canvas.height/2,
+                        canvas.width, canvas.height
+                    );
+                    ctx.restore();
+                } else {
+                    // No rotation
+                    ctx.drawImage(
+                        tempImg,
+                        cropLeft, cropTop, cropSize, cropSize,
+                        0, 0, canvas.width, canvas.height
+                    );
+                }
+                
+                // Convert to file
+                canvas.toBlob(function(blob) {
+                    const croppedFile = new File([blob], 'profile_picture.png', {
+                        type: 'image/png',
+                        lastModified: new Date().getTime()
+                    });
+                    
+                    // Update file input
+                    const dataTransfer = new DataTransfer();
+                    dataTransfer.items.add(croppedFile);
+                    fileInput.files = dataTransfer.files;
+                    
+                    // Update preview
+                    const croppedURL = URL.createObjectURL(blob);
+                    previewImg.src = croppedURL;
+                    
+                    if (placeholder) placeholder.style.display = 'none';
+                    previewImg.style.display = 'block';
+                    if (clearBtn) clearBtn.style.display = 'inline-flex';
+                    clearInput.value = 'false';
+                    
+                    // Close modal
+                    cropperModalEl.style.display = 'none';
+                }, 'image/png');
+            };
+        });
+        
+        // Clear button handler
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                if (placeholder) placeholder.style.display = 'flex';
+                if (previewImg) {
+                    previewImg.style.display = 'none';
+                    previewImg.src = '';
+                }
+                fileInput.value = '';
+                clearInput.value = 'true';
+                clearBtn.style.display = 'none';
+            });
+        }
+    });
+    
     // Elements
     const fileInput = document.getElementById('{{ form.profile_picture.id_for_label }}');
     const previewImg = document.getElementById('profile-preview');
@@ -464,627 +903,5 @@
     const clearBtn = document.getElementById('clear-photo-btn');
     const clearInput = document.getElementById('clear-picture-input');
     
-    // Create modal elements for cropping
-    const cropperModal = document.createElement('div');
-    cropperModal.className = 'cropper-modal';
-    cropperModal.innerHTML = `
-        <div class="cropper-container">
-            <div class="cropper-header">
-                <h2>Crop & rotate</h2>
-                <button type="button" class="close-cropper">×</button>
-            </div>
-            <div class="cropper-content">
-                <div class="image-container">
-                    <img id="crop-image" src="">
-                </div>
-                <div class="cropper-actions">
-                    <button type="button" class="rotate-btn">
-                        <i class="fas fa-sync-alt"></i> Rotate
-                    </button>
-                    <button type="button" class="apply-crop">Next</button>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(cropperModal);
-    
-    // Style for the cropper
-    const style = document.createElement('style');
-    style.textContent = `
-        .cropper-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            overflow: auto;
-        }
-        
-        .cropper-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            color: white;
-        }
-        
-        .cropper-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .cropper-header h2 {
-            margin: 0;
-            font-size: 1.5rem;
-        }
-        
-        .close-cropper {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 1.8rem;
-            cursor: pointer;
-        }
-        
-        .cropper-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-        
-        .image-container {
-            position: relative;
-            max-width: 90%;
-            max-height: 70vh;
-            margin: 0 auto;
-        }
-        
-        #crop-image {
-            display: block;
-            max-width: 100%;
-            max-height: 70vh;
-        }
-        
-        .cropper-actions {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 500px;
-            margin-top: 20px;
-        }
-        
-        .rotate-btn {
-            background-color: #333;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        
-        .apply-crop {
-            background-color: #7289DA;
-            color: white;
-            border: none;
-            padding: 10px 30px;
-            border-radius: 20px;
-            cursor: pointer;
-        }
-        
-        .crop-box {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            border: 2px solid white;
-            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
-            cursor: move;
-            z-index: 1;
-        }
-        
-        .resize-handle {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background: white;
-            z-index: 2;
-        }
-        
-        .resize-handle.nw {
-            top: -5px;
-            left: -5px;
-            cursor: nwse-resize;
-        }
-        
-        .resize-handle.ne {
-            top: -5px;
-            right: -5px;
-            cursor: nesw-resize;
-        }
-        
-        .resize-handle.sw {
-            bottom: -5px;
-            left: -5px;
-            cursor: nesw-resize;
-        }
-        
-        .resize-handle.se {
-            bottom: -5px;
-            right: -5px;
-            cursor: nwse-resize;
-        }
-        
-        @media (max-width: 768px) {
-            .cropper-actions {
-                flex-direction: column;
-                gap: 10px;
-                align-items: center;
-            }
-            
-            .image-container {
-                max-height: 60vh;
-            }
-            
-            #crop-image {
-                max-height: 60vh;
-            }
-        }
-    `;
-    document.head.appendChild(style);
-    
-    // Cropper elements
-    const cropperModalEl = document.querySelector('.cropper-modal');
-    const closeCropperBtn = document.querySelector('.close-cropper');
-    const applyBtn = document.querySelector('.apply-crop');
-    const rotateBtn = document.querySelector('.rotate-btn');
-    const cropImage = document.getElementById('crop-image');
-    
-    // Cropper variables
-    let cropBox;
-    let currentRotation = 0;
-    let aspectRatio = 1; // 1:1 for profile pictures
-    
-    // Open cropper when file is selected
-    fileInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        
-        if (!file) return;
-        
-        // Check file size
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        if (file.size > maxSize) {
-            alert('File is too large. Maximum size is 10MB.');
-            fileInput.value = '';
-            return;
-        }
-        
-        // Check file type
-        const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        if (!validTypes.includes(file.type)) {
-            alert('Invalid file type. Please upload a JPEG, PNG, or GIF image.');
-            fileInput.value = '';
-            return;
-        }
-        
-        // Show cropper with the selected image
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            cropImage.src = e.target.result;
-            
-            // Reset rotation
-            currentRotation = 0;
-            cropImage.style.transform = `rotate(${currentRotation}deg)`;
-            
-            // Wait for image to load to create crop box
-            cropImage.onload = function() {
-                cropperModalEl.style.display = 'block';
-                
-                // Create crop box after image is loaded
-                setupCropBox();
-            };
-        };
-        reader.readAsDataURL(file);
-    });
-    
-    // Create and setup the crop box
-    function setupCropBox() {
-        // Remove existing crop box if any
-        if (cropBox) {
-            cropBox.remove();
-        }
-        
-        const imageContainer = document.querySelector('.image-container');
-        cropBox = document.createElement('div');
-        cropBox.className = 'crop-box';
-        
-        // Calculate size for crop box (square for profile picture)
-        const imgRect = cropImage.getBoundingClientRect();
-        const size = Math.min(imgRect.width, imgRect.height) * 0.8; // 80% of the smaller dimension
-        
-        cropBox.style.width = `${size}px`;
-        cropBox.style.height = `${size}px`;
-        
-        // Position directly on the image instead of using transform
-        cropBox.style.position = 'absolute';
-        cropBox.style.top = `${(imgRect.height - size) / 2}px`;
-        cropBox.style.left = `${(imgRect.width - size) / 2}px`;
-        cropBox.style.transform = 'none'; // Remove the transform
-        
-        // Add resize handles
-        const positions = ['nw', 'ne', 'sw', 'se'];
-        positions.forEach(pos => {
-            const handle = document.createElement('div');
-            handle.className = `resize-handle ${pos}`;
-            cropBox.appendChild(handle);
-        });
-        
-        imageContainer.appendChild(cropBox);
-        
-        // Make crop box draggable
-        makeDraggable(cropBox);
-        
-        // Make crop box resizable
-        makeResizable(cropBox);
-    }
-    
-    // Make an element draggable
-    function makeDraggable(element) {
-        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-        
-        element.addEventListener('mousedown', dragMouseDown);
-        element.addEventListener('touchstart', dragTouchStart, { passive: false });
-        
-        function dragMouseDown(e) {
-            e.preventDefault();
-            // Get the mouse cursor position at startup
-            pos3 = e.clientX;
-            pos4 = e.clientY;
-            document.addEventListener('mouseup', closeDragElement);
-            document.addEventListener('mousemove', elementDrag);
-        }
-        
-        function dragTouchStart(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            pos3 = touch.clientX;
-            pos4 = touch.clientY;
-            document.addEventListener('touchend', closeTouchDragElement);
-            document.addEventListener('touchmove', elementTouchDrag, { passive: false });
-        }
-        
-        function elementDrag(e) {
-            e.preventDefault();
-            // Calculate the new cursor position
-            pos1 = pos3 - e.clientX;
-            pos2 = pos4 - e.clientY;
-            pos3 = e.clientX;
-            pos4 = e.clientY;
-            
-            // Constrain to image boundaries
-            const imageRect = cropImage.getBoundingClientRect();
-            const cropRect = element.getBoundingClientRect();
-            
-            let newTop = element.offsetTop - pos2;
-            let newLeft = element.offsetLeft - pos1;
-            
-            // Boundary checks
-            if (newTop < 0) newTop = 0;
-            if (newLeft < 0) newLeft = 0;
-            if (newTop + cropRect.height > imageRect.height) {
-                newTop = imageRect.height - cropRect.height;
-            }
-            if (newLeft + cropRect.width > imageRect.width) {
-                newLeft = imageRect.width - cropRect.width;
-            }
-            
-            // Set the element's new position
-            element.style.top = newTop + "px";
-            element.style.left = newLeft + "px";
-        }
-        
-        function elementTouchDrag(e) {
-            e.preventDefault();
-            const touch = e.touches[0];
-            pos1 = pos3 - touch.clientX;
-            pos2 = pos4 - touch.clientY;
-            pos3 = touch.clientX;
-            pos4 = touch.clientY;
-            
-            // Constrain to image boundaries
-            const imageRect = cropImage.getBoundingClientRect();
-            const cropRect = element.getBoundingClientRect();
-            
-            let newTop = element.offsetTop - pos2;
-            let newLeft = element.offsetLeft - pos1;
-            
-            // Boundary checks
-            if (newTop < 0) newTop = 0;
-            if (newLeft < 0) newLeft = 0;
-            if (newTop + cropRect.height > imageRect.height) {
-                newTop = imageRect.height - cropRect.height;
-            }
-            if (newLeft + cropRect.width > imageRect.width) {
-                newLeft = imageRect.width - cropRect.width;
-            }
-            
-            // Set the element's new position
-            element.style.top = newTop + "px";
-            element.style.left = newLeft + "px";
-        }
-        
-        function closeDragElement() {
-            // Stop moving when mouse button is released
-            document.removeEventListener('mouseup', closeDragElement);
-            document.removeEventListener('mousemove', elementDrag);
-        }
-        
-        function closeTouchDragElement() {
-            document.removeEventListener('touchend', closeTouchDragElement);
-            document.removeEventListener('touchmove', elementTouchDrag);
-        }
-    }
-    
-    // Make an element resizable (maintains aspect ratio)
-    function makeResizable(element) {
-        const handles = element.querySelectorAll('.resize-handle');
-        
-        handles.forEach(handle => {
-            handle.addEventListener('mousedown', resizeMouseDown);
-            handle.addEventListener('touchstart', resizeTouchStart, { passive: false });
-        });
-        
-        function resizeMouseDown(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            
-            const handle = e.target;
-            const startX = e.clientX;
-            const startY = e.clientY;
-            const startWidth = element.offsetWidth;
-            const startHeight = element.offsetHeight;
-            const startTop = element.offsetTop;
-            const startLeft = element.offsetLeft;
-            
-            document.addEventListener('mousemove', resizeMove);
-            document.addEventListener('mouseup', resizeEnd);
-            
-            function resizeMove(e) {
-                e.preventDefault();
-                
-                let newWidth, newHeight, newTop, newLeft;
-                
-                // Calculate new size based on handle position
-                if (handle.classList.contains('se')) {
-                    newWidth = startWidth + (e.clientX - startX);
-                    newHeight = newWidth / aspectRatio;
-                } else if (handle.classList.contains('sw')) {
-                    newWidth = startWidth - (e.clientX - startX);
-                    newHeight = newWidth / aspectRatio;
-                    newLeft = startLeft + (startWidth - newWidth);
-                } else if (handle.classList.contains('ne')) {
-                    newWidth = startWidth + (e.clientX - startX);
-                    newHeight = newWidth / aspectRatio;
-                    newTop = startTop + (startHeight - newHeight);
-                } else if (handle.classList.contains('nw')) {
-                    newWidth = startWidth - (e.clientX - startX);
-                    newHeight = newWidth / aspectRatio;
-                    newTop = startTop + (startHeight - newHeight);
-                    newLeft = startLeft + (startWidth - newWidth);
-                }
-                
-                // Apply size constraints
-                const minSize = 50;
-                const maxSize = cropImage.offsetWidth;
-                if (newWidth > minSize && newWidth <= maxSize) {
-                    element.style.width = `${newWidth}px`;
-                    element.style.height = `${newHeight}px`;
-                    
-                    if (newTop !== undefined) element.style.top = `${newTop}px`;
-                    if (newLeft !== undefined) element.style.left = `${newLeft}px`;
-                }
-            }
-            
-            function resizeEnd() {
-                document.removeEventListener('mousemove', resizeMove);
-                document.removeEventListener('mouseup', resizeEnd);
-            }
-        }
-        
-        function resizeTouchStart(e) {
-            e.stopPropagation();
-            e.preventDefault();
-            
-            const handle = e.target;
-            const touch = e.touches[0];
-            const startX = touch.clientX;
-            const startY = touch.clientY;
-            const startWidth = element.offsetWidth;
-            const startHeight = element.offsetHeight;
-            const startTop = element.offsetTop;
-            const startLeft = element.offsetLeft;
-            
-            document.addEventListener('touchmove', resizeTouchMove, { passive: false });
-            document.addEventListener('touchend', resizeTouchEnd);
-            
-            function resizeTouchMove(e) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                
-                let newWidth, newHeight, newTop, newLeft;
-                
-                // Calculate new size based on handle position
-                if (handle.classList.contains('se')) {
-                    newWidth = startWidth + (touch.clientX - startX);
-                    newHeight = newWidth / aspectRatio;
-                } else if (handle.classList.contains('sw')) {
-                    newWidth = startWidth - (touch.clientX - startX);
-                    newHeight = newWidth / aspectRatio;
-                    newLeft = startLeft + (startWidth - newWidth);
-                } else if (handle.classList.contains('ne')) {
-                    newWidth = startWidth + (touch.clientX - startX);
-                    newHeight = newWidth / aspectRatio;
-                    newTop = startTop + (startHeight - newHeight);
-                } else if (handle.classList.contains('nw')) {
-                    newWidth = startWidth - (touch.clientX - startX);
-                    newHeight = newWidth / aspectRatio;
-                    newTop = startTop + (startHeight - newHeight);
-                    newLeft = startLeft + (startWidth - newWidth);
-                }
-                
-                // Apply size constraints
-                const minSize = 50;
-                const maxSize = cropImage.offsetWidth;
-                if (newWidth > minSize && newWidth <= maxSize) {
-                    element.style.width = `${newWidth}px`;
-                    element.style.height = `${newHeight}px`;
-                    
-                    if (newTop !== undefined) element.style.top = `${newTop}px`;
-                    if (newLeft !== undefined) element.style.left = `${newLeft}px`;
-                }
-            }
-            
-            function resizeTouchEnd() {
-                document.removeEventListener('touchmove', resizeTouchMove);
-                document.removeEventListener('touchend', resizeTouchEnd);
-            }
-        }
-    }
-    
-    // Close cropper without applying
-    closeCropperBtn.addEventListener('click', function() {
-        cropperModalEl.style.display = 'none';
-        fileInput.value = '';
-    });
-    
-    // Rotate image
-    rotateBtn.addEventListener('click', function() {
-        currentRotation = (currentRotation + 90) % 360;
-        cropImage.style.transform = `rotate(${currentRotation}deg)`;
-        
-        // When rotating 90 or 270 degrees, we need to readjust the crop box
-        if (currentRotation === 90 || currentRotation === 270) {
-            // If we need to handle non-square images with different orientations
-            setupCropBox();
-        }
-    });
-    
-    // Apply crop and close the modal
-    applyBtn.addEventListener('click', function() {
-        // Get crop dimensions and position relative to the image
-        const imgRect = cropImage.getBoundingClientRect();
-        const cropRect = cropBox.getBoundingClientRect();
-        
-        // Calculate crop coordinates
-        const scaleX = cropImage.naturalWidth / imgRect.width;
-        const scaleY = cropImage.naturalHeight / imgRect.height;
-        
-        // Calculate based on current position of the crop box relative to the image
-        const cropLeft = (cropRect.left - imgRect.left) * scaleX;
-        const cropTop = (cropRect.top - imgRect.top) * scaleY;
-        const cropWidth = cropRect.width * scaleX;
-        const cropHeight = cropRect.height * scaleY;
-        
-        // Create canvas for cropping
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        canvas.width = cropWidth;
-        canvas.height = cropHeight;
-        
-        // Create a temporary image to handle rotation and cropping
-        const tempImg = new Image();
-        tempImg.src = cropImage.src;
-        
-        tempImg.onload = function() {
-            if (currentRotation !== 0) {
-                // If rotated, we need to adjust the crop coordinates
-                switch(currentRotation) {
-                    case 90:
-                        // Convert coordinates for 90 degree rotation
-                        canvas.width = cropHeight;
-                        canvas.height = cropWidth;
-                        ctx.rotate(Math.PI / 2);
-                        ctx.translate(0, -canvas.width);
-                        ctx.drawImage(
-                            tempImg,
-                            cropTop, // x becomes y
-                            tempImg.width - cropLeft - cropWidth, // y becomes inverted x
-                            cropHeight,
-                            cropWidth
-                        );
-                        break;
-                    case 180:
-                        ctx.rotate(Math.PI);
-                        ctx.translate(-canvas.width, -canvas.height);
-                        ctx.drawImage(
-                            tempImg,
-                            tempImg.width - cropLeft - cropWidth,
-                            tempImg.height - cropTop - cropHeight,
-                            cropWidth,
-                            cropHeight,
-                            0, 0, cropWidth, cropHeight
-                        );
-                        break;
-                    case 270:
-                        canvas.width = cropHeight;
-                        canvas.height = cropWidth;
-                        ctx.rotate(-Math.PI / 2);
-                        ctx.translate(-canvas.height, 0);
-                        ctx.drawImage(
-                            tempImg,
-                            tempImg.width - cropTop - cropHeight,
-                            cropLeft,
-                            cropHeight,
-                            cropWidth
-                        );
-                        break;
-                }
-            } else {
-                // No rotation, just crop
-                ctx.drawImage(
-                    tempImg,
-                    cropLeft, cropTop, cropWidth, cropHeight,
-                    0, 0, cropWidth, cropHeight
-                );
-            }
-            
-            // Convert canvas to blob and update profile picture
-            canvas.toBlob(function(blob) {
-                // Create a new File object
-                const croppedFile = new File([blob], 'profile_picture.png', {
-                    type: 'image/png',
-                    lastModified: new Date().getTime()
-                });
-                
-                // Create a data transfer and set it to the file input
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(croppedFile);
-                fileInput.files = dataTransfer.files;
-                
-                // Update preview
-                const croppedURL = URL.createObjectURL(blob);
-                previewImg.src = croppedURL;
-                
-                if (placeholder) {
-                    placeholder.style.display = 'none';
-                }
-                previewImg.style.display = 'block';
-                if (clearBtn) {
-                    clearBtn.style.display = 'inline-flex';
-                }
-                clearInput.value = 'false';
-                
-                // Close the cropper modal
-                cropperModalEl.style.display = 'none';
-            }, 'image/png');
-        };
-    });
 </script>
 {% endblock %}
