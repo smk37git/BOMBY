@@ -117,6 +117,7 @@ p {
     border-radius: 15px;
     overflow: hidden;
     margin-bottom: 25px;
+    background: transparent;
 }
 
 .video-container-bomby video {
@@ -346,6 +347,7 @@ p {
     }
 
     .video-container-bomby {
+        background: transparent;
         max-width: 300px;
         max-height: 300px;
         margin-top: -40px !important;
