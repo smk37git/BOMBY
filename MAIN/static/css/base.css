@@ -725,6 +725,19 @@ main {
     overflow-x: hidden;
   }
 
+  .nav-brand-container {
+    margin: 0 auto;
+    justify-content: center;
+    align-items: center;
+    margin-left: 100px;
+  }
+
+  .bomb-icon img {
+    width: 35px;
+    height: 35px;
+    margin-right: 20px;
+  }
+
   .nav-wrapper {
     width: 100%;
   }
@@ -869,11 +882,6 @@ main {
     width: 100%;
     left: auto;
     right: 0;
-  }
-  
-  .nav-brand-container {
-    flex-grow: 1;
-    justify-content: center;
   }
   
   .bomb-icon {

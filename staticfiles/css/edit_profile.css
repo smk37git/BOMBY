@@ -318,6 +318,157 @@ input[type="file"] {
     margin-top: 20px;
 }
 
+.cropper-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    overflow: auto;
+}
+
+.cropper-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    color: white;
+}
+
+.cropper-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cropper-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.close-cropper {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+}
+
+.cropper-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.image-container {
+    position: relative;
+    max-width: 90%;
+    max-height: 70vh;
+    margin: 0 auto;
+}
+
+#crop-image {
+    display: block;
+    max-width: 100%;
+    max-height: 70vh;
+}
+
+.cropper-actions {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 500px;
+    margin-top: 20px;
+}
+
+.rotate-btn {
+    background-color: #222;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rotate-btn:hover {
+    background-color: #333;
+    transform: translateY(-2px);
+}
+
+.rotate-btn i {
+    font-size: 1rem;
+}
+
+.apply-crop {
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.apply-crop:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+/* Crop Box and Handles */
+.crop-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border: 2px solid white;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7);
+    cursor: move;
+    z-index: 1;
+}
+
+.resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: white;
+    z-index: 2;
+}
+
+.resize-handle.nw {
+    top: -5px;
+    left: -5px;
+    cursor: nwse-resize;
+}
+
+.resize-handle.ne {
+    top: -5px;
+    right: -5px;
+    cursor: nesw-resize;
+}
+
+.resize-handle.sw {
+    bottom: -5px;
+    left: -5px;
+    cursor: nesw-resize;
+}
+
+.resize-handle.se {
+    bottom: -5px;
+    right: -5px;
+    cursor: nwse-resize;
+}
+
 /* Responsive for Mobile */
 @media (max-width: 992px) and (min-width: 769px) {
     .edit_profile-container {
@@ -374,6 +525,27 @@ input[type="file"] {
     .action-button {
         white-space: nowrap;
         font-size: 0.7rem;
+    }
+
+    .cropper-actions {
+        flex-direction: column;
+        gap: 10px;
+        align-items: center;
+    }
+    
+    .rotate-btn,
+    .apply-crop {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+    }
+    
+    .image-container {
+        max-height: 60vh;
+    }
+    
+    #crop-image {
+        max-height: 60vh;
     }
 }
 

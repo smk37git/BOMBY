@@ -323,6 +323,13 @@ p {
 }
 
 @media (max-width: 768px) {
+    html, body, main {
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
+        width: 100% !important;
+        position: relative !important;
+    }
+
     .hero-section {
         margin-top: -75px;
         flex-direction: column;
@@ -336,6 +343,13 @@ p {
     
     .hero-buttons {
         justify-content: center;
+    }
+
+    .video-container-bomby {
+        max-width: 300px;
+        max-height: 300px;
+        margin-top: -40px !important;
+        margin: 0 auto;
     }
     
     .video-container {

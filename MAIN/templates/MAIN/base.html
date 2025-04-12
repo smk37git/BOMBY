@@ -332,26 +332,35 @@
         function checkUnreadOrderMessages() {
             fetch('/store/orders/unread-count/', {
                 headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                // Check if response is JSON before parsing
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                return response.json();
+                }
+                // Not JSON, handle gracefully
+                console.warn('Non-JSON response received');
+                return {unread_count: 0};
+            })
             .then(data => {
                 const orderBadge = document.getElementById('order-messages-badge');
                 if (orderBadge) {
-                    if (data.unread_count > 0) {
-                        orderBadge.textContent = data.unread_count;
-                        orderBadge.style.display = 'inline-flex';
-                    } else {
-                        orderBadge.textContent = '';
-                        orderBadge.style.display = 'none';
-                    }
+                if (data.unread_count > 0) {
+                    orderBadge.textContent = data.unread_count;
+                    orderBadge.style.display = 'inline-flex';
+                } else {
+                    orderBadge.textContent = '';
+                    orderBadge.style.display = 'none';
+                }
                 }
             })
             .catch(error => {
-                console.error('Error checking order messages:', error);
+                console.warn('Error checking order messages:', error);
             });
-        }
+            }
     </script>
     {% block extra_js %}
     {% endblock %}
