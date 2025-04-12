@@ -330,6 +330,17 @@ input[type="file"] {
     overflow: auto;
 }
 
+.cropper-modal::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10;
+}
+
 .cropper-container {
     display: flex;
     flex-direction: column;
@@ -342,9 +353,9 @@ input[type="file"] {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 10;
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 10px 15px;
+    z-index: 20;
+    background-color: rgba(0, 0, 0, 0.9);
+    padding: 12px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -370,6 +381,8 @@ input[type="file"] {
     justify-content: center;
     align-items: center;
     padding: 20px;
+    position: relative;
+    z-index: 15;
     padding-top: 60px;
     padding-bottom: 80px;
 }
@@ -383,6 +396,7 @@ input[type="file"] {
     align-items: center;
     position: relative;
     max-height: calc(100vh - 140px);
+    z-index: 15;
 }
 
 #crop-image {
@@ -393,13 +407,13 @@ input[type="file"] {
 
 .cropper-actions {
     position: absolute;
-    bottom: 20px;
+    bottom: 30px;
     left: 0;
     right: 0;
     display: flex;
     justify-content: center;
     gap: 20px;
-    z-index: 10;
+    z-index: 20;
 }
 
 .rotate-btn, .apply-crop {
@@ -412,6 +426,8 @@ input[type="file"] {
     font-size: 1rem;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    position: relative;
 }
 
 .rotate-btn:hover {
