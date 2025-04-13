@@ -298,6 +298,70 @@
     margin: 20px 0;
 }
 
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .user_management-title {
+        font-size: 5rem;
+    }
+
+    .analytics-container {
+        max-width: 1500px;
+    }
+
+    .analytics-header h2 {
+        font-size: 3rem;
+    }
+
+    .time-filter {
+        gap: 15px;
+        font-size: 1.5rem;
+    }
+
+    .metric-label {
+        font-size: 2rem;
+    }
+
+    .metric-value {
+        margin-top: 15px;
+        margin-bottom: 10px;
+        font-size: 2.5rem;
+    }
+
+    .rating-stars {
+        font-size: 2rem;
+    }
+
+    .metric-trend {
+        font-size: 1.2rem;
+    }
+
+    .metric-subtext {
+        font-size: 1.2rem;
+    }
+
+    .pie-chart {
+        margin-top: 50px;
+        margin-bottom: 50px;
+        transform: scale(150%);
+    }
+
+    .pie-legend {
+        margin-left: 25px;
+        font-size: 2rem;
+    }
+
+    .product-table thead {
+        font-size: 2rem;
+    }
+
+    .product-table tbody {
+        font-size: 1.5rem;
+    }
+
+    .filter-checkbox {
+        font-size: 2rem;
+    }
+}
+
 @media (max-width: 768px) {
     .analytics-container {
         width: 85%;

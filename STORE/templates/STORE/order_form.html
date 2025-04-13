@@ -22,11 +22,11 @@
         <form method="post">
             {% csrf_token %}
             
-            <div class="order-card">
-                <div class="card-header">
+            <div class="form-card">
+                <div class="order-card-header">
                     <h5>Product: <span style="color: #a991ff;">{{ order.product.name }}</span></h5>
                 </div>
-                <div class="card-body">
+                <div class="order-card-body">
                     <div class="form-fields">
                         <!-- Computer Specs -->
                         <div class="form-group">

@@ -221,7 +221,7 @@
     flex-wrap: wrap;
 }
 
-.action-button {
+.action-button, .back-link-button {
     padding: 10px 18px;
     border: none;
     border-radius: 8px;
@@ -409,7 +409,90 @@
     margin-top: 25px;
 }
 
-/* Mobile responsive styles */
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    /* User Management */
+    .user_management-title {
+        font-size: 4rem;
+    }
+
+    .back-link-button {
+        font-size: 2rem;
+    }
+
+    .action-button {
+        font-size: 1.5rem;
+    }
+
+    .fas.fa-arrow-left {
+        font-size: 2rem;
+    }
+
+    .profile-container {
+        max-width: 1500px;
+        margin-bottom: 50px;
+    }
+
+    .section-header {
+        font-size: 2rem;
+    }
+
+    .search-container input {
+        font-size: 1.5rem;
+    }
+
+    .users-table thead, tbody {
+        font-size: 1.5rem;
+    }
+
+    .product-status {
+        font-size: 1.2rem;
+    }
+
+    .panel-header h3 {
+        font-size: 2rem;
+    }
+
+    .panel-header span {
+        font-size: 1rem;
+    }
+
+    .action-section h4 {
+        font-size: 1.5rem;
+    }
+
+    .panel-action-button {
+        font-size: 1.5rem;
+    }
+
+    /* Review Management */
+    .form-group {
+        margin-top: 25px !important;
+        padding: 0 !important;
+    }
+
+    .form-group label {
+        font-size: 1.5rem !important;
+    }
+
+    .message-input-container {
+        width: 250px !important;
+        font-size: 1.5rem !important;
+    }
+
+    .star-rating label {
+        font-size: 3rem !important;
+    }
+
+    .submit-button {
+        font-size: 1.5rem !important;
+    }
+
+    /* Stream Asset Management */
+    .product-status-select {
+        font-size: 1.5rem;
+    }
+}
+
 @media (max-width: 992px) {
     .dashboard-layout {
         flex-direction: column;

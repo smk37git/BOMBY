@@ -30,7 +30,7 @@
     <div class="order-grid">
         <div class="order-main">
             <div class="order-card">
-                <div class="card-header">
+                <div class="order-card-header">
                     <h5>Review #{{ review.id }}</h5>
                     <div class="star-rating-display">
                         {% for i in "12345" %}
@@ -45,28 +45,28 @@
                 <div class="card-body">
                     <div class="order-info">
                         <div class="info-item">
-                            <div class="info-label">Order ID:</div>
-                            <div class="info-value">
+                            <div class="order-info-label">Order ID:</div>
+                            <div class="order-info-value">
                                 <a href="{% url 'STORE:order_details' review.order.id %}">
                                     #{{ review.order.id }}
                                 </a>
                             </div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">User:</div>
-                            <div class="info-value">{{ review.order.user.username }}</div>
+                            <div class="order-info-label">User:</div>
+                            <div class="order-info-value">{{ review.order.user.username }}</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">Product:</div>
-                            <div class="info-value">{{ review.order.product.name }}</div>
+                            <div class="order-info-label">Product:</div>
+                            <div class="order-info-value">{{ review.order.product.name }}</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">Rating:</div>
-                            <div class="info-value">{{ review.rating }} / 5</div>
+                            <div class="order-info-label">Rating:</div>
+                            <div class="order-info-value">{{ review.rating }} / 5</div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">Date:</div>
-                            <div class="info-value">{{ review.created_at|date }}</div>
+                            <div class="order-info-label">Date:</div>
+                            <div class="order-info-value">{{ review.created_at|date }}</div>
                         </div>
                     </div>
                     
@@ -90,14 +90,14 @@
         
         <div class="order-sidebar">
             <div class="order-card">
-                <div class="card-header">
+                <div class="order-card-header">
                     <h5>Order Information</h5>
                 </div>
                 <div class="card-body">
                     <div class="order-info">
                         <div class="info-item">
-                            <div class="info-label">Order Status:</div>
-                            <div class="info-value">
+                            <div class="order-info-label">Order Status:</div>
+                            <div class="order-info-value">
                                 {% if review.order.status == 'pending' %}
                                     <span class="order-badge badge-warning" style="margin-left: 10px;">Pending</span>
                                 {% elif review.order.status == 'in_progress' %}
@@ -108,13 +108,13 @@
                             </div>
                         </div>
                         <div class="info-item">
-                            <div class="info-label">Order Date:</div>
-                            <div class="info-value">{{ review.order.created_at|date }}</div>
+                            <div class="order-info-label">Order Date:</div>
+                            <div class="order-info-value">{{ review.order.created_at|date }}</div>
                         </div>
                         {% if review.order.completed_at %}
                         <div class="info-item">
-                            <div class="info-label">Completed:</div>
-                            <div class="info-value">{{ review.order.completed_at|date }}</div>
+                            <div class="order-info-label">Completed:</div>
+                            <div class="order-info-value">{{ review.order.completed_at|date }}</div>
                         </div>
                         {% endif %}
                     </div>

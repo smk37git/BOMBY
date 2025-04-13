@@ -21,13 +21,13 @@
         {% for order in orders %}
         <div class="order-item">
             <div class="order-card">
-                <div class="card-header">
+                <div class="orders-card-header">
                     <h5>Order #{{ order.id }}</h5>
                     <div>
                         {% if order.product.id == 4 %}
-                            <span class="order-badge badge-success">Access Granted</span>
+                            <span class="orders-badge badge-success">Access Granted</span>
                         {% else %}
-                            <span class="order-badge {% if order.status == 'pending' %}badge-warning
+                            <span class="orders-badge {% if order.status == 'pending' %}badge-warning
                                   {% elif order.status == 'in_progress' %}badge-primary
                                   {% else %}badge-success{% endif %}">
                                 {{ order.get_status_display }}
@@ -41,17 +41,17 @@
                 <div class="card-body">
                     <div class="order-info">
                         <div class="info-item">
-                            <span class="info-label">Product:</span>
-                            <span class="info-value">{{ order.product.name }}</span>
+                            <span class="orders-info-label">Product:</span>
+                            <span class="orders-info-value">{{ order.product.name }}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Created:</span>
-                            <span class="info-value">{{ order.created_at|date }}</span>
+                            <span class="orders-info-label">Created:</span>
+                            <span class="orders-info-value">{{ order.created_at|date }}</span>
                         </div>
                         {% if order.due_date %}
                         <div class="info-item">
-                            <span class="info-label">Due Date:</span>
-                            <span class="info-value">{{ order.due_date|date }}</span>
+                            <span class="orders-info-label">Due Date:</span>
+                            <span class="orders-info-value">{{ order.due_date|date }}</span>
                         </div>
                         {% endif %}
                     </div>

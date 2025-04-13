@@ -25,58 +25,55 @@
         {% endfor %}
     </div>
     {% endif %}
-    
-    <div class="order-form-container">
-        <div class="card order-card">
-            <div class="card-header">
-                <h5>Editing Review for Order #{{ review.order.id }}</h5>
+    <div class="order-card order-card">
+        <div class="order-card-header">
+            <h5>Editing Review for Order #{{ review.order.id }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="order-info">
+                <div class="info-item">
+                    <div class="order-info-label">User:</div>
+                    <div class="order-info-value">{{ review.order.user.username }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="order-info-label">Product:</div>
+                    <div class="order-info-value">{{ review.order.product.name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="order-info-label">Date:</div>
+                    <div class="order-info-value">{{ review.created_at|date }}</div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="order-info">
-                    <div class="info-item">
-                        <div class="info-label">User:</div>
-                        <div class="info-value">{{ review.order.user.username }}</div>
+            
+            <form method="post" class="order-form">
+                {% csrf_token %}
+                <div class="form-fields">
+                    <div class="form-group">
+                        <label for="id_rating" class="form-label">Rating:</label>
+                        <select name="rating" id="id_rating" class="form-control" required>
+                            <option value="1" {% if review.rating == 1 %}selected{% endif %}>1 - Poor</option>
+                            <option value="2" {% if review.rating == 2 %}selected{% endif %}>2 - Fair</option>
+                            <option value="3" {% if review.rating == 3 %}selected{% endif %}>3 - Good</option>
+                            <option value="4" {% if review.rating == 4 %}selected{% endif %}>4 - Very Good</option>
+                            <option value="5" {% if review.rating == 5 %}selected{% endif %}>5 - Excellent</option>
+                        </select>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Product:</div>
-                        <div class="info-value">{{ review.order.product.name }}</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Date:</div>
-                        <div class="info-value">{{ review.created_at|date }}</div>
+                    
+                    <div class="form-group">
+                        <label for="id_comment" class="form-label">Comment:</label>
+                        <textarea name="comment" id="id_comment" rows="5" class="form-control" required>{{ review.comment }}</textarea>
                     </div>
                 </div>
                 
-                <form method="post" class="order-form">
-                    {% csrf_token %}
-                    <div class="form-fields">
-                        <div class="form-group">
-                            <label for="id_rating" class="form-label">Rating:</label>
-                            <select name="rating" id="id_rating" class="form-control" required>
-                                <option value="1" {% if review.rating == 1 %}selected{% endif %}>1 - Poor</option>
-                                <option value="2" {% if review.rating == 2 %}selected{% endif %}>2 - Fair</option>
-                                <option value="3" {% if review.rating == 3 %}selected{% endif %}>3 - Good</option>
-                                <option value="4" {% if review.rating == 4 %}selected{% endif %}>4 - Very Good</option>
-                                <option value="5" {% if review.rating == 5 %}selected{% endif %}>5 - Excellent</option>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="id_comment" class="form-label">Comment:</label>
-                            <textarea name="comment" id="id_comment" rows="5" class="form-control" required>{{ review.comment }}</textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="form-actions">
-                        <button type="submit" class="submit-button">Update Review</button>
-                    </div>
-                </form>
-            </div>
-            <div class="card-footer">
-                <a href="{% url 'STORE:review_management' %}" class="back-link">
-                    <i class="fas fa-arrow-left"></i> Back to Reviews
-                </a>
-            </div>
+                <div class="form-actions">
+                    <button type="submit" class="submit-button">Update Review</button>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'STORE:review_management' %}" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Reviews
+            </a>
         </div>
     </div>
 </div>

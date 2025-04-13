@@ -36,23 +36,23 @@
     <div class="order-grid">
         <div class="order-sidebar">
             <div class="order-card mb-4">
-                <div class="card-header">
+                <div class="order-card-header">
                     <h5>Details</h5>
                 </div>
                 <div class="card-body">
                     <div class="order-info">
                         <div class="info-item">
-                            <span class="info-label">Product:</span>
-                            <span class="info-value">{{ order.product.name }}</span>
+                            <span class="order-info-label">Product:</span>
+                            <span class="order-info-value">{{ order.product.name }}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Created:</span>
-                            <span class="info-value" data-iso-date="{{ order.created_at|date:'c' }}">{{ order.created_at }}</span>
+                            <span class="order-info-label">Created:</span>
+                            <span class="order-info-value" data-iso-date="{{ order.created_at|date:'c' }}">{{ order.created_at }}</span>
                         </div>
                         {% if order.due_date %}
                         <div class="info-item">
-                            <span class="info-label">Due Date:</span>
-                            <span class="info-value" id="due-date" data-date="{{ order.due_date|date:'c' }}">{{ order.due_date }}</span>
+                            <span class="order-info-label">Due Date:</span>
+                            <span class="order-info-value" id="due-date" data-date="{{ order.due_date|date:'c' }}">{{ order.due_date }}</span>
                         </div>
                         {% if order.status == 'in_progress' %}
                         <div class="order-countdown" id="countdown">
@@ -62,8 +62,8 @@
                         {% endif %}
                         {% if order.completed_at %}
                         <div class="info-item">
-                            <span class="info-label">Completed:</span>
-                            <span class="info-value" data-iso-date="{{ order.completed_at|date:'c' }}">{{ order.completed_at }}</span>
+                            <span class="order-info-label">Completed:</span>
+                            <span class="order-info-value" data-iso-date="{{ order.completed_at|date:'c' }}">{{ order.completed_at }}</span>
                         </div>
                         {% endif %}
                     </div>
@@ -88,7 +88,7 @@
 
             {% if order_invoice %}
             <div class="order-card mb-4">
-                <div class="card-header">
+                <div class="order-card-header">
                     <h5>Invoice</h5>
                 </div>
                 <div class="card-body">
@@ -103,7 +103,7 @@
             
             {% if review_form %}
             <div class="order-card mb-4">
-                <div class="card-header">
+                <div class="order-card-header">
                     <h5>Leave a Review</h5>
                 </div>
                 <div class="card-body">
@@ -150,7 +150,7 @@
             
             {% if order_review %}
             <div class="order-card mb-4">
-                <div class="card-header">
+                <div class="order-card-header">
                     <h5>Review</h5>
                 </div>
                 <div class="card-body">
@@ -167,7 +167,7 @@
 
             {% if order.status == 'completed' and request.user == order.user %}
             <div class="order-card mb-4">
-                <div class="card-header">
+                <div class="order-card-header">
                     <h5>Send a Tip</h5>
                 </div>
                 <div class="card-body">
@@ -309,7 +309,7 @@
             
             {% if order.form %}
             <div class="order-card-info">
-                <div class="card-header">
+                <div class="order-card-header">
                     <h5>Order Information</h5>
                 </div>
                 <div class="card-body">
@@ -392,7 +392,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    document.querySelectorAll('.info-value').forEach(element => {
+    document.querySelectorAll('.order-info-value').forEach(element => {
         if (element.textContent.trim()) {
             element.textContent = convertToLocalTime(element.textContent.trim());
         }

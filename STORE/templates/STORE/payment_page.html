@@ -47,9 +47,9 @@
             </div>
             
             <!-- Alternative payment option as fallback -->
-            <div id="payment-fallback" style="display:none; margin-top:20px;">
+            <div id="payment-fallback" style="display:none; margin-top:20px;" class="payment-fallback">
                 <p>PayPal payment option is currently unavailable.</p>
-                <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">Proceed Without PayPal</a>
+                <a href="{% url 'MAIN:contact' %}" class="purchase-btn">CONTACT SUPPORT</a>
             </div>
         </div>
     </div>
