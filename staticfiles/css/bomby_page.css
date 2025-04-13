@@ -171,6 +171,12 @@ body, html {
     padding: 2rem 0;
 }
 
+.project-content-steam {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
 /* Section styles */
 .content-section {
     padding: 4rem 0;
@@ -694,13 +700,20 @@ body, html {
     }
     
     .github-commit-container:hover {
-        transform: scale(140%);
+        transform: scale(155%);
         box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.2);
     }
 
     .project-content {
         max-width: 1500px;
         margin-top: 350px;
+        margin-bottom: 375px;
+        transform: scale(115%);
+    }
+
+    .project-content-steam {
+        max-width: 1500px;
+        margin-top: 200px !important;
         margin-bottom: 375px;
         transform: scale(115%);
     }

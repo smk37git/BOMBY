@@ -102,6 +102,21 @@
     grid-template-columns: repeat(3, 1fr);
 }
 
+.donation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1400px;
+    margin: -50px auto;
+    flex: 1;
+    background-color: #0a0a0a;
+    padding: 10px 30px 30px 30px;
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(5px);
+    z-index: 4;
+}
+
 .product-item {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
@@ -608,12 +623,22 @@
     .website-grid {
         grid-template-columns: repeat(3, 1fr);
         margin-top: 150px;
+        margin-bottom: 75px;
         transform: scale(125%);
         gap: 4rem;
     }
 
+    .donation-grid {
+        grid-template-columns: repeat(3, 1fr);
+        transform: scale(125%);
+        gap: 3rem;
+        margin-top: 150px;
+        margin-bottom: 150px;
+        padding-bottom: 3rem;
+    }
+
     .product-item {
-        width: 90%;
+        width: 80%;
         padding: 2rem 3rem;
     }
 
@@ -623,6 +648,24 @@
 
     .window:hover {
         transform: scale(130%);
+    }
+
+    .donation-description {
+        font-size: 1.8rem;
+    }
+
+    .contact-cta {
+        margin-top: -75px;
+        margin-bottom: 75px;
+    }
+
+    .cta-content p {
+        font-size: 1.5rem;
+    }
+
+    .cta-button {
+        font-size: 1.5rem;
+        font-weight: 300;
     }
 }
 @media (max-width: 1200px) {

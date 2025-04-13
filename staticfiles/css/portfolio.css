@@ -609,6 +609,14 @@ body, html {
         transform: scale(125%);
     }
 
+    .category-title {
+        font-size: 2rem !important;
+    }
+
+    .skill-list li {
+        font-size: 1.2rem;
+    }
+
     .resume-container {
         transform: scale(125%);
     }
