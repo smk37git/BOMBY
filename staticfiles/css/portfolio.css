@@ -45,7 +45,7 @@ body, html {
 .code-animation-container {
     position: relative;
     width: 350px;
-    height: 295px;
+    height: 305px;
     margin-right: 8rem;
     transform-style: preserve-3d;
     perspective: 1000px;
@@ -534,6 +534,130 @@ body, html {
 }
 
 /* Mobile responsive styles */
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .portfolio-hero {
+        padding: 0 6rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 80vh;
+        position: relative;
+        overflow: hidden;
+        margin-top: -8rem;
+        margin-bottom: -7rem;
+    }
+
+    .main-title {
+        font-size: 6rem;
+        white-space: nowrap;
+        line-height: 1;
+        margin: 0;
+        font-weight: 900;
+        color: #ffffff;
+        letter-spacing: 2px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .subtitle {
+        font-size: 2rem;
+        color: #ffffff;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        margin-top: 1rem;
+        letter-spacing: 3px;
+    }
+
+    .code-animation-container {
+        position: relative;
+        width: 600px;
+        height: 500px;
+        margin-right: 8rem;
+        transform-style: preserve-3d;
+        perspective: 1000px;
+        margin-bottom: -2rem;
+    }
+
+    .code-wrapper {
+        overflow: visible !important;
+    }
+
+    .code-display {
+        font-family: 'Courier New', monospace;
+        font-size: 1.5rem;
+        line-height: 1.4;
+        color: #ac68ff;
+        margin: 0;
+        white-space: pre-wrap;
+        height: 100%;
+        overflow: hidden;
+        text-align: left;
+    }
+
+    .code-display pre {
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem !important;
+        line-height: 1;
+        padding-bottom: 50px;
+        white-space: pre;
+        color: #ac68ff;
+    }
+
+    .section-title {
+        font-size: 3.5rem;
+    }
+
+    .skills-grid {
+        transform: scale(125%);
+    }
+
+    .resume-container {
+        transform: scale(125%);
+    }
+    
+    .resume-content h3 {
+        font-size: 2.5rem;
+    }
+
+    .resume-content p {
+        font-size: 1.5rem;
+    }
+
+    .project-grid {
+        margin-top: 275px;
+        transform: scale(125%);
+    }
+
+    .project-title {
+        font-size: 2.5rem;
+    }
+
+    .project-tech {
+        font-size: 1.5rem;
+    }
+
+    .project-description {
+        font-size: 1.2rem;
+    }
+
+    .project-link {
+        font-weight: 300;
+        font-size: 1.5rem;
+    }
+
+    .contact-cta {
+        margin-top: 350px;
+        margin-bottom: 75px;
+    }
+
+    .cta-content p {
+        font-size: 1.5rem;
+    }
+
+    .cta-button {
+        font-size: 1.5rem;
+        font-weight: 300;
+    }
+}
+
 @media (max-width: 768px) {
     .portfolio-hero {
         flex-direction: column;
@@ -554,7 +678,7 @@ body, html {
     .code-animation-container {
         width: 100%;
         max-width: 320px;
-        height: 320px;
+        height: 305px;
         margin: 3rem auto 1rem;
     }
     

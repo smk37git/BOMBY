@@ -144,6 +144,7 @@
 /* Contact methods */
 .contactpage-method {
     background-color: rgb(24, 24, 24); 
+    border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 10px; 
     padding: 15px 20px;
     margin-bottom: 20px;
@@ -276,6 +277,81 @@
 @media (min-width: 1440px) {
     .contactpage-container {
         max-width: 1000px;
+    }
+}
+
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .contactpage-section {
+        padding: 0px;
+        position: relative;
+        overflow-x: hidden;
+        z-index: 2;
+        min-height: 100vh;
+        width: 100%;
+        margin-top: -60px;
+    }
+
+    .contactpage-header h1 {
+        font-size: 3.5rem;
+    }
+
+    .contactpage-container {
+        max-width: 1500px;
+        margin-left: 0px auto;
+        margin-bottom: 50px;
+        display: flex;
+        justify-content: space-between;
+        gap: 30px;
+        position: relative;
+        z-index: 4;
+    }
+
+    .contactpage-form-section {
+        max-height: 1000px;
+        width: 800px;
+        font-size: 2rem;
+    }
+
+    .contactpageform-group label {
+        display: block;
+        margin-bottom: 15px;
+        color: #ffffff;
+        font-size: 1.1em;
+        padding-left: 0;
+    }
+
+    .contactpage-info-section {
+        max-height: 1000px;
+        width: 800px;
+        font-size: 2rem;
+    }
+
+    .contactpage-info-section h2 {
+        font-size: 3rem;
+        color: #ffffff;
+        margin-bottom: 15px;
+    }
+
+    .contactpage-method h3 {
+        color: #ffffff;
+        font-size: 2rem;
+        margin: 0 0 12px 0;
+    }  
+    
+    .contactpage-method p {
+        color: #ffffff;
+        font-size: 0.8em;
+        margin-bottom: 15px !important;
+        margin: 5px 0;
+    }
+
+    .social-links {
+        margin-top: 25px;
+        display: block;
+    }
+
+    .social-link {
+        margin-right: 25px;
     }
 }
 

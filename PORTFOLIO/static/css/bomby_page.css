@@ -171,6 +171,12 @@ body, html {
     padding: 2rem 0;
 }
 
+.project-content-steam {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 0;
+}
+
 /* Section styles */
 .content-section {
     padding: 4rem 0;
@@ -665,15 +671,101 @@ body, html {
     font-size: 0.9rem;
 }
 
-/* Media queries */
-@media (max-width: 1024px) {
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
     .hero-content-side {
-        padding: 2rem;
+        margin-top: 25px;
+    }
+
+    .project-title {
+        font-size: 4.2rem;
+        margin-bottom: 0;
+    }
+
+    .project-author {
+        font-size: 2.5rem;
+    }
+
+    .project-brief {
+        font-size: 2rem;
+    }
+
+    .hero-button {
+        font-weight: 300;
+        font-size: 1.5rem;
+    }
+
+    .github-commit-container {
+        margin-top: 100px;
+        transform: scale(150%);
     }
     
-    .project-info-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
+    .github-commit-container:hover {
+        transform: scale(155%);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    .project-content {
+        max-width: 1500px;
+        margin-top: 350px;
+        margin-bottom: 375px;
+        transform: scale(115%);
+    }
+
+    .project-content-steam {
+        max-width: 1500px;
+        margin-top: 200px !important;
+        margin-bottom: 375px;
+        transform: scale(115%);
+    }
+
+    .section-title {
+        font-size: 4rem;
+    }
+
+    .section-subtitle {
+        font-size: 1.6rem;
+    }
+
+    .info-card-title {
+        font-size: 3rem;
+        margin-top: -15px;
+    }
+
+    .info-card-content {
+        font-size: 1.5rem;
+    }
+
+    .stat-label {
+        font-size: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+    }
+
+    .tech-details h3 {
+        font-size: 3rem;
+    }
+
+    .tech-details p {
+        font-size: 1.5rem;
+    }
+
+    .tech-details pre {
+        font-size: 1.5rem;
+    }
+
+    .tech-details ul {
+        font-size: 1.5rem;
+    }
+
+    .cta-content p {
+        font-size: 1.5rem;
+    }
+
+    .cta-button {
+        font-size: 1.5rem;
+        font-weight: 300;
     }
 }
 

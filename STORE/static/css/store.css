@@ -39,6 +39,7 @@
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     margin-top: 1rem;
     letter-spacing: 3px;
+    margin-bottom: 10px;
 }
 
 /* Store sections */
@@ -565,7 +566,65 @@
     background-image: linear-gradient(45deg, #c833e6, #d75050, #e695fd);
 }
 
-/* Responsive styles */
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .hero-content {
+        margin: 0;
+        margin-bottom: -25px;
+    }
+    
+    .main-title {
+        font-size: 7rem;
+    }
+
+    .subtitle {
+        font-size: 3rem;
+    }
+
+    .store-section {
+        margin-top: -50px;
+    }
+
+    .section-title {
+        font-size: 4rem;
+    }
+
+    .section-separator-right {
+        height: 8px;
+    }
+
+    .section-header {
+        margin-bottom: -100px;
+    }
+
+    .products-grid {
+        grid-template-columns: repeat(3, 1fr);
+        margin-top: 225px;
+        transform: scale(125%);
+        gap: 3rem;
+        margin-bottom: 150px;
+        padding-bottom: 3rem;
+    }
+
+    .website-grid {
+        grid-template-columns: repeat(3, 1fr);
+        margin-top: 150px;
+        transform: scale(125%);
+        gap: 4rem;
+    }
+
+    .product-item {
+        width: 90%;
+        padding: 2rem 3rem;
+    }
+
+    .window {
+        transform: scale(125%);
+    }
+
+    .window:hover {
+        transform: scale(130%);
+    }
+}
 @media (max-width: 1200px) {
     .website-grid {
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));

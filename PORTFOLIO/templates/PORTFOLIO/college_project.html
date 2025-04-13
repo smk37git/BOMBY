@@ -11,167 +11,167 @@
 {% endblock %}
 
 {% block content %}
-    <div class="showcase-container">
-        <!-- Hero Section -->
-        <section class="showcase-hero">
-            <div class="hero-content">
-                <h1 class="hero-title">IT PROJECTS</h1>
-                <p class="hero-subtitle">Enterprise Resource Planning & Network Security</p>
-                <div class="portfolio-link-container">
-                    <a href="{% url 'PORTFOLIO:portfolio' %}" class="portfolio-link">
-                        <i class="fas fa-arrow-left"></i> Back to Portfolio
-                    </a>
-                </div>
+<div class="showcase-container">
+    <!-- Hero Section -->
+    <section class="showcase-hero">
+        <div class="hero-content">
+            <h1 class="hero-title">IT PROJECTS</h1>
+            <p class="hero-subtitle">Enterprise Resource Planning & Network Security</p>
+            <div class="portfolio-link-container">
+                <a href="{% url 'PORTFOLIO:portfolio' %}" class="portfolio-link">
+                    <i class="fas fa-arrow-left"></i> Back to Portfolio
+                </a>
             </div>
-        </section>
+        </div>
+    </section>
+    
+    <!-- Project 1: ERP Project -->
+    <section class="featured-projects">
+        <div class="section-header">
+            <h2 class="section-title">ENTERPRISE RESOURCE PLANNING</h2>
+            <p class="section-subtitle">Optimizing business processes through integrated IT solutions</p>
+        </div>
         
-        <!-- Project 1: ERP Project -->
-        <section class="featured-projects">
-            <div class="section-header">
-                <h2 class="section-title">ENTERPRISE RESOURCE PLANNING</h2>
-                <p class="section-subtitle">Optimizing business processes through integrated IT solutions</p>
-            </div>
-            
-            <div class="project-card">
-                <div class="project-content">
-                    <div class="project-header">
-                        <div class="project-title-container">
-                            <h3 class="project-title">ERP IMPLEMENTATION PROJECT</h3>
-                            <div class="project-tags">
-                                <span class="project-tag">SAP</span>
-                                <span class="project-tag">Business Process</span>
-                                <span class="project-tag">Data Integration</span>
-                            </div>
+        <div class="project-card">
+            <div class="project-content">
+                <div class="project-header">
+                    <div class="project-title-container">
+                        <h3 class="project-title">ERP IMPLEMENTATION PROJECT</h3>
+                        <div class="project-tags">
+                            <span class="project-tag">SAP</span>
+                            <span class="project-tag">Business Process</span>
+                            <span class="project-tag">Data Integration</span>
                         </div>
-                    </div>
-                    
-                    <div class="project-description">
-                        <p>
-                            For my Enterprise Resource Planning course (ISC-21300), I worked with a team to develop a comprehensive ERP service proposal for Lindenwood Ledgers. We analyzed on-site vs. cloud storage options for the company's data management needs, considering factors like security, cost, accessibility, and scalability.
-                        </p>
-                        <p>
-                            Our team ultimately recommended moving the company's data to the cloud based on benefits including improved accessibility, compliance with data management laws, easier information sharing, and cost-effectiveness. We detailed the procedures for securing information systems, covering both digital practices and employee training.
-                        </p>
-                    </div>
-                    
-                    <div class="project-image-container">
-                        <div class="project-image-frame">
-                            <img src="{% static 'images/ERP_Flowchart.jpg' %}" alt="ERP System Diagram" class="project-diagram">
-                            <div class="image-caption">ERP System Diagram - Cloud vs. On-Site Storage</div>
-                        </div>
-                    </div>
-                    
-                    <div class="project-highlights">
-                        <div class="highlight">
-                            <i class="fas fa-star"></i>
-                            <span>Comprehensive analysis of cloud vs. on-site storage solutions</span>
-                        </div>
-                        <div class="highlight">
-                            <i class="fas fa-star"></i>
-                            <span>Detailed security implementation plans for cloud migration</span>
-                        </div>
-                        <div class="highlight">
-                            <i class="fas fa-star"></i>
-                            <span>Integration of business information systems and big data analytics</span>
-                        </div>
-                    </div>
-                    
-                    <div class="project-details">
-                        <h4>Key Accomplishments</h4>
-                        <p>
-                            Our team produced a comprehensive ERP proposal that evaluated both cloud and on-site storage options, ultimately recommending cloud storage for its scalability and accessibility advantages. We detailed specific procedures for securing information systems, covering both technical implementation and employee training.
-                        </p>
-                        <p>
-                            We explored key concepts including business information systems, big data analytics, automation with AI and machine learning, strategic planning, and ethics in data management. The project demonstrated our ability to evaluate complex technical requirements and develop tailored solutions.
-                        </p>
-                        
-                        <h4>Technical Considerations</h4>
-                        <p>
-                            Our proposal included detailed evaluations of hardware, software, database management systems, and data management practices. We emphasized the importance of security measures including strong passwords, two-factor authentication, and data encryption. We also addressed the need for specialized personnel such as Data Analysts and Database Administrators.
-                        </p>
                     </div>
                 </div>
-            </div>
-        </section>
-        
-        <!-- Project 2: Network Security Project -->
-        <section class="featured-projects second-project">
-            <div class="section-header">
-                <h2 class="section-title">NETWORK SECURITY TOPOLOGY</h2>
-                <p class="section-subtitle">Designing secure network architecture for enterprise environments</p>
-            </div>
-            
-            <div class="project-card">
-                <div class="project-content">
-                    <div class="project-header">
-                        <div class="project-title-container">
-                            <h3 class="project-title">SECURE NETWORK DESIGN PROJECT</h3>
-                            <div class="project-tags">
-                                <span class="project-tag">Cybersecurity</span>
-                                <span class="project-tag">Firewalls</span>
-                                <span class="project-tag">VLAN</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="project-description">
-                        <p>
-                            For my Network Security course (ICS-21400), I collaborated with a team to develop a comprehensive network security proposal for Lindenwood University's IT department. Our task was to identify critical security weaknesses and vulnerabilities within the network perimeter and provide recommendations to reinforce or replace the existing security system.
-                        </p>
-                        <p>
-                            We conducted a thorough analysis of different firewall technologies, network types, and topologies to create a robust security infrastructure. Our proposal included detailed recommendations on implementing packet filtering firewalls, Next Generation Firewalls (NGFW), and Unified Threat Management (UTM) systems to protect the university's network from unauthorized access and cyber threats.
-                        </p>
-                    </div>
-                    
-                    <div class="project-image-container">
-                        <div class="project-image-frame">
-                            <img src="{% static 'images/Network_Topology.jpg' %}" alt="Network Security Topology" class="project-diagram">
-                            <div class="image-caption">Network Security Topology - Campus Network Design</div>
-                        </div>
-                    </div>
-                    
-                    <div class="project-highlights">
-                        <div class="highlight">
-                            <i class="fas fa-star"></i>
-                            <span>In-depth analysis of firewall technologies based on NIST guidelines</span>
-                        </div>
-                        <div class="highlight">
-                            <i class="fas fa-star"></i>
-                            <span>Evaluation of network types including LAN, WLAN, WAN, and CAN</span>
-                        </div>
-                        <div class="highlight">
-                            <i class="fas fa-star"></i>
-                            <span>Comparison of network topologies including bus, star, and mesh</span>
-                        </div>
-                    </div>
-                    
-                    <div class="project-details">
-                        <h4>Firewall Technologies</h4>
-                        <p>
-                            Our proposal detailed various firewall technologies, with a focus on packet filtering firewalls that control traffic flow by analyzing protocol numbers, IP addresses, and ports. We explained how these firewalls operate at layers 3 and 4 of the OSI model and how they can be enhanced with stateful inspection to track connected packets.
-                        </p>
-                        <p>
-                            We recommended implementing Next Generation Firewalls (NGFW) for traffic inspection and application awareness, along with Unified Threat Management (UTM) devices to guard against various threats including viruses, malware, and spam.
-                        </p>
-                        
-                        <h4>Network Infrastructure</h4>
-                        <p>
-                            We analyzed campus area networks (CAN) as the most suitable option for Lindenwood University's 500-acre campus. Our proposal included recommendations for physical and logical topology, with a focus on star and mesh configurations to provide redundancy and fault tolerance. We also provided specifications for Ethernet standards, cabling, and network devices.
-                        </p>
+                
+                <div class="project-description">
+                    <p>
+                        For my Enterprise Resource Planning course (ISC-21300), I worked with a team to develop a comprehensive ERP service proposal for Lindenwood Ledgers. We analyzed on-site vs. cloud storage options for the company's data management needs, considering factors like security, cost, accessibility, and scalability.
+                    </p>
+                    <p>
+                        Our team ultimately recommended moving the company's data to the cloud based on benefits including improved accessibility, compliance with data management laws, easier information sharing, and cost-effectiveness. We detailed the procedures for securing information systems, covering both digital practices and employee training.
+                    </p>
+                </div>
+                
+                <div class="project-image-container">
+                    <div class="project-image-frame">
+                        <img src="{% static 'images/ERP_Flowchart.jpg' %}" alt="ERP System Diagram" class="project-diagram">
+                        <div class="image-caption">ERP System Diagram - Cloud vs. On-Site Storage</div>
                     </div>
                 </div>
+                
+                <div class="project-highlights">
+                    <div class="highlight">
+                        <i class="fas fa-star"></i>
+                        <span>Comprehensive analysis of cloud vs. on-site storage solutions</span>
+                    </div>
+                    <div class="highlight">
+                        <i class="fas fa-star"></i>
+                        <span>Detailed security implementation plans for cloud migration</span>
+                    </div>
+                    <div class="highlight">
+                        <i class="fas fa-star"></i>
+                        <span>Integration of business information systems and big data analytics</span>
+                    </div>
+                </div>
+                
+                <div class="project-details">
+                    <h4>Key Accomplishments</h4>
+                    <p>
+                        Our team produced a comprehensive ERP proposal that evaluated both cloud and on-site storage options, ultimately recommending cloud storage for its scalability and accessibility advantages. We detailed specific procedures for securing information systems, covering both technical implementation and employee training.
+                    </p>
+                    <p>
+                        We explored key concepts including business information systems, big data analytics, automation with AI and machine learning, strategic planning, and ethics in data management. The project demonstrated our ability to evaluate complex technical requirements and develop tailored solutions.
+                    </p>
+                    
+                    <h4>Technical Considerations</h4>
+                    <p>
+                        Our proposal included detailed evaluations of hardware, software, database management systems, and data management practices. We emphasized the importance of security measures including strong passwords, two-factor authentication, and data encryption. We also addressed the need for specialized personnel such as Data Analysts and Database Administrators.
+                    </p>
+                </div>
             </div>
-        </section>
+        </div>
+    </section>
+    
+    <!-- Project 2: Network Security Project -->
+    <section class="featured-projects second-project">
+        <div class="section-header">
+            <h2 class="section-title">NETWORK SECURITY TOPOLOGY</h2>
+            <p class="section-subtitle">Designing secure network architecture for enterprise environments</p>
+        </div>
         
-        <!-- Contact CTA Section -->
-        <section class="contact-cta">
-            <div class="cta-content">
-                <h2>INTERESTED IN WORKING TOGETHER?</h2>
-                <p>I'm always open to discussing new projects, creative ideas or opportunities to be part of your vision.</p>
-                <a href="{% url 'MAIN:contact' %}" class="cta-button">GET IN TOUCH</a>
+        <div class="project-card">
+            <div class="project-content">
+                <div class="project-header">
+                    <div class="project-title-container">
+                        <h3 class="project-title">SECURE NETWORK DESIGN PROJECT</h3>
+                        <div class="project-tags">
+                            <span class="project-tag">Cybersecurity</span>
+                            <span class="project-tag">Firewalls</span>
+                            <span class="project-tag">VLAN</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="project-description">
+                    <p>
+                        For my Network Security course (ICS-21400), I collaborated with a team to develop a comprehensive network security proposal for Lindenwood University's IT department. Our task was to identify critical security weaknesses and vulnerabilities within the network perimeter and provide recommendations to reinforce or replace the existing security system.
+                    </p>
+                    <p>
+                        We conducted a thorough analysis of different firewall technologies, network types, and topologies to create a robust security infrastructure. Our proposal included detailed recommendations on implementing packet filtering firewalls, Next Generation Firewalls (NGFW), and Unified Threat Management (UTM) systems to protect the university's network from unauthorized access and cyber threats.
+                    </p>
+                </div>
+                
+                <div class="project-image-container">
+                    <div class="project-image-frame">
+                        <img src="{% static 'images/Network_Topology.jpg' %}" alt="Network Security Topology" class="project-diagram">
+                        <div class="image-caption">Network Security Topology - Campus Network Design</div>
+                    </div>
+                </div>
+                
+                <div class="project-highlights">
+                    <div class="highlight">
+                        <i class="fas fa-star"></i>
+                        <span>In-depth analysis of firewall technologies based on NIST guidelines</span>
+                    </div>
+                    <div class="highlight">
+                        <i class="fas fa-star"></i>
+                        <span>Evaluation of network types including LAN, WLAN, WAN, and CAN</span>
+                    </div>
+                    <div class="highlight">
+                        <i class="fas fa-star"></i>
+                        <span>Comparison of network topologies including bus, star, and mesh</span>
+                    </div>
+                </div>
+                
+                <div class="project-details">
+                    <h4>Firewall Technologies</h4>
+                    <p>
+                        Our proposal detailed various firewall technologies, with a focus on packet filtering firewalls that control traffic flow by analyzing protocol numbers, IP addresses, and ports. We explained how these firewalls operate at layers 3 and 4 of the OSI model and how they can be enhanced with stateful inspection to track connected packets.
+                    </p>
+                    <p>
+                        We recommended implementing Next Generation Firewalls (NGFW) for traffic inspection and application awareness, along with Unified Threat Management (UTM) devices to guard against various threats including viruses, malware, and spam.
+                    </p>
+                    
+                    <h4>Network Infrastructure</h4>
+                    <p>
+                        We analyzed campus area networks (CAN) as the most suitable option for Lindenwood University's 500-acre campus. Our proposal included recommendations for physical and logical topology, with a focus on star and mesh configurations to provide redundancy and fault tolerance. We also provided specifications for Ethernet standards, cabling, and network devices.
+                    </p>
+                </div>
             </div>
-        </section>
-    </div>
+        </div>
+    </section>
+    
+    <!-- Contact CTA Section -->
+    <section class="contact-cta">
+        <div class="cta-content">
+            <h2>INTERESTED IN MY WORK?</h2>
+            <p>I'm available for freelance projects and would love to discuss how I can help bring your ideas to life.</p>
+            <a href="{% url 'MAIN:contact' %}" class="cta-button">GET IN TOUCH</a>
+        </div>
+    </section>
+</div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
