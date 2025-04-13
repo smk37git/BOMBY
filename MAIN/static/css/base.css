@@ -851,6 +851,12 @@ main {
     font-size: 1.8rem;
   }
 
+  .notification-count {
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
+  }
+
   .mobile-logout {
     font-size: 1.8rem !important;
   }
