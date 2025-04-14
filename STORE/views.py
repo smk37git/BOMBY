@@ -1941,7 +1941,7 @@ def view_invoice(request, order_id):
 @login_required
 def payment_cancel(request):
     messages.error(request, "Payment was cancelled. Please try again.")
-    return redirect('STORE:store')
+    return redirect('STORE:payment_page')
 
 # Store Analyitcs
 @user_passes_test(lambda u: u.is_staff)
