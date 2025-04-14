@@ -205,8 +205,8 @@ if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
     MEDIA_ROOT = GS_MEDIA_BUCKET_PATH
 
 # Payment Details
-PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID', 'YOUR_SANDBOX_CLIENT_ID')
-PAYPAL_SECRET = os.environ.get('PAYPAL_SECRET', 'YOUR_SANDBOX_SECRET')
+PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
+PAYPAL_SECRET = os.environ.get('PAYPAL_SECRET')
 PAYPAL_SANDBOX_MODE = False
 PAYPAL_MODE = 'live'
 
