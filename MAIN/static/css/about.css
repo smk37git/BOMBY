@@ -220,25 +220,31 @@
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
 }
 
-@media screen and (min-width: 1800px) {
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
     .about-header h1 {
         font-size: 5rem;
         margin: 150px auto;
         margin-bottom: 50px;
+        margin-right: 450px;
     }
 
-    .about-details {
-        flex: none;
-        width: 1200px !important;
-        margin: 0 auto;
+    .about-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 
     .about-content {
-        flex: auto !important;
         max-width: 1200px !important;
         margin: 0 auto !important;
         display: flex !important;
         gap: 30px;
+        width: 100%;
+    }
+
+    .about-details {
+        flex: none;
+        width: 800px !important;
     }
 
     .about-image {
@@ -332,6 +338,8 @@
         opacity: 1 !important;
         border-top: none;
         z-index: 2;
+        max-width: 1200px !important;
+        margin: 0 auto !important;
     }
 
     .contact-section h2 {
