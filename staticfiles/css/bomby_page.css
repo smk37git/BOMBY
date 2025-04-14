@@ -671,7 +671,7 @@ body, html {
     font-size: 0.9rem;
 }
 
-@media screen and (min-width: 1900px) {
+@media screen and (min-width: 1800px) {
     .project-container {
         margin-top: 0 !important;
     }
