@@ -660,7 +660,6 @@ def stream_asset_detail(request, asset_id):
 
 @login_required
 def download_asset(request, asset_id):
-    """Download stream asset with support for different versions"""
     asset = get_object_or_404(StreamAsset, id=asset_id)
     
     # Check access permission
@@ -672,11 +671,6 @@ def download_asset(request, asset_id):
     version_id = request.GET.get('version_id', None)
     
     try:
-        import datetime 
-        
-        client = storage.Client()
-        bucket = client.bucket('bomby-user-uploads')
-        
         # Determine file path based on version
         if version_id:
             try:
@@ -687,22 +681,31 @@ def download_asset(request, asset_id):
         else:
             file_path = asset.file_path
         
-        blob = bucket.blob(file_path)
+        from django.http import StreamingHttpResponse
         
-        # Check if file exists
-        if not blob.exists():
-            messages.error(request, f"File not found: {file_path}")
-            return redirect('STORE:stream_asset_detail', asset_id=asset_id)
+        def file_iterator(file_path, chunk_size=8192):
+            client = storage.Client()
+            bucket = client.bucket('bomby-user-uploads')
+            blob = bucket.blob(file_path)
+            
+            # Download in chunks directly from GCS
+            with blob.open("rb") as f:
+                while True:
+                    chunk = f.read(chunk_size)
+                    if not chunk:
+                        break
+                    yield chunk
         
-        # Generate signed URL that expires in 15 minutes
-        url = blob.generate_signed_url(
-            version="v4",
-            expiration=datetime.timedelta(minutes=15),
-            method="GET"
+        # Get filename from path
+        filename = file_path.split('/')[-1]
+        
+        # Create streaming response with appropriate headers
+        response = StreamingHttpResponse(
+            file_iterator(file_path),
+            content_type='application/octet-stream'
         )
-        
-        # Redirect to the signed URL
-        return redirect(url)
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
         
     except Exception as e:
         print(f"Download error: {type(e).__name__}: {str(e)}")

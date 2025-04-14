@@ -35,4 +35,4 @@ python manage.py migrate
 python manage.py collectstatic --noinput --clear
 
 # Start the server with increased timeout for large uploads
-gunicorn mywebsite.wsgi:application --bind 0.0.0.0:$PORT --timeout 300
+gunicorn mywebsite.wsgi:application --bind 0.0.0.0:$PORT --timeout 600
