@@ -1622,21 +1622,34 @@ def admin_add_order(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_delete_orders(request):
-    """Delete selected orders"""
+    """Delete selected orders and donations"""
     selected_orders = request.POST.get('selected_orders', '')
+    selected_donations = request.POST.get('selected_donations', '')
     
+    deleted_count = 0
+    
+    # Delete orders if any selected
     if selected_orders:
         order_ids = [int(id) for id in selected_orders.split(',')]
-        
         # Count before deletion for message
-        count = len(order_ids)
-        
+        order_count = len(order_ids)
         # Delete orders
         Order.objects.filter(id__in=order_ids).delete()
-        
+        deleted_count += order_count
+    
+    # Delete donations if any selected
+    if selected_donations:
+        donation_ids = [int(id) for id in selected_donations.split(',')]
+        # Count before deletion for message
+        donation_count = len(donation_ids)
+        # Delete donations
+        Donation.objects.filter(id__in=donation_ids).delete()
+        deleted_count += donation_count
+    
+    if deleted_count > 0:
         messages.success(
             request, 
-            f"{count} order{'s' if count > 1 else ''} deleted successfully."
+            f"{deleted_count} item{'s' if deleted_count > 1 else ''} deleted successfully."
         )
     
     return redirect('STORE:order_management')

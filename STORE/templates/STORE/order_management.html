@@ -64,8 +64,8 @@
                     <tbody>
                         {% for item in combined_items %}
                             {% if item.type == 'order' %}
-                            <tr data-order-id="{{ item.id }}">
-                                <td><input type="checkbox" class="order-select-checkbox" data-order-id="{{ item.id }}"></td>
+                            <tr data-order-id="{{ item.id }}" data-item-type="order">
+                                <td><input type="checkbox" class="item-select-checkbox" data-item-id="{{ item.id }}" data-item-type="order"></td>
                                 <td>{{ item.id }}</td>
                                 <td>{{ item.user.username }}</td>
                                 <td>{{ item.product.name }}</td>
@@ -82,8 +82,8 @@
                                 <td>{{ item.due_date|date|default:"-" }}</td>
                             </tr>
                             {% else %}
-                            <tr>
-                                <td><input type="checkbox" disabled></td>
+                            <tr data-donation-id="{{ item.id }}" data-item-type="donation">
+                                <td><input type="checkbox" class="item-select-checkbox" data-item-id="{{ item.id }}" data-item-type="donation"></td>
                                 <td>{{ item.id }}</td>
                                 <td>{% if item.user %}{{ item.user.username }}{% else %}Anonymous{% endif %}</td>
                                 <td>Donation - ${{ item.amount }}</td>
@@ -117,7 +117,7 @@
             
             <div class="action-section">
                 <h4>View Item</h4>
-                <a id="btn-view-order" href="{% url 'STORE:order_details' 0 %}" class="panel-action-button disabled">View Item</a>
+                <a id="btn-view-item" href="{% url 'STORE:order_details' 0 %}" class="panel-action-button disabled">View Item</a>
             </div>
             
             <div class="action-section">
@@ -135,10 +135,11 @@
             </div>
             
             <div class="action-section">
-                <h4>Delete Item</h4>
+                <h4>Delete Items</h4>
                 <form id="delete-orders-form" method="post" action="{% url 'STORE:admin_delete_orders' %}">
                     {% csrf_token %}
-                    <input type="hidden" id="selected-orders-delete" name="selected_orders" value="">
+                    <input type="hidden" id="selected-orders" name="selected_orders" value="">
+                    <input type="hidden" id="selected-donations" name="selected_donations" value="">
                     <button id="btn-delete-orders" type="submit" class="panel-action-button danger" disabled>Delete Selected Items</button>
                 </form>
             </div>
@@ -175,14 +176,14 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+   document.addEventListener('DOMContentLoaded', function() {
         // Elements
         const selectAllCheckbox = document.getElementById('select-all-checkbox');
-        const orderCheckboxes = document.querySelectorAll('.order-select-checkbox');
+        const itemCheckboxes = document.querySelectorAll('.item-select-checkbox');
         const selectedCountDisplay = document.querySelector('.selected-count');
         
         // Action panel buttons
-        const viewItemBtn = document.getElementById('btn-view-order');
+        const viewItemBtn = document.getElementById('btn-view-item');
         const orderStatusSelect = document.querySelector('.order-status-select');
         const changeStatusBtn = document.getElementById('btn-change-status');
         const deleteItemsBtn = document.getElementById('btn-delete-orders');
@@ -191,7 +192,9 @@
         const deleteForm = document.getElementById('delete-orders-form');
         deleteForm.addEventListener('submit', function(e) {
             const selectedItems = getSelectedItems();
-            if (!confirm(`Are you sure you want to delete ${selectedItems.length} item(s)? This cannot be undone.`)) {
+            const totalSelected = selectedItems.orders.length + selectedItems.donations.length;
+            
+            if (!confirm(`Are you sure you want to delete ${totalSelected} item(s)? This cannot be undone.`)) {
                 e.preventDefault();
                 return false;
             }
@@ -200,53 +203,76 @@
         // Update action panel button states based on selection
         function updateButtonStates() {
             const selectedItems = getSelectedItems();
-            const hasSelection = selectedItems.length > 0;
+            const totalSelected = selectedItems.orders.length + selectedItems.donations.length;
+            const hasOrderSelection = selectedItems.orders.length > 0;
             
             // Update selected count display
-            selectedCountDisplay.textContent = `${selectedItems.length} item${selectedItems.length !== 1 ? 's' : ''} selected`;
+            selectedCountDisplay.textContent = `${totalSelected} item${totalSelected !== 1 ? 's' : ''} selected`;
             
             // Enable/disable buttons based on selection
-            orderStatusSelect.disabled = !hasSelection;
-            changeStatusBtn.disabled = !hasSelection;
-            deleteItemsBtn.disabled = !hasSelection;
+            orderStatusSelect.disabled = !hasOrderSelection;
+            changeStatusBtn.disabled = !hasOrderSelection;
+            deleteItemsBtn.disabled = totalSelected === 0;
             
-            // Handle the View Item button - only enabled for single selection
-            if (selectedItems.length === 1) {
-                const itemId = selectedItems[0];
-                const isDonation = document.querySelector(`tr[data-donation-id="${itemId}"]`) !== null;
-
-                viewItemBtn.href = `{% url 'STORE:order_details' 0 %}`.replace('0', itemId);
-                viewItemBtn.classList.remove('disabled');
+            // Handle the View Item button - only enabled for single order selection
+            if (totalSelected === 1) {
+                if (selectedItems.orders.length === 1) {
+                    const orderId = selectedItems.orders[0];
+                    viewItemBtn.href = `{% url 'STORE:order_details' 0 %}`.replace('0', orderId);
+                    viewItemBtn.classList.remove('disabled');
+                } else {
+                    // Single donation selected - no view option
+                    viewItemBtn.href = '#';
+                    viewItemBtn.classList.add('disabled');
+                }
             } else {
                 viewItemBtn.href = '#';
                 viewItemBtn.classList.add('disabled');
             }
             
             // Update form hidden inputs
-            document.getElementById('selected-orders-status').value = selectedItems.join(',');
-            document.getElementById('selected-orders-delete').value = selectedItems.join(',');
+            document.getElementById('selected-orders-status').value = selectedItems.orders.join(',');
+            document.getElementById('selected-orders').value = selectedItems.orders.join(',');
+            document.getElementById('selected-donations').value = selectedItems.donations.join(',');
         }
         
         // Get IDs of selected items (orders or donations)
         function getSelectedItems() {
-            return Array.from(orderCheckboxes)
-                .filter(checkbox => checkbox.checked)
-                .map(checkbox => checkbox.dataset.orderId);
+            const selectedOrders = [];
+            const selectedDonations = [];
+            
+            itemCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const itemType = checkbox.dataset.itemType;
+                    const itemId = checkbox.dataset.itemId;
+                    
+                    if (itemType === 'order') {
+                        selectedOrders.push(itemId);
+                    } else if (itemType === 'donation') {
+                        selectedDonations.push(itemId);
+                    }
+                }
+            });
+            
+            return {
+                orders: selectedOrders,
+                donations: selectedDonations
+            };
         }
         
         // Select/Deselect all checkboxes
         selectAllCheckbox.addEventListener('change', function() {
-            orderCheckboxes.forEach(checkbox => {
+            itemCheckboxes.forEach(checkbox => {
                 checkbox.checked = this.checked;
             });
             updateButtonStates();
         });
         
         // Update select all checkbox when individual checkboxes change
-        orderCheckboxes.forEach(checkbox => {
+        itemCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', function() {
-                const allChecked = Array.from(orderCheckboxes).every(cb => cb.checked);
-                const someChecked = Array.from(orderCheckboxes).some(cb => cb.checked);
+                const allChecked = Array.from(itemCheckboxes).every(cb => cb.checked);
+                const someChecked = Array.from(itemCheckboxes).some(cb => cb.checked);
                 
                 selectAllCheckbox.checked = allChecked;
                 // Use indeterminate state when some but not all are checked
