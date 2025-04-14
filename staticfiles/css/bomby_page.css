@@ -671,13 +671,13 @@ body, html {
     font-size: 0.9rem;
 }
 
-@media screen and (min-width: 1920px) {
+@media screen and (min-width: 1900px) {
+    .project-container {
+        margin-top: 0 !important;
+    }
+    
     .hero-content-side {
         margin-top: 25px;
-    }
-
-    .hero-gallery-side {
-        margin-top: 75px;
     }
 
     .project-title {
