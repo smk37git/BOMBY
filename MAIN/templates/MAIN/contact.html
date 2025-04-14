@@ -20,7 +20,7 @@
         {% if messages %}
         <div class="messages">
             {% for message in messages %}
-                {% if 'order' not in message|lower and 'created' not in message|lower and 'activated' not in message|lower and 'deactivated' not in message|lower and 'payment' not in message|lower %}
+                {% if 'order' not in message|lower and 'created' not in message|lower and 'file' not in message|lower and 'activated' not in message|lower and 'deactivated' not in message|lower and 'payment' not in message|lower %}
                     <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
                         {{ message }}
                     </div>
