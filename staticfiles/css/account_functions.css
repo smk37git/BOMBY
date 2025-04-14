@@ -277,7 +277,66 @@
     margin-left: 10px;
 }
 
-/* Responsive layout for small screens */
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    /* Login Page */
+    .panels-container {
+        max-width: 1500px;
+        height: 100%;
+        gap: 5rem;
+    }
+
+    .auth-title {
+        font-size: 4.5rem;
+    }
+
+    .auth-subtitle {
+        margin-top: 25px;
+        font-size:  1.8rem;
+    }
+
+    .form-group label {
+        font-size: 2rem;
+        margin-bottom: 15px;
+    }
+
+    .form-group input {
+        font-size: 1.5rem;
+    }
+
+    .auth-button {
+        margin-top: 25px;
+        font-size: 2rem;
+    }
+
+    .auth-links {
+        font-size: 1.5rem;
+    }
+
+    .auth-subtitle-2 {
+        margin-top: 50px;
+        margin-bottom: -30px;
+        font-size: 1.5rem;
+    }
+
+    /* Sign Up Page */
+    .auth-container {
+        max-width: 1000px;
+        height: 100%;
+    }
+
+    .auth-form label {
+        font-size: 2rem;
+    }
+
+    .auth-form input {
+        font-size: 1.5rem;
+    }
+
+    .help-text, .help-text-password {
+        font-size: 1.5rem;
+    }
+}
+
 @media (max-width: 900px) {
     .panels-container {
         flex-direction: column;

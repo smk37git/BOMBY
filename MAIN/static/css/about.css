@@ -222,28 +222,14 @@
 
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
     .about-header h1 {
-        text-align: center;
-        font-size: 5em;
-        padding: 20px 40px;
+        font-size: 5rem;
         margin: 150px auto;
-        margin-right: 450px;
         margin-bottom: 50px;
-        background-color: #0a0a0a;
-        border: 2px solid rgba(255, 255, 255, 0.3);
-        border-radius: 15px;
-        width: fit-content;
-        color: white;
-        position: relative;
-        z-index: 4;
+        margin-right: 450px;
     }
 
     .about-content {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: 50px;
-        position: relative;
-        z-index: 4;
+        width: 100%;
     }
 
     .about-image {
@@ -328,7 +314,6 @@
         font-size: 1.5rem;
     }
 
-    
     .contact-section {
         position: relative;
         text-align: center;

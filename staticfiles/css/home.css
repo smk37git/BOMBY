@@ -590,7 +590,12 @@ p {
         max-width: 300px;
         max-height: 300px;
         margin-top: -40px !important;
+        border: 2px solid rgba(255, 255, 255, 0.1);
         margin: 0 auto;
+    }
+
+    .video-container-bomby video {
+        margin-left: 10px !important;
     }
     
     .video-container {

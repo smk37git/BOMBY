@@ -676,6 +676,10 @@ body, html {
         margin-top: 25px;
     }
 
+    .hero-gallery-side {
+        margin-top: 75px;
+    }
+
     .project-title {
         font-size: 4.2rem;
         margin-bottom: 0;

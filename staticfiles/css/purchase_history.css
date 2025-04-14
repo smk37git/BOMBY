@@ -183,6 +183,46 @@
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
 }
 
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .purchase-title {
+        font-size: 4rem;
+    }
+
+    .purchase-history-container {
+        width: 1600px;
+        max-width: 1600px;
+    }
+
+    .back-button {
+        font-size: 1.5rem;
+    }
+
+    .filter-select {
+        font-size: 1.5rem;
+    }
+
+    .filter-select option {
+        font-size: 0.8rem !important;
+    }
+
+    .purchase-table th {
+        font-size: 2rem;
+    }
+
+    .purchase-table tbody {
+        font-size: 1.5rem;
+    }
+
+    .order-badge {
+        padding: 10px 15px;
+        font-size: 1.5rem;
+    }
+
+    .view-details-button {
+        font-size: 1.5rem;
+    }
+}
+
 @media (max-width: 768px) {
     .purchase-history-container {
         width: 90%;

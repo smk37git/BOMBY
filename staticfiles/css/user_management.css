@@ -362,6 +362,73 @@
     color: #fff;
 }
 
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .user_management-title {
+        font-size: 4rem;
+    }
+
+    .section-header h2 {
+        margin-bottom: 0px;
+    }
+
+    .back-link-button {
+        font-size: 2rem;
+    }
+
+    .action-button {
+        font-size: 1.5rem;
+    }
+
+    .fas.fa-arrow-left {
+        font-size: 2rem;
+    }
+
+    .profile-container {
+        max-width: 1500px;
+        margin-bottom: 50px;
+    }
+
+    .section-header {
+        font-size: 2rem;
+    }
+
+    .search-container input {
+        font-size: 1.5rem;
+    }
+
+    .users-table thead, tbody {
+        font-size: 1.5rem;
+    }
+
+    .product-status {
+        font-size: 1.2rem;
+    }
+
+    .panel-header h3 {
+        font-size: 2rem;
+    }
+
+    .panel-header span {
+        font-size: 1rem;
+    }
+
+    .action-section h4 {
+        font-size: 1.5rem;
+    }
+
+    .panel-action-button {
+        font-size: 1.5rem;
+    }
+
+    .search-input {
+        width: 320px;
+    }
+
+    .user-type-select {
+        font-size: 1.5rem;
+    }
+}
+
 @media (max-width: 768px) {
     .profile-container {
         width: 90%;

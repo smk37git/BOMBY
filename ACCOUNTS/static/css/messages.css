@@ -1073,7 +1073,7 @@
         height: 60px;
     }
 
-    .user-avatar {
+    .user-avatar, .message-user-avatar img {
         width: 60px;
         height: 60px;
     }

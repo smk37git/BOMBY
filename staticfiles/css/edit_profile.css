@@ -1,5 +1,5 @@
 .edit_profile-container {
-    max-width: 1200px;
+    max-width: 1150px;
     margin: 50px auto 30px;
     padding: 30px;
     background-color: #0a0a0a;
@@ -318,7 +318,88 @@ input[type="file"] {
     margin-top: 20px;
 }
 
-/* Responsive for Mobile */
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .message {
+        font-size: 1.8rem;
+    }
+
+    .profile-header {
+        font-size: 2rem;
+    }
+
+    .edit_profile-container {
+        max-width: 1600px;
+    }
+
+    .profile-content {
+        gap: 2rem;
+    }
+
+    .section-header {
+        border-bottom: 4px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .section-header h2 {
+        font-size: 3rem !important;
+    }
+
+    .profile-picture-container {
+        width: 160px;
+        height: 160px;
+    }
+
+    .profile-picture-placeholder, .edit_current-profile-picture {
+        width: 160px;
+        height: 160px;
+    }
+
+    .profile-picture-placeholder i {
+        font-size: 5rem;
+    }
+
+    .container-title {
+        font-size: 2rem;
+        border-bottom: 4px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .info-label {
+        font-size: 1.5rem;
+    }
+
+    .action-button {
+        margin-top: 15px;
+        font-size: 1.5rem;
+    }
+
+    .action-button span {
+        margin-left: 15px;
+    }
+
+    .clear-photo-btn {
+        margin-top: 14px;
+        font-size: 1.5rem;
+        height: 50%;
+    }
+
+    .form-group label {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+    }
+
+    .form-group input {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+
+    .form-control {
+        font-size: 1.5rem;
+    }
+
+    .form-text {
+        font-size: 1.5rem;
+    }
+}
+
 @media (max-width: 992px) and (min-width: 769px) {
     .edit_profile-container {
         max-width: 90%;
