@@ -672,7 +672,7 @@ def download_asset(request, asset_id):
     version_id = request.GET.get('version_id', None)
     
     try:
-        from google.cloud import storage
+        import datetime 
         
         client = storage.Client()
         bucket = client.bucket('bomby-user-uploads')
