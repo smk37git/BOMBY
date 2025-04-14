@@ -1404,9 +1404,13 @@ def delete_products(request):
 @login_required
 @user_passes_test(lambda u: u.is_staff)
 def order_management(request):
-    """Admin view for managing orders"""
+    """Admin view for managing orders and donations"""
     search_query = request.GET.get('search', '')
     
+    # Handle the view type (orders or donations)
+    view_type = request.GET.get('view', 'orders')
+    
+    # Orders section
     if search_query:
         # Search by order ID or username
         try:
@@ -1420,6 +1424,19 @@ def order_management(request):
     else:
         orders = Order.objects.all().order_by('-created_at')
     
+    # Donations section
+    if search_query:
+        # Search donations by username or payment ID
+        try:
+            # Try to convert to numeric value for payment ID
+            donation_filter = Q(payment_id__icontains=search_query)
+        except:
+            donation_filter = Q(user__username__icontains=search_query)
+            
+        donations = Donation.objects.filter(donation_filter)
+    else:
+        donations = Donation.objects.all().order_by('-created_at')
+    
     # Get all users and products for the add order form
     User = get_user_model()
     all_users = User.objects.all().order_by('username')
@@ -1427,9 +1444,11 @@ def order_management(request):
     
     context = {
         'orders': orders,
+        'donations': donations,
         'search_query': search_query,
         'all_users': all_users,
-        'all_products': all_products
+        'all_products': all_products,
+        'view_type': view_type
     }
     
     response = render(request, 'STORE/order_management.html', context)
@@ -1539,6 +1558,45 @@ def admin_delete_orders(request):
         messages.success(
             request, 
             f"{count} order{'s' if count > 1 else ''} deleted successfully."
+        )
+    
+    return redirect('STORE:order_management')
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def donation_details(request, donation_id):
+    """View for viewing donation details"""
+    donation = get_object_or_404(Donation, id=donation_id)
+    
+    context = {
+        'donation': donation
+    }
+    
+    response = render(request, 'STORE/donation_details.html', context)
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    return response
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def admin_delete_donations(request):
+    """Delete selected donations"""
+    selected_donations = request.POST.get('selected_donations', '')
+    
+    if selected_donations:
+        donation_ids = [int(id) for id in selected_donations.split(',')]
+        
+        # Count before deletion for message
+        count = len(donation_ids)
+        
+        # Delete donations
+        Donation.objects.filter(id__in=donation_ids).delete()
+        
+        messages.success(
+            request, 
+            f"{count} donation{'s' if count > 1 else ''} deleted successfully."
         )
     
     return redirect('STORE:order_management')
