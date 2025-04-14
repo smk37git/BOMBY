@@ -214,12 +214,8 @@
             if (selectedItems.length === 1) {
                 const itemId = selectedItems[0];
                 const isDonation = document.querySelector(`tr[data-donation-id="${itemId}"]`) !== null;
-                
-                if (isDonation) {
-                    viewItemBtn.href = `{% url 'STORE:donation_details' 0 %}`.replace('0', itemId);
-                } else {
-                    viewItemBtn.href = `{% url 'STORE:order_details' 0 %}`.replace('0', itemId);
-                }
+
+                viewItemBtn.href = `{% url 'STORE:order_details' 0 %}`.replace('0', itemId);
                 viewItemBtn.classList.remove('disabled');
             } else {
                 viewItemBtn.href = '#';
