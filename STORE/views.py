@@ -694,13 +694,15 @@ def download_asset(request, asset_id):
             messages.error(request, f"File not found: {file_path}")
             return redirect('STORE:stream_asset_detail', asset_id=asset_id)
         
-        # Direct download
-        content = blob.download_as_bytes()
-        filename = file_path.split('/')[-1]
+        # Generate signed URL that expires in 15 minutes
+        url = blob.generate_signed_url(
+            version="v4",
+            expiration=datetime.timedelta(minutes=15),
+            method="GET"
+        )
         
-        response = HttpResponse(content, content_type='application/octet-stream')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
+        # Redirect to the signed URL
+        return redirect(url)
         
     except Exception as e:
         print(f"Download error: {type(e).__name__}: {str(e)}")
