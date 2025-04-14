@@ -1854,18 +1854,22 @@ def store_analytics(request):
         current_start = now - timedelta(hours=24)
         previous_start = current_start - timedelta(hours=24)
         current_orders = Order.objects.filter(created_at__gte=current_start)
+        current_donations = Donation.objects.filter(created_at__gte=current_start)
     elif time_frame == 'week':
         current_start = now - timedelta(days=7)
         previous_start = current_start - timedelta(days=7)
         current_orders = Order.objects.filter(created_at__gte=current_start)
+        current_donations = Donation.objects.filter(created_at__gte=current_start)
     elif time_frame == 'month':
         current_start = now - timedelta(days=30)
         previous_start = current_start - timedelta(days=30)
         current_orders = Order.objects.filter(created_at__gte=current_start)
+        current_donations = Donation.objects.filter(created_at__gte=current_start)
     elif time_frame == 'year':
         current_start = now - timedelta(days=365)
         previous_start = current_start - timedelta(days=365)
         current_orders = Order.objects.filter(created_at__gte=current_start)
+        current_donations = Donation.objects.filter(created_at__gte=current_start)
     else:
         # All time - split history in half for comparison
         oldest_order = Order.objects.order_by('created_at').first()
@@ -1873,10 +1877,12 @@ def store_analytics(request):
             total_days = (now - oldest_order.created_at).days
             mid_point = oldest_order.created_at + timedelta(days=total_days/2)
             current_orders = Order.objects.all()
+            current_donations = Donation.objects.all()
             previous_start = oldest_order.created_at
             current_start = mid_point
         else:
             current_orders = Order.objects.all()
+            current_donations = Donation.objects.all()
             previous_start = now - timedelta(days=365)
             current_start = previous_start
     
@@ -1884,14 +1890,20 @@ def store_analytics(request):
     fiverr_order_ids = Review.objects.filter(is_fiverr=True).values_list('order_id', flat=True)
     current_orders = current_orders.exclude(id__in=fiverr_order_ids)
     
-    # Get previous period orders
+    # Get previous period orders and donations
     if current_start and previous_start:
         previous_orders = Order.objects.filter(
             created_at__gte=previous_start,
             created_at__lt=current_start
         ).exclude(id__in=fiverr_order_ids)
+        
+        previous_donations = Donation.objects.filter(
+            created_at__gte=previous_start,
+            created_at__lt=current_start
+        )
     else:
         previous_orders = Order.objects.none()
+        previous_donations = Donation.objects.none()
     
     # Basic order metrics
     total_orders = current_orders.count()
@@ -1947,6 +1959,29 @@ def store_analytics(request):
         if product.price:
             prev_revenue += product.price * prev_product_count
     
+    # Donation metrics
+    total_donations = current_donations.count()
+    donation_amount = current_donations.aggregate(sum=Sum('amount'))['sum'] or 0
+    
+    # Previous period donation metrics
+    prev_donation_count = previous_donations.count()
+    prev_donation_amount = previous_donations.aggregate(sum=Sum('amount'))['sum'] or 0
+    
+    # Calculate donation trends
+    if prev_donation_count > 0:
+        donation_count_trend = ((total_donations - prev_donation_count) / prev_donation_count * 100)
+    else:
+        donation_count_trend = 100 if total_donations > 0 else 0
+        
+    if prev_donation_amount > 0:
+        donation_amount_trend = ((donation_amount - prev_donation_amount) / prev_donation_amount * 100)
+    else:
+        donation_amount_trend = 100 if donation_amount > 0 else 0
+    
+    # Add donation amount to total revenue
+    total_revenue += donation_amount
+    prev_revenue += prev_donation_amount
+    
     # Calculate revenue trend
     if prev_revenue > 0:
         revenue_trend = ((total_revenue - prev_revenue) / prev_revenue * 100)
@@ -1956,6 +1991,8 @@ def store_analytics(request):
     # Store absolute values for the template
     orders_trend_abs = abs(orders_trend)
     revenue_trend_abs = abs(revenue_trend)
+    donation_count_trend_abs = abs(donation_count_trend)
+    donation_amount_trend_abs = abs(donation_amount_trend)
     
     # Sort by count
     product_sales = sorted(product_sales, key=lambda x: x['count'], reverse=True)
@@ -2030,6 +2067,12 @@ def store_analytics(request):
         'revenue_trend': round(revenue_trend, 1),
         'orders_trend_abs': round(orders_trend_abs, 1),
         'revenue_trend_abs': round(revenue_trend_abs, 1),
+        'total_donations': total_donations,
+        'donation_amount': round(donation_amount, 2),
+        'donation_count_trend': round(donation_count_trend, 1),
+        'donation_amount_trend': round(donation_amount_trend, 1),
+        'donation_count_trend_abs': round(donation_count_trend_abs, 1),
+        'donation_amount_trend_abs': round(donation_amount_trend_abs, 1),
     }
     
     return render(request, 'STORE/store_analytics.html', context)
