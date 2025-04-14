@@ -220,7 +220,7 @@
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
 }
 
-@media screen and (min-width: 1600px) {
+@media screen and (min-width: 1900px) {
     .about-header h1 {
         font-size: 5rem;
         margin: 150px auto;
@@ -229,7 +229,7 @@
 
     .about-details {
         flex: none;
-        width: 900px !important;
+        width: 1200px !important;
         margin: 0 auto;
     }
 

@@ -671,7 +671,7 @@ body, html {
     font-size: 0.9rem;
 }
 
-@media screen and (min-width: 1600px) {
+@media screen and (min-width: 1900px) {
     .project-container {
         margin-top: 0 !important;
     }
@@ -679,7 +679,7 @@ body, html {
     .hero-content-side {
         margin-top: 25px;
     }
-    
+
     .project-title {
         font-size: 4.2rem;
         margin-bottom: 0;
