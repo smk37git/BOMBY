@@ -400,22 +400,22 @@ def verify_paypal_payment(payment_id):
     
     access_token = token_response.json()['access_token']
     
-    # Check payment status
-    payment_url = f"https://api.paypal.com/v1/payments/payment/{payment_id}"
-    payment_headers = {
+    # Check payment status using v2 API for order capture
+    order_url = f"https://api.paypal.com/v2/checkout/orders/{payment_id}"
+    order_headers = {
         'Authorization': f'Bearer {access_token}',
         'Content-Type': 'application/json'
     }
     
-    payment_response = requests.get(payment_url, headers=payment_headers)
+    order_response = requests.get(order_url, headers=order_headers)
     
-    if payment_response.status_code != 200:
-        return False, "Failed to verify payment status"
+    if order_response.status_code != 200:
+        return False, f"Failed to verify payment status: {order_response.status_code}"
     
-    payment_data = payment_response.json()
-    payment_state = payment_data.get('state', '')
+    order_data = order_response.json()
+    order_status = order_data.get('status', '')
     
-    return payment_state == 'approved', payment_data
+    return order_status == 'COMPLETED', order_data
 
 @login_required
 def purchase_product(request, product_id):
