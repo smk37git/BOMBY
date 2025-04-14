@@ -36,7 +36,7 @@
 }
 
 /* Order Card Styling */
-.order-card {
+.order-card, .form-card {
     background-color: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 12px;
@@ -48,7 +48,7 @@
     visibility: visible;
 }
 
-.order-card:hover {
+.order-card:hover, .form-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
 }
@@ -68,7 +68,7 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
 }
 
-.card-header {
+.order-card-header, .orders-card-header {
     background: linear-gradient(45deg, #1a1a1a, #191919);
     padding: 1rem 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -77,7 +77,7 @@
     align-items: center;
 }
 
-.card-header h5 {
+.orders-card-header h5, .order-card-header h5 {
     margin: 0;
     color: #fff;
     font-size: 1.2rem;
@@ -119,6 +119,15 @@
 }
 
 /* Order Status Badge */
+.orders-badge {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 50px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
 .order-badge {
     padding: 0.4rem 1rem;
     font-size: 0.8rem;
@@ -157,13 +166,13 @@
     margin-bottom: 0.5rem;
 }
 
-.info-label {
+.orders-info-label, .order-info-label {
     min-width: 100px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.7);
 }
 
-.info-value {
+.orders-info-value, .order-info-value {
     color: #fff;
 }
 
@@ -889,7 +898,8 @@
     font-weight: bold;
     padding: 1rem;
     margin-top: 1rem;
-    background-color: rgba(0, 0, 0, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background-color: #0a0a0a;
     border-radius: 8px;
     text-align: center;
     color: white;
@@ -923,6 +933,16 @@
     font-size: 1.5rem;
     color: rgba(255, 255, 255, 0.2);
     transition: all 0.2s ease;
+}
+
+.fa-star {
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 1rem;
+}
+
+.star-active {
+    color: #ffd700;
+    font-size: 1rem;
 }
 
 .star-rating input:checked ~ label {
@@ -1168,6 +1188,275 @@ textarea[name="comment"]:focus {
 .order-item.fade-in {
     opacity: 1;
     transform: translateY(0);
+}
+
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .container {
+        max-width: 1600px;
+    }
+
+    .orders-header-wrapper, .order-header-wrapper, .form-header-wrapper {
+        margin-bottom: 35px;
+    }
+
+    .orders-header h1, .order-header h1, .form-header h1 {
+        font-size: 4rem;
+    }
+
+    .form-header p {
+        margin-top: -2px;
+        font-size: 2rem;
+    }
+
+    .form-card {
+        width: 1500px;
+        margin-left: -340px !important;
+    }
+
+    .orders-badge {
+        font-size: 1rem;
+    }
+
+    .order-badge {
+        padding: 0.2rem 1rem;
+        font-size: 1.5rem;
+        font-weight: 800;
+    }
+
+    .orders-container {
+        margin-top: 125px;
+        gap: 15rem !important;
+        margin-bottom: 100px;
+    }
+
+    .order-item {
+        transform: scale(150%) !important;
+    }
+
+    .pagination-btn {
+        font-size: 1.8rem;
+    }
+
+    .pagination-info {
+        font-size: 1.8rem;
+    }
+
+    .fas.fa-chevron-left {
+        margin-right: 15px;
+    }
+
+    .fas.fa-chevron-right {
+        margin-left: 15px;
+    }
+
+    .product-navigation {
+        font-size: 2rem;
+    }
+
+    .fas.fa-arrow-left {
+        margin-right: 15px !important;
+    }
+
+    .chat-container {
+        overflow: visible;
+        height: 1000px !important;
+        max-height: 1000px;
+    }
+
+    .chat-header h5 {
+        font-size: 2.5rem;
+    }
+
+    .messages-container {
+        height: 1000px;
+        max-height: 1000px;
+    }
+
+    .timeline-event {
+        padding-top: 20px !important;
+    }
+
+    .event-icon {
+        margin-left: 10px;
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+    }
+
+    .fas.fa-check-circle {
+        font-size: 1.5rem;
+        margin-left: 15px;
+    }
+
+    .event-content {
+        margin-left: 10px;
+        font-size: 1.5rem;
+        padding-bottom: 1rem;
+    }
+
+    .event-time {
+        margin-left: 15px;
+        font-size: 1.2rem;
+    }
+
+    .date-divider {
+        font-size: 1.5rem !important;
+    }
+
+    .date-divider::before {
+        height: 5px !important;
+    }
+
+    .date-divider::after {
+        height: 5px !important;
+    }
+
+
+    .message-mine, .message-other {
+        max-width: 90%;
+    }
+
+    .username {
+        font-size: 1.5rem;
+    }
+
+    .user-avatar {
+        margin-right: 5px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .message-time {
+        font-size: 1.2rem;
+    }
+
+    .message-body {
+        font-size: 1.5rem;
+    }
+
+    .attachment-link {
+        font-size: 1.5rem;
+    }
+
+    .chat-form {
+        position: relative;
+    }
+
+    .message-input-container textarea {
+        font-size: 1.5rem;
+    }
+
+    .file-upload-btn, .send-button {
+        font-size: 2rem;
+    }
+
+    .orders-card-header h5 {
+        font-size: 1.4rem;
+    }
+
+    .order-card-header h5 {
+        font-size: 2.5rem;
+    }
+
+    .order-info-label {
+        font-size: 2rem;
+    }
+
+    .orders-info-label {
+        font-size: 1.5rem;
+    }
+
+    .orders-info-value {
+        margin-left: 10px;
+        font-size: 1.5rem;
+    }
+
+    .order-info-value {
+        font-size: 1.5rem;
+        margin-top: 6px;
+        margin-left: 15px;
+    }
+
+    .order-countdown {
+        font-size: 1.5rem;
+    }
+
+    .action-button {
+        font-size: 2rem;
+    }
+
+    .fas.fa-check-circle {
+        margin-right: 15px;
+    }
+
+    .fa-star {
+        font-size: 2rem;
+    }
+
+    .review-comment {
+        font-size: 1.5rem;
+    }
+
+    .review-date {
+        font-size: 1.5rem;
+    }
+
+    .form-label {
+        font-size: 1.5rem;
+    }
+
+    .form-group p {
+        font-size: 1.5rem;
+    }
+
+    .messages {
+        font-size: 1.5rem;
+    }
+
+    .form-fields {
+        gap: 0;
+    }
+
+    .form-group {
+        padding: 2rem;
+    }
+
+    .form-label {
+        font-size: 1.7rem;
+    }
+
+    .form-group textarea {
+        font-size: 1.5rem;
+        height: 60px;
+        max-height: 60px;
+    }
+
+    .speed-inputs {
+        font-size: 1.5rem;
+    }
+
+    .speed-inputs input {
+        margin-left: 25px;
+        font-size: 1.5rem;
+        width: 130px;
+    }
+
+    .radio-option {
+        font-size: 1.5rem;
+    }
+
+    .username-field label {
+        font-size: 1.5rem !important;
+    }
+
+    .username-field input {
+        font-size: 1.5rem !important;
+    }
+
+    .submit-button {
+        max-width: 500px;
+        font-size: 2.5rem;
+    }
 }
 
 @media (max-width: 768px) {

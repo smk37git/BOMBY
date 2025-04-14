@@ -822,6 +822,10 @@ main {
     vertical-align: middle;
   }
 
+  .account-section .nav-link {
+    font-size: 2.5rem !important;
+  }
+
   .nav-link.dropdown-toggle {
     font-size: 2.5rem !important;
   }
@@ -845,6 +849,12 @@ main {
 
   .dropdown-content.button {
     font-size: 1.8rem;
+  }
+
+  .notification-count {
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
   }
 
   .mobile-logout {

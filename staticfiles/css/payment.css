@@ -276,7 +276,64 @@ iframe[title^="PayPal"] {
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-/* Responsive adjustments */
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .product-container {
+        margin-top: -25px;
+    }
+
+    .product-card {
+        height: 100%;
+        width: 94%;
+        overflow: visible;
+    }
+
+    .product-title {
+        font-size: 4rem;
+    }
+
+    .back-link {
+        font-size: 2rem;
+    }
+
+    .product-description h2 {
+        font-size: 3rem;
+    }
+
+    .product-description p {
+        font-size: 2rem;
+    }
+
+    .price-label {
+        font-size: 2.5rem;
+    }
+
+    .price-value {
+        font-size: 2.5rem;
+    }
+
+    .payment-fallback p {
+        font-size: 1.6rem !important;
+        margin-bottom: 25px !important;
+    }
+
+    .purchase-btn {
+        font-size: 2rem;
+    }
+
+    .donation-form label {
+        font-size: 2rem !important;
+    }
+
+    .currency-symbol {
+        margin-top: 5px;
+        font-size: 2rem !important;
+    }
+
+    .donation-amount-container input {
+        font-size: 2rem !important;
+    }
+}
+
 @media (max-width: 768px) {
     .product-container {
         margin: 0;

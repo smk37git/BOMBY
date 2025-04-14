@@ -586,6 +586,14 @@
         margin: 0;
         margin-bottom: -25px;
     }
+
+    .back-link {
+        font-size: 2rem;
+    }
+
+    .fas.fa-arrow-left {
+        margin-right: 15px;
+    }
     
     .main-title {
         font-size: 7rem;
@@ -615,8 +623,9 @@
         grid-template-columns: repeat(3, 1fr);
         margin-top: 225px;
         transform: scale(125%);
-        gap: 3rem;
+        gap: 1.5rem;
         margin-bottom: 150px;
+        padding-right: 4.2rem;
         padding-bottom: 3rem;
     }
 
@@ -624,15 +633,17 @@
         grid-template-columns: repeat(3, 1fr);
         margin-top: 150px;
         margin-bottom: 75px;
+        padding-right: 4.2rem;
         transform: scale(125%);
-        gap: 4rem;
+        gap: 1.5rem;
     }
 
     .donation-grid {
         grid-template-columns: repeat(3, 1fr);
         transform: scale(125%);
-        gap: 3rem;
+        gap: 1.5rem;
         margin-top: 150px;
+        padding-right: 4.2rem;
         margin-bottom: 150px;
         padding-bottom: 3rem;
     }
@@ -640,6 +651,14 @@
     .product-item {
         width: 80%;
         padding: 2rem 3rem;
+    }
+
+    .product-status {
+        font-size: 1rem;
+    }
+
+    .buy-button {
+        font-size: 1rem;
     }
 
     .window {

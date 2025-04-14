@@ -21,6 +21,13 @@
     flex-shrink: 0;
 }
 
+.profile-picture-container {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+    position: relative;
+}
+
 .profile-picture {
     width: 100px;
     height: 100px;
@@ -135,6 +142,7 @@
     flex: 0 0 120px;
     font-weight: bold;
     margin-top: 15px;
+    text-align: center;
     color: rgba(255, 255, 255, 0.7);
 }
 
@@ -405,6 +413,110 @@
 html, body {
     max-width: 100%;
     overflow-x: hidden;
+}
+
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .message {
+        font-size: 1.8rem;
+    }
+
+    .profile-container {
+        max-width: 1600px;
+    }
+
+    .profile-header {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+
+    .profile-content {
+        gap: 2rem;
+    }
+
+    .section-header {
+        border-bottom: 4px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .section-header h2 {
+        font-size: 3rem !important;
+        margin-bottom: -5px;
+    }
+
+    .account-type {
+        font-size: 1.5rem !important;
+    }
+
+    .profile-picture-container {
+        width: 200px;
+        height: 225px;
+    }
+
+    .profile-picture {
+        height: 200px;
+        width: 200px;
+    }
+
+    .info-label {
+        font-size: 1.392rem;
+    }
+
+    .info-value {
+        margin-left: 15px;
+        font-size: 1.5rem;
+    }
+
+    .action-buttons {
+        margin-top: 25px;
+        gap: 25px;
+    }
+
+    .action-button {
+        font-size: 1.5rem;
+    }
+
+    .signin-button {
+        font-size: 1.5rem;
+    }
+
+    .bio-section h3 {
+        font-size: 2rem;
+    }
+
+    .bio-content {
+        font-size: 1.5rem;
+    }
+
+    .profile-section h3 {
+        margin-top: -5px;
+        font-size: 1.8rem;
+    }
+
+    .social-links {
+        font-size: 1.5rem;
+        gap: 20px;
+    }
+
+    .promo-instructions {
+        font-size: 1.5rem;
+    }
+
+    .promo-links-selection {
+        font-size: 1.5rem;
+    }
+
+    .messages {
+        font-size: 1.5rem;
+        margin-bottom: 25px !important;
+    }
+
+    .purchase-history p {
+        font-size: 1.5rem;
+        margin-bottom: 15px;
+    }
+
+    .fas.fa-history {
+        margin-right: 15px;
+    }
 }
 
 @media (max-width: 768px) {

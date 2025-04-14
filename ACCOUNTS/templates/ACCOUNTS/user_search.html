@@ -10,8 +10,13 @@
 {% endblock %}
 
 {% block content %}
+<h1 class="messages-title">Find Users</h1>
 <div class="messages-outer-container">
-    <h1 class="messages-title">Find Users</h1>
+    <div class="back-container">
+        <a href="{% url 'ACCOUNTS:inbox' %}" class="new-message-button">
+            <i class="fas fa-arrow-left"></i> Back to Messages
+        </a>
+    </div>
     
     <div class="search-container">
         <form method="get" action="{% url 'ACCOUNTS:user_search' %}" class="search-form">
@@ -68,12 +73,6 @@
                 </div>
             {% endif %}
         {% endif %}
-    </div>
-    
-    <div class="back-container">
-        <a href="{% url 'ACCOUNTS:inbox' %}" class="new-message-button">
-            <i class="fas fa-arrow-left"></i> Back to Messages
-        </a>
     </div>
 </div>
 {% endblock %}

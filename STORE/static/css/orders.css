@@ -29,6 +29,10 @@
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
+.order-header h1 {
+    margin-bottom: 20px;
+}
+
 .form-header p {
     color: rgba(255, 255, 255, 0.8);
     font-size: 1.1rem;
@@ -1218,7 +1222,7 @@ textarea[name="comment"]:focus {
     }
 
     .order-badge {
-        padding: 0.2rem 1rem;
+        padding: 10px 15px;
         font-size: 1.5rem;
         font-weight: 800;
     }

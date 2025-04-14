@@ -38,13 +38,15 @@
             </div>
 
             <div class="profile-avatar">
-                {% if user.profile_picture %}
-                <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
-                {% else %}
-                    <div class="profile-picture-placeholder">
-                        <i class="fas fa-user"></i>
-                    </div>
-                {% endif %}
+                <div class="profile-picture-container">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="profile-picture">
+                    {% else %}
+                        <div class="profile-picture-placeholder">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
             
             <div class="info-row">

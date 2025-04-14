@@ -91,7 +91,7 @@
                     <div class="message {% if msg.sender == request.user %}message-mine{% else %}message-other{% endif %}">
                         <div class="message-header">
                             <div class="message-user">
-                                <div class="user-avatar">
+                                <div class="message-user-avatar">
                                     {% if msg.sender.profile_picture %}
                                     <img src="{{ msg.sender.profile_picture.url }}" alt="{{ msg.sender.username }}">
                                     {% else %}
@@ -155,7 +155,7 @@
                                            {% elif 'Basic Website' in msg.content %}{% url 'STORE:basic_website' %}
                                            {% elif 'Ecommerce Website' in msg.content %}{% url 'STORE:ecommerce_website' %}
                                            {% elif 'Custom Project' in msg.content %}{% url 'STORE:custom_project' %}
-                                           {% elif 'Stream Store' in msg.content %}{% url 'STORE:stream_store_purchase' %}
+                                           {% elif 'Stream Store' in msg.content %}{% url 'STORE:stream_store' %}
                                            {% else %}{% url 'STORE:store' %}{% endif %}" 
                                            class="view-product-btn">View Product</a>
                                 </div>
@@ -370,7 +370,7 @@
                         messageDiv.innerHTML = `
                             <div class="message-header">
                                 <div class="message-user">
-                                    <div class="user-avatar">
+                                    <div class="message-user-avatar">
                                         ${msg.avatar_url ? 
                                         `<img src="${msg.avatar_url}" alt="${msg.username}">` : 
                                         `<div class="avatar-placeholder small">${msg.username.charAt(0)}</div>`}
@@ -530,7 +530,7 @@
                         messageDiv.innerHTML = `
                             <div class="message-header">
                                 <div class="message-user">
-                                    <div class="user-avatar">
+                                    <div class="message-user-avatar">
                                         ${avatarHtml}
                                     </div>
                                     <strong class="username">${currentUserName}</strong>

@@ -481,7 +481,76 @@
     margin-top: 20px;
 }
 
-/* Responsive Styles */
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .action-button {
+        font-size: 2rem;
+        margin-bottom: 25px;
+        border-radius: 12px;
+    }
+
+    .table-header h2 {
+        font-size: 3rem;
+    }
+
+    .message-count {
+        font-size: 2rem;
+    }
+
+    .quick-search {
+        font-size: 1.5rem;
+    }
+
+    .messages-table th {
+        padding: 12px 50px !important;
+        font-size: 1.5rem;
+    }
+
+    .messages-table tbody {
+        font-size: 1.5rem;
+    }
+
+    .messages-table td {
+        padding: 12px 50px !important;
+    }
+
+    .message-status {
+        padding: 12px 15px;
+        font-size: 1.5rem;
+    }
+
+    .view-message-btn {
+        font-size: 1.5rem;
+    }
+
+    .panel-header h3 {
+        font-size: 3rem;
+    }
+
+    .filter-section h4 {
+        font-size: 1.8rem;
+    }
+
+    .date-separator {
+        font-size: 1.5rem;
+    }
+
+    .date-input {
+        font-size: 1.5rem;
+    }
+
+    .filter-section input {
+        font-size: 1.5rem;
+    }
+
+    .user-type-select {
+        font-size: 1.5rem;
+    }
+
+    .panel-action-button {
+        font-size: 2rem;
+    }
+}
+
 @media (max-width: 992px) {
     .dashboard-layout {
         flex-direction: column;
