@@ -1407,9 +1407,6 @@ def order_management(request):
     """Admin view for managing orders and donations"""
     search_query = request.GET.get('search', '')
     
-    # Handle the view type (orders or donations)
-    view_type = request.GET.get('view', 'orders')
-    
     # Orders section
     if search_query:
         # Search by order ID or username
@@ -1422,20 +1419,50 @@ def order_management(request):
             
         orders = Order.objects.filter(order_filter)
     else:
-        orders = Order.objects.all().order_by('-created_at')
+        orders = Order.objects.all()
     
     # Donations section
     if search_query:
         # Search donations by username or payment ID
-        try:
-            # Try to convert to numeric value for payment ID
-            donation_filter = Q(payment_id__icontains=search_query)
-        except:
-            donation_filter = Q(user__username__icontains=search_query)
-            
+        donation_filter = Q(user__username__icontains=search_query) | Q(payment_id__icontains=search_query)
         donations = Donation.objects.filter(donation_filter)
     else:
-        donations = Donation.objects.all().order_by('-created_at')
+        donations = Donation.objects.all()
+    
+    # Calculate donation total for analytics
+    donation_total = 0
+    for donation in donations:
+        if donation.amount:
+            donation_total += float(donation.amount)
+    
+    # Combine orders and donations into a single list
+    combined_items = []
+    
+    # Add orders
+    for order in orders:
+        combined_items.append({
+            'type': 'order',
+            'id': order.id,
+            'user': order.user,
+            'product': order.product,
+            'created_at': order.created_at,
+            'status': order.status,
+            'due_date': order.due_date,
+        })
+    
+    # Add donations
+    for donation in donations:
+        combined_items.append({
+            'type': 'donation',
+            'id': donation.id,
+            'user': donation.user,
+            'amount': donation.amount,
+            'created_at': donation.created_at,
+            'is_paid': donation.is_paid,
+        })
+    
+    # Sort by created_at date (newest first)
+    combined_items.sort(key=lambda x: x['created_at'], reverse=True)
     
     # Get all users and products for the add order form
     User = get_user_model()
@@ -1445,10 +1472,11 @@ def order_management(request):
     context = {
         'orders': orders,
         'donations': donations,
+        'combined_items': combined_items,
+        'donation_total': donation_total, 
         'search_query': search_query,
         'all_users': all_users,
         'all_products': all_products,
-        'view_type': view_type
     }
     
     response = render(request, 'STORE/order_management.html', context)
@@ -1577,29 +1605,6 @@ def donation_details(request, donation_id):
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
     return response
-
-@require_POST
-@login_required
-@user_passes_test(lambda u: u.is_staff)
-def admin_delete_donations(request):
-    """Delete selected donations"""
-    selected_donations = request.POST.get('selected_donations', '')
-    
-    if selected_donations:
-        donation_ids = [int(id) for id in selected_donations.split(',')]
-        
-        # Count before deletion for message
-        count = len(donation_ids)
-        
-        # Delete donations
-        Donation.objects.filter(id__in=donation_ids).delete()
-        
-        messages.success(
-            request, 
-            f"{count} donation{'s' if count > 1 else ''} deleted successfully."
-        )
-    
-    return redirect('STORE:order_management')
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)

@@ -3,60 +3,6 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/product_management.css' %}">
-    <style>
-        .view-tabs {
-            display: flex;
-            margin-bottom: 20px;
-            background-color: rgba(40, 40, 40, 0.7);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-        
-        .view-tab {
-            flex: 1;
-            padding: 12px 20px;
-            text-align: center;
-            color: #ccc;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .view-tab.active {
-            background-color: rgba(52, 152, 219, 0.7);
-            color: white;
-        }
-        
-        .view-tab:hover:not(.active) {
-            background-color: rgba(60, 60, 60, 0.7);
-        }
-        
-        .view-content {
-            display: none;
-        }
-        
-        .view-content.active {
-            display: block;
-        }
-        
-        .donation-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .badge-paid {
-            background-color: #2ecc71;
-            color: white;
-        }
-        
-        .badge-unpaid {
-            background-color: #e74c3c;
-            color: white;
-        }
-    </style>
 {% endblock %}
 
 {% block background %}
@@ -65,7 +11,7 @@
 
 {% block content %}
 <div class="profile-header">
-    <h1 class="user_management-title">Order & Donation Management</h1>
+    <h1 class="user_management-title">Order Management</h1>
 </div>
 
 <div class="profile-container">
@@ -84,25 +30,18 @@
     </div>
     {% endif %}
     
-    <!-- View Tabs -->
-    <div class="view-tabs">
-        <a href="?view=orders{% if search_query %}&search={{ search_query }}{% endif %}" class="view-tab {% if view_type == 'orders' %}active{% endif %}">Orders</a>
-        <a href="?view=donations{% if search_query %}&search={{ search_query }}{% endif %}" class="view-tab {% if view_type == 'donations' %}active{% endif %}">Donations</a>
-    </div>
-    
     <div class="dashboard-layout">
-        <!-- Orders Table Section -->
-        <div class="profile-section user-table-section view-content {% if view_type == 'orders' %}active{% endif %}" id="orders-view">
+        <!-- Orders & Donations Table Section -->
+        <div class="profile-section user-table-section">
             <div class="section-header">
-                <h2>Orders</h2>
+                <h2>Orders & Donations</h2>
                 <div class="action-buttons">
                     <form method="get" action="{% url 'STORE:order_management' %}">
-                        <input type="hidden" name="view" value="orders">
                         <div class="search-container">
-                            <input type="text" name="search" placeholder="Search by username or order ID" value="{{ search_query }}" class="search-input">
+                            <input type="text" name="search" placeholder="Search by username or ID" value="{{ search_query }}" class="search-input">
                             <button type="submit" class="action-button">Search</button>
                             {% if search_query %}
-                                <a href="{% url 'STORE:order_management' %}?view=orders" class="clear-search">Clear</a>
+                                <a href="{% url 'STORE:order_management' %}" class="clear-search">Clear</a>
                             {% endif %}
                         </div>
                     </form>
@@ -123,85 +62,45 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for order in orders %}
-                        <tr data-order-id="{{ order.id }}">
-                            <td><input type="checkbox" class="order-select-checkbox" data-order-id="{{ order.id }}"></td>
-                            <td>{{ order.id }}</td>
-                            <td>{{ order.user.username }}</td>
-                            <td>{{ order.product.name }}</td>
-                            <td>{{ order.created_at|date }}</td>
-                            <td>
-                                {% if order.status == 'pending' %}
-                                    <span class="order-badge badge-warning">Pending</span>
-                                {% elif order.status == 'in_progress' %}
-                                    <span class="order-badge badge-primary">In Progress</span>
-                                {% else %}
-                                    <span class="order-badge badge-success">Completed</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ order.due_date|date|default:"-" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7">No orders found</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Donations Table Section -->
-        <div class="profile-section user-table-section view-content {% if view_type == 'donations' %}active{% endif %}" id="donations-view">
-            <div class="section-header">
-                <h2>Donations</h2>
-                <div class="action-buttons">
-                    <form method="get" action="{% url 'STORE:order_management' %}">
-                        <input type="hidden" name="view" value="donations">
-                        <div class="search-container">
-                            <input type="text" name="search" placeholder="Search by username or payment ID" value="{{ search_query }}" class="search-input">
-                            <button type="submit" class="action-button">Search</button>
-                            {% if search_query %}
-                                <a href="{% url 'STORE:order_management' %}?view=donations" class="clear-search">Clear</a>
+                        {% for item in combined_items %}
+                            {% if item.type == 'order' %}
+                            <tr data-order-id="{{ item.id }}">
+                                <td><input type="checkbox" class="order-select-checkbox" data-order-id="{{ item.id }}"></td>
+                                <td>{{ item.id }}</td>
+                                <td>{{ item.user.username }}</td>
+                                <td>{{ item.product.name }}</td>
+                                <td>{{ item.created_at|date }}</td>
+                                <td>
+                                    {% if item.status == 'pending' %}
+                                        <span class="order-badge badge-warning">Pending</span>
+                                    {% elif item.status == 'in_progress' %}
+                                        <span class="order-badge badge-primary">In Progress</span>
+                                    {% else %}
+                                        <span class="order-badge badge-success">Completed</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.due_date|date|default:"-" }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td><input type="checkbox" disabled></td>
+                                <td>{{ item.id }}</td>
+                                <td>{% if item.user %}{{ item.user.username }}{% else %}Anonymous{% endif %}</td>
+                                <td>Donation - ${{ item.amount }}</td>
+                                <td>{{ item.created_at|date }}</td>
+                                <td>
+                                    {% if item.is_paid %}
+                                        <span class="order-badge badge-success">Paid</span>
+                                    {% else %}
+                                        <span class="order-badge badge-warning">Unpaid</span>
+                                    {% endif %}
+                                </td>
+                                <td>-</td>
+                            </tr>
                             {% endif %}
-                        </div>
-                    </form>
-                </div>
-            </div>
-            
-            <div class="users-table-container">
-                <table class="users-table">
-                    <thead>
-                        <tr>
-                            <th><input type="checkbox" id="select-all-donations-checkbox"></th>
-                            <th>ID</th>
-                            <th>User</th>
-                            <th>Amount</th>
-                            <th>Created At</th>
-                            <th>Payment ID</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for donation in donations %}
-                        <tr data-donation-id="{{ donation.id }}">
-                            <td><input type="checkbox" class="donation-select-checkbox" data-donation-id="{{ donation.id }}"></td>
-                            <td>{{ donation.id }}</td>
-                            <td>{% if donation.user %}{{ donation.user.username }}{% else %}Anonymous{% endif %}</td>
-                            <td>${{ donation.amount }}</td>
-                            <td>{{ donation.created_at|date }}</td>
-                            <td>{{ donation.payment_id|truncatechars:10 }}</td>
-                            <td>
-                                {% if donation.is_paid %}
-                                    <span class="donation-badge badge-paid">Paid</span>
-                                {% else %}
-                                    <span class="donation-badge badge-unpaid">Unpaid</span>
-                                {% endif %}
-                            </td>
-                        </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="7">No donations found</td>
+                            <td colspan="7">No items found</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -210,15 +109,15 @@
         </div>
         
         <!-- Order Action Panel -->
-        <div class="user-action-panel view-content {% if view_type == 'orders' %}active{% endif %}" id="orders-action-panel" style="margin-top: 20px;">
+        <div class="user-action-panel" style="margin-top: 20px;">
             <div class="panel-header">
-                <h3>Order Actions</h3>
-                <span class="selected-count">0 orders selected</span>
+                <h3>Actions</h3>
+                <span class="selected-count">0 items selected</span>
             </div>
             
             <div class="action-section">
-                <h4>View Order</h4>
-                <a id="btn-view-order" href="{% url 'STORE:order_details' 0 %}" class="panel-action-button disabled">View Order</a>
+                <h4>View Item</h4>
+                <a id="btn-view-order" href="{% url 'STORE:order_details' 0 %}" class="panel-action-button disabled">View Item</a>
             </div>
             
             <div class="action-section">
@@ -236,11 +135,11 @@
             </div>
             
             <div class="action-section">
-                <h4>Delete Order</h4>
+                <h4>Delete Item</h4>
                 <form id="delete-orders-form" method="post" action="{% url 'STORE:admin_delete_orders' %}">
                     {% csrf_token %}
                     <input type="hidden" id="selected-orders-delete" name="selected_orders" value="">
-                    <button id="btn-delete-orders" type="submit" class="panel-action-button danger" disabled>Delete Selected Orders</button>
+                    <button id="btn-delete-orders" type="submit" class="panel-action-button danger" disabled>Delete Selected Items</button>
                 </form>
             </div>
             
@@ -270,45 +169,6 @@
                 </form>
             </div>
         </div>
-        
-        <!-- Donation Action Panel -->
-        <div class="user-action-panel view-content {% if view_type == 'donations' %}active{% endif %}" id="donations-action-panel" style="margin-top: 20px;">
-            <div class="panel-header">
-                <h3>Donation Actions</h3>
-                <span class="donation-selected-count">0 donations selected</span>
-            </div>
-            
-            <div class="action-section">
-                <h4>View Donation Details</h4>
-                <a id="btn-view-donation" href="#" class="panel-action-button disabled">View Details</a>
-            </div>
-            
-            <div class="action-section">
-                <h4>Delete Donation</h4>
-                <form id="delete-donations-form" method="post" action="{% url 'STORE:admin_delete_donations' %}">
-                    {% csrf_token %}
-                    <input type="hidden" id="selected-donations-delete" name="selected_donations" value="">
-                    <button id="btn-delete-donations" type="submit" class="panel-action-button danger" disabled>Delete Selected Donations</button>
-                </form>
-            </div>
-            
-            <div class="action-section">
-                <h4>Donation Analytics</h4>
-                <div class="metric-card" style="background-color: rgba(40, 40, 40, 0.7); padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-                    <div style="display: flex; justify-content: space-between;">
-                        <div>
-                            <div style="font-size: 13px; color: #ccc;">Total donations</div>
-                            <div style="font-size: 20px; font-weight: bold; color: white;">{{ donations.count }}</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 13px; color: #ccc;">Total amount</div>
-                            <div style="font-size: 20px; font-weight: bold; color: white;">${{ donations|dictsortreversed:"amount"|slice:":20"|sum:"amount"|floatformat:2 }}</div>
-                        </div>
-                    </div>
-                </div>
-                <a href="{% url 'STORE:store_analytics' %}" class="panel-action-button">View Full Analytics</a>
-            </div>
-        </div>
     </div>
 </div>
 {% endblock %}
@@ -316,78 +176,75 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Order management functionality
+        // Elements
         const selectAllCheckbox = document.getElementById('select-all-checkbox');
         const orderCheckboxes = document.querySelectorAll('.order-select-checkbox');
         const selectedCountDisplay = document.querySelector('.selected-count');
         
-        // Action panel buttons for orders
-        const viewOrderBtn = document.getElementById('btn-view-order');
+        // Action panel buttons
+        const viewItemBtn = document.getElementById('btn-view-order');
         const orderStatusSelect = document.querySelector('.order-status-select');
         const changeStatusBtn = document.getElementById('btn-change-status');
-        const deleteOrdersBtn = document.getElementById('btn-delete-orders');
+        const deleteItemsBtn = document.getElementById('btn-delete-orders');
         
-        // Confirmation dialog for delete orders
-        const deleteOrderForm = document.getElementById('delete-orders-form');
-        if (deleteOrderForm) {
-            deleteOrderForm.addEventListener('submit', function(e) {
-                const selectedOrders = getSelectedOrders();
-                if (!confirm(`Are you sure you want to delete ${selectedOrders.length} order(s)? This cannot be undone.`)) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-        }
+        // Confirmation dialog for delete
+        const deleteForm = document.getElementById('delete-orders-form');
+        deleteForm.addEventListener('submit', function(e) {
+            const selectedItems = getSelectedItems();
+            if (!confirm(`Are you sure you want to delete ${selectedItems.length} item(s)? This cannot be undone.`)) {
+                e.preventDefault();
+                return false;
+            }
+        });
         
-        // Update order action panel button states based on selection
-        function updateOrderButtonStates() {
-            const selectedOrders = getSelectedOrders();
-            const hasSelection = selectedOrders.length > 0;
+        // Update action panel button states based on selection
+        function updateButtonStates() {
+            const selectedItems = getSelectedItems();
+            const hasSelection = selectedItems.length > 0;
             
             // Update selected count display
-            if (selectedCountDisplay) {
-                selectedCountDisplay.textContent = `${selectedOrders.length} order${selectedOrders.length !== 1 ? 's' : ''} selected`;
-            }
+            selectedCountDisplay.textContent = `${selectedItems.length} item${selectedItems.length !== 1 ? 's' : ''} selected`;
             
             // Enable/disable buttons based on selection
-            if (orderStatusSelect) orderStatusSelect.disabled = !hasSelection;
-            if (changeStatusBtn) changeStatusBtn.disabled = !hasSelection;
-            if (deleteOrdersBtn) deleteOrdersBtn.disabled = !hasSelection;
+            orderStatusSelect.disabled = !hasSelection;
+            changeStatusBtn.disabled = !hasSelection;
+            deleteItemsBtn.disabled = !hasSelection;
             
-            // Handle the View Order button - only enabled for single selection
-            if (viewOrderBtn && selectedOrders.length === 1) {
-                const orderId = selectedOrders[0];
-                viewOrderBtn.href = `{% url 'STORE:order_details' 0 %}`.replace('0', orderId);
-                viewOrderBtn.classList.remove('disabled');
-            } else if (viewOrderBtn) {
-                viewOrderBtn.href = '#';
-                viewOrderBtn.classList.add('disabled');
+            // Handle the View Item button - only enabled for single selection
+            if (selectedItems.length === 1) {
+                const itemId = selectedItems[0];
+                const isDonation = document.querySelector(`tr[data-donation-id="${itemId}"]`) !== null;
+                
+                if (isDonation) {
+                    viewItemBtn.href = `{% url 'STORE:donation_details' 0 %}`.replace('0', itemId);
+                } else {
+                    viewItemBtn.href = `{% url 'STORE:order_details' 0 %}`.replace('0', itemId);
+                }
+                viewItemBtn.classList.remove('disabled');
+            } else {
+                viewItemBtn.href = '#';
+                viewItemBtn.classList.add('disabled');
             }
             
             // Update form hidden inputs
-            const selectedOrdersStatus = document.getElementById('selected-orders-status');
-            const selectedOrdersDelete = document.getElementById('selected-orders-delete');
-            
-            if (selectedOrdersStatus) selectedOrdersStatus.value = selectedOrders.join(',');
-            if (selectedOrdersDelete) selectedOrdersDelete.value = selectedOrders.join(',');
+            document.getElementById('selected-orders-status').value = selectedItems.join(',');
+            document.getElementById('selected-orders-delete').value = selectedItems.join(',');
         }
         
-        // Get IDs of selected orders
-        function getSelectedOrders() {
+        // Get IDs of selected items (orders or donations)
+        function getSelectedItems() {
             return Array.from(orderCheckboxes)
                 .filter(checkbox => checkbox.checked)
                 .map(checkbox => checkbox.dataset.orderId);
         }
         
-        // Select/Deselect all order checkboxes
-        if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', function() {
-                orderCheckboxes.forEach(checkbox => {
-                    checkbox.checked = this.checked;
-                });
-                updateOrderButtonStates();
+        // Select/Deselect all checkboxes
+        selectAllCheckbox.addEventListener('change', function() {
+            orderCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
             });
-        }
+            updateButtonStates();
+        });
         
         // Update select all checkbox when individual checkboxes change
         orderCheckboxes.forEach(checkbox => {
@@ -395,121 +252,23 @@
                 const allChecked = Array.from(orderCheckboxes).every(cb => cb.checked);
                 const someChecked = Array.from(orderCheckboxes).some(cb => cb.checked);
                 
-                if (selectAllCheckbox) {
-                    selectAllCheckbox.checked = allChecked;
-                    // Use indeterminate state when some but not all are checked
-                    selectAllCheckbox.indeterminate = someChecked && !allChecked;
-                }
+                selectAllCheckbox.checked = allChecked;
+                // Use indeterminate state when some but not all are checked
+                selectAllCheckbox.indeterminate = someChecked && !allChecked;
                 
-                updateOrderButtonStates();
+                updateButtonStates();
             });
         });
         
-        // Handler for View Order button
-        if (viewOrderBtn) {
-            viewOrderBtn.addEventListener('click', function(e) {
-                if (this.classList.contains('disabled')) {
-                    e.preventDefault();
-                }
-            });
-        }
-        
-        // Donation management functionality
-        const selectAllDonationsCheckbox = document.getElementById('select-all-donations-checkbox');
-        const donationCheckboxes = document.querySelectorAll('.donation-select-checkbox');
-        const donationSelectedCountDisplay = document.querySelector('.donation-selected-count');
-        
-        // Action panel buttons for donations
-        const viewDonationBtn = document.getElementById('btn-view-donation');
-        const deleteDonationsBtn = document.getElementById('btn-delete-donations');
-        
-        // Confirmation dialog for delete donations
-        const deleteDonationForm = document.getElementById('delete-donations-form');
-        if (deleteDonationForm) {
-            deleteDonationForm.addEventListener('submit', function(e) {
-                const selectedDonations = getSelectedDonations();
-                if (!confirm(`Are you sure you want to delete ${selectedDonations.length} donation(s)? This cannot be undone.`)) {
-                    e.preventDefault();
-                    return false;
-                }
-            });
-        }
-        
-        function updateDonationButtonStates() {
-            const selectedDonations = getSelectedDonations();
-            const hasSelection = selectedDonations.length > 0;
-            
-            // Update selected count display
-            if (donationSelectedCountDisplay) {
-                donationSelectedCountDisplay.textContent = `${selectedDonations.length} donation${selectedDonations.length !== 1 ? 's' : ''} selected`;
+        // Handler for View Item button
+        viewItemBtn.addEventListener('click', function(e) {
+            if (this.classList.contains('disabled')) {
+                e.preventDefault();
             }
-            
-            // Enable/disable buttons based on selection
-            if (deleteDonationsBtn) deleteDonationsBtn.disabled = !hasSelection;
-            
-            // Handle the View Donation button - only enabled for single selection
-            if (viewDonationBtn && selectedDonations.length === 1) {
-                const donationId = selectedDonations[0];
-                viewDonationBtn.href = `{% url 'STORE:donation_details' 0 %}`.replace('0', donationId);
-                viewDonationBtn.classList.remove('disabled');
-            } else if (viewDonationBtn) {
-                viewDonationBtn.href = '#';
-                viewDonationBtn.classList.add('disabled');
-            }
-            
-            // Update form hidden inputs
-            const selectedDonationsDelete = document.getElementById('selected-donations-delete');
-            
-            if (selectedDonationsDelete) selectedDonationsDelete.value = selectedDonations.join(',');
-        }
-        
-        // Get IDs of selected donations
-        function getSelectedDonations() {
-            return Array.from(donationCheckboxes)
-                .filter(checkbox => checkbox.checked)
-                .map(checkbox => checkbox.dataset.donationId);
-        }
-        
-        // Select/Deselect all donation checkboxes
-        if (selectAllDonationsCheckbox) {
-            selectAllDonationsCheckbox.addEventListener('change', function() {
-                donationCheckboxes.forEach(checkbox => {
-                    checkbox.checked = this.checked;
-                });
-                updateDonationButtonStates();
-            });
-        }
-        
-        // Update select all checkbox when individual checkboxes change
-        donationCheckboxes.forEach(checkbox => {
-            checkbox.addEventListener('change', function() {
-                const allChecked = Array.from(donationCheckboxes).every(cb => cb.checked);
-                const someChecked = Array.from(donationCheckboxes).some(cb => cb.checked);
-                
-                if (selectAllDonationsCheckbox) {
-                    selectAllDonationsCheckbox.checked = allChecked;
-                    // Use indeterminate state when some but not all are checked
-                    selectAllDonationsCheckbox.indeterminate = someChecked && !allChecked;
-                }
-                
-                updateDonationButtonStates();
-            });
         });
-        
-        // Handler for View Donation button
-        if (viewDonationBtn) {
-            viewDonationBtn.addEventListener('click', function(e) {
-                if (this.classList.contains('disabled')) {
-                    e.preventDefault();
-                    // For now, just show some details in an alert
-                    alert('Donation detail view not implemented yet.');
-                }
-            });
-        }
         
         // Initialize button states
-        updateOrderButtonStates();
-        updateDonationButtonStates();
+        updateButtonStates();
     });
 </script>
 {% endblock %}
