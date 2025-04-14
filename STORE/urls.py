@@ -40,7 +40,6 @@ urlpatterns = [
     path('donations/', views.donation_page, name='donation_page'),
     path('donations/payment/', views.donation_payment, name='donation_payment'),
     path('donations/success/', views.donation_success, name='donation_success'),
-    path('admin/donations/<int:donation_id>/', views.donation_details, name='donation_details'),
     
     # Admin functionality
     path('admin/toggle/<int:product_id>/', views.toggle_product_status, name='toggle_product_status'),

@@ -134,11 +134,18 @@ def donation_success(request):
     amount = request.GET.get('amount')
     
     try:
+        # Verify payment with PayPal
+        is_verified, payment_data = verify_paypal_payment(payment_id)
+        
+        if not is_verified:
+            messages.error(request, "Payment verification failed. Please contact support.")
+            return redirect('STORE:donation_page')
+        
         # Create and save donation record
         donation = Donation(
             amount=amount,
             payment_id=payment_id,
-            is_paid=True
+            is_paid=is_verified  # Only mark as paid if verified
         )
         
         if request.user.is_authenticated:
@@ -147,8 +154,8 @@ def donation_success(request):
             # Promote user to supporter if donation is $10 or more
             if float(amount) >= 10 and not request.user.is_supporter and hasattr(request.user, 'promote_to_supporter'):
                 request.user.promote_to_supporter()
-                messages.success(request, "Thank you for your donation payment! You have been promoted to supporter status.")
-            
+                messages.success(request, "Thank you for your donation! You have been promoted to supporter status.")
+        
         donation.save()
         
         # Send receipt email
@@ -158,7 +165,7 @@ def donation_success(request):
         except Exception as e:
             print(f"Error sending donation receipt: {e}")
         
-        messages.success(request, "Thank you for your generous donation payment!")
+        messages.success(request, "Thank you for your generous donation!")
             
     except Exception as e:
         print(f"Error processing donation: {str(e)}")
@@ -366,6 +373,50 @@ def check_new_order_messages(request, order_id):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 # Orders
+def verify_paypal_payment(payment_id):
+    """Verify PayPal payment status using PayPal API"""
+    import requests
+    import os
+    import base64
+    
+    # Get credentials
+    client_id = os.environ.get('PAYPAL_CLIENT_ID')
+    client_secret = os.environ.get('PAYPAL_SECRET')
+    
+    # Get OAuth token
+    auth = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+    headers = {
+        'Authorization': f'Basic {auth}',
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    
+    # Get access token
+    token_url = "https://api.paypal.com/v1/oauth2/token"
+    token_data = "grant_type=client_credentials"
+    token_response = requests.post(token_url, headers=headers, data=token_data)
+    
+    if token_response.status_code != 200:
+        return False, "Failed to authenticate with PayPal"
+    
+    access_token = token_response.json()['access_token']
+    
+    # Check payment status
+    payment_url = f"https://api.paypal.com/v1/payments/payment/{payment_id}"
+    payment_headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
+    
+    payment_response = requests.get(payment_url, headers=payment_headers)
+    
+    if payment_response.status_code != 200:
+        return False, "Failed to verify payment status"
+    
+    payment_data = payment_response.json()
+    payment_state = payment_data.get('state', '')
+    
+    return payment_state == 'approved', payment_data
+
 @login_required
 def purchase_product(request, product_id):
     """Handle product purchase by redirecting to payment page"""
@@ -1592,22 +1643,6 @@ def admin_delete_orders(request):
 
 @login_required
 @user_passes_test(lambda u: u.is_staff)
-def donation_details(request, donation_id):
-    """View for viewing donation details"""
-    donation = get_object_or_404(Donation, id=donation_id)
-    
-    context = {
-        'donation': donation
-    }
-    
-    response = render(request, 'STORE/donation_details.html', context)
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
-    return response
-
-@login_required
-@user_passes_test(lambda u: u.is_staff)
 def review_management(request):
     """Admin view for managing reviews"""
     search_query = request.GET.get('search', '')
@@ -1792,6 +1827,11 @@ def payment_page(request, product_id):
 def payment_success(request):
     payment_id = request.GET.get('paymentId')
     product_id = request.GET.get('product_id')
+    
+    is_verified, payment_data = verify_paypal_payment(payment_id)
+    if not is_verified:
+        messages.error(request, "Payment verification failed. Please contact support.")
+        return redirect('STORE:store')
     
     product = get_object_or_404(Product, id=product_id, is_active=True)
     
