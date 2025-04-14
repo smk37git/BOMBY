@@ -672,12 +672,16 @@ body, html {
 }
 
 @media screen and (min-width: 1920px) {
+    .hero-split {
+        margin-top: 25px !important;
+    }
+    
     .hero-content-side {
         margin-top: 25px;
     }
 
     .hero-gallery-side {
-        margin-top: 75px;
+        margin-top: 75px !important;
     }
 
     .project-title {
