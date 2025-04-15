@@ -33,14 +33,17 @@ BANNED_WORDS = load_banned_words()
 def validate_clean_username(value):
     """
     Validates that a username doesn't contain banned words.
-    Checks for partial matches within the username.
+    Only checks for exact matches of whole words.
     """
     # Convert to lowercase for case-insensitive matching
     username_lower = value.lower()
     
-    # Check if any banned word appears within the username
-    for word in BANNED_WORDS:
-        if word and re.search(r'\b' + re.escape(word) + r'\b', username_lower):
+    # Split the username into words
+    words = re.findall(r'\b\w+\b', username_lower)
+    
+    # Check if any word in the username exactly matches a banned word
+    for word in words:
+        if word in BANNED_WORDS:
             raise ValidationError(
                 "Username contains inappropriate language. Please choose another username.",
                 code="inappropriate_language"
@@ -57,9 +60,12 @@ def validate_clean_content(value):
     # Convert to lowercase for case-insensitive matching
     content_lower = value.lower()
     
-    # Check if any banned word appears within the content
-    for word in BANNED_WORDS:
-        if word and re.search(r'\b' + re.escape(word) + r'\b', username_lower):
+    # Split the content into words
+    words = re.findall(r'\b\w+\b', content_lower)
+    
+    # Check if any word in the content exactly matches a banned word
+    for word in words:
+        if word in BANNED_WORDS:
             raise ValidationError(
                 "Content contains inappropriate language.",
                 code="inappropriate_language"
