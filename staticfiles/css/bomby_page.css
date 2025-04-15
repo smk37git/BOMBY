@@ -671,6 +671,17 @@ body, html {
     font-size: 0.9rem;
 }
 
+@media (min-width: 1440px) {
+    .hero-split {
+        margin-top: 75px;
+        margin-bottom: 60px;
+    }
+
+    .hero-gallery-side {
+        margin-top: 60px;
+    }
+}
+
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
     .project-container {
         margin-top: 0 !important;

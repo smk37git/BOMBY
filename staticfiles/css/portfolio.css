@@ -533,7 +533,33 @@ body, html {
     transform: translateY(0);
 }
 
-/* Mobile responsive styles */
+@media (min-width: 1440px) {
+    .hero-content {
+        margin-left: 100px !important;
+    }
+
+    .main-title {
+        font-size: 8rem;
+    }
+
+    .subtitle {
+        font-size: 1.7rem;
+    }
+
+    .code-animation-container {
+        height: 500px;
+        width: 500px;
+    }
+    
+    .code-display pre {
+        font-size: 0.9rem !important;
+    }
+
+    .code-display pre {
+        transform: translateX(-2%) !important;
+    }
+}
+
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
     .portfolio-hero {
         padding: 0 6rem;

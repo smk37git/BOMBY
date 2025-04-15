@@ -307,7 +307,25 @@ p {
     font-size: 1.1rem;
 }
 
-/* Media Queries */
+@media (min-width: 1440px) {
+    .hero-content {
+        margin-left: 200px !important;
+        padding: 5rem 2rem;
+    }
+
+    .hero-title {
+        font-size: 10rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.7rem;
+    }
+
+    .info-section {
+        padding: 10rem 0;
+    }
+}
+
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
     .hero-btn, .action-btn {
         display: inline-block;

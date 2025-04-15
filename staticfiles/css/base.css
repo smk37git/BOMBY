@@ -124,7 +124,6 @@ body {
   z-index: 1000;
   background-color: rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 0 1px 5px rgba(255, 255, 255, 0.2);
   box-sizing: border-box;
