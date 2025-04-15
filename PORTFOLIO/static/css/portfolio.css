@@ -560,7 +560,7 @@ body, html {
     }
 
     .code-display pre {
-        transform: translateX(-10%) !important;
+        transform: translateX(-8%) !important;
     }
 }
 
