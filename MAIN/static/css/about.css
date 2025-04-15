@@ -220,7 +220,13 @@
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
 }
 
-@media screen and (min-width: 1440px) {
+@media (min-width: 1440px) {
+    .about-content {
+        max-width: 1000px;
+    }
+}
+
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
     .about-header {
         margin: 0 375px !important;
     }
@@ -233,7 +239,6 @@
     .about-details {
         width: 1100px !important;
         max-width: 1100px !important;
-        flex: 0 0 1100px !important;
     }
 
     .about-details h2 {
