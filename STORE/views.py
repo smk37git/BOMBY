@@ -92,6 +92,11 @@ def premium_package(request):
 
 def donation_page(request):
     """View for custom donation amount"""
+    # Check if user cancelled a payment
+    cancelled = request.GET.get('cancelled', False)
+    if cancelled:
+        messages.info(request, "Payment was cancelled. You can try again when you're ready.")
+    
     return render(request, 'STORE/donation_page.html', {
         'paypal_client_id': settings.PAYPAL_CLIENT_ID,
     })
@@ -145,7 +150,7 @@ def donation_success(request):
         donation = Donation(
             amount=amount,
             payment_id=payment_id,
-            is_paid=is_verified  # Only mark as paid if verified
+            is_paid=is_verified
         )
         
         if request.user.is_authenticated:
@@ -154,7 +159,6 @@ def donation_success(request):
             # Promote user to supporter if donation is $10 or more
             if float(amount) >= 10 and not request.user.is_supporter and hasattr(request.user, 'promote_to_supporter'):
                 request.user.promote_to_supporter()
-                messages.success(request, "Thank you for your donation! You have been promoted to supporter status.")
         
         donation.save()
         
@@ -165,7 +169,11 @@ def donation_success(request):
         except Exception as e:
             print(f"Error sending donation receipt: {e}")
         
-        messages.success(request, "Thank you for your generous donation!")
+        # Show the payment success page instead of redirecting
+        return render(request, 'STORE/payment_success.html', {
+            'donation': donation,
+            'is_donation': True
+        })
             
     except Exception as e:
         print(f"Error processing donation: {str(e)}")
@@ -1810,6 +1818,11 @@ def admin_add_review(request):
 def payment_page(request, product_id):
     product = get_object_or_404(Product, id=product_id, is_active=True)
     
+    # Check if user cancelled a payment
+    cancelled = request.GET.get('cancelled', False)
+    if cancelled:
+        messages.info(request, "Payment was cancelled. You can try again when you're ready.")
+    
     context = {
         'product': product,
         'paypal_client_id': settings.PAYPAL_CLIENT_ID,
@@ -1848,7 +1861,7 @@ def payment_success(request):
     
     product = get_object_or_404(Product, id=product_id, is_active=True)
     
-    # Create order (using your existing code)
+    # Create order
     if int(product_id) == 4:  # Stream Store product
         order = Order.objects.create(
             user=request.user,
@@ -1883,31 +1896,27 @@ def payment_success(request):
         invoice.save()
         
         # Send invoice email
-        from .utils.email_utils import send_invoice_email
         send_invoice_email(request, order, invoice)
         
     except Exception as e:
         # Log error but don't stop the flow
         print(f"Error generating invoice: {e}")
     
-    # Continue with your existing email sending
+    # Send appropriate emails based on product type
     if int(product_id) == 4:
         try:
-            # You might want to customize this for stream store
             send_completed_order_email(request, order)
         except Exception as e:
             print(f"Error sending completed order email: {e}")
-        
-        messages.success(request, "Payment successful! You now have access to the Stream Store.")
-        return redirect('STORE:stream_store')
     else:
         try:
             send_pending_order_email(request, order)
         except Exception as e:
             print(f"Error sending pending order email: {e}")
-        
-        messages.success(request, "Payment successful! Please fill out the required information.")
-        return redirect('STORE:order_form', order_id=order.id)
+    
+    return render(request, 'STORE/payment_success.html', {
+        'order': order,
+    })
 
 @login_required
 def download_invoice(request, order_id):

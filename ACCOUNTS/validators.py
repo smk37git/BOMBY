@@ -40,7 +40,7 @@ def validate_clean_username(value):
     
     # Check if any banned word appears within the username
     for word in BANNED_WORDS:
-        if word and word in username_lower:
+        if word and re.search(r'\b' + re.escape(word) + r'\b', username_lower):
             raise ValidationError(
                 "Username contains inappropriate language. Please choose another username.",
                 code="inappropriate_language"
@@ -59,7 +59,7 @@ def validate_clean_content(value):
     
     # Check if any banned word appears within the content
     for word in BANNED_WORDS:
-        if word and word in content_lower:
+        if word and re.search(r'\b' + re.escape(word) + r'\b', username_lower):
             raise ValidationError(
                 "Content contains inappropriate language.",
                 code="inappropriate_language"

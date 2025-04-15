@@ -59,116 +59,128 @@
 <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD&intent=capture&disable-funding=credit,card&commit=true"></script>
 
 <script>
-    // Main initialization function
+    // Main initialization function - match the product payment page approach
     window.addEventListener('load', initializePayment);
-    
-    function initializePayment() {
-        if (typeof paypal === 'undefined') {
-            handlePayPalFailure();
-            return;
-        }
         
-        console.log("PayPal SDK loaded successfully");
-        showPayPalButtons();
-        
-        // Initialize PayPal buttons
-        paypal.Buttons({
-            createOrder: function(data, actions) {
-                return actions.order.create({
-                    purchase_units: [{
-                        amount: {
-                            value: '{{ product.price }}'
-                        }
-                    }]
-                });
-            },
-            
-            onApprove: function(data, actions) {
-                return actions.order.capture().then(function(orderData) {
-                    window.location.href = "{% url 'STORE:payment_success' %}?paymentId=" + 
-                        orderData.id + "&product_id={{ product.id }}";
-                });
-            },
-            
-            onError: function(err) {
-                console.error('PayPal error:', err);
-                alert('There was an error processing your payment. Please try again.');
-                document.getElementById('payment-fallback').style.display = 'block';
-            },
-            
-            onCancel: function() {
-                window.location.href = "{% url 'STORE:payment_cancel' %}";
-            },
-            
-            style: {
-                layout: 'vertical',
-                color: 'blue',
-                shape: 'rect',
-                label: 'paypal'
+        function initializePayment() {
+            if (typeof paypal === 'undefined') {
+                handlePayPalFailure();
+                return;
             }
-        }).render('#paypal-button-container');
-        
-        // Style PayPal elements with proper timing
-        stylePayPalElements();
-    }
-    
-    function handlePayPalFailure() {
-        console.error("PayPal SDK failed to load");
-        document.getElementById('paypal-loading').style.display = 'none';
-        document.getElementById('payment-fallback').style.display = 'block';
-    }
-    
-    function showPayPalButtons() {
-        document.getElementById('paypal-loading').style.display = 'none';
-        document.getElementById('paypal-button-container').style.display = 'block';
-    }
-    
-    // Enhanced styling function with multiple attempts
-    let stylingAttempts = 0;
-    const maxAttempts = 5;
-    
-    function stylePayPalElements() {
-        // Style billing address section
-        const billingElements = document.querySelectorAll('.paypal-card-form-container label');
-        if (billingElements.length > 0) {
-            processBillingElements(billingElements);
+            
+            console.log("PayPal SDK loaded successfully");
+            showPayPalButtons();
+            
+            // Initialize PayPal buttons
+            paypal.Buttons({
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: '{{ product.price }}'
+                            }
+                        }]
+                    });
+                },
+                
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(orderData) {
+                        window.location.href = "{% url 'STORE:payment_success' %}?paymentId=" + 
+                            orderData.id + "&product_id={{ product.id }}";
+                    });
+                },
+                
+                onError: function(err) {
+                    console.error('PayPal error:', err);
+                    alert('There was an error processing your payment. Please try again.');
+                    document.getElementById('payment-fallback').style.display = 'block';
+                },
+                
+                onCancel: function() {
+                    // Show in-page message instead of redirecting
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'alert alert-info';
+                    messageDiv.innerHTML = 'Payment cancelled. You can try again when ready.';
+                    
+                    // Insert at the top of the product-purchase section
+                    const purchaseSection = document.querySelector('.product-purchase');
+                    purchaseSection.insertBefore(messageDiv, purchaseSection.firstChild);
+                    
+                    // Auto-remove message after 5 seconds
+                    setTimeout(function() {
+                        messageDiv.remove();
+                    }, 5000);
+                },
+                
+                style: {
+                    layout: 'vertical',
+                    color: 'blue',
+                    shape: 'rect',
+                    label: 'paypal'
+                }
+            }).render('#paypal-button-container');
+            
+            // Style PayPal elements with proper timing
+            stylePayPalElements();
         }
         
-        // Style form containers
-        const formContainers = document.querySelectorAll('.paypal-card-fields-container');
-        if (formContainers.length > 0) {
-            formContainers.forEach(function(container) {
-                container.style.backgroundColor = '#fff';
-                container.style.padding = '15px';
-                container.style.borderRadius = '10px';
-                container.style.color = '#000';
-                container.style.maxWidth = '310px';
+        function handlePayPalFailure() {
+            console.error("PayPal SDK failed to load");
+            document.getElementById('paypal-loading').style.display = 'none';
+            document.getElementById('payment-fallback').style.display = 'block';
+        }
+        
+        function showPayPalButtons() {
+            document.getElementById('paypal-loading').style.display = 'none';
+            document.getElementById('paypal-button-container').style.display = 'block';
+        }
+        
+        // Enhanced styling function with multiple attempts
+        let stylingAttempts = 0;
+        const maxAttempts = 5;
+        
+        function stylePayPalElements() {
+            // Style billing address section
+            const billingElements = document.querySelectorAll('.paypal-card-form-container label');
+            if (billingElements.length > 0) {
+                processBillingElements(billingElements);
+            }
+            
+            // Style form containers
+            const formContainers = document.querySelectorAll('.paypal-card-fields-container');
+            if (formContainers.length > 0) {
+                formContainers.forEach(function(container) {
+                    container.style.backgroundColor = '#fff';
+                    container.style.padding = '15px';
+                    container.style.borderRadius = '10px';
+                    container.style.color = '#000';
+                    container.style.maxWidth = '310px';
+                });
+                console.log("PayPal elements styled successfully");
+            } 
+            
+            // Retry if elements not found yet
+            if ((billingElements.length === 0 || formContainers.length === 0) && stylingAttempts < maxAttempts) {
+                stylingAttempts++;
+                setTimeout(stylePayPalElements, 500);
+            }
+        }
+        
+        function processBillingElements(elements) {
+            elements.forEach(function(element) {
+                if (element.textContent.includes('Billing address')) {
+                    // Create a new styled header element
+                    const billingHeader = document.createElement('div');
+                    billingHeader.className = 'billing-address-heading';
+                    billingHeader.textContent = 'Billing Address';
+                    
+                    // Insert the new header before the label
+                    element.parentNode.insertBefore(billingHeader, element);
+                    
+                    // Hide the original label
+                    element.style.display = 'none';
+                }
             });
-            console.log("PayPal elements styled successfully");
-        } 
-        
-        // Retry if elements not found yet
-        if ((billingElements.length === 0 || formContainers.length === 0) && stylingAttempts < maxAttempts) {
-            stylingAttempts++;
-            setTimeout(stylePayPalElements, 500);
         }
-    }
-    
-    function processBillingElements(elements) {
-        elements.forEach(function(element) {
-            if (element.textContent.includes('Billing address')) {
-                // Create a new styled header element
-                const billingHeader = document.createElement('div');
-                billingHeader.className = 'billing-address-heading';
-                billingHeader.textContent = 'Billing Address';
-                
-                // Insert the new header before the label
-                element.parentNode.insertBefore(billingHeader, element);
-                
-                // Hide the original label
-                element.style.display = 'none';
-            }
-        });
-    }
 </script>
 {% endblock %}
