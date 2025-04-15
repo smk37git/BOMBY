@@ -409,6 +409,7 @@
                             
                             // For mobile screens, use different positioning
                             const isMobile = window.innerWidth <= 768;
+                            const isDesktop = windiw.innerWidth <= 1440;
                             
                             // Create the container for the console output right away and position it correctly
                             const consoleContainer = document.createElement('div');
@@ -429,6 +430,7 @@
                             const preElement = document.createElement('pre');
                             preElement.style.fontFamily = 'monospace';
                             preElement.style.fontSize = isMobile ? '0.4rem' : '0.5rem';
+                            preElement.style.fontSize = isDesktop ? '0.85rem' : '0.5rem';
                             preElement.style.lineHeight = '.9';
                             preElement.style.margin = '0 auto';
                             preElement.style.padding = '0';
