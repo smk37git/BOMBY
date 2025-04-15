@@ -550,6 +550,18 @@ body, html {
         height: 500px;
         width: 500px;
     }
+    
+    .code-display pre {
+        font-size: 1.1rem !important;
+    }
+
+    .code-display div {
+        font-size: 1.5rem !important;
+    }
+
+    .code-display pre {
+        transform: translateX(-10%) !important;
+    }
 }
 
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
