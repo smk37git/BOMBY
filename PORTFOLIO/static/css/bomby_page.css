@@ -672,6 +672,11 @@ body, html {
 }
 
 @media (min-width: 1440px) {
+    .hero-split {
+        margin-top: 75px;
+        margin-bottom: 60px;
+    }
+
     .hero-gallery-side {
         margin-top: 60px;
     }
