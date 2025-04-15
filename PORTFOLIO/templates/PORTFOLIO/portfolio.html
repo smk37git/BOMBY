@@ -403,76 +403,98 @@
                     if (commandIndex >= commands.length) {
                         // After typing all commands, print the bomb art line by line
                         setTimeout(() => {
-
                             // Clear the display
                             codeDisplay.textContent = '';
                             
                             // For mobile screens, use different positioning
                             const isMobile = window.innerWidth <= 768;
-                            const isDesktop = window.innerWidth <= 1440;
+                            const isDesktop = window.innerWidth >= 1440;
                             
-                            // Create the container for the console output right away and position it correctly
-                            const consoleContainer = document.createElement('div');
-                            consoleContainer.style.position = 'absolute';
-                            consoleContainer.style.bottom = '0';
-                            consoleContainer.style.left = '0';
-                            consoleContainer.style.width = '100%';
-                            consoleContainer.style.height = '100%';
-                            consoleContainer.style.display = 'flex';
-                            consoleContainer.style.flexDirection = 'column';
-                            consoleContainer.style.justifyContent = 'flex-end'; // Align content to bottom
-                            consoleContainer.style.alignItems = 'center';
-                            consoleContainer.style.bottom = isMobile ? '5%' : '-3%';
+                            // Create separate containers for the bomb art and text
+                            const mainContainer = document.createElement('div');
+                            mainContainer.style.position = 'absolute';
+                            mainContainer.style.bottom = '0';
+                            mainContainer.style.left = '0';
+                            mainContainer.style.width = '100%';
+                            mainContainer.style.height = '100%';
+                            mainContainer.style.display = 'flex';
+                            mainContainer.style.flexDirection = 'column';
+                            mainContainer.style.justifyContent = 'flex-end';
+                            mainContainer.style.alignItems = 'center';
+                            mainContainer.style.bottom = isMobile ? '5%' : '-3%';
                             
-                            codeDisplay.appendChild(consoleContainer);
+                            codeDisplay.appendChild(mainContainer);
                             
-                            // Create pre element for the animation content
-                            const preElement = document.createElement('pre');
-                            preElement.style.fontFamily = 'monospace';
-                            preElement.style.fontSize = isMobile ? '0.4rem' : '0.5rem';
-                            preElement.style.fontSize = isDesktop ? '0.9rem' : '0.5rem';
-                            preElement.style.lineHeight = '.9';
-                            preElement.style.margin = '0 auto';
-                            preElement.style.padding = '0';
-                            preElement.style.whiteSpace = 'pre';
-                            preElement.style.color = '#00ff41';
-                            preElement.style.textAlign = 'center';
-                            preElement.style.width = '100%';
-                            preElement.style.maxWidth = '100%';
-                            preElement.style.transform = 'translateX(0)';
-                            preElement.style.transform = isDesktop ? 'translateX(-8%)' : 'translateX(0)';
+                            // Container for the bomb ASCII art
+                            const bombContainer = document.createElement('div');
+                            bombContainer.style.width = '100%';
+                            bombContainer.style.textAlign = 'center';
                             
-                            consoleContainer.appendChild(preElement);
+                            // Only apply translation to the bomb art on desktop
+                            if (isDesktop) {
+                                bombContainer.style.transform = 'translateX(-7%)';
+                            }
                             
-                            // Create a container for the PORTFOLIO READY text that we'll add later
+                            mainContainer.appendChild(bombContainer);
+                            
+                            // Create element for the ASCII art bomb
+                            const bombElement = document.createElement('pre');
+                            bombElement.style.fontFamily = 'monospace';
+                            bombElement.style.fontSize = isMobile ? '0.4rem' : (isDesktop ? '0.9rem' : '0.5rem');
+                            bombElement.style.lineHeight = '.9';
+                            bombElement.style.margin = '0 auto';
+                            bombElement.style.padding = '0';
+                            bombElement.style.whiteSpace = 'pre';
+                            bombElement.style.color = '#00ff41';
+                            bombElement.style.textAlign = 'center';
+                            bombElement.style.maxWidth = '100%';
+                            
+                            bombContainer.appendChild(bombElement);
+                            
+                            // Container for BOMBY text (centered without translation)
+                            const textContainer = document.createElement('div');
+                            textContainer.style.width = '100%';
+                            textContainer.style.textAlign = 'center';
+                            textContainer.style.marginTop = '10px';
+                            mainContainer.appendChild(textContainer);
+                            
+                            // Element for BOMBY text
+                            const bombyElement = document.createElement('pre');
+                            bombyElement.style.fontFamily = 'monospace';
+                            bombyElement.style.fontSize = isMobile ? '0.7rem' : (isDesktop ? '0.9rem' : '0.9rem');
+                            bombyElement.style.lineHeight = '1';
+                            bombyElement.style.margin = '0 auto';
+                            bombyElement.style.padding = '0';
+                            bombyElement.style.whiteSpace = 'pre';
+                            bombyElement.style.color = '#00ff41';
+                            bombyElement.style.textAlign = 'center';
+                            textContainer.appendChild(bombyElement);
+                            
+                            // Container for "PORTFOLIO READY" text
                             const readyTextContainer = document.createElement('div');
                             readyTextContainer.style.width = '100%';
                             readyTextContainer.style.textAlign = 'center';
-                            readyTextContainer.style.marginTop = '10px';
                             readyTextContainer.style.marginTop = isMobile ? '5px' : '10px';
-                            consoleContainer.appendChild(readyTextContainer);
+                            mainContainer.appendChild(readyTextContainer);
                             
                             // Split the bomb art by lines
                             const lines = bombArt.split('\n');
                             let lineCount = 0;
-                            let animationComplete = false;
                             
                             // Add line by line with a typewriter effect
                             function printLine() {
                                 if (lineCount < lines.length) {
                                     if (lineCount === 0) {
-                                        preElement.textContent = lines[lineCount];
+                                        bombElement.textContent = lines[lineCount];
                                     } else {
-                                        preElement.textContent += '\n' + lines[lineCount];
+                                        bombElement.textContent += '\n' + lines[lineCount];
                                     }
                                     lineCount++;
                                     setTimeout(printLine, 30);
-                                } else if (!animationComplete) {
-                                    animationComplete = true;
-                                    
-                                    // Add BOMBY text when the bomb is fully printed
+                                } else {
+                                    // When bomb art is complete, add BOMBY text
                                     setTimeout(() => {
-                                        preElement.textContent += bombyText;
+                                        bombyElement.textContent = bombyText;
                                         
                                         // Add "PORTFOLIO READY" text when the BOMBY text is added
                                         setTimeout(() => {
@@ -480,7 +502,6 @@
                                             readyTextContainer.style.fontSize = isMobile ? '1.2rem' : '1.5rem';
                                             readyTextContainer.style.color = '#00ff41';
                                             readyTextContainer.style.position = 'relative';
-                                            readyTextContainer.style.bottom = '0';
                                             readyTextContainer.style.paddingBottom = '10px';
                                         }, 300);
                                     }, 300);
@@ -513,15 +534,30 @@
                 // Handle window resize
                 window.addEventListener('resize', () => {
                     const isMobile = window.innerWidth <= 768;
-                    const preElements = document.querySelectorAll('#code-display pre');
-                    const readyText = document.querySelector('#code-display div div');
+                    const isDesktop = window.innerWidth >= 1440;
+                    const bombElements = document.querySelectorAll('#code-display pre');
+                    const readyText = document.querySelector('#code-display div div div');
                     
-                    preElements.forEach(pre => {
-                        pre.style.fontSize = isMobile ? '0.4rem' : '0.5rem';
-                    });
+                    if (bombElements.length > 0) {
+                        // First pre is the bomb art
+                        if (bombElements[0]) {
+                            bombElements[0].style.fontSize = isMobile ? '0.4rem' : (isDesktop ? '0.9rem' : '0.5rem');
+                        }
+                        
+                        // Second pre is the BOMBY text
+                        if (bombElements[1]) {
+                            bombElements[1].style.fontSize = isMobile ? '0.7rem' : (isDesktop ? '1.3rem' : '0.9rem');
+                        }
+                    }
+                    
+                    // Adjust the translation based on screen width
+                    const bombContainer = document.querySelector('#code-display > div > div:first-child');
+                    if (bombContainer) {
+                        bombContainer.style.transform = isDesktop ? 'translateX(-10%)' : 'none';
+                    }
                     
                     if (readyText) {
-                        readyText.style.fontSize = isMobile ? '1rem' : '1.2rem';
+                        readyText.style.fontSize = isMobile ? '1rem' : '1.5rem';
                     }
                 });
             }
