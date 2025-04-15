@@ -462,7 +462,7 @@
                             // Element for BOMBY text
                             const bombyElement = document.createElement('pre');
                             bombyElement.style.fontFamily = 'monospace';
-                            bombyElement.style.fontSize = isMobile ? '0.7rem' : (isDesktop ? '0.9rem' : '0.9rem');
+                            bombyElement.style.fontSize = isMobile ? '0.7rem' : (isDesktop ? '0.9rem' : '0.5rem');
                             bombyElement.style.lineHeight = '1';
                             bombyElement.style.margin = '0 auto';
                             bombyElement.style.padding = '0';
@@ -500,7 +500,7 @@
                                         // Add "PORTFOLIO READY" text when the BOMBY text is added
                                         setTimeout(() => {
                                             readyTextContainer.textContent = "PORTFOLIO READY";
-                                            readyTextContainer.style.fontSize = isMobile ? '1.2rem' : (isDesktop ? '1.5rem;' : '0.5rem');
+                                            readyTextContainer.style.fontSize = isMobile ? '1.2rem' : '1.5rem';
                                             readyTextContainer.style.color = '#00ff41';
                                             readyTextContainer.style.position = 'relative';
                                             readyTextContainer.style.paddingBottom = '10px';
