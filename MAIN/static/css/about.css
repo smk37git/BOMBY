@@ -1,18 +1,18 @@
 .about-section {
-    padding: 20px 50px 50px 50px;
+    padding: 0px 0 50px 0;
     position: relative;
     overflow-x: hidden;
     z-index: 2;
     min-height: 100vh;
+    width: 100%;
     margin-top: -140px;
 }
 
 .about-header h1 {
     text-align: center;
-    font-size: 3.5em;
-    padding: 20px 40px;
-    margin: 100px auto 30px;
-    margin-left: 550px;
+    font-size: 2.8em;
+    padding: 15px 30px;
+    margin: 125px auto 25px;
     background-color: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
@@ -23,6 +23,8 @@
 }
 
 .about-content {
+    width: 1100px;
+    margin: 0 auto;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -75,7 +77,7 @@
 
 .image-title {
     margin-top: 25px;
-    font-size: 1rem;
+    font-size: 1.2rem;
     color: #fff;
     display: inline-block;
     white-space: nowrap;
@@ -112,8 +114,8 @@
 }
 
 .about-details h2 {
-    font-size: 2em;
-    margin-top: 20px;
+    font-size: 1.8em;
+    margin-top: 10px;
     color: #ffffff;
     border-bottom: 2px solid rgba(255, 255, 255, 0.3);
     padding-bottom: 5px;
@@ -132,6 +134,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 15px;
+    font-size: 1rem;
 }
 
 .about-details ul li:hover {
@@ -183,6 +186,7 @@
 }
 
 .contact-section h2 {
+    font-size: 1.8rem;
     margin-top: 0;
 }
 
@@ -203,7 +207,7 @@
     color: white;
     text-decoration: none;
     border-radius: 8px;
-    font-size: 1.1em;
+    font-size: 1rem;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     position: relative;
     margin-bottom: 10px;
@@ -221,63 +225,8 @@
 }
 
 @media (min-width: 1440px) {
-    .about-header {
-        margin: 0 375px !important;
-    }
-
     .about-content {
         max-width: 1500px;
-        justify-content: center !important;
-        gap: 125px !important;
-    }
-
-    .about-details {
-        width: 1100px !important;
-        max-width: 1100px !important;
-    }
-
-    .about-details h2 {
-        font-size: 4rem !important;
-        margin-bottom: 20px !important;
-    }
-
-    .about-details p {
-        font-size: 1.8rem !important;
-    }
-
-    .about-details ul {
-        font-size: 1.3rem !important;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
-    }
-
-    .about-image img {
-        max-width: 400px !important;
-        width: 400px !important;
-        height: 400px !important;
-    }
-
-    .image-title {
-        font-size: 3rem !important;
-    }
-
-    .image-email {
-        font-size: 2rem !important;
-    }
-
-    .section-separator::before {
-        height: 3px !important;
-    }
-
-    .contact-section h2 {
-        font-size: 3rem !important;
-    }
-
-    .contact-section p {
-        font-size: 1.8rem !important;
-    }
-
-    .contact-link {
-        font-size: 2rem !important;
     }
 }
 

@@ -11,7 +11,7 @@
 /* Main header - moved up closer to navbar */
 .contactpage-header h1 {
     text-align: center;
-    font-size: 2.8em;
+    font-size: 2.8rem;
     padding: 15px 30px;
     margin: 45px auto 25px;
     background-color: #0a0a0a;
@@ -48,6 +48,7 @@
 }
 
 .contactpage-form-section h2 {
+    margin-top: -5px;
     font-size: 1.8em;
     color: #ffffff;
     margin-bottom: 15px;
@@ -115,7 +116,8 @@
 }
 
 .contactpage-info-section h2 {
-    font-size: 1.8em;
+    margin-top: -5px;
+    font-size: 1.8rem;
     color: #ffffff;
     margin-bottom: 15px;
 }
@@ -158,7 +160,7 @@
 
 .contactpage-method p {
     color: #ffffff;
-    font-size: 1em;
+    font-size: 1rem;
     margin: 5px 0;
 }
 
@@ -181,7 +183,7 @@
     display: inline-block;
     min-width: 100px;
     text-align: center;
-    font-size: 0.9em;
+    font-size: 1rem;
 }
 
 .social-link:hover {
