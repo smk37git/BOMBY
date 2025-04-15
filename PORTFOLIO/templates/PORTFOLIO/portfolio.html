@@ -443,6 +443,7 @@
                             bombElement.style.fontSize = isMobile ? '0.4rem' : (isDesktop ? '0.9rem' : '0.5rem');
                             bombElement.style.lineHeight = '.9';
                             bombElement.style.margin = '0 auto';
+                            bombElement.style.marginBottom = isDesktop ? '-10px' : '0px'
                             bombElement.style.padding = '0';
                             bombElement.style.whiteSpace = 'pre';
                             bombElement.style.color = '#00ff41';
@@ -553,7 +554,7 @@
                     // Adjust the translation based on screen width
                     const bombContainer = document.querySelector('#code-display > div > div:first-child');
                     if (bombContainer) {
-                        bombContainer.style.transform = isDesktop ? 'translateX(-10%)' : 'none';
+                        bombContainer.style.transform = isDesktop ? 'translateX(-11%)' : 'none';
                     }
                     
                     if (readyText) {
