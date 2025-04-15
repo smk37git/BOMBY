@@ -220,7 +220,7 @@
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
 }
 
-@media screen and (min-width: 1920px) {
+@media screen and (min-width: 1919px) and (max-width: 1921px) {
     .about-header {
         margin: 0 375px !important;
     }
