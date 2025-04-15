@@ -581,6 +581,41 @@
     background-image: linear-gradient(45deg, #c833e6, #d75050, #e695fd);
 }
 
+@media (min-width: 1440px) {
+    .store-hero {
+        margin-top: -8rem  !important;
+        margin-bottom: -3rem !important;
+        padding: 0 !important;
+    }
+
+    .main-title h1 {
+        font-size: 7rem !important;
+    }
+
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)) !important;
+        max-width: 1800px !important;  
+    }
+
+    .window-content {
+        height: 300px !important;
+    }
+
+    .website-grid {
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)) !important;
+    }
+
+    .donation-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)) !important;
+        max-width: 1800px !important;
+    }
+
+    .donation-description {
+        max-width: 600px !important;
+        font-size: 2rem !important;
+    }
+}
+
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
     .hero-content {
         margin: 0;
