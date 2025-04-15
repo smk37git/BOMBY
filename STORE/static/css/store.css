@@ -812,11 +812,11 @@
         padding-bottom: 0px;
     }
     
-    .products-grid {
+    .products-grid, .donation-grid {
         grid-template-columns: 1fr;
         gap: 2.5rem;
-        margin: 1rem auto;
-        padding: 30px 15px;
+        margin: 2rem auto;
+        padding: 30px 18px 20px 15px;
         width: 100%;
         max-width: 400px;
     }
