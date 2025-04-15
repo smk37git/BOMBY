@@ -221,8 +221,63 @@
 }
 
 @media (min-width: 1440px) {
+    .about-header {
+        margin: 0 375px !important;
+    }
+
     .about-content {
-        max-width: 1000px;
+        max-width: 1500px;
+        justify-content: center !important;
+        gap: 125px !important;
+    }
+
+    .about-details {
+        width: 1100px !important;
+        max-width: 1100px !important;
+    }
+
+    .about-details h2 {
+        font-size: 4rem !important;
+        margin-bottom: 20px !important;
+    }
+
+    .about-details p {
+        font-size: 1.8rem !important;
+    }
+
+    .about-details ul {
+        font-size: 1.3rem !important;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)) !important;
+    }
+
+    .about-image img {
+        max-width: 400px !important;
+        width: 400px !important;
+        height: 400px !important;
+    }
+
+    .image-title {
+        font-size: 3rem !important;
+    }
+
+    .image-email {
+        font-size: 2rem !important;
+    }
+
+    .section-separator::before {
+        height: 3px !important;
+    }
+
+    .contact-section h2 {
+        font-size: 3rem !important;
+    }
+
+    .contact-section p {
+        font-size: 1.8rem !important;
+    }
+
+    .contact-link {
+        font-size: 2rem !important;
     }
 }
 
