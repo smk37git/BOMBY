@@ -11,6 +11,15 @@ from MAIN.decorators import *
 from .models import Announcement
 from django.conf import settings
 
+# Easter Egg Discount Code
+import json
+import random
+import string
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from STORE.models import DiscountCode
+
+
 # Homepage View
 def home(request):
     return render(request, 'MAIN/home.html')
@@ -162,3 +171,37 @@ def get_active_announcement():
         return Announcement.objects.filter(is_active=True).latest('created_at')
     except Announcement.DoesNotExist:
         return None
+
+# Easter Egg
+def easter_egg(request):
+    return render(request, 'MAIN/minesweeper.html')
+
+@require_POST
+@login_required
+def generate_discount_code(request):
+    """Generate a discount code when user wins the Minesweeper game"""
+    user = request.user
+    
+    # Check if user already has an unused discount code
+    existing_code = DiscountCode.objects.filter(user=user, is_used=False).first()
+    if existing_code:
+        return JsonResponse({
+            'success': True,
+            'code': existing_code.code
+        })
+    
+    # Generate a random code
+    code_chars = string.ascii_uppercase + string.digits
+    code = 'WIN' + ''.join(random.choice(code_chars) for _ in range(7))
+    
+    # Create the discount code
+    discount = DiscountCode.objects.create(
+        code=code,
+        user=user,
+        percentage=10
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'code': code
+    })

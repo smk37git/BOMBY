@@ -34,6 +34,12 @@ import os
 from django.core.paginator import Paginator
 from .decorators import admin_required
 from datetime import datetime, timedelta
+import random
+import string
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
+from STORE.models import DiscountCode
 
 # Signup Form
 def signup(request):
@@ -735,6 +741,66 @@ def bulk_delete_users(request):
         if selected_users:
             deleted_count = User.objects.filter(id__in=selected_users).delete()[0]
             messages.success(request, f"Successfully deleted {deleted_count} users.")
+    
+    return redirect('ACCOUNTS:user_management')
+
+# Add this to your ACCOUNTS/views.py file
+import random
+import string
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
+from STORE.models import DiscountCode
+
+@login_required
+@user_passes_test(is_admin)
+def add_discount(request):
+    if request.method == 'POST':
+        selected_users = request.POST.get('selected_users', '').split(',')
+        
+        if not selected_users or not selected_users[0]:
+            messages.error(request, "No users selected.")
+            return redirect('ACCOUNTS:user_management')
+        
+        success_count = 0
+        existing_count = 0
+        
+        for user_id in selected_users:
+            try:
+                user = User.objects.get(id=user_id)
+                
+                # Check if user already has an active discount code
+                existing_code = DiscountCode.objects.filter(user=user, is_used=False).first()
+                
+                if existing_code:
+                    existing_count += 1
+                    continue
+                
+                # Generate a random code
+                code_chars = string.ascii_uppercase + string.digits
+                code = 'ADMIN' + ''.join(random.choice(code_chars) for _ in range(6))
+                
+                # Create discount code
+                DiscountCode.objects.create(
+                    code=code,
+                    user=user,
+                    percentage=10  # 10% discount
+                )
+                
+                success_count += 1
+                
+            except User.DoesNotExist:
+                continue
+        
+        # Show appropriate messages
+        if success_count > 0:
+            messages.success(request, f"Added discount codes to {success_count} user(s).")
+        
+        if existing_count > 0:
+            messages.info(request, f"{existing_count} user(s) already had active discount codes.")
+        
+        if success_count == 0 and existing_count == 0:
+            messages.error(request, "No discount codes were added.")
     
     return redirect('ACCOUNTS:user_management')
 

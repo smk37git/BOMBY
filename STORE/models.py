@@ -292,3 +292,15 @@ class ProductInteraction(models.Model):
     
     def __str__(self):
         return f"{self.get_interaction_type_display()} on {self.product.name}"
+
+class DiscountCode(models.Model):
+    """Model for storing discount codes"""
+    code = models.CharField(max_length=20, unique=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    percentage = models.IntegerField(default=10)  # Discount percentage
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    used_at = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.code} - {self.user.username} - {'Used' if self.is_used else 'Active'}"

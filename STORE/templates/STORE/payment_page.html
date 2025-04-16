@@ -26,13 +26,35 @@
         <div class="product-description">
             <h2>Order Summary</h2>
             <p>Product: {{ product.name }}</p>
-            <p>Price: ${{ product.price }}</p>
+            
+            <!-- Discount Code Form -->
+            {% if user.is_authenticated and not discount_applied %}
+                <div class="discount-form">
+                    <h3>Have a discount code?</h3>
+                    <form id="discount-form" method="post" action="{% url 'STORE:apply_discount' product.id %}">
+                        {% csrf_token %}
+                        <input type="text" name="discount_code" class="discount-input" placeholder="Enter discount code" required>
+                        <button type="submit" class="apply-btn">Apply</button>
+                    </form>
+                    {% if discount_error %}
+                        <p class="discount-message" style="color: #ff6b6b;">{{ discount_error }}</p>
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
         
         <div class="product-purchase">
             <div class="price-section">
                 <div class="price-label">Total:</div>
-                <div class="price-value">${{ product.price }}</div>
+                <div class="price-value">
+                    {% if discount_applied %}
+                        <span class="original-price">${{ product.price }}</span>
+                        <span class="discounted-price">${{ discounted_price }}</span>
+                        <div style="font-size: 0.8em; color: #33ffa0;">10% Discount Applied</div>
+                    {% else %}
+                        ${{ product.price }}
+                    {% endif %}
+                </div>
             </div>
             
             <!-- PayPal Loading Indicator -->
@@ -77,7 +99,7 @@
                     return actions.order.create({
                         purchase_units: [{
                             amount: {
-                                value: '{{ product.price }}'
+                                value: '{{ discounted_price|default:product.price }}'
                             }
                         }]
                     });
@@ -86,7 +108,7 @@
                 onApprove: function(data, actions) {
                     return actions.order.capture().then(function(orderData) {
                         window.location.href = "{% url 'STORE:payment_success' %}?paymentId=" + 
-                            orderData.id + "&product_id={{ product.id }}";
+                            orderData.id + "&product_id={{ product.id }}{% if discount_applied %}&discount_applied=true{% endif %}";
                     });
                 },
                 

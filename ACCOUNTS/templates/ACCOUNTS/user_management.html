@@ -118,6 +118,21 @@
                 </form>
             </div>
             
+            <!-- New Discount Code Section -->
+            <div class="action-section discount">
+                <h4>Add 10% Discount</h4>
+                <form id="add-discount-form" method="post" action="{% url 'ACCOUNTS:add_discount' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="selected-users-discount" name="selected_users" value="">
+                    <button id="btn-add-discount" type="submit" class="panel-action-button" disabled>Add Discount Code</button>
+                </form>
+                {% if discount_message %}
+                    <div class="discount-message {% if discount_success %}success{% else %}error{% endif %}">
+                        {{ discount_message }}
+                    </div>
+                {% endif %}
+            </div>
+            
             <div class="action-section">
                 <h4>Delete Users</h4>
                 <button id="btn-delete-users" class="panel-action-button danger" disabled>Delete Selected</button>
@@ -157,6 +172,7 @@
         const userTypeSelect = document.querySelector('.user-type-select');
         const changeTypeBtn = document.getElementById('btn-change-type');
         const deleteUsersBtn = document.getElementById('btn-delete-users');
+        const addDiscountBtn = document.getElementById('btn-add-discount');
         
         // Modal elements
         const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
@@ -177,6 +193,7 @@
             userTypeSelect.disabled = !hasSelection;
             changeTypeBtn.disabled = !hasSelection;
             deleteUsersBtn.disabled = !hasSelection;
+            addDiscountBtn.disabled = !hasSelection;
             
             // Handle the Edit Username button
             if (selectedUsers.length === 1) {
@@ -233,6 +250,16 @@
             }
             
             document.getElementById('selected-users-type').value = getSelectedUsers().join(',');
+        });
+        
+        // Handler for Add Discount form submit
+        document.getElementById('add-discount-form').addEventListener('submit', function(e) {
+            if (addDiscountBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+            
+            document.getElementById('selected-users-discount').value = getSelectedUsers().join(',');
         });
         
         // Handler for Delete button

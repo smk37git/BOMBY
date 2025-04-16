@@ -362,6 +362,30 @@
     color: #fff;
 }
 
+.action-section.discount {
+    background-color: rgba(82, 30, 220, 0.05);
+    border-left: 3px solid #9e33e6;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+.discount-message {
+    margin-top: 5px;
+    font-size: 0.9em;
+    padding: 5px;
+    border-radius: 3px;
+}
+
+.discount-message.success {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+}
+
+.discount-message.error {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+}
+
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
     .user_management-title {
         font-size: 4rem;

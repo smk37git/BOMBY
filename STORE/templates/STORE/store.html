@@ -10,12 +10,19 @@
 {% endblock %}
 
 {% block content %}
-    <header class="store-hero">
-        <div class="hero-content">
-            <h1 class="main-title">MY STORE</h1>
-            <p class="subtitle">SERVICES & PRODUCTS</p>
-        </div>
-    </header>
+<header class="store-hero">
+    <div class="hero-content">
+        <h1 class="main-title">MY STORE</h1>
+        <p class="subtitle">SERVICES & PRODUCTS</p>
+        
+        {% if user.is_authenticated and discount_code %}
+            <div class="discount-notification">
+                <p>🎮 You have a 10% discount code: <span class="discount-code">{{ discount_code.code }}</span> 🎮</p>
+                <p style="font-size: 0.8em; margin-top: 5px;">Apply it during checkout to receive 10% off any purchase!</p>
+            </div>
+        {% endif %}
+    </div>
+</header>
 
     <!-- Stream Setup Services Section -->
     <section class="store-section" id="stream-setup">

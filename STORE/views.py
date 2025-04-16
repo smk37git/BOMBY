@@ -29,6 +29,11 @@ from django.db import connection
 from django.db.models import Count, Avg, Sum, Q, F
 from datetime import timedelta
 from .models import PageView, ProductInteraction, Donation
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from decimal import Decimal
+from .models import DiscountCode
 
 def store(request):
     products = [
@@ -41,8 +46,19 @@ def store(request):
         Product.objects.get(id=7),  # Custom Project
     ]
     
+    # Check if user has an active discount code
+    discount_code = None
+    if request.user.is_authenticated:
+        discount_code = DiscountCode.objects.filter(
+            user=request.user,
+            is_used=False
+        ).first()
+    
     # Explicitly disable browser caching
-    response = render(request, 'STORE/store.html', {'products': products})
+    response = render(request, 'STORE/store.html', {
+        'products': products,
+        'discount_code': discount_code
+    })
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
@@ -1815,32 +1831,104 @@ def admin_add_review(request):
     return redirect('STORE:review_management')
 
 ## PAYMENT PROCESSING ##
+@require_POST
+@login_required
+def apply_discount(request, product_id):
+    """Apply a discount code to a product"""
+    product = get_object_or_404(Product, id=product_id, is_active=True)
+    discount_code = request.POST.get('discount_code', '').strip()
+    
+    try:
+        # Check if the code exists and is valid
+        discount = DiscountCode.objects.get(
+            code=discount_code,
+            user=request.user,
+            is_used=False
+        )
+        
+        # Calculate discounted price
+        discount_percent = discount.percentage
+        discounted_price = float(product.price) * (1 - discount_percent/100)
+        discounted_price = round(discounted_price, 2)
+        
+        # Store discount info in session for later use
+        request.session['discount_code_id'] = discount.id
+        
+        context = {
+            'product': product,
+            'paypal_client_id': settings.PAYPAL_CLIENT_ID,
+            'discount_applied': True,
+            'discounted_price': discounted_price
+        }
+        
+        return render(request, 'STORE/payment_page.html', context)
+        
+    except DiscountCode.DoesNotExist:
+        # Code doesn't exist or is already used
+        context = {
+            'product': product,
+            'paypal_client_id': settings.PAYPAL_CLIENT_ID,
+            'discount_error': 'Invalid or expired discount code.'
+        }
+        
+        return render(request, 'STORE/payment_page.html', context)
+
 def payment_page(request, product_id):
     product = get_object_or_404(Product, id=product_id, is_active=True)
     
     # Check if user cancelled a payment
     cancelled = request.GET.get('cancelled', False)
     if cancelled:
-        messages.info(request, "Payment was cancelled. You can try again when you're ready.")
+        messages.info(request, "Payment was cancelled. You can try when you're ready.")
+    
+    # Check if user has an unused discount code
+    discount_code = None
+    has_discount = False
+    discount_applied = False
+    discounted_price = None
+    discount_error = None
+    
+    if request.user.is_authenticated:
+        discount_code = DiscountCode.objects.filter(
+            user=request.user,
+            is_used=False
+        ).first()
+        
+        if discount_code:
+            has_discount = True
+            
+        # Check if a discount is being applied
+        if request.method == 'POST' and 'discount_code' in request.POST:
+            code = request.POST.get('discount_code', '').strip()
+            try:
+                discount = DiscountCode.objects.get(
+                    code=code,
+                    user=request.user,
+                    is_used=False
+                )
+                
+                # Calculate discounted price
+                discount_percent = discount.percentage
+                discounted_price = round(float(product.price) * (1 - discount_percent/100), 2)
+                discount_applied = True
+                
+                # Store in session for later processing
+                request.session['discount_code_id'] = discount.id
+                
+            except DiscountCode.DoesNotExist:
+                discount_error = "Invalid or expired discount code."
     
     context = {
         'product': product,
         'paypal_client_id': settings.PAYPAL_CLIENT_ID,
+        'has_discount': has_discount,
+        'discount_code': discount_code,
+        'discount_applied': discount_applied,
+        'discounted_price': discounted_price,
+        'discount_error': discount_error
     }
     
     response = render(request, 'STORE/payment_page.html', context)
-    
-    # Comprehensive CSP that addresses all the error types
-    response['Content-Security-Policy'] = (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.paypal.com https://*.paypalobjects.com https://*.google.com; "
-        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://*.paypal.com https://*.paypalobjects.com https://unpkg.com https://maxcdn.bootstrapcdn.com; "
-        "font-src 'self' data: https://cdnjs.cloudflare.com https://*.paypal.com https://*.paypalobjects.com https://fonts.gstatic.com https://unpkg.com https://maxcdn.bootstrapcdn.com; "
-        "connect-src 'self' https://*.paypal.com https://*.paypal.cn https://*.paypalobjects.com https://objects.paypal.cn "
-        "https://192.55.233.1 https://*.google.com https://www.google.com https://browser-intake-us5-datadoghq.com https://*.qualtrics.com; "
-        "frame-src 'self' https://*.paypal.com https://*.google.com; "
-        "img-src 'self' data: https://*.paypal.com https://*.paypalobjects.com https://*.google.com;"
-    )
     
     # Add cache control headers
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
@@ -1853,6 +1941,7 @@ def payment_page(request, product_id):
 def payment_success(request):
     payment_id = request.GET.get('paymentId')
     product_id = request.GET.get('product_id')
+    discount_applied = request.GET.get('discount_applied', False)
     
     is_verified, payment_data = verify_paypal_payment(payment_id)
     if not is_verified:
@@ -1860,6 +1949,27 @@ def payment_success(request):
         return redirect('STORE:store')
     
     product = get_object_or_404(Product, id=product_id, is_active=True)
+    
+    # If a discount was applied, mark it as used
+    if discount_applied and request.session.get('discount_code_id'):
+        try:
+            discount = DiscountCode.objects.get(
+                id=request.session.get('discount_code_id'),
+                user=request.user,
+                is_used=False
+            )
+            
+            # Mark as used
+            discount.is_used = True
+            discount.used_at = timezone.now()
+            discount.save()
+            
+            # Clear from session
+            del request.session['discount_code_id']
+            
+        except DiscountCode.DoesNotExist:
+            # Log the error but continue with order creation
+            print(f"Error: Discount code not found for session id {request.session.get('discount_code_id')}")
     
     # Create order
     if int(product_id) == 4:  # Stream Store product

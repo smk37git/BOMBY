@@ -276,6 +276,56 @@ iframe[title^="PayPal"] {
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
+/* Discount Codes */
+.discount-form {
+    margin-bottom: 20px;
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.discount-input {
+    background-color: #222;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 10px;
+    border-radius: 5px;
+    width: 60%;
+    margin-right: 10px;
+}
+
+.apply-btn {
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.apply-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+}
+
+.discount-message {
+    margin-top: 10px;
+    font-size: 0.9em;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #888;
+    margin-right: 10px;
+}
+
+.discounted-price {
+    color: #33ffa0;
+    font-weight: bold;
+}
+
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
     .product-container {
         margin-top: -25px;

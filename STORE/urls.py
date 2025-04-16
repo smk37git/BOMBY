@@ -78,6 +78,7 @@ urlpatterns = [
     path('payment/<int:product_id>/', views.payment_page, name='payment_page'),
     path('payment/success/', views.payment_success, name='payment_success'),
     path('payment/cancel/', views.payment_cancel, name='payment_cancel'),
+    path('apply-discount/<int:product_id>/', views.apply_discount, name='apply_discount'),
 
     # Store Analytics
     path('admin/analytics/', views.store_analytics, name='store_analytics'),

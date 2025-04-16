@@ -16,4 +16,8 @@ urlpatterns = [
     path('announcements/edit/<int:announcement_id>/', views.edit_announcement, name='edit_announcement'),
     path('announcements/toggle/<int:announcement_id>/', views.toggle_announcement, name='toggle_announcement'),
     path('announcements/delete/<int:announcement_id>/', views.delete_announcement, name='delete_announcement'),
+
+    # Easter Egg
+    path('easter-egg/', views.easter_egg, name='easter_egg'),
+    path('generate-discount-code/', views.generate_discount_code, name='generate_discount_code'),
 ]

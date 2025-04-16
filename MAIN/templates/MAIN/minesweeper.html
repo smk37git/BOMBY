@@ -1,0 +1,483 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/minesweeper.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_ascii.html' %}
+{% endblock %}
+
+{% block content %}
+<main>
+    <div class="minesweeper-header">
+        <h1>Minesweeper</h1>
+        <p>Welcome to the secret page, what do you get if you win?</p>
+    </div>
+
+    <div class="game-container">
+        <div class="game-info">
+            <div>Mines: <span id="mine-count">99</span></div>
+            <div>Flags: <span id="flag-count">0</span></div>
+            <div>Time: <span id="timer">0</span>s</div>
+        </div>
+
+        <div class="game-board" id="game-board"></div>
+
+        <div class="game-controls">
+            <button id="new-game-btn" class="game-button">New Game</button>
+            <button id="help-btn" class="game-button">How to Play</button>
+        </div>
+    </div>
+
+    <div class="game-instructions" id="game-instructions" style="display: none;">
+        <h3>How to Play</h3>
+        <p>PC: Left-click to reveal a cell, Right-click to place/remove a flag.</p>
+        <p>Mobile: Click to reveal a cell, Hold to place/remove a flag.</p>
+        <p>Uncover all cells without mines to win a prize!</p>
+        <p>Numbers show how many mines are adjacent to that cell.</p>
+        <button id="close-help-btn" class="game-button">Close</button>
+    </div>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Game configuration
+    let config = {
+        rows: 20,
+        cols: 20,
+        mines: 99
+    };
+
+    // Adjust config for mobile
+    function updateConfigForViewport() {
+        if (window.innerWidth <= 768) {
+            config = {
+                rows: 16,
+                cols: 16,
+                mines: 40
+            };
+        } else {
+            config = {
+                rows: 20,
+                cols: 20,
+                mines: 99
+            };
+        }
+        
+        // Update mine count display
+        document.getElementById('mine-count').textContent = config.mines;
+        
+        // If game is already initialized, restart with new config
+        if (board.length > 0) {
+            initGame();
+        }
+    }
+
+    // Initial settings
+    let board = [];
+    let gameState = {
+        isGameOver: false,
+        isFirstClick: true,
+        flagsPlaced: 0,
+        minesCount: config.mines,
+        revealedCount: 0,
+        startTime: 0,
+        timerInterval: null
+    };
+
+    const gameBoard = document.getElementById('game-board');
+    const mineCountDisplay = document.getElementById('mine-count');
+    const flagCountDisplay = document.getElementById('flag-count');
+    const timerDisplay = document.getElementById('timer');
+    const newGameBtn = document.getElementById('new-game-btn');
+    const helpBtn = document.getElementById('help-btn');
+    const closeHelpBtn = document.getElementById('close-help-btn');
+    const gameInstructions = document.getElementById('game-instructions');
+
+    // Create custom popup elements
+    const customPopupOverlay = document.createElement('div');
+    customPopupOverlay.className = 'custom-popup-overlay';
+    customPopupOverlay.style.display = 'none';
+    
+    const customPopup = document.createElement('div');
+    customPopup.className = 'custom-popup';
+    
+    const customPopupContent = document.createElement('div');
+    customPopupContent.className = 'custom-popup-content';
+    
+    const customPopupMessage = document.createElement('p');
+    customPopupMessage.className = 'custom-popup-message';
+    
+    const customPopupButton = document.createElement('button');
+    customPopupButton.className = 'game-button';
+    customPopupButton.textContent = 'OK';
+    customPopupButton.addEventListener('click', function() {
+        customPopupOverlay.style.display = 'none';
+    });
+    
+    // Assemble popup
+    customPopupContent.appendChild(customPopupMessage);
+    customPopupContent.appendChild(customPopupButton);
+    customPopup.appendChild(customPopupContent);
+    customPopupOverlay.appendChild(customPopup);
+    document.body.appendChild(customPopupOverlay);
+    
+    // Add custom popup styles
+    const customStyles = document.createElement('style');
+    customStyles.textContent = `
+        .custom-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .custom-popup {
+            background-color: #0a0a0a;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            max-width: 90%;
+            width: 300px;
+            text-align: center;
+        }
+        
+        .custom-popup-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .custom-popup-message {
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+    `;
+    document.head.appendChild(customStyles);
+    
+    // Function to show custom popup
+    function showCustomPopup(message) {
+        customPopupMessage.textContent = message;
+        customPopupOverlay.style.display = 'flex';
+    }
+
+    // Check viewport size and update config
+    updateConfigForViewport();
+    
+    // Listen for resize events
+    window.addEventListener('resize', updateConfigForViewport);
+
+    // Initialize the game
+    initGame();
+
+    // Generate the board
+    function initGame() {
+        // Clear any existing timer
+        if (gameState.timerInterval) {
+            clearInterval(gameState.timerInterval);
+            gameState.timerInterval = null;
+        }
+
+        // Reset game state
+        gameState = {
+            isGameOver: false,
+            isFirstClick: true,
+            flagsPlaced: 0,
+            minesCount: config.mines,
+            revealedCount: 0,
+            startTime: 0,
+            timerInterval: null
+        };
+
+        // Update display
+        mineCountDisplay.textContent = gameState.minesCount;
+        flagCountDisplay.textContent = gameState.flagsPlaced;
+        timerDisplay.textContent = '0';
+
+        // Clear the board
+        gameBoard.innerHTML = '';
+        
+        // Set grid columns
+        gameBoard.style.gridTemplateColumns = `repeat(${config.cols}, 1fr)`;
+
+        // Create the cells
+        board = [];
+        
+        for (let row = 0; row < config.rows; row++) {
+            const boardRow = [];
+            
+            for (let col = 0; col < config.cols; col++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.row = row;
+                cell.dataset.col = col;
+                
+                // Add event listeners
+                cell.addEventListener('click', handleCellClick);
+                cell.addEventListener('contextmenu', handleRightClick);
+                
+                gameBoard.appendChild(cell);
+                
+                // Add cell to the board data
+                boardRow.push({
+                    element: cell,
+                    isMine: false,
+                    isRevealed: false,
+                    isFlagged: false,
+                    adjacentMines: 0
+                });
+            }
+            
+            board.push(boardRow);
+        }
+    }
+
+    // Handle left-click on a cell
+    function handleCellClick(event) {
+        if (gameState.isGameOver) return;
+        
+        const row = parseInt(event.target.dataset.row);
+        const col = parseInt(event.target.dataset.col);
+        const cell = board[row][col];
+        
+        // Ignore if the cell is flagged or already revealed
+        if (cell.isFlagged || cell.isRevealed) return;
+        
+        // Start the timer on first click
+        if (gameState.isFirstClick) {
+            startTimer();
+            placeMines(row, col);
+            gameState.isFirstClick = false;
+        }
+        
+        // Game over if cell is a mine
+        if (cell.isMine) {
+            revealMines();
+            endGame(false);
+            return;
+        }
+        
+        // Reveal the cell
+        revealCell(row, col);
+        
+        // Check if won
+        checkWinCondition();
+    }
+
+    // Handle right-click (flag placement)
+    function handleRightClick(event) {
+        event.preventDefault();
+        
+        if (gameState.isGameOver) return;
+        
+        const row = parseInt(event.target.dataset.row);
+        const col = parseInt(event.target.dataset.col);
+        const cell = board[row][col];
+        
+        // Ignore if the cell is already revealed
+        if (cell.isRevealed) return;
+        
+        // Toggle flag state
+        cell.isFlagged = !cell.isFlagged;
+        
+        if (cell.isFlagged) {
+            cell.element.classList.add('flagged');
+            gameState.flagsPlaced++;
+        } else {
+            cell.element.classList.remove('flagged');
+            gameState.flagsPlaced--;
+        }
+        
+        // Update flag count display
+        flagCountDisplay.textContent = gameState.flagsPlaced;
+    }
+
+    // Place mines randomly (after first click)
+    function placeMines(clickedRow, clickedCol) {
+        let minesPlaced = 0;
+        const rows = config.rows;
+        const cols = config.cols;
+        const totalCells = rows * cols;
+        
+        // Make sure we don't place too many mines
+        const maxMines = Math.min(gameState.minesCount, totalCells - 9);
+        
+        while (minesPlaced < maxMines) {
+            const randomRow = Math.floor(Math.random() * rows);
+            const randomCol = Math.floor(Math.random() * cols);
+            
+            // Avoid placing a mine at the clicked cell or adjacent cells
+            const isNearFirstClick = Math.abs(randomRow - clickedRow) <= 1 && 
+                                     Math.abs(randomCol - clickedCol) <= 1;
+            
+            if (!board[randomRow][randomCol].isMine && !isNearFirstClick) {
+                board[randomRow][randomCol].isMine = true;
+                minesPlaced++;
+            }
+        }
+        
+        // Calculate adjacent mines for each cell
+        for (let row = 0; row < rows; row++) {
+            for (let col = 0; col < cols; col++) {
+                board[row][col].adjacentMines = countAdjacentMines(row, col);
+            }
+        }
+    }
+
+    // Count mines adjacent to a cell
+    function countAdjacentMines(row, col) {
+        let count = 0;
+        
+        for (let r = Math.max(0, row - 1); r <= Math.min(row + 1, config.rows - 1); r++) {
+            for (let c = Math.max(0, col - 1); c <= Math.min(col + 1, config.cols - 1); c++) {
+                if (r === row && c === col) continue;
+                if (board[r][c].isMine) count++;
+            }
+        }
+        
+        return count;
+    }
+
+    // Reveal a cell
+    function revealCell(row, col) {
+        const cell = board[row][col];
+        
+        // Skip if already revealed or flagged
+        if (cell.isRevealed || cell.isFlagged) return;
+        
+        // Reveal the cell
+        cell.isRevealed = true;
+        cell.element.classList.add('revealed');
+        gameState.revealedCount++;
+        
+        // Add data-adjacent attribute for styling
+        if (cell.adjacentMines > 0) {
+            cell.element.textContent = cell.adjacentMines;
+            cell.element.setAttribute('data-adjacent', cell.adjacentMines);
+        } else {
+            // If no adjacent mines, reveal all adjacent cells recursively
+            for (let r = Math.max(0, row - 1); r <= Math.min(row + 1, config.rows - 1); r++) {
+                for (let c = Math.max(0, col - 1); c <= Math.min(col + 1, config.cols - 1); c++) {
+                    if (r === row && c === col) continue;
+                    revealCell(r, c);
+                }
+            }
+        }
+    }
+
+    // Reveal all mines when the game is lost
+    function revealMines() {
+        for (let row = 0; row < config.rows; row++) {
+            for (let col = 0; col < config.cols; col++) {
+                const cell = board[row][col];
+                
+                if (cell.isMine) {
+                    cell.element.classList.add('revealed', 'mine');
+                    cell.element.textContent = '💣';
+                }
+            }
+        }
+    }
+
+    // Start the timer
+    function startTimer() {
+        gameState.startTime = Date.now();
+        gameState.timerInterval = setInterval(() => {
+            const elapsedSeconds = Math.floor((Date.now() - gameState.startTime) / 1000);
+            timerDisplay.textContent = elapsedSeconds;
+        }, 1000);
+    }
+
+    // End the game
+    function endGame(isWin) {
+        gameState.isGameOver = true;
+        clearInterval(gameState.timerInterval);
+        
+        setTimeout(() => {
+            if (isWin) {
+                // Request a discount code from the server when user wins
+                fetch('/generate-discount-code/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showCustomPopup(`Congratulations! You've earned a 10% Discount Code: ${data.code}`);
+                    } else {
+                        showCustomPopup('Congratulations! You won the game!');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error generating discount code:', error);
+                    showCustomPopup('Congratulations! You won the game!');
+                });
+            } else {
+                showCustomPopup('Game over! You hit a mine.');
+            }
+        }, 100);
+    }
+
+    // Add this helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Check if all non-mine cells are revealed
+    function checkWinCondition() {
+        const totalCells = config.rows * config.cols;
+        const safeCells = totalCells - gameState.minesCount;
+        
+        if (gameState.revealedCount === safeCells) {
+            // Flag all mines
+            for (let row = 0; row < config.rows; row++) {
+                for (let col = 0; col < config.cols; col++) {
+                    if (board[row][col].isMine && !board[row][col].isFlagged) {
+                        board[row][col].isFlagged = true;
+                        board[row][col].element.classList.add('flagged');
+                        gameState.flagsPlaced++;
+                    }
+                }
+            }
+            
+            flagCountDisplay.textContent = gameState.flagsPlaced;
+            endGame(true);
+        }
+    }
+
+    // Event listeners for buttons
+    newGameBtn.addEventListener('click', initGame);
+    
+    helpBtn.addEventListener('click', function() {
+        gameInstructions.style.display = 'block';
+    });
+    
+    closeHelpBtn.addEventListener('click', function() {
+        gameInstructions.style.display = 'none';
+    });
+});
+</script>
+{% endblock %}
