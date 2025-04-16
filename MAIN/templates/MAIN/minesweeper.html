@@ -49,6 +49,22 @@ function storeWinInSession() {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Add viewport meta tag to prevent user scaling (zooming)
+    function addViewportMeta() {
+        let meta = document.querySelector('meta[name="viewport"]');
+        
+        if (!meta) {
+            meta = document.createElement('meta');
+            meta.name = 'viewport';
+            document.head.appendChild(meta);
+        }
+        
+        meta.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+    }
+    
+    // Call this first to prevent zoom issues
+    addViewportMeta();
+
     // Game configuration
     let config = {
         rows: 20,
@@ -108,6 +124,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (board.length > 0) {
             initGame();
         }
+    }
+
+    // Fix the window resize event to completely prevent game reset on zoom
+    function fixResizeEvent() {
+        // Remove the existing resize event that causes game resets
+        window.removeEventListener('resize', updateConfigForViewport);
+        
+        // We don't add any new resize event handler that would reset the game
+        // This ensures zooming will never reset the game
     }
 
     // Initial settings
@@ -208,8 +233,91 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check viewport size and update config
     updateConfigForViewport();
     
-    // Listen for resize events
-    window.addEventListener('resize', updateConfigForViewport);
+    // Add touch support for mobile devices
+    function addTouchSupport() {
+        // Track touch start time for detecting long press
+        let touchStartTime;
+        let touchTimer;
+        
+        gameBoard.addEventListener('touchstart', function(event) {
+            if (gameState.isGameOver) return;
+            
+            // Prevent zoom and default behavior
+            event.preventDefault();
+            
+            // Record when the touch started
+            touchStartTime = Date.now();
+            
+            // Get the touched element
+            const cell = event.target;
+            
+            // Set a timer to detect long press
+            touchTimer = setTimeout(() => {
+                // Handle as right-click if held for 500ms or longer
+                if (cell.classList.contains('cell')) {
+                    const row = parseInt(cell.dataset.row);
+                    const col = parseInt(cell.dataset.col);
+                    
+                    // Toggle flag
+                    if (row >= 0 && col >= 0) {
+                        const cellObj = board[row][col];
+                        
+                        // Skip if already revealed
+                        if (cellObj.isRevealed) return;
+                        
+                        // Toggle flag
+                        cellObj.isFlagged = !cellObj.isFlagged;
+                        
+                        if (cellObj.isFlagged) {
+                            cell.classList.add('flagged');
+                            gameState.flagsPlaced++;
+                        } else {
+                            cell.classList.remove('flagged');
+                            gameState.flagsPlaced--;
+                        }
+                        
+                        // Update flag count display
+                        flagCountDisplay.textContent = gameState.flagsPlaced;
+                    }
+                }
+            }, 500);
+        }, { passive: false });
+        
+        gameBoard.addEventListener('touchend', function(event) {
+            if (gameState.isGameOver) return;
+            
+            // Prevent default behavior
+            event.preventDefault();
+            
+            // Clear the long press timer
+            clearTimeout(touchTimer);
+            
+            // If touch duration was less than 500ms, treat as a regular click
+            if (Date.now() - touchStartTime < 500) {
+                const cell = event.target;
+                
+                if (cell.classList.contains('cell')) {
+                    const row = parseInt(cell.dataset.row);
+                    const col = parseInt(cell.dataset.col);
+                    
+                    if (row >= 0 && col >= 0) {
+                        // Simulate a regular click
+                        handleCellClick({ target: cell });
+                    }
+                }
+            }
+        }, { passive: false });
+        
+        // Prevent zoom on double tap
+        gameBoard.addEventListener('touchmove', function(event) {
+            // Prevent default behavior (scrolling/zooming)
+            event.preventDefault();
+        }, { passive: false });
+    }
+    
+    // Apply our fixes
+    addTouchSupport();
+    fixResizeEvent();
 
     // Initialize the game
     initGame();
