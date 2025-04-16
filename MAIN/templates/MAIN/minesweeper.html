@@ -13,7 +13,9 @@
 <main>
     <div class="minesweeper-header">
         <h1>Minesweeper</h1>
-        <p>Welcome to the secret page, what do you get if you win?</p>
+        <p>Welcome to the secret page!</p>
+        <br></br>
+        <p>If you win you'll get a prize!</p>
     </div>
 
     <div class="game-container">
@@ -42,6 +44,11 @@
 </main>
 
 <script>
+// Store win state in session storage for logged-out users
+function storeWinInSession() {
+    sessionStorage.setItem('minesweeperWin', 'true');
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Game configuration
     let config = {
@@ -49,6 +56,35 @@ document.addEventListener('DOMContentLoaded', function() {
         cols: 20,
         mines: 99
     };
+
+    // Check if user is authenticated
+    const userIsAuthenticated = '{% if user.is_authenticated %}true{% else %}false{% endif %}';
+
+    // Check for previous wins when user logs in
+    if (userIsAuthenticated && sessionStorage.getItem('minesweeperWin') === 'true') {
+        // Remove the win flag
+        sessionStorage.removeItem('minesweeperWin');
+        
+        // Request discount code for the logged-in user
+        fetch('/generate-discount-code/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                setTimeout(() => {
+                    showCustomPopup(`Welcome back! Here's your 10% Discount Code: ${data.code}`);
+                }, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error generating discount code:', error);
+        });
+    }
 
     // Adjust config for mobile
     function updateConfigForViewport() {
@@ -404,35 +440,100 @@ document.addEventListener('DOMContentLoaded', function() {
         
         setTimeout(() => {
             if (isWin) {
-                // Request a discount code from the server when user wins
-                fetch('/generate-discount-code/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showCustomPopup(`Congratulations! You've earned a 10% Discount Code: ${data.code}`);
-                    } else {
-                        // Handle case where user isn't eligible for a new code
-                        if (data.message) {
-                            showCustomPopup(`Congratulations on winning! ${data.message}`);
-                        } else {
-                            showCustomPopup('Congratulations! You won the game!');
+                // Store win in session storage for later redemption
+                if (!userIsAuthenticated) {
+                    storeWinInSession();
+                }
+                
+                if (userIsAuthenticated) {
+                    // Request a discount code from the server when user wins
+                    fetch('/generate-discount-code/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken')
                         }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error generating discount code:', error);
-                    showCustomPopup('Congratulations! You won the game!');
-                });
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showCustomPopup(`Congratulations! You've earned a 10% Discount Code: ${data.code}`);
+                        } else {
+                            // Handle case where user isn't eligible for a new code
+                            if (data.message) {
+                                showCustomPopup(`Congratulations on winning! ${data.message}`);
+                            } else {
+                                showCustomPopup('Congratulations! You won the game!');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error generating discount code:', error);
+                        showCustomPopup('Congratulations! You won the game!');
+                    });
+                } else {
+                    // Special message for logged-out users
+                    showCustomLoginPopup();
+                }
             } else {
                 showCustomPopup('Game over! You hit a mine.');
             }
         }, 100);
+    }
+
+    function showCustomLoginPopup() {
+        // Create custom popup for logged-out users
+        const customPopupOverlay = document.querySelector('.custom-popup-overlay');
+        const customPopupMessage = document.querySelector('.custom-popup-message');
+        const customPopupContent = document.querySelector('.custom-popup-content');
+        const customPopupButton = document.querySelector('.custom-popup button');
+        
+        // Update message
+        customPopupMessage.innerHTML = 'Congratulations! You\'ve won a 10% discount!<br><br>Login or create an account to redeem your discount.';
+        
+        // Add login and signup buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '10px';
+        buttonContainer.style.justifyContent = 'center';
+        buttonContainer.style.width = '100%';
+        
+        const loginButton = document.createElement('a');
+        loginButton.href = '/accounts/login/?next=/easter-egg/';
+        loginButton.className = 'game-button';
+        loginButton.textContent = 'Log In';
+        loginButton.style.textDecoration = 'none';
+        
+        const signupButton = document.createElement('a');
+        signupButton.href = '/accounts/signup/';
+        signupButton.className = 'game-button';
+        signupButton.textContent = 'Sign Up';
+        signupButton.style.textDecoration = 'none';
+        
+        buttonContainer.appendChild(loginButton);
+        buttonContainer.appendChild(signupButton);
+        
+        // Replace the OK button with our new buttons
+        customPopupButton.style.display = 'none';
+        customPopupContent.appendChild(buttonContainer);
+        
+        // Show the popup
+        customPopupOverlay.style.display = 'flex';
+        
+        // Add an extra close button
+        const closeButton = document.createElement('button');
+        closeButton.className = 'game-button';
+        closeButton.textContent = 'Close';
+        closeButton.style.marginTop = '10px';
+        closeButton.addEventListener('click', function() {
+            customPopupOverlay.style.display = 'none';
+            // Restore original popup content
+            customPopupButton.style.display = 'block';
+            buttonContainer.remove();
+            closeButton.remove();
+        });
+        
+        customPopupContent.appendChild(closeButton);
     }
 
     // Add this helper function to get CSRF token
