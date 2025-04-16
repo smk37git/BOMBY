@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Check if user is authenticated
-    const userIsAuthenticated = '{% if user.is_authenticated %}true{% else %}false{% endif %}';
+    const userIsAuthenticated = "{{ user.is_authenticated }}" === "True";
 
     // Check for previous wins when user logs in
     if (userIsAuthenticated && sessionStorage.getItem('minesweeperWin') === 'true') {
