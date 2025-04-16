@@ -1,6 +1,16 @@
 {% extends 'MAIN/base.html' %}
 {% load static %}
 
+{% block meta_tags %}
+<meta property="og:title" content="BOMBY">
+<meta property="og:description" content="Streaming and Recording Setup, Freelance Services, and Portfolio">
+<meta name="description" content="Streaming and Recording Setup, Freelance Services, and Portfolio">
+<meta property="og:image" content="https://bomby.us/MAIN/static/images/BOMBY.png">
+<meta property="og:url" content="https://bomby.us">
+<meta property="og:type" content="website">
+<meta name="apple-mobile-web-app-title" content="BOMBY">
+{% endblock %}
+
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/home.css' %}">
 {% endblock %}
@@ -10,13 +20,6 @@
 {% endblock %}
 
 {% block content %}
-<!-- Meta Information -->
-<meta property="og:title" content="BOMBY">
-<meta property="og:description" content="Streaming and Recording Setup, Freelance Services, and Portfolio">
-<meta property="og:image" content="https://bomby.us/MAIN/static/images/BOMBY.png">
-<meta property="og:url" content="https://bomby.us">
-<meta property="og:type" content="website">
-<meta name="apple-mobile-web-app-title" content="BOMBY">
 
     <!-- Hero Section -->
     <section class="hero-section">
