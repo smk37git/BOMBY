@@ -120,12 +120,25 @@
             
             <!-- New Discount Code Section -->
             <div class="action-section discount">
-                <h4>Add 10% Discount</h4>
+                <h4>Discount Management</h4>
                 <form id="add-discount-form" method="post" action="{% url 'ACCOUNTS:add_discount' %}">
                     {% csrf_token %}
                     <input type="hidden" id="selected-users-discount" name="selected_users" value="">
-                    <button id="btn-add-discount" type="submit" class="panel-action-button" disabled>Add Discount Code</button>
+                    <button id="btn-add-discount" type="submit" class="panel-action-button" disabled>Add 10% Discount Code</button>
                 </form>
+                
+                <form id="remove-discount-form" method="post" action="{% url 'ACCOUNTS:remove_discount' %}" style="margin-top:10px;">
+                    {% csrf_token %}
+                    <input type="hidden" id="selected-users-remove-discount" name="selected_users" value="">
+                    <button id="btn-remove-discount" type="submit" class="panel-action-button" disabled>Remove Discount Code</button>
+                </form>
+                
+                <form id="check-discount-form" method="post" action="{% url 'ACCOUNTS:check_discount_history' %}" style="margin-top:10px;">
+                    {% csrf_token %}
+                    <input type="hidden" id="selected-users-check-discount" name="selected_users" value="">
+                    <button id="btn-check-discount" type="submit" class="panel-action-button" disabled>Check Discount History</button>
+                </form>
+                
                 {% if discount_message %}
                     <div class="discount-message {% if discount_success %}success{% else %}error{% endif %}">
                         {{ discount_message }}
@@ -173,6 +186,8 @@
         const changeTypeBtn = document.getElementById('btn-change-type');
         const deleteUsersBtn = document.getElementById('btn-delete-users');
         const addDiscountBtn = document.getElementById('btn-add-discount');
+        const removeDiscountBtn = document.getElementById('btn-remove-discount');
+        const checkDiscountBtn = document.getElementById('btn-check-discount');
         
         // Modal elements
         const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
@@ -194,6 +209,8 @@
             changeTypeBtn.disabled = !hasSelection;
             deleteUsersBtn.disabled = !hasSelection;
             addDiscountBtn.disabled = !hasSelection;
+            removeDiscountBtn.disabled = !hasSelection;
+            checkDiscountBtn.disabled = !hasSelection;
             
             // Handle the Edit Username button
             if (selectedUsers.length === 1) {
@@ -253,13 +270,33 @@
         });
         
         // Handler for Add Discount form submit
-        document.getElementById('add-discount-form').addEventListener('submit', function(e) {
+        document.getElementById('add-discount-form')?.addEventListener('submit', function(e) {
             if (addDiscountBtn.disabled) {
                 e.preventDefault();
                 return;
             }
             
             document.getElementById('selected-users-discount').value = getSelectedUsers().join(',');
+        });
+        
+        // Handler for Remove Discount form submit
+        document.getElementById('remove-discount-form')?.addEventListener('submit', function(e) {
+            if (removeDiscountBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+            
+            document.getElementById('selected-users-remove-discount').value = getSelectedUsers().join(',');
+        });
+        
+        // Handler for Check Discount History form submit
+        document.getElementById('check-discount-form')?.addEventListener('submit', function(e) {
+            if (checkDiscountBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+            
+            document.getElementById('selected-users-check-discount').value = getSelectedUsers().join(',');
         });
         
         // Handler for Delete button

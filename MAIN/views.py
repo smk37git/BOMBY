@@ -190,6 +190,14 @@ def generate_discount_code(request):
             'code': existing_code.code
         })
     
+    # Check if user has used a discount code before (from any source)
+    has_used_discount = DiscountCode.objects.filter(user=user, is_used=True).exists()
+    if has_used_discount:
+        return JsonResponse({
+            'success': False,
+            'message': 'You have already used a discount code previously.'
+        })
+    
     # Generate a random code
     code_chars = string.ascii_uppercase + string.digits
     code = 'WIN' + ''.join(random.choice(code_chars) for _ in range(7))
@@ -198,7 +206,8 @@ def generate_discount_code(request):
     discount = DiscountCode.objects.create(
         code=code,
         user=user,
-        percentage=10
+        percentage=10,
+        source='minesweeper'
     )
     
     return JsonResponse({

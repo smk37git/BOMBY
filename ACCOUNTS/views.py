@@ -764,6 +764,7 @@ def add_discount(request):
         
         success_count = 0
         existing_count = 0
+        used_before_count = 0
         
         for user_id in selected_users:
             try:
@@ -774,6 +775,13 @@ def add_discount(request):
                 
                 if existing_code:
                     existing_count += 1
+                    continue
+                
+                # Check if user has used a discount code before
+                has_used_discount = DiscountCode.objects.filter(user=user, is_used=True).exists()
+                
+                if has_used_discount:
+                    used_before_count += 1
                     continue
                 
                 # Generate a random code
@@ -798,9 +806,91 @@ def add_discount(request):
         
         if existing_count > 0:
             messages.info(request, f"{existing_count} user(s) already had active discount codes.")
+            
+        if used_before_count > 0:
+            messages.warning(request, f"{used_before_count} user(s) have already used a discount code previously.")
         
-        if success_count == 0 and existing_count == 0:
+        if success_count == 0 and existing_count == 0 and used_before_count == 0:
             messages.error(request, "No discount codes were added.")
+    
+    return redirect('ACCOUNTS:user_management')
+
+@login_required
+@user_passes_test(is_admin)
+def remove_discount(request):
+    if request.method == 'POST':
+        selected_users = request.POST.get('selected_users', '').split(',')
+        
+        if not selected_users or not selected_users[0]:
+            messages.error(request, "No users selected.")
+            return redirect('ACCOUNTS:user_management')
+        
+        removed_count = 0
+        
+        for user_id in selected_users:
+            try:
+                user = User.objects.get(id=user_id)
+                
+                # Find and remove active discount codes
+                codes = DiscountCode.objects.filter(user=user, is_used=False)
+                count = codes.count()
+                codes.delete()
+                
+                removed_count += count
+                
+            except User.DoesNotExist:
+                continue
+        
+        if removed_count > 0:
+            messages.success(request, f"Removed {removed_count} active discount code(s).")
+        else:
+            messages.info(request, "No active discount codes found to remove.")
+    
+    return redirect('ACCOUNTS:user_management')
+
+@login_required
+@user_passes_test(is_admin)
+def check_discount_history(request):
+    if request.method == 'POST':
+        selected_users = request.POST.get('selected_users', '').split(',')
+        
+        if not selected_users or not selected_users[0]:
+            messages.error(request, "No users selected.")
+            return redirect('ACCOUNTS:user_management')
+        
+        # Only check the first selected user for simplicity
+        user_id = selected_users[0]
+        
+        try:
+            user = User.objects.get(id=user_id)
+            
+            # Get active discount codes
+            active_codes = DiscountCode.objects.filter(user=user, is_used=False)
+            
+            # Get used discount codes
+            used_codes = DiscountCode.objects.filter(user=user, is_used=True).order_by('-used_at')
+            
+            if active_codes.exists():
+                codes_info = ", ".join([f"{code.code} ({code.percentage}%)" for code in active_codes])
+                messages.success(request, f"{user.username} has {active_codes.count()} active discount code(s): {codes_info}")
+            else:
+                messages.info(request, f"{user.username} has no active discount codes.")
+            
+            if used_codes.exists():
+                used_info = []
+                for code in used_codes[:3]:  # Show only the 3 most recent
+                    used_date = code.used_at.strftime('%Y-%m-%d') if code.used_at else "unknown date"
+                    used_info.append(f"{code.code} ({code.percentage}%) used on {used_date}")
+                
+                total = used_codes.count()
+                shown = min(3, total)
+                
+                messages.info(request, f"{user.username} has used {total} discount code(s). Most recent: {'; '.join(used_info)}")
+            else:
+                messages.info(request, f"{user.username} has never used a discount code.")
+                
+        except User.DoesNotExist:
+            messages.error(request, "User not found.")
     
     return redirect('ACCOUNTS:user_management')
 

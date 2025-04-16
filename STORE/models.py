@@ -301,6 +301,21 @@ class DiscountCode(models.Model):
     is_used = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     used_at = models.DateTimeField(null=True, blank=True)
+    source = models.CharField(max_length=20, default='admin', choices=[
+        ('admin', 'Admin Generated'),
+        ('minesweeper', 'Minesweeper Win'),
+        ('other', 'Other')
+    ])
+    
+    class Meta:
+        ordering = ['-created_at']
     
     def __str__(self):
-        return f"{self.code} - {self.user.username} - {'Used' if self.is_used else 'Active'}"
+        status = 'Used' if self.is_used else 'Active'
+        return f"{self.code} - {self.user.username} - {status} ({self.percentage}%)"
+        
+    def mark_used(self):
+        """Mark the discount code as used with the current timestamp"""
+        self.is_used = True
+        self.used_at = timezone.now()
+        self.save()

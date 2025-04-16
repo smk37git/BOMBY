@@ -417,7 +417,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (data.success) {
                         showCustomPopup(`Congratulations! You've earned a 10% Discount Code: ${data.code}`);
                     } else {
-                        showCustomPopup('Congratulations! You won the game!');
+                        // Handle case where user isn't eligible for a new code
+                        if (data.message) {
+                            showCustomPopup(`Congratulations on winning! ${data.message}`);
+                        } else {
+                            showCustomPopup('Congratulations! You won the game!');
+                        }
                     }
                 })
                 .catch(error => {
