@@ -5,14 +5,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="BOMBY">
+    <meta property="og:description" content="Streaming and Recording Setup, Freelance Services, and Portfolio">
+    <meta name="description" content="Streaming and Recording Setup, Freelance Services, and Portfolio">
+    <meta property="og:image" content="https://bomby.us/static/images/bomby_meta.png">
+    <meta property="og:url" content="https://bomby.us">
+    <meta property="og:type" content="website">
+    <meta name="apple-mobile-web-app-title" content="BOMBY">
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
 
     <!-- Custom css files for other pages -->
     {% block extra_css %}{% endblock %}
-
-    <!-- Meta Tags -->
+    
+    <!-- Extra meta tags for specific pages -->
     {% block meta_tags %}{% endblock %}
 </head>
 <body>
