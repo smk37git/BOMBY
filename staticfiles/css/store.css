@@ -593,6 +593,10 @@
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
 }
 
+.discount-notification p {
+    font-size: 1rem !important;
+}
+
 @keyframes pulse {
     0% { box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3); }
     50% { box-shadow: 0 5px 20px rgba(160, 74, 226, 0.6); }

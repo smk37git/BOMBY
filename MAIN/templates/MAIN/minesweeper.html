@@ -19,7 +19,7 @@
 
     <div class="game-container">
         <div class="game-info">
-            <div>Mines: <span id="mine-count">99</span></div>
+            <div>Mines: <span id="mine-count">74</span></div>
             <div>Flags: <span id="flag-count">0</span></div>
             <div>Time: <span id="timer">0</span>s</div>
         </div>
@@ -67,9 +67,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Game configuration
     let config = {
-        rows: 20,
-        cols: 20,
-        mines: 99
+        rows: 15,
+        cols: 15,
+        mines: 74
     };
 
     // Check if user is authenticated
@@ -105,15 +105,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateConfigForViewport() {
         if (window.innerWidth <= 768) {
             config = {
-                rows: 16,
-                cols: 16,
-                mines: 40
+                rows: 15,
+                cols: 15,
+                mines: 74
             };
         } else {
             config = {
-                rows: 20,
-                cols: 20,
-                mines: 99
+                rows: 15,
+                cols: 15,
+                mines: 74
             };
         }
         
@@ -596,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const customPopupButton = document.querySelector('.custom-popup button');
         
         // Update message
-        customPopupMessage.innerHTML = 'Congratulations! You\'ve won a 10% discount!<br><br>Login or create an account to redeem your discount.';
+        customPopupMessage.innerHTML = 'Congratulations! You\'ve won a 10% discount!<br><br>Login or create an account to redeem your discount. Once you are logged in, return here to redeem your code!';
         
         // Add login and signup buttons
         const buttonContainer = document.createElement('div');
