@@ -157,6 +157,7 @@ WHITENOISE_MIMETYPES = {
     '.jpg': 'image/jpeg',
     '.png': 'image/png',
     '.svg': 'image/svg+xml',
+    '.webmanifest': 'application/manifest+json',
 }
 
 # Default primary key field type
