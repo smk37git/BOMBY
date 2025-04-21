@@ -166,7 +166,7 @@
                                 {% if products.4.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
                             <a href="{% url 'MAIN:coming_soon' %}" class="buy-button">VIEW PACKAGE</a>
-                            <div class="product-price">${{ products.3.price|default:"150" }}</div>
+                            <div class="product-price">${{ products.4.price|default:"750" }}</div>
                         </div>
                     </div>
                 </a>
@@ -189,10 +189,10 @@
                         </div>
                         <div class="window-footer">
                             <div class="product-status {% if products.4.is_active %}active{% else %}inactive{% endif %}">
-                                {% if products.4.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
+                                {% if products.5.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
                             <a href="{% url 'MAIN:coming_soon' %}" class="buy-button">VIEW PACKAGE</a>
-                            <div class="product-price">${{ products.4.price|default:"350" }}</div>
+                            <div class="product-price">${{ products.5.price|default:"1500" }}</div>
                         </div>
                     </div>
                 </a>
