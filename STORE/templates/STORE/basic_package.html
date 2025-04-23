@@ -292,10 +292,26 @@
             </div>
         </div>
     </div>
+
+    <!-- Lightbox Modal -->
+    <div id="lightboxModal" class="lightbox-modal">
+        <span class="close-modal">&times;</span>
+        <div class="lightbox-content">
+            <img id="lightboxImage" src="" alt="Lightbox Image">
+            <div class="lightbox-nav">
+                <button id="prevButton" class="nav-button"><i class="fas fa-chevron-left"></i></button>
+                <button id="nextButton" class="nav-button"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+
+        // Full screen featured image
+        initLightbox();
+
         // Image gallery functionality
         const thumbnails = document.querySelectorAll('.thumbnail');
         const featuredImage = document.getElementById('featuredImage');
@@ -500,6 +516,97 @@
                     }
                 });
             }
+        }
+
+        function initLightbox() {
+            const modal = document.getElementById('lightboxModal');
+            const modalImg = document.getElementById('lightboxImage');
+            const closeBtn = document.querySelector('.close-modal');
+            const prevBtn = document.getElementById('prevButton');
+            const nextBtn = document.getElementById('nextButton');
+            const thumbnails = document.querySelectorAll('.thumbnail:not(.video-thumb)');
+            
+            // Current image index
+            let currentIndex = 0;
+            
+            // Get all image sources from thumbnails (excluding video thumbnails)
+            const imageSources = Array.from(thumbnails)
+                .filter(thumb => thumb.dataset.image)
+                .map(thumb => thumb.dataset.image);
+            
+            // Function to open lightbox
+            function openLightbox(imageSrc) {
+                modal.style.display = 'block';
+                modalImg.src = imageSrc;
+                
+                // Find the current index
+                currentIndex = imageSources.indexOf(imageSrc);
+                if (currentIndex === -1) currentIndex = 0;
+                
+                // Disable scrolling on body
+                document.body.style.overflow = 'hidden';
+            }
+            
+            // Add click handlers to all image thumbnails
+            thumbnails.forEach(thumb => {
+                if (thumb.dataset.image) {
+                    thumb.addEventListener('click', function() {
+                    });
+                }
+            });
+            
+            // Open lightbox when clicking on featured image
+            document.addEventListener('click', function(e) {
+                // Check if the clicked element is the featured image
+                if (e.target.classList.contains('featured-image') && 
+                    e.target.tagName === 'IMG' &&
+                    !e.target.closest('.thumbnail')) {
+                    openLightbox(e.target.src);
+                }
+            });
+            
+            // Close the lightbox
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            });
+            
+            // Close on click outside the image
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+            });
+            
+            // Previous image
+            prevBtn.addEventListener('click', function() {
+                if (imageSources.length > 0) {
+                    currentIndex = (currentIndex - 1 + imageSources.length) % imageSources.length;
+                    modalImg.src = imageSources[currentIndex];
+                }
+            });
+            
+            // Next image
+            nextBtn.addEventListener('click', function() {
+                if (imageSources.length > 0) {
+                    currentIndex = (currentIndex + 1) % imageSources.length;
+                    modalImg.src = imageSources[currentIndex];
+                }
+            });
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (modal.style.display === 'block') {
+                    if (e.key === 'ArrowLeft') {
+                        prevBtn.click();
+                    } else if (e.key === 'ArrowRight') {
+                        nextBtn.click();
+                    } else if (e.key === 'Escape') {
+                        closeBtn.click();
+                    }
+                }
+            });
         }
     });
 </script>

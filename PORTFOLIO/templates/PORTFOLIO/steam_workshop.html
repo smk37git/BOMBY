@@ -203,6 +203,18 @@ local hoursSurvived = math.floor(getGameTime():getWorldAgeHours())
                 </div>
             </section>
         </div>
+
+        <!-- Lightbox Modal -->
+        <div id="lightboxModal" class="lightbox-modal">
+            <span class="close-modal">&times;</span>
+            <div class="lightbox-content">
+                <img id="lightboxImage" src="" alt="Lightbox Image">
+                <div class="lightbox-nav">
+                    <button id="prevButton" class="nav-button"><i class="fas fa-chevron-left"></i></button>
+                    <button id="nextButton" class="nav-button"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
@@ -214,6 +226,10 @@ local hoursSurvived = math.floor(getGameTime():getWorldAgeHours())
         });
         
         document.addEventListener('DOMContentLoaded', function() {
+
+            // Full screen featured image
+            initLightbox();
+
             // Make thumbnails clickable on mobile
             const featuredImage = document.getElementById('featuredImage');
             const thumbnails = document.querySelectorAll('.thumbnail');
@@ -265,6 +281,74 @@ local hoursSurvived = math.floor(getGameTime():getWorldAgeHours())
             }, { threshold: 0.1 });
             
             contentSections.forEach(section => observer.observe(section));
+
+            // Lightbox functionality
+            function initLightbox() {
+                const modal = document.getElementById('lightboxModal');
+                const modalImg = document.getElementById('lightboxImage');
+                const closeBtn = document.querySelector('.close-modal');
+                const prevBtn = document.getElementById('prevButton');
+                const nextBtn = document.getElementById('nextButton');
+                const featuredImage = document.getElementById('featuredImage');
+                const thumbnails = document.querySelectorAll('.thumbnail');
+                
+                // Current image index
+                let currentIndex = 0;
+                
+                // Get all image sources from thumbnails
+                const imageSources = Array.from(thumbnails).map(thumb => thumb.dataset.image);
+                
+                // Open lightbox when clicking on featured image
+                featuredImage.addEventListener('click', function() {
+                    modal.style.display = 'block';
+                    modalImg.src = this.src;
+                    
+                    // Find the current index
+                    currentIndex = imageSources.indexOf(this.src);
+                    
+                    // Disable scrolling on body
+                    document.body.style.overflow = 'hidden';
+                });
+                
+                // Close the lightbox
+                closeBtn.addEventListener('click', function() {
+                    modal.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                });
+                
+                // Close on click outside the image
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                        document.body.style.overflow = 'auto';
+                    }
+                });
+                
+                // Previous image
+                prevBtn.addEventListener('click', function() {
+                    currentIndex = (currentIndex - 1 + imageSources.length) % imageSources.length;
+                    modalImg.src = imageSources[currentIndex];
+                });
+                
+                // Next image
+                nextBtn.addEventListener('click', function() {
+                    currentIndex = (currentIndex + 1) % imageSources.length;
+                    modalImg.src = imageSources[currentIndex];
+                });
+                
+                // Keyboard navigation
+                document.addEventListener('keydown', function(e) {
+                    if (modal.style.display === 'block') {
+                        if (e.key === 'ArrowLeft') {
+                            prevBtn.click();
+                        } else if (e.key === 'ArrowRight') {
+                            nextBtn.click();
+                        } else if (e.key === 'Escape') {
+                            closeBtn.click();
+                        }
+                    }
+                });
+            }
         });
     </script>
 {% endblock %}
