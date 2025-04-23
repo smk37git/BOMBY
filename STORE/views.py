@@ -512,7 +512,16 @@ def order_details(request, order_id):
             
             # Handle AJAX request
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({'status': 'success'})
+                attachments_data = []
+                for attachment in message.attachments.all():
+                    attachments_data.append({
+                        'url': attachment.file.url,
+                        'filename': attachment.filename
+                    })
+                return JsonResponse({
+                    'status': 'success',
+                    'attachments': attachments_data
+                })
             
             return redirect('STORE:order_details', order_id=order.id)
     else:
