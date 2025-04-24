@@ -141,7 +141,7 @@
                             {% endif %}
                         </div>
                         <button type="submit" class="review-submit-btn">
-                            <i class="fas fa-star"></i> Submit Review
+                            <i class="fas fa-star" style="color: white;"></i> Submit Review
                         </button>
                     </form>
                 </div>
@@ -737,7 +737,60 @@
     
         // Initial check
         setTimeout(checkForNewMessages, 1000);
-    
+
+        // Get the select element
+        const selectRating = document.querySelector('select[name="rating"]');
+        if (!selectRating) return;
+        
+        // Create container for our rating system
+        const ratingContainer = document.createElement('div');
+        ratingContainer.className = 'rating-container';
+        
+        // Add a label
+        const ratingLabel = document.createElement('span');
+        ratingLabel.textContent = 'Rating:';
+        ratingLabel.className = 'rating-label';
+        
+        // Create the star container
+        const starContainer = document.createElement('div');
+        starContainer.className = 'star-rating';
+        
+        // Create 5 stars with radio buttons
+        for (let i = 5; i >= 1; i--) {
+            // Create radio input
+            const input = document.createElement('input');
+            input.type = 'radio';
+            input.name = 'star-rating';
+            input.id = `star-${i}`;
+            input.value = i;
+            
+            // Create label (star)
+            const label = document.createElement('label');
+            label.htmlFor = `star-${i}`;
+            label.innerHTML = '★';
+            
+            // When clicked, update the select value
+            input.addEventListener('change', function() {
+                selectRating.value = this.value;
+            });
+            
+            // Add to container - input first, then label
+            starContainer.appendChild(input);
+            starContainer.appendChild(label);
+        }
+        
+        // Add elements to rating container
+        ratingContainer.appendChild(ratingLabel);
+        ratingContainer.appendChild(starContainer);
+        
+        // Add the custom rating control before the select
+        selectRating.parentNode.insertBefore(ratingContainer, selectRating);
+        
+        // Style the submit button if it exists
+        const submitButton = document.querySelector('button[type="submit"]');
+        if (submitButton) {
+            submitButton.className = 'review-submit-btn';
+        }
     });
 </script>
 {% endblock %}

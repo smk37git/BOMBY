@@ -742,7 +742,7 @@
     text-decoration: none;
 }
 
-/* Order Form Styling - Fixed Button Problem */
+/* Order Form  */
 .order-form-container {
     max-width: 800px;
     margin: 0 auto;
@@ -754,10 +754,11 @@
     gap: 1.5rem;
     min-height: 400px;
     position: relative;
-    padding-bottom: 80px; /* Space for submit button */
+    padding-bottom: 80px;
 }
 
 .form-fields {
+    padding: 15px;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
