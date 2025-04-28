@@ -688,44 +688,57 @@ body, html {
     position: relative;
     display: flex;
     justify-content: center;
-    align-items: center;
+    padding-top: 20px;
+    align-items: flex-start;
     width: 100%;
     height: 100%;
 }
 
 .lightbox-content img {
-    max-width: 90%;
-    max-height: 90%;
+    max-width: 85%;
+    max-height: 80%;
     object-fit: contain;
     box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
-    border: 3px solid rgba(255, 255, 255, 0.5);
+    border: 3px solid rgb(255, 255, 255);
     border-radius: 5px;
 }
 
 .close-modal {
     position: absolute;
     top: 20px;
-    right: 30px;
+    right: 20px;
     color: #fff;
-    font-size: 40px;
+    font-size: 32px;
     font-weight: bold;
     cursor: pointer;
     z-index: 1010;
     transition: all 0.3s ease;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .close-modal:hover {
     color: #a600ff;
-    transform: scale(1.2);
+    background-color: rgba(0, 0, 0, 0.7);
+    border-color: #a600ff;
+    transform: scale(1.1);
 }
 
 .lightbox-nav {
-    position: absolute;
+    position: fixed;
     bottom: 30px;
+    left: 0;
     display: flex;
     justify-content: center;
     width: 100%;
-    gap: 30px;
+    gap: 50px;
+    z-index: 1010;
 }
 
 .nav-button {
@@ -757,6 +770,21 @@ body, html {
 
     .hero-gallery-side {
         margin-top: 60px;
+    }
+
+    .lightbox-content {
+        padding-top: 100px;
+    }
+
+    .close-modal {
+        height: 80px;
+        width: 80px;
+    }
+
+    .nav-button {
+        font-size: 30px;
+        height: 80px;
+        width: 80px;
     }
 }
 
@@ -859,6 +887,17 @@ body, html {
     .cta-button {
         font-size: 1.5rem;
         font-weight: 300;
+    }
+
+    .close-modal {
+        height: 80px;
+        width: 80px;
+    }
+
+    .nav-button {
+        font-size: 30px;
+        height: 80px;
+        width: 80px;
     }
 }
 
@@ -1041,9 +1080,13 @@ body, html {
         font-size: 0.9rem;
     }
 
+    .lightbox-content {
+        align-items: center;
+    }
+
     .lightbox-content img {
-        max-width: 95%;
-        max-height: 80%;
+        max-width: 90%;
+        max-height: 75%;
     }
     
     .nav-button {
@@ -1054,8 +1097,15 @@ body, html {
     
     .close-modal {
         top: 15px;
-        right: 20px;
-        font-size: 30px;
+        right: 15px;
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+    }
+    
+    .lightbox-nav {
+        bottom: 30px;
+        gap: 30px;
     }
 }
 

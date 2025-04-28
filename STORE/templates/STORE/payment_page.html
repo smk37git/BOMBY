@@ -49,7 +49,7 @@
                 <div class="price-value">
                     {% if discount_applied %}
                         <span class="original-price">${{ product.price }}</span>
-                        <span class="discounted-price">${{ discounted_price }}</span>
+                        <span class="discounted-price">${{ discounted_price|floatformat:2 }}</span>
                         <div style="font-size: 0.8em; color: #33ffa0;">10% Discount Applied</div>
                     {% else %}
                         ${{ product.price }}
