@@ -101,7 +101,13 @@
                     <div class="price-label">Price:</div>
                     <div class="price-value">${{ product.price }}</div>
                 </div>
-                <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">PURCHASE NOW</a>
+
+                <!-- Toggle Purchase Button based on Active/Inactive -->
+                {% if product.is_active %}
+                    <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">PURCHASE NOW</a>
+                {% else %}
+                    <a href="{% url 'MAIN:contact' %}" class="purchase-btn">CURRENTLY UNAVAILABLE</a>
+                {% endif %}
             </div>
         </div>
     </div>
