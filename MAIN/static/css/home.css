@@ -619,6 +619,7 @@ p {
         max-width: 300px;
         max-height: 300px;
         margin-top: -40px !important;
+        background: #0a0a0a;
         border: 2px solid rgba(255, 255, 255, 0.1);
         margin: 0 auto;
     }
