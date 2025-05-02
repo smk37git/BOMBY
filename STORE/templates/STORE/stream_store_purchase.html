@@ -107,11 +107,21 @@
                     </div>
                 </div>
                 
-                <!-- Toggle Purchase Button based on Active/Inactive -->
-                {% if product.is_active %}
-                    <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">PURCHASE NOW</a>
+                <!-- See if User is logged in or not -->
+                {% if user.is_authenticated %}
+                    <!-- Toggle Purchase Button based on Active/Inactive for LOGGED IN USERS -->
+                    {% if product.is_active %}
+                        <a href="{% url 'STORE:purchase_product' product.id %}" class="purchase-btn">PURCHASE NOW</a>
+                    {% else %}
+                        <a href="{% url 'MAIN:contact' %}" class="purchase-btn">CURRENTLY UNAVAILABLE</a>
+                    {% endif %}
                 {% else %}
-                    <a href="{% url 'MAIN:contact' %}" class="purchase-btn">CURRENTLY UNAVAILABLE</a>
+                    <!-- Toggle Purchase Button based on Active/Inactive FOR LOGGED OUT USERS -->
+                    {% if product.is_active %}
+                        <a href="{% url 'ACCOUNTS:login' %}" class="purchase-btn">LOGIN OR SIGN UP TO BUY</a>
+                    {% else %}
+                        <a href="{% url 'MAIN:contact' %}" class="purchase-btn">CURRENTLY UNAVAILABLE</a>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>

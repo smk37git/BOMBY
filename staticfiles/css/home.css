@@ -117,10 +117,12 @@ p {
     border-radius: 15px;
     overflow: hidden;
     margin-bottom: 25px;
-    background: transparent;
+    background: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .video-container-bomby video {
+    margin-left: 10px;
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -308,17 +310,26 @@ p {
 }
 
 @media (min-width: 1440px) {
+    .hero-section {
+        padding: 5rem 10rem;
+    }
+
     .hero-content {
-        margin-left: 200px !important;
         padding: 5rem 2rem;
     }
 
     .hero-title {
-        font-size: 10rem;
+        font-size: 12rem;
     }
 
     .hero-subtitle {
-        font-size: 1.7rem;
+        font-size: 2.5rem;
+        white-space: nowrap;
+    }
+
+    .video-container-bomby {
+        height: 750px;
+        width: 750px;
     }
 
     .info-section {
@@ -370,7 +381,7 @@ p {
     }
     
     .hero-title {
-        font-size: 15rem;
+        font-size: 10rem;
         line-height: 1;
         font-weight: 900;
     }
@@ -608,6 +619,7 @@ p {
         max-width: 300px;
         max-height: 300px;
         margin-top: -40px !important;
+        background: #0a0a0a;
         border: 2px solid rgba(255, 255, 255, 0.1);
         margin: 0 auto;
     }
