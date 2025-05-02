@@ -113,7 +113,7 @@
                 {% else %}
                     <!-- Toggle Purchase Button based on Active/Inactive FOR LOGGED OUT USERS -->
                     {% if product.is_active %}
-                        <a href="{% url 'ACCOUNTS:login' %}" class="purchase-btn">LOGIN OR SIGN UP TO BUY</a>
+                        <a href="{% url 'ACCOUNTS:login' %}" class="purchase-btn" style="font-size: 0.85rem;">LOGIN OR SIGN UP TO BUY</a>
                     {% else %}
                         <a href="{% url 'MAIN:contact' %}" class="purchase-btn">CURRENTLY UNAVAILABLE</a>
                     {% endif %}
