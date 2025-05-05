@@ -277,6 +277,37 @@
     margin-left: 10px;
 }
 
+/* Google Accounts */
+.social-login {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.google-login-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    color: #444;
+    padding: 10px 15px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    margin: 10px auto;
+    width: 100%;
+    max-width: 250px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.google-login-button:hover {
+    background-color: #f1f1f1;
+}
+
+.google-login-button img {
+    height: 20px;
+    margin-right: 10px;
+}
+
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
     /* Login Page */
     .panels-container {

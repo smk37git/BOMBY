@@ -1,5 +1,6 @@
 {% extends 'MAIN/base.html' %}
 {% load static %}
+{% load socialaccount %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/account_functions.css' %}">
@@ -39,6 +40,15 @@
             
             <button type="submit" class="auth-button">Sign In</button>
 
+            <!-- Google Login Button -->
+            <div class="social-login">
+                <p>OR</p>
+                <a href="{% provider_login_url 'google' %}" class="google-login-button">
+                    <img src="{% static 'images/google-icon.png' %}" alt="Google">
+                    Login in with Google
+                </a>
+            </div>
+
             <div class="auth-links">
                 <p>Forgot your password? <a href="{% url 'ACCOUNTS:password_reset' %}">Reset it here</a></p>
             </div>
@@ -58,9 +68,13 @@
                     <li>Track purchases and keep your orders organized!</li>
                 </ul>
             </p>
-            <div class="signup-content" style="margin-top: 90px;">
-                <a href="{% url 'ACCOUNTS:signup' %}" class="auth-button create-account">Create Account</a>
-            </div>
+            
+            <a href="{% url 'ACCOUNTS:signup' %}" class="auth-button create-account">Create Account</a>
+            <p>OR</p>
+            <a href="{% provider_login_url 'google' process='signup' %}" class="google-login-button">
+                <img src="{% static 'images/google-icon.png' %}" alt="Google">
+                Sign up with Google
+            </a>
         </div>
     </div>
 </div>

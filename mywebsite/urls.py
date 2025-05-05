@@ -11,8 +11,11 @@ urlpatterns = [
     path('portfolio/', include('PORTFOLIO.urls', namespace='PORTFOLIO')),
     path('store/', include('STORE.urls', namespace='STORE')),
     
-    # Add this line for serving media files in all environments
+    # For serving media files in all environments
     path('media/<path:path>', serve, {'document_root': settings.MEDIA_ROOT}),
+
+    # Google Auth URL
+    path('accounts/', include('allauth.urls')),
 ]
 
 # Static files only

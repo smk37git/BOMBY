@@ -186,10 +186,6 @@
     justify-content: center;
 }
 
-.signup-panel .auth-button {
-    margin-bottom: 20px;
-}
-
 .panel .auth-divider span {
     background-color: #0a0a0a;
 }
@@ -277,6 +273,38 @@
     margin-left: 10px;
 }
 
+/* Google Accounts */
+.social-login {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.google-login-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    color: #000000;
+    padding: 10px 15px;
+    border-radius: 4px;
+    margin: 10px auto;
+    width: 100%;
+    max-width: 250px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+
+.google-login-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+}
+
+.google-login-button img {
+    height: 20px;
+    margin-right: 10px;
+}
+
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
     /* Login Page */
     .panels-container {
@@ -306,6 +334,11 @@
     .auth-button {
         margin-top: 25px;
         font-size: 2rem;
+    }
+
+    .google-login-button {
+        font-size: 2rem;
+        max-width: 95%;
     }
 
     .auth-links {
@@ -364,6 +397,9 @@
 
     .auth-button.create-account {
         margin-top: -100px;
-        margin-bottom: -50px;
+    }
+
+    .google-login-button {
+        max-width: 88%;
     }
 }

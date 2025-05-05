@@ -54,10 +54,50 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'MAIN',
     'ACCOUNTS',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'PORTFOLIO',
     'STORE',
     'storages',
 ]
+
+AUTHENTICATION_BACKENDS = [
+    # Existing backend
+    'django.contrib.auth.backends.ModelBackend',
+    
+    # Add allauth backend
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Google Auth settings
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': os.environ.get('GOOGLE_CLIENT_ID'),
+            'secret': os.environ.get('GOOGLE_CLIENT_SECRET'),
+            'key': ''
+        },
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        }
+    }
+}
+
+# AllAuth settings
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_LOGIN_METHODS = {'username', 'email'}
+SOCIALACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_LOGIN_ON_GET = True
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_ADAPTER = 'ACCOUNTS.adapters.CustomSocialAccountAdapter'
 
 # Add site ID
 SITE_ID = 1
@@ -71,6 +111,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'STORE.middleware.AnalyticsMiddleware',
 ]
 
