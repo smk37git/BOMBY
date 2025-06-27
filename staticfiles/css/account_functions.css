@@ -186,10 +186,6 @@
     justify-content: center;
 }
 
-.signup-panel .auth-button {
-    margin-bottom: 20px;
-}
-
 .panel .auth-divider span {
     background-color: #0a0a0a;
 }
@@ -288,19 +284,20 @@
     align-items: center;
     justify-content: center;
     background-color: white;
-    color: #444;
+    color: #000000;
     padding: 10px 15px;
     border-radius: 4px;
-    border: 1px solid #ddd;
     margin: 10px auto;
     width: 100%;
     max-width: 250px;
     text-decoration: none;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
 }
 
+
 .google-login-button:hover {
-    background-color: #f1f1f1;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
 }
 
 .google-login-button img {
@@ -337,6 +334,11 @@
     .auth-button {
         margin-top: 25px;
         font-size: 2rem;
+    }
+
+    .google-login-button {
+        font-size: 2rem;
+        max-width: 95%;
     }
 
     .auth-links {
@@ -395,6 +397,9 @@
 
     .auth-button.create-account {
         margin-top: -100px;
-        margin-bottom: -50px;
+    }
+
+    .google-login-button {
+        max-width: 88%;
     }
 }
