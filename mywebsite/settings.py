@@ -37,7 +37,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 DEBUG = False
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
-ALLOWED_HOSTS += ['bomby.us', 'www.bomby.us', 'bomby-799218251279.us-central1.run.app']
+ALLOWED_HOSTS = ['bomby.us', 'www.bomby.us', 'bomby-799218251279.us-central1.run.app', 'localhost', '127.0.0.1']
 CSRF_TRUSTED_ORIGINS = ['https://bomby.us', 'http://bomby.us', 'https://bomby-799218251279.us-central1.run.app']
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
