@@ -15,7 +15,7 @@
         <div class="hero-content">
             <h1 class="hero-title">BOMBY</h1>
             <p class="hero-subtitle">PORTFOLIO AND FREELANCE SERVICE</p>
-            <div class="hero-buttons">
+            <div class="hero-buttons desktop-buttons">
                 <a href="{% url 'PORTFOLIO:portfolio' %}" class="hero-btn">MY PORTFOLIO</a>
                 <a href="{% url 'STORE:store' %}" class="hero-btn">FREELANCE SERVICES</a>
             </div>
@@ -27,6 +27,11 @@
                     <source src="{% static 'videos/bomby-animation.mp4' %}" type='video/mp4; codecs="hvc1"'>
                     <source src="{% static 'videos/bomby-animation.webm' %}" type="video/webm">
                 </video>
+            </div>
+            <!-- Mobile buttons - will only show on mobile -->
+            <div class="hero-buttons mobile-buttons">
+                <a href="{% url 'PORTFOLIO:portfolio' %}" class="hero-btn">MY PORTFOLIO</a>
+                <a href="{% url 'STORE:store' %}" class="hero-btn">FREELANCE SERVICES</a>
             </div>
         </div>
     </section>
@@ -50,7 +55,7 @@
                 <div class="welcome-content">
                     <h2>WELCOME TO BOMBY!</h2>
                     <p>I'm an Information Technology student currently in college! This website hosts my portfolio and stream setup service. As you can see, I am passionate about technology and the design of such systems.</p>
-                    <p>You may be asking yourself, "What can I do?" Take a look at my portfolio and Stream Setup service to get an idea of what I offer. From coding expertise to software deployment and media creation, I cover many bases with my skillset.</p>
+                    <p>You may be asking yourself, "What can I do?", Take a look at my portfolio and Stream Setup service to get an idea of what I offer! From coding expertise to software deployment and media creation, I cover many bases with my skillset.</p>
                     <div class="welcome-buttons">
                         <a href="{% url 'MAIN:about' %}" class="action-btn">LEARN MORE ABOUT ME</a>
                         <a href="{% url 'MAIN:contact' %}" class="action-btn">GET IN TOUCH</a>

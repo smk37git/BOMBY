@@ -67,6 +67,15 @@ p {
     min-height: 50vh;
 }
 
+.desktop-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.mobile-buttons {
+    display: none !important;
+}
+
 .hero-content {
     max-width: 600px;
 }
@@ -117,6 +126,7 @@ p {
     border-radius: 15px;
     overflow: hidden;
     margin-bottom: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     background: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.1);
 }
@@ -161,13 +171,14 @@ p {
 }
 
 .eye-container video {
-    margin-bottom: 50px;
+    padding-top: 1rem;
+    margin-bottom: 35px;
     width: 100%;
     display: block;
-    filter: brightness(1) contrast(10);
 }
 
 .eye-caption {
+    background: #0a0a0a;
     position: absolute;
     bottom: 0;
     left: 0;
@@ -606,6 +617,36 @@ p {
         padding: 5rem 1rem;
         text-align: center;
     }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+    }
+
+     /* Hide desktop buttons on mobile */
+     .desktop-buttons {
+        display: none;
+    }
+    
+    /* Show mobile buttons on mobile */
+    .mobile-buttons {
+        display: flex !important;
+        flex-direction: column;
+        gap: 1rem;
+        justify-content: center;
+        margin-top: 75px;
+        width: 100%;
+    }
+    
+    .mobile-buttons .hero-btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .hero-video {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
     
     .hero-content {
         margin-bottom: 3rem;
@@ -630,12 +671,21 @@ p {
         height: 350px;
     }
 
+    .eye-animation video {
+        margin-bottom: 75px;
+    }
+
+    .eye-caption {
+        border-top: 2px solid rgba(255, 255, 255, 0.08);
+    }
+
     .info-section {
         margin-top: -100px;
     }
     
     .info-row {
         flex-direction: column-reverse;
+        gap: 1rem;
     }
     
     .welcome-content {
