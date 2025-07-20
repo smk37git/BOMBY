@@ -671,6 +671,10 @@ p {
         height: 350px;
     }
 
+    .eye-container {
+        background: black;
+    }
+
     .eye-animation video {
         margin-bottom: 75px;
     }
