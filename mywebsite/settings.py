@@ -212,7 +212,7 @@ WHITENOISE_MIMETYPES = {
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-## EMAIL SETTINGS
+## EMAIL SETTINGS SMTP
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'sebetvbusiness@gmail.com')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
