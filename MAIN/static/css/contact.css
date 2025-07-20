@@ -110,6 +110,7 @@
     background-color: #0a0a0a;
     padding: 25px;
     border-radius: 15px;
+    max-height: 680px;
     border: 2px solid rgba(255, 255, 255, 0.3);
     z-index: 4;
 }
@@ -169,7 +170,6 @@
     display: flex;
     gap: 10px;
     flex-wrap: nowrap;
-    justify-content: space-between;
 }
 
 .social-link {
@@ -241,11 +241,14 @@
     border-radius: 10px;
     overflow: hidden;
     position: relative;
+    background: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.1);
     margin: 30px auto 10px;
 }
 
 .contact-video-container video {
-    width: 100%;
+    margin: 10px auto;
+    width: 80%;
     height: auto;
     display: block;
     border-radius: 10px;
@@ -363,6 +366,7 @@
     
     .contactpage-form-section,
     .contactpage-info-section {
+        max-height: 100%;
         padding: 20px;
     }
 }
@@ -397,6 +401,7 @@
     .contactpage-form-section, 
     .contactpage-info-section {
         width: 100%;
+        max-height: 100%;
         padding: 20px;
         box-sizing: border-box;
     }
@@ -468,6 +473,7 @@
     
     .contactpage-form-section, 
     .contactpage-info-section {
+        max-height: 100%;
         padding: 15px;
     }
     
