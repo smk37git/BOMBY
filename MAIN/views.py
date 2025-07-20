@@ -10,6 +10,7 @@ from STORE.models import Order, Product, Review
 from MAIN.decorators import *
 from .models import Announcement
 from django.conf import settings
+from django.core.mail import EmailMessage
 
 # Easter Egg Discount Code
 import json
@@ -48,13 +49,14 @@ def contact(request):
             {message}
             """
             # Send email using settings from project configuration
-            send_mail(
-                f'New Message: {subject}',
-                email_message,
-                settings.DEFAULT_FROM_EMAIL,
-                [settings.DEFAULT_FROM_EMAIL],
-                fail_silently=False,
+            email = EmailMessage(
+                subject=f'BOMBY Contact: {subject}',
+                body=email_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[settings.DEFAULT_FROM_EMAIL],
+                reply_to=[email],  # User's email for replies
             )
+            email.send()
             
             # Add success message
             messages.success(request, 'Your message was sent successfully!')
