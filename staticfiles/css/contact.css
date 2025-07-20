@@ -242,7 +242,6 @@
     overflow: hidden;
     position: relative;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    background: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.1);
     margin: 30px auto 10px;
 }
@@ -458,6 +457,7 @@
         width: 100%;
         max-width: 100%;
         box-sizing: border-box;
+        background: black;
     }
 }
 
