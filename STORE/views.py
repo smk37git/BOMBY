@@ -34,6 +34,11 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from decimal import Decimal
 from .models import DiscountCode
+from django.http import Http404
+from .models import QRCodeRedirect, QRCodeClick
+import secrets
+import string
+
 
 def store(request):
     products = [
@@ -2318,5 +2323,241 @@ def store_analytics(request):
         'donation_count_trend_abs': round(donation_count_trend_abs, 1),
         'donation_amount_trend_abs': round(donation_amount_trend_abs, 1),
     }
+
+    # QR Code Analytics
+    from .models import QRCodeRedirect, QRCodeClick
+    
+    # Get QR code clicks for the time period
+    if time_frame != 'all' and current_start:
+        qr_clicks = QRCodeClick.objects.filter(clicked_at__gte=current_start)
+    else:
+        qr_clicks = QRCodeClick.objects.all()
+    
+    # QR code metrics
+    total_qr_clicks = qr_clicks.count()
+    unique_qr_sessions = qr_clicks.values('session_id').distinct().count()
+    
+    # Top performing QR codes
+    qr_performance = []
+    for qr_code in QRCodeRedirect.objects.all():
+        if time_frame != 'all' and current_start:
+            clicks = qr_code.clicks.filter(clicked_at__gte=current_start).count()
+        else:
+            clicks = qr_code.total_clicks
+            
+        if clicks > 0:
+            qr_performance.append({
+                'code': qr_code.code,
+                'description': qr_code.description or 'No description',
+                'clicks': clicks,
+                'destination': qr_code.destination_url
+            })
+    
+    # Sort by clicks
+    qr_performance = sorted(qr_performance, key=lambda x: x['clicks'], reverse=True)[:10]
+    
+    # Add to context dictionary (add these lines to your existing context):
+    context.update({
+        'total_qr_clicks': total_qr_clicks,
+        'unique_qr_sessions': unique_qr_sessions,
+        'qr_performance': qr_performance,
+    })
     
     return render(request, 'STORE/store_analytics.html', context)
+
+# QR Code Views
+def qr_redirect(request, code):
+    """Handle QR code redirects with tracking"""
+    qr_code = get_object_or_404(QRCodeRedirect, code=code, is_active=True)
+    
+    # Get client IP
+    def get_client_ip(request):
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+    
+    # Track the click
+    QRCodeClick.objects.create(
+        qr_code=qr_code,
+        user=request.user if request.user.is_authenticated else None,
+        session_id=request.session.session_key or '',
+        ip_address=get_client_ip(request),
+        user_agent=request.META.get('HTTP_USER_AGENT', ''),
+        referrer=request.META.get('HTTP_REFERER', '')
+    )
+    
+    # Increment counter
+    qr_code.increment_clicks()
+    
+    # Redirect to destination
+    return redirect(qr_code.destination_url)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def qr_code_management(request):
+    """Admin view for managing QR codes"""
+    search_query = request.GET.get('search', '')
+    
+    if search_query:
+        qr_codes = QRCodeRedirect.objects.filter(
+            models.Q(code__icontains=search_query) | 
+            models.Q(description__icontains=search_query) |
+            models.Q(destination_url__icontains=search_query)
+        )
+    else:
+        qr_codes = QRCodeRedirect.objects.all()
+    
+    context = {
+        'qr_codes': qr_codes,
+        'search_query': search_query
+    }
+    
+    return render(request, 'STORE/qr_code_management.html', context)
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def create_qr_code(request):
+    """Create a new QR code redirect"""
+    destination_url = request.POST.get('destination_url')
+    description = request.POST.get('description', '')
+    custom_code = request.POST.get('custom_code', '').strip()
+    
+    if not destination_url:
+        messages.error(request, "Destination URL is required")
+        return redirect('STORE:qr_code_management')
+    
+    # Generate or use custom code
+    if custom_code:
+        # Check if custom code already exists
+        if QRCodeRedirect.objects.filter(code=custom_code).exists():
+            messages.error(request, f"Code '{custom_code}' already exists")
+            return redirect('STORE:qr_code_management')
+        code = custom_code
+    else:
+        # Generate random code
+        code = generate_qr_code()
+    
+    try:
+        qr_code = QRCodeRedirect.objects.create(
+            code=code,
+            destination_url=destination_url,
+            description=description
+        )
+        
+        # Generate QR code URL for display
+        qr_url = request.build_absolute_uri(f'/redirect/{code}/')
+        
+        messages.success(request, 
+            f"QR code created successfully! URL: {qr_url}")
+        
+    except Exception as e:
+        messages.error(request, f"Error creating QR code: {str(e)}")
+    
+    return redirect('STORE:qr_code_management')
+
+def generate_qr_code():
+    """Generate a unique random code for QR codes"""
+    while True:
+        # Generate 8-character alphanumeric code
+        code = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(8))
+        
+        # Ensure it's unique
+        if not QRCodeRedirect.objects.filter(code=code).exists():
+            return code
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def toggle_qr_code_status(request, code):
+    """Toggle QR code active status"""
+    qr_code = get_object_or_404(QRCodeRedirect, code=code)
+    qr_code.is_active = not qr_code.is_active
+    qr_code.save()
+    
+    status = "activated" if qr_code.is_active else "deactivated"
+    messages.success(request, f"QR code {code} has been {status}")
+    
+    return redirect('STORE:qr_code_management')
+
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def qr_code_analytics(request, code):
+    """View analytics for a specific QR code"""
+    qr_code = get_object_or_404(QRCodeRedirect, code=code)
+    
+    # Get time frame filter
+    time_frame = request.GET.get('time_frame', 'week')
+    now = timezone.now()
+    
+    if time_frame == 'day':
+        start_date = now - timedelta(days=1)
+    elif time_frame == 'week':
+        start_date = now - timedelta(days=7)
+    elif time_frame == 'month':
+        start_date = now - timedelta(days=30)
+    elif time_frame == 'year':
+        start_date = now - timedelta(days=365)
+    else:
+        start_date = None
+    
+    # Get clicks for the time period
+    if start_date:
+        clicks = qr_code.clicks.filter(clicked_at__gte=start_date)
+    else:
+        clicks = qr_code.clicks.all()
+    
+    # Analytics data
+    total_clicks = clicks.count()
+    unique_sessions = clicks.values('session_id').distinct().count()
+    authenticated_clicks = clicks.filter(user__isnull=False).count()
+    
+    # Daily breakdown for chart
+    from django.db.models import Count, DateField
+    from django.db.models.functions import TruncDate
+    import json
+
+    daily_clicks = clicks.annotate(
+        date=TruncDate('clicked_at')
+    ).values('date').annotate(
+        count=Count('id')
+    ).order_by('date')
+
+    # Convert to JSON-safe format
+    daily_clicks_data = []
+    for item in daily_clicks:
+        daily_clicks_data.append({
+            'date': item['date'].isoformat() if item['date'] else '',
+            'count': item['count']
+        })
+
+    context = {
+        'qr_code': qr_code,
+        'total_clicks': total_clicks,
+        'unique_sessions': unique_sessions,
+        'authenticated_clicks': authenticated_clicks,
+        'daily_clicks': json.dumps(daily_clicks_data),  # This is the key change
+        'time_frame': time_frame,
+        'recent_clicks': clicks.order_by('-clicked_at')[:20]
+    }
+
+    return render(request, 'STORE/qr_code_analytics.html', context)
+
+@require_POST
+@login_required
+@user_passes_test(lambda u: u.is_staff)
+def delete_qr_codes(request):
+    """Delete selected QR codes"""
+    selected_codes = request.POST.get('selected_codes', '')
+    
+    if selected_codes:
+        codes = selected_codes.split(',')
+        deleted_count = QRCodeRedirect.objects.filter(code__in=codes).count()
+        QRCodeRedirect.objects.filter(code__in=codes).delete()
+        
+        messages.success(request, f"{deleted_count} QR code(s) deleted successfully")
+    
+    return redirect('STORE:qr_code_management')

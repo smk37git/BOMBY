@@ -1,0 +1,241 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/store_analytics.css' %}">
+<link rel="stylesheet" href="{% static 'css/product_management.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<h1 class="user_management-title">QR Code Analytics: {{ qr_code.code }}</h1>
+
+<div class="analytics-container">
+
+    <div class="time-filter" style="margin-bottom: 25px; grid-template-columns: auto;">
+        <a href="{% url 'STORE:qr_code_management' %}" class="active">
+            ← Back to QR Code Management
+        </a>
+    </div>
+
+    <div class="analytics-header" style="align-items: center;">
+        <div class="qr-code-info-container">
+            <h2>{{ qr_code.code }}</h2>
+            <p>Destination: <a href="{{ qr_code.destination_url }}" target="_blank">{{ qr_code.destination_url }}</a></p>
+            <p>{{ qr_code.description|default:"No description" }}</p>
+        </div>
+    </div>
+
+    <div class="qr-code-info-container" style="margin-bottom: 15px;">
+        <div class="time-filter">
+            <a href="?time_frame=day" class="{% if time_frame == 'day' %}active{% endif %}">Last 24 hours</a>
+            <a href="?time_frame=week" class="{% if time_frame == 'week' %}active{% endif %}">Last 7 days</a>
+            <a href="?time_frame=month" class="{% if time_frame == 'month' %}active{% endif %}">Last 30 days</a>
+            <a href="?time_frame=year" class="{% if time_frame == 'year' %}active{% endif %}">Last year</a>
+            <a href="?time_frame=all" class="{% if time_frame == 'all' %}active{% endif %}">All time</a>
+        </div>
+    </div>
+    
+    <!-- Key metrics -->
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-label">Total Clicks</div>
+            <div class="metric-value">{{ total_clicks }}</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Unique Sessions</div>
+            <div class="metric-value">{{ unique_sessions }}</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Authenticated Users</div>
+            <div class="metric-value">{{ authenticated_clicks }}</div>
+        </div>
+        
+        <div class="metric-card">
+            <div class="metric-label">Click Rate</div>
+            <div class="metric-value">
+                {% if unique_sessions > 0 %}
+                    {{ total_clicks|floatformat:0 }}/{{ unique_sessions|floatformat:0 }}
+                {% else %}
+                    0
+                {% endif %}
+            </div>
+            <div class="metric-subtext">Clicks per unique session</div>
+        </div>
+    </div>
+    
+    <!-- Daily clicks chart -->
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Daily Clicks</h3>
+        </div>
+        
+        <div class="chart-container">
+            <canvas id="dailyClicksChart"></canvas>
+        </div>
+    </div>
+    
+    <!-- Recent clicks table -->
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Recent Clicks</h3>
+        </div>
+        
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>IP Address</th>
+                    <th>User Agent</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for click in recent_clicks %}
+                <tr>
+                    <td>{{ click.clicked_at|date:"M d, Y H:i" }}</td>
+                    <td>
+                        {% if click.user %}
+                            {{ click.user.username }}
+                        {% else %}
+                            Anonymous
+                        {% endif %}
+                    </td>
+                    <td>{{ click.ip_address|default:"—" }}</td>
+                    <td title="{{ click.user_agent }}">
+                        {{ click.user_agent|truncatechars:50|default:"—" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No clicks recorded</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Parse daily clicks data
+    const dailyData = JSON.parse('{{ daily_clicks|escapejs }}');
+    
+    // Handle empty data
+    if (!dailyData || dailyData.length === 0) {
+        // Create empty chart
+        const ctx = document.getElementById('dailyClicksChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Daily Clicks',
+                    data: [],
+                    borderColor: 'rgba(158, 51, 230, 1)',
+                    backgroundColor: 'rgba(158, 51, 230, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'white'
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: 'white'
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+        return;
+    }
+    
+    // Prepare chart data
+    const labels = dailyData.map(item => {
+        const date = new Date(item.date);
+        return date.toLocaleDateString();
+    });
+    const clickCounts = dailyData.map(item => item.count);
+    
+    // Create chart
+    const ctx = document.getElementById('dailyClicksChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Daily Clicks',
+                data: clickCounts,
+                borderColor: 'rgba(158, 51, 230, 1)',
+                backgroundColor: 'rgba(158, 51, 230, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'white'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: 'white'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: 'white'
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

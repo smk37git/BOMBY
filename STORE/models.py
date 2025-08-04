@@ -319,3 +319,72 @@ class DiscountCode(models.Model):
         self.is_used = True
         self.used_at = timezone.now()
         self.save()
+
+# QR Code
+class QRCodeRedirect(models.Model):
+    """Model for tracking QR code redirects"""
+    
+    # Unique identifier for the QR code
+    code = models.CharField(max_length=20, unique=True, db_index=True)
+    
+    # Destination URL
+    destination_url = models.URLField()
+    
+    # Description for admin reference
+    description = models.CharField(max_length=200, blank=True)
+    
+    # Tracking fields
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    total_clicks = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"QR Code: {self.code} -> {self.destination_url}"
+    
+    def increment_clicks(self):
+        """Increment the click counter"""
+        self.total_clicks = models.F('total_clicks') + 1
+        self.save(update_fields=['total_clicks'])
+        # Refresh from database to get updated value
+        self.refresh_from_db()
+
+class QRCodeClick(models.Model):
+    """Model for detailed QR code click tracking"""
+    
+    qr_code = models.ForeignKey(
+        QRCodeRedirect, 
+        on_delete=models.CASCADE, 
+        related_name='clicks'
+    )
+    
+    # User info (if logged in)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+    
+    # Session tracking for anonymous users
+    session_id = models.CharField(max_length=100, blank=True)
+    
+    # Request metadata
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    referrer = models.CharField(max_length=255, blank=True)
+    
+    # Timestamp
+    clicked_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-clicked_at']
+        indexes = [
+            models.Index(fields=['qr_code', 'clicked_at']),
+            models.Index(fields=['clicked_at']),
+        ]
+    
+    def __str__(self):
+        return f"Click on {self.qr_code.code} at {self.clicked_at}"

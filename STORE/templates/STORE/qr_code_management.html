@@ -1,0 +1,638 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/product_management.css' %}">
+<style>
+.management-container {
+    max-width: 1200px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
+/* Create Form Styling */
+.create-form {
+    background-color: rgba(30, 30, 30, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.create-form h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 20px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Search and Controls */
+.management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding: 20px;
+    background-color: rgba(30, 30, 30, 0.5);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.search-form {
+    display: flex;
+    gap: 10px;
+}
+
+.search-input {
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: white;
+    width: 300px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #9e33e6;
+    box-shadow: 0 0 0 2px rgba(158, 51, 230, 0.3);
+}
+
+.search-btn {
+    padding: 12px 16px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.search-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(158, 51, 230, 0.3);
+}
+
+.bulk-btn {
+    padding: 10px 16px;
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.bulk-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+}
+
+/* Table Styling */
+.table-container {
+    background-color: rgba(30, 30, 30, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-x: auto;
+}
+
+.management-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+.management-table th,
+.management-table td {
+    padding: 15px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.management-table th {
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.8);
+    background-color: rgba(0, 0, 0, 0.3);
+    font-size: 14px;
+}
+
+.management-table tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.management-table td {
+    font-size: 13px;
+    vertical-align: top;
+}
+
+/* Status badges */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 15px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-active {
+    background-color: rgba(39, 174, 96, 0.2);
+    color: #2ecc71;
+    border: 1px solid #2ecc71;
+}
+
+.status-inactive {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border: 1px solid #e74c3c;
+}
+
+/* Action buttons */
+.action-buttons {
+    margin-top: 0px !important;
+    display: flex;
+    gap: 8px;
+}
+
+.btn-action {
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 6px;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.3s ease;
+}
+
+.btn-action:hover {
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    transform: translateY(-1px);
+}
+
+/* Links */
+.analytics-link {
+    color: #9e33e6;
+    text-decoration: none;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.analytics-link:hover {
+    color: #505ed7;
+}
+
+.destination-link {
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.destination-link:hover {
+    color: #9e33e6;
+}
+
+/* Empty message */
+.empty-message {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-style: italic;
+    padding: 40px;
+}
+
+/* QR Code URL styling */
+.qr-code-url {
+    font-family: 'Courier New', monospace;
+    background: rgba(0,0,0,0.4);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #aaa;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: inline-block;
+    margin-top: 5px;
+    margin-left: -5px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .management-container {
+        width: 90%;
+        padding: 20px;
+        margin: 30px auto;
+    }
+    
+    .management-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+    
+    .search-input {
+        width: 100%;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .table-container {
+        overflow-x: scroll;
+    }
+    
+    .management-table th,
+    .management-table td {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .qr-code-url {
+        font-size: 9px;
+        padding: 4px 6px;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+</style>
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<h1 class="user_management-title">QR Code Management</h1>
+
+<div class="management-container">
+    <!-- Create New QR Code Form -->
+    <div class="create-form">
+        <h3>Create New QR Code</h3>
+        <form method="post" action="{% url 'STORE:create_qr_code' %}">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="destination_url">Destination URL *</label>
+                    <input type="text" id="destination_url" name="destination_url" required 
+                           placeholder="https://bomby.us/">
+                </div>
+                <div class="form-group">
+                    <label for="custom_code">Custom Code (optional)</label>
+                    <input type="text" id="custom_code" name="custom_code" 
+                           placeholder="Leave blank for auto-generation" maxlength="20">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="description">Description (optional)</label>
+                    <input type="text" id="description" name="description" 
+                           placeholder="Description">
+                </div>
+                <button type="submit" class="search-btn">Create QR Code</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Search and Controls -->
+    <div class="management-header">
+        <div class="search-container">
+            <form method="get" class="search-form">
+                <input type="text" name="search" value="{{ search_query }}" 
+                       placeholder="Search QR codes..." class="search-input">
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+        
+        <div class="bulk-actions">
+            <button class="bulk-btn" onclick="deleteSelected()">
+                <i class="fas fa-trash"></i> Delete Selected
+            </button>
+        </div>
+    </div>
+
+    <!-- QR Codes Table -->
+    <div class="table-container">
+        <table class="management-table">
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="select-all"></th>
+                    <th>Code</th>
+                    <th>Destination</th>
+                    <th>Description</th>
+                    <th>Clicks</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for qr_code in qr_codes %}
+                <tr>
+                    <td><input type="checkbox" class="select-item" value="{{ qr_code.code }}"></td>
+                    <td>
+                        <strong>{{ qr_code.code }}</strong><br>
+                        <span class="qr-code-url">{{ request.scheme }}://{{ request.get_host }}/redirect/{{ qr_code.code }}/</span>
+                    </td>
+                    <td>
+                        <a href="{{ qr_code.destination_url }}" target="_blank" class="destination-link">
+                            {{ qr_code.destination_url|truncatechars:50 }}
+                        </a>
+                    </td>
+                    <td>{{ qr_code.description|default:"—" }}</td>
+                    <td>
+                        <strong>{{ qr_code.total_clicks }}</strong>
+                    </td>
+                    <td>
+                        <span class="status-badge {% if qr_code.is_active %}status-active{% else %}status-inactive{% endif %}">
+                            {{ qr_code.is_active|yesno:"Active,Inactive" }}
+                        </span>
+                    </td>
+                    <td>{{ qr_code.created_at|date:"M d, Y" }}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'STORE:toggle_qr_code_status' qr_code.code %}" 
+                                class="btn-action" onclick="return confirm('Toggle status?')">
+                                <i class="fas fa-power-off"></i>
+                            </a>
+                            <button class="btn-action" onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}/redirect/{{ qr_code.code }}/')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <button class="btn-action" onclick="generateQRImage('{{ qr_code.code }}', '{{ request.scheme }}://{{ request.get_host }}/redirect/{{ qr_code.code }}/')">
+                                <i class="fas fa-qrcode"></i>
+                            </button>
+                            {% if qr_code.total_clicks > 0 %}
+                            <a href="{% url 'STORE:qr_code_analytics' qr_code.code %}"
+                                class="btn-action">
+                                <i class="fa-solid fa-print"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="empty-message">No QR codes found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div id="qrModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>QR Code</h3>
+        <div id="qrcode-container"></div>
+        <p id="qr-url-display"></p>
+        <button onclick="downloadQRCode()" class="btn-download">Download QR Code</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+
+<script>
+// Select all functionality
+document.getElementById('select-all').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.select-item');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+});
+
+// Copy URL to clipboard
+function copyToClipboard(url) {
+    navigator.clipboard.writeText(url).then(() => {
+        alert('URL copied to clipboard!');
+    });
+}
+
+// Generate and show QR code
+let currentQRCode = null;
+
+function generateQRImage(code, url) {
+    const modal = document.getElementById('qrModal');
+    const container = document.getElementById('qrcode-container');
+    const urlDisplay = document.getElementById('qr-url-display');
+    
+    container.innerHTML = '';
+    
+    // Use QR Server API (allows downloads)
+    const qrSize = 400;
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${qrSize}x${qrSize}&data=${encodeURIComponent(url)}`;
+    
+    const img = document.createElement('img');
+    img.src = qrUrl;
+    img.alt = 'QR Code';
+    img.style.maxWidth = '100%';
+    img.style.height = 'auto';
+    img.style.border = '20px solid white';
+    img.style.borderRadius = '8px';
+    
+    img.onload = function() {
+        container.appendChild(img);
+        urlDisplay.textContent = url;
+        currentQRCode = { code, url, imgSrc: qrUrl };
+        modal.style.display = 'block';
+    };
+    
+    img.onerror = function() {
+        container.innerHTML = '<p style="color: red;">Failed to generate QR code</p>';
+    };
+}
+
+function downloadQRCode() {
+    if (!currentQRCode) {
+        alert('No QR code available to download');
+        return;
+    }
+    
+    // QR Server allows direct downloads
+    const downloadUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&download=1&data=${encodeURIComponent(currentQRCode.imgSrc.split('data=')[1])}`;
+    
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `qr-code-${currentQRCode.code}.png`;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Modal functionality
+const modal = document.getElementById('qrModal');
+const closeBtn = document.querySelector('.close');
+
+closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+});
+
+window.addEventListener('click', (e) => {
+    if (e.target === modal) {
+        modal.style.display = 'none';
+    }
+});
+
+// Delete selected QR codes
+function deleteSelected() {
+    const selected = Array.from(document.querySelectorAll('.select-item:checked'))
+                         .map(cb => cb.value);
+    
+    if (selected.length === 0) {
+        alert('Please select QR codes to delete.');
+        return;
+    }
+    
+    if (confirm(`Delete ${selected.length} QR code(s)? This cannot be undone.`)) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '{% url "STORE:delete_qr_codes" %}';
+        
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = 'csrfmiddlewaretoken';
+        csrfInput.value = '{{ csrf_token }}';
+        
+        const selectedInput = document.createElement('input');
+        selectedInput.type = 'hidden';
+        selectedInput.name = 'selected_codes';
+        selectedInput.value = selected.join(',');
+        
+        form.appendChild(csrfInput);
+        form.appendChild(selectedInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+
+<style>
+/* Modal styles */
+/* Enhanced Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    margin: 3% auto;
+    padding: 30px;
+    border-radius: 15px;
+    width: 500px;
+    max-width: 90%;
+    text-align: center;
+    color: white;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.close {
+    color: #aaa;
+    position: absolute;
+    top: 15px;
+    right: 50px;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover {
+    color: #9e33e6;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 24px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+#qrcode-container {
+    margin: 25px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    background: #0a0a0a;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#qrcode-container img {
+    max-width: 100%;
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+#qr-url-display {
+    font-family: 'Courier New', monospace;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    word-break: break-all;
+    font-size: 13px;
+    color: #ccc;
+    margin: 20px 0;
+}
+
+.btn-download {
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(158, 51, 230, 0.3);
+}
+
+.btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(158, 51, 230, 0.4);
+}
+</style>
+{% endblock %}

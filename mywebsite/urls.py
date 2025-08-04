@@ -3,6 +3,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
+from STORE.views import qr_redirect
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -13,6 +14,9 @@ urlpatterns = [
     
     # For serving media files in all environments
     path('media/<path:path>', serve, {'document_root': settings.MEDIA_ROOT}),
+
+    # QR Code redirect at root level for shorter URLs
+    path('redirect/<str:code>/', qr_redirect, name='qr_redirect'),
 
     # Google Auth URL
     path('accounts/', include('allauth.urls')),

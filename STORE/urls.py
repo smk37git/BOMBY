@@ -82,4 +82,11 @@ urlpatterns = [
 
     # Store Analytics
     path('admin/analytics/', views.store_analytics, name='store_analytics'),
+
+    # QR Code management
+    path('admin/qr-codes/', views.qr_code_management, name='qr_code_management'),
+    path('admin/qr-codes/create/', views.create_qr_code, name='create_qr_code'),
+    path('admin/qr-codes/<str:code>/toggle/', views.toggle_qr_code_status, name='toggle_qr_code_status'),
+    path('admin/qr-codes/<str:code>/analytics/', views.qr_code_analytics, name='qr_code_analytics'),
+    path('admin/qr-codes/delete/', views.delete_qr_codes, name='delete_qr_codes'),
 ]
