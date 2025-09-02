@@ -227,6 +227,176 @@
     margin-left: -5px;
 }
 
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    margin: 3% auto;
+    padding: 30px;
+    border-radius: 15px;
+    width: 500px;
+    max-width: 90%;
+    text-align: center;
+    color: white;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    position: relative;
+}
+
+.close, .close-edit {
+    color: #aaa;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.close:hover, .close-edit:hover {
+    color: #9e33e6;
+}
+
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    font-size: 24px;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+#editForm {
+    text-align: left;
+}
+
+#editForm .form-group {
+    margin-bottom: 20px;
+}
+
+#editForm label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ccc;
+    font-weight: 500;
+}
+
+#editForm input[type="text"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.3);
+    color: white;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+#editForm input[type="text"]:focus {
+    outline: none;
+    border-color: #9e33e6;
+    box-shadow: 0 0 0 2px rgba(158, 51, 230, 0.3);
+}
+
+.btn-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 12px 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-save {
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(158, 51, 230, 0.3);
+}
+
+.btn-save:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(158, 51, 230, 0.4);
+}
+
+#qrcode-container {
+    margin: 25px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    background: #0a0a0a;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#qrcode-container img {
+    max-width: 100%;
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+#qr-url-display {
+    font-family: 'Courier New', monospace;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    word-break: break-all;
+    font-size: 13px;
+    color: #ccc;
+    margin: 20px 0;
+}
+
+.btn-download {
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    color: white;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(158, 51, 230, 0.3);
+}
+
+.btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(158, 51, 230, 0.4);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .management-container {
@@ -372,20 +542,23 @@
                     <td>{{ qr_code.created_at|date:"M d, Y" }}</td>
                     <td>
                         <div class="action-buttons">
+                            <button class="btn-action" onclick="editQRCode('{{ qr_code.code }}', '{{ qr_code.destination_url|escapejs }}', '{{ qr_code.description|escapejs }}')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
                             <a href="{% url 'STORE:toggle_qr_code_status' qr_code.code %}" 
-                                class="btn-action" onclick="return confirm('Toggle status?')">
+                                class="btn-action" onclick="return confirm('Toggle status?')" title="Toggle Status">
                                 <i class="fas fa-power-off"></i>
                             </a>
-                            <button class="btn-action" onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}/redirect/{{ qr_code.code }}/')">
+                            <button class="btn-action" onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}/redirect/{{ qr_code.code }}/')" title="Copy URL">
                                 <i class="fas fa-copy"></i>
                             </button>
-                            <button class="btn-action" onclick="generateQRImage('{{ qr_code.code }}', '{{ request.scheme }}://{{ request.get_host }}/redirect/{{ qr_code.code }}/')">
+                            <button class="btn-action" onclick="generateQRImage('{{ qr_code.code }}', '{{ request.scheme }}://{{ request.get_host }}/redirect/{{ qr_code.code }}/')" title="Generate QR">
                                 <i class="fas fa-qrcode"></i>
                             </button>
                             {% if qr_code.total_clicks > 0 %}
                             <a href="{% url 'STORE:qr_code_analytics' qr_code.code %}"
-                                class="btn-action">
-                                <i class="fa-solid fa-print"></i>
+                                class="btn-action" title="Analytics">
+                                <i class="fas fa-chart-bar"></i>
                             </a>
                             {% endif %}
                         </div>
@@ -412,10 +585,33 @@
     </div>
 </div>
 
+<!-- Edit QR Code Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close-edit">&times;</span>
+        <h3>Edit QR Code</h3>
+        <form id="editForm">
+            {% csrf_token %}
+            <input type="hidden" id="edit-code" name="code">
+            <div class="form-group">
+                <label for="edit-destination">Destination URL *</label>
+                <input type="text" id="edit-destination" name="destination_url" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-description">Description</label>
+                <input type="text" id="edit-description" name="description">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                <button type="button" onclick="closeEditModal()" class="btn-cancel">Cancel</button>
+                <button type="submit" class="btn-save">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_js %}
-
 <script>
 // Select all functionality
 document.getElementById('select-all').addEventListener('change', function() {
@@ -429,6 +625,56 @@ function copyToClipboard(url) {
         alert('URL copied to clipboard!');
     });
 }
+
+// Edit QR Code functionality
+function editQRCode(code, destination, description) {
+    document.getElementById('edit-code').value = code;
+    document.getElementById('edit-destination').value = destination;
+    document.getElementById('edit-description').value = description || '';
+    document.getElementById('editModal').style.display = 'block';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+// Handle edit form submission
+document.getElementById('editForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const code = document.getElementById('edit-code').value;
+    const destination = document.getElementById('edit-destination').value;
+    const description = document.getElementById('edit-description').value;
+    
+    if (!destination.trim()) {
+        alert('Destination URL is required');
+        return;
+    }
+    
+    // Send AJAX request
+    fetch(`{% url 'STORE:quick_edit_qr_code' 'PLACEHOLDER' %}`.replace('PLACEHOLDER', code), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: `destination_url=${encodeURIComponent(destination)}&description=${encodeURIComponent(description)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload(); // Refresh to show updated data
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Network error: ' + error);
+    });
+    
+    closeEditModal();
+});
 
 // Generate and show QR code
 let currentQRCode = null;
@@ -471,7 +717,7 @@ function downloadQRCode() {
     }
     
     // QR Server allows direct downloads
-    const downloadUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&download=1&data=${encodeURIComponent(currentQRCode.imgSrc.split('data=')[1])}`;
+    const downloadUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&download=1&data=${encodeURIComponent(currentQRCode.url)}`;
     
     const link = document.createElement('a');
     link.href = downloadUrl;
@@ -483,16 +729,25 @@ function downloadQRCode() {
 }
 
 // Modal functionality
-const modal = document.getElementById('qrModal');
-const closeBtn = document.querySelector('.close');
+const qrModal = document.getElementById('qrModal');
+const editModal = document.getElementById('editModal');
+const qrCloseBtn = document.querySelector('.close');
+const editCloseBtn = document.querySelector('.close-edit');
 
-closeBtn.addEventListener('click', () => {
-    modal.style.display = 'none';
+qrCloseBtn.addEventListener('click', () => {
+    qrModal.style.display = 'none';
+});
+
+editCloseBtn.addEventListener('click', () => {
+    editModal.style.display = 'none';
 });
 
 window.addEventListener('click', (e) => {
-    if (e.target === modal) {
-        modal.style.display = 'none';
+    if (e.target === qrModal) {
+        qrModal.style.display = 'none';
+    }
+    if (e.target === editModal) {
+        editModal.style.display = 'none';
     }
 });
 
@@ -528,111 +783,4 @@ function deleteSelected() {
     }
 }
 </script>
-
-<style>
-/* Modal styles */
-/* Enhanced Modal styles */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.8);
-    backdrop-filter: blur(5px);
-}
-
-.modal-content {
-    background: #0a0a0a;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    margin: 3% auto;
-    padding: 30px;
-    border-radius: 15px;
-    width: 500px;
-    max-width: 90%;
-    text-align: center;
-    color: white;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    position: relative;
-}
-
-.close {
-    color: #aaa;
-    position: absolute;
-    top: 15px;
-    right: 50px;
-    font-size: 30px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: color 0.3s ease;
-}
-
-.close:hover {
-    color: #9e33e6;
-}
-
-.modal-content h3 {
-    margin-top: 0;
-    margin-bottom: 25px;
-    font-size: 24px;
-    background: linear-gradient(45deg, #9e33e6, #505ed7);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-#qrcode-container {
-    margin: 25px 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px;
-    background: #0a0a0a;
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-#qrcode-container img {
-    max-width: 100%;
-    max-height: 200px;
-    width: auto;
-    height: auto;
-    border-radius: 10px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-}
-
-#qr-url-display {
-    font-family: 'Courier New', monospace;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 15px;
-    border-radius: 8px;
-    word-break: break-all;
-    font-size: 13px;
-    color: #ccc;
-    margin: 20px 0;
-}
-
-.btn-download {
-    background: linear-gradient(45deg, #9e33e6, #505ed7);
-    color: white;
-    padding: 12px 25px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 15px;
-    font-size: 16px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(158, 51, 230, 0.3);
-}
-
-.btn-download:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(158, 51, 230, 0.4);
-}
-</style>
 {% endblock %}

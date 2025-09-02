@@ -38,6 +38,7 @@ from django.http import Http404
 from .models import QRCodeRedirect, QRCodeClick
 import secrets
 import string
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 def store(request):
@@ -2561,3 +2562,61 @@ def delete_qr_codes(request):
         messages.success(request, f"{deleted_count} QR code(s) deleted successfully")
     
     return redirect('STORE:qr_code_management')
+
+@staff_member_required
+def edit_qr_code(request, code):
+    """Edit QR code destination and description"""
+    qr_code = get_object_or_404(QRCodeRedirect, code=code)
+    
+    if request.method == 'POST':
+        destination_url = request.POST.get('destination_url', '').strip()
+        description = request.POST.get('description', '').strip()
+        
+        if not destination_url:
+            messages.error(request, 'Destination URL is required.')
+            return redirect('STORE:qr_code_management')
+        
+        # Validate URL format
+        if not (destination_url.startswith('http://') or destination_url.startswith('https://')):
+            destination_url = 'https://' + destination_url
+        
+        qr_code.destination_url = destination_url
+        qr_code.description = description
+        qr_code.save()
+        
+        messages.success(request, f'QR code "{code}" updated successfully!')
+        return redirect('STORE:qr_code_management')
+    
+    context = {
+        'qr_code': qr_code,
+    }
+    return render(request, 'STORE/edit_qr_code.html', context)
+
+@staff_member_required  
+def quick_edit_qr_code(request, code):
+    """AJAX endpoint for quick editing QR code destination"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    
+    qr_code = get_object_or_404(QRCodeRedirect, code=code)
+    
+    destination_url = request.POST.get('destination_url', '').strip()
+    description = request.POST.get('description', '').strip()
+    
+    if not destination_url:
+        return JsonResponse({'success': False, 'error': 'Destination URL is required'})
+    
+    # Validate URL format
+    if not (destination_url.startswith('http://') or destination_url.startswith('https://')):
+        destination_url = 'https://' + destination_url
+    
+    qr_code.destination_url = destination_url
+    qr_code.description = description
+    qr_code.save()
+    
+    return JsonResponse({
+        'success': True,
+        'message': f'QR code "{code}" updated successfully!',
+        'new_destination': qr_code.destination_url,
+        'new_description': qr_code.description
+    })

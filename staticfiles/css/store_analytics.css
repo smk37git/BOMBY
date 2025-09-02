@@ -303,6 +303,7 @@
     border-radius: 10px;
     padding: 20px;
     margin-top: 20px;
+    margin-bottom: 25px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
@@ -340,6 +341,32 @@
     padding: 3px 8px;
     border-radius: 12px;
     display: inline-block;
+}
+
+/* QR Codes */
+.search-input {
+    background-color: rgba(40, 40, 40, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+}
+
+.search-input:focus {
+    background-color: rgba(50, 50, 50, 0.9);
+    border-color: #9e33e6;
+    box-shadow: 0 0 0 2px rgba(158, 51, 230, 0.3);
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.qr-code-info-container {
+    border-radius: 10px;
+    padding: 15px 20px;
+    max-width: 100%;
+    background-color: rgba(20, 20, 20, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-sizing: border-box;
 }
 
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
@@ -481,5 +508,19 @@
         font-size: 2.2em;
         margin: 25px auto !important;
         padding: 15px 25px;
+    }
+
+    .time-filter {
+        white-space: nowrap;
+    }
+
+    .qr-code-info-container {
+        padding: 15px;
+        width: 100%;
+    }
+    
+    .qr-metrics {
+        flex-direction: column !important;
+        gap: 15px !important;
     }
 }

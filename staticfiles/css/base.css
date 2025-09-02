@@ -488,6 +488,7 @@ main {
 }
 
 .footer-tagline {
+  margin-top: 10px;
   font-size: 0.9rem;
   color: #999;
   margin-bottom: 15px;
