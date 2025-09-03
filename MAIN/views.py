@@ -11,6 +11,7 @@ from MAIN.decorators import *
 from .models import Announcement
 from django.conf import settings
 from django.core.mail import EmailMessage
+from .decorators import admin_code_required
 
 # Easter Egg Discount Code
 import json
@@ -74,6 +75,23 @@ def portfolio(request):
 # Admin Panel View
 @login_required
 @admin_required
+def admin_code_verify(request):
+    if request.method == 'POST':
+        code = request.POST.get('admin_code')
+        
+        if code == getattr(settings, 'ADMIN_VERIFICATION_CODE'):
+            request.session['admin_code_verified'] = True
+            
+            redirect_url = request.session.pop('admin_redirect_url', None)
+            return redirect(redirect_url or 'MAIN:admin_panel')
+    
+    return render(request, 'MAIN/admin_code_verify.html')
+
+def clear_admin_session(request):
+    request.session.pop('admin_code_verified', None)
+
+@login_required
+@admin_code_required
 def admin_panel(request):
     User = get_user_model()
     
@@ -98,7 +116,7 @@ def coming_soon(request):
 
 # Announcement Views
 @login_required
-@admin_required
+@admin_code_required
 def manage_announcements(request):
     if request.method == 'POST':
         message = request.POST.get('message')
@@ -125,7 +143,7 @@ def manage_announcements(request):
     return render(request, 'MAIN/announcements.html', {'announcements': announcements})
 
 @login_required
-@admin_required
+@admin_code_required
 def edit_announcement(request, announcement_id):
     announcement = get_object_or_404(Announcement, id=announcement_id)
     
@@ -148,7 +166,7 @@ def edit_announcement(request, announcement_id):
     })
 
 @login_required
-@admin_required
+@admin_code_required
 def toggle_announcement(request, announcement_id):
     announcement = get_object_or_404(Announcement, id=announcement_id)
     announcement.is_active = not announcement.is_active
@@ -159,7 +177,7 @@ def toggle_announcement(request, announcement_id):
     return redirect('MAIN:manage_announcements')
 
 @login_required
-@admin_required
+@admin_code_required
 def delete_announcement(request, announcement_id):
     announcement = get_object_or_404(Announcement, id=announcement_id)
     announcement.delete()

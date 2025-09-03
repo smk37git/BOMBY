@@ -40,6 +40,7 @@ from django.shortcuts import redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from STORE.models import DiscountCode
+from MAIN.decorators import admin_code_required
 
 # Signup Form
 def signup(request):
@@ -691,6 +692,7 @@ def is_admin(user):
     return user.is_admin_user
 
 @login_required
+@admin_code_required
 @user_passes_test(is_admin)
 def user_management(request):
     """View for admin users to manage all users"""
@@ -720,6 +722,7 @@ def user_management(request):
 
 # Select Users for Control
 @login_required
+@admin_code_required
 @user_passes_test(is_admin)
 def bulk_change_user_type(request):
     if request.method == 'POST':
@@ -733,6 +736,7 @@ def bulk_change_user_type(request):
     return redirect('ACCOUNTS:user_management')
 
 @login_required
+@admin_code_required
 @user_passes_test(is_admin)
 def bulk_delete_users(request):
     if request.method == 'POST':
@@ -753,6 +757,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from STORE.models import DiscountCode
 
 @login_required
+@admin_code_required
 @user_passes_test(is_admin)
 def add_discount(request):
     if request.method == 'POST':
@@ -816,6 +821,7 @@ def add_discount(request):
     return redirect('ACCOUNTS:user_management')
 
 @login_required
+@admin_code_required
 @user_passes_test(is_admin)
 def remove_discount(request):
     if request.method == 'POST':
@@ -849,6 +855,7 @@ def remove_discount(request):
     return redirect('ACCOUNTS:user_management')
 
 @login_required
+@admin_code_required
 @user_passes_test(is_admin)
 def check_discount_history(request):
     if request.method == 'POST':
@@ -896,6 +903,7 @@ def check_discount_history(request):
 
 # Message Monitoring
 @login_required
+@admin_code_required
 @user_passes_test(is_admin)
 def message_monitor(request):
     """Admin view to monitor all user messages"""
@@ -970,6 +978,7 @@ def message_monitor(request):
     return render(request, 'ACCOUNTS/message_monitor.html', context)
 
 @login_required
+@admin_code_required
 @user_passes_test(is_admin)
 def mark_message_read(request):
     """AJAX endpoint to mark a message as read"""
@@ -989,6 +998,7 @@ def mark_message_read(request):
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 @login_required
+@admin_code_required
 @user_passes_test(is_admin)
 def delete_messages(request):
     """Endpoint to delete messages"""

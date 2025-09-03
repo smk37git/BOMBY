@@ -39,6 +39,7 @@ from .models import QRCodeRedirect, QRCodeClick
 import secrets
 import string
 from django.contrib.admin.views.decorators import staff_member_required
+from MAIN.decorators import admin_code_required
 
 
 def store(request):
@@ -821,6 +822,7 @@ def become_supporter(request):
 
 # Stream Asset Management (Admin)
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def stream_asset_management(request):
     """Admin view for managing stream assets"""
@@ -842,6 +844,7 @@ def stream_asset_management(request):
 
 
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def add_stream_asset(request):
     """Admin view to add stream assets with multiple media files and versions using chunked uploads"""
@@ -954,6 +957,7 @@ os.makedirs(CHUNK_UPLOAD_DIR, exist_ok=True)
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def handle_chunked_upload(request):
     """Handle chunked file uploads"""
@@ -1092,6 +1096,7 @@ def handle_chunked_upload(request):
     }, status=400)
 
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def edit_stream_asset(request, asset_id):
     """View for editing a stream asset with multiple media and versions"""
@@ -1200,6 +1205,7 @@ def edit_stream_asset(request, asset_id):
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def bulk_change_asset_status(request):
     """Change status for multiple assets at once"""
@@ -1219,6 +1225,7 @@ def bulk_change_asset_status(request):
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def delete_stream_assets(request):
     """Delete selected assets and their files from storage bucket"""
@@ -1285,6 +1292,7 @@ def delete_stream_assets(request):
 # Admin Views
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def toggle_product_status(request, product_id):
     from django.db import connection
@@ -1311,6 +1319,7 @@ def toggle_product_status(request, product_id):
     })
 
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def force_inactive(request, product_id):
     """Force a product to inactive state"""
@@ -1330,6 +1339,7 @@ def force_inactive(request, product_id):
     })
 
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def force_active(request, product_id):
     """Force a product to active state"""
@@ -1350,6 +1360,7 @@ def force_active(request, product_id):
 
 # Product Management Views
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def product_management(request):
     """View for managing products"""
@@ -1373,6 +1384,7 @@ def product_management(request):
     return response
 
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def edit_product(request, product_id):
     """View for editing a product"""
@@ -1408,6 +1420,7 @@ def edit_product(request, product_id):
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def bulk_change_product_status(request):
     """Change status for multiple products at once"""
@@ -1435,6 +1448,7 @@ def bulk_change_product_status(request):
     return redirect('STORE:product_management')
 
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def create_product(request):
     """View for creating a new product"""
@@ -1469,6 +1483,7 @@ def create_product(request):
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def delete_products(request):
     """Delete selected products"""
@@ -1492,6 +1507,7 @@ def delete_products(request):
 
 # Order Management Views
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def order_management(request):
     """Admin view for managing orders and donations"""
@@ -1577,6 +1593,7 @@ def order_management(request):
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_change_order_status(request):
     """Change status for selected orders"""
@@ -1620,6 +1637,7 @@ def admin_change_order_status(request):
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_add_order(request):
     """Add a new order for a user"""
@@ -1659,6 +1677,7 @@ def admin_add_order(request):
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_delete_orders(request):
     """Delete selected orders and donations"""
@@ -1694,6 +1713,7 @@ def admin_delete_orders(request):
     return redirect('STORE:order_management')
 
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def review_management(request):
     """Admin view for managing reviews"""
@@ -1734,6 +1754,7 @@ def review_management(request):
     return response
 
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def review_details(request, review_id):
     """View a single review in detail"""
@@ -1750,6 +1771,7 @@ def review_details(request, review_id):
     return response
 
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_edit_review(request, review_id):
     """Admin view for editing a review"""
@@ -1777,6 +1799,7 @@ def admin_edit_review(request, review_id):
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_delete_reviews(request):
     """Delete selected reviews"""
@@ -1800,6 +1823,7 @@ def admin_delete_reviews(request):
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def admin_add_review(request):
     """Admin view for adding a review directly for a product"""
@@ -2091,6 +2115,7 @@ def payment_cancel(request):
     return redirect('STORE:store')
 
 # Store Analyitcs
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def store_analytics(request):
     """Analytics dashboard for store metrics with period comparison"""
@@ -2397,6 +2422,7 @@ def qr_redirect(request, code):
     return redirect(qr_code.destination_url)
 
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def qr_code_management(request):
     """Admin view for managing QR codes"""
@@ -2420,6 +2446,7 @@ def qr_code_management(request):
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def create_qr_code(request):
     """Create a new QR code redirect"""
@@ -2472,6 +2499,7 @@ def generate_qr_code():
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def toggle_qr_code_status(request, code):
     """Toggle QR code active status"""
@@ -2485,6 +2513,7 @@ def toggle_qr_code_status(request, code):
     return redirect('STORE:qr_code_management')
 
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def qr_code_analytics(request, code):
     """View analytics for a specific QR code"""
@@ -2549,6 +2578,7 @@ def qr_code_analytics(request, code):
 
 @require_POST
 @login_required
+@admin_code_required
 @user_passes_test(lambda u: u.is_staff)
 def delete_qr_codes(request):
     """Delete selected QR codes"""

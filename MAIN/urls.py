@@ -9,6 +9,7 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('contact/', views.contact, name='contact'),
     path('admin-panel/', views.admin_panel, name='admin_panel'),
+    path('admin-verify/', views.admin_code_verify, name='admin_code_verify'),
     path('coming-soon/', views.coming_soon, name='coming_soon'),
 
     # Announcement URLs

@@ -1,0 +1,126 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+.admin-code-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 40px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+}
+
+.admin-code-icon {
+    font-size: 3rem;
+    color: #7b00fe;
+    margin-bottom: 20px;
+}
+
+.admin-code-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #ffffff;
+}
+
+.admin-code-subtitle {
+    color: #ffffff;
+    margin-bottom: 30px;
+    font-size: 0.9rem;
+}
+
+.admin-code-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.admin-code-input {
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 10px;
+    font-size: 1rem;
+    text-align: center;
+    letter-spacing: 2px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.admin-code-input:focus {
+    outline: none;
+    border-color: #7b00fe;
+    box-shadow: 0 0 0 3px rgba(123, 0, 254, 0.1);
+}
+
+.admin-code-submit {
+    padding: 15px;
+    background: #7b00fe;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.admin-code-submit:hover {
+    background: #6a00e6;
+    transform: translateY(-2px);
+}
+
+@media (max-width: 480px) {
+    .admin-code-container {
+        margin: 50px 20px;
+        padding: 30px 20px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="admin-code-container">
+    <div class="admin-code-icon">
+        <i class="fas fa-shield-alt"></i>
+    </div>
+    
+    <h1 class="admin-code-title">Admin Verification</h1>
+    <p class="admin-code-subtitle">Enter the admin code to continue</p>
+    
+    <form method="post" class="admin-code-form">
+        {% csrf_token %}
+        <input 
+            type="password" 
+            name="admin_code" 
+            class="admin-code-input" 
+            placeholder="Enter admin code"
+            autocomplete="off"
+            required
+            autofocus
+        >
+        <button type="submit" class="admin-code-submit">
+            <i class="fas fa-unlock"></i> Verify Access
+        </button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.querySelector('.admin-code-input');
+    if (input) {
+        input.focus();
+        input.select();
+    }
+});
+</script>
+{% endblock %}

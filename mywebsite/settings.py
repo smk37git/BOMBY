@@ -157,6 +157,14 @@ DATABASES = {
     }
 }
 
+if DEBUG:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -211,6 +219,9 @@ WHITENOISE_MIMETYPES = {
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+## ADMIN PANEL CODE
+ADMIN_VERIFICATION_CODE = os.environ.get('ADMIN_VERIFICATION_CODE')
 
 ## EMAIL SETTINGS SMTP
 DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'sebetvbusiness@gmail.com')
