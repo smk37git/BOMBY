@@ -718,7 +718,7 @@ body, html {
     }
     
     .code-wrapper {
-        margin-top: -25px;
+        margin-top: -40px;
         max-height: 85%;
         max-width: 88%;
         padding: 12px;
@@ -742,6 +742,10 @@ body, html {
     .code-display div {
         text-align: center !important;
         width: 100% !important;
+    }
+
+    .resume-content {
+        margin-top: -45px;
     }
 
     .resume-section {

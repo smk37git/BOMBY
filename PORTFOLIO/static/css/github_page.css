@@ -212,7 +212,7 @@
 
 .project-card {
    display: grid;
-   height: 650px;
+   height: 575px;
    grid-template-columns: 1.2fr 0.8fr;
    gap: 0;
    margin-bottom: 5rem;
@@ -232,7 +232,7 @@
 }
 
 .project-card.reverse {
-   height: 685px;
+   height: 575px;
    grid-template-columns: 0.8fr 1.2fr;
    direction: rtl;
 }
@@ -248,7 +248,7 @@
 }
 
 .project-content {
-   padding: 3rem;
+   padding: 1.5rem;
    display: flex;
    flex-direction: column;
 }
@@ -291,7 +291,6 @@
    color: rgba(255, 255, 255, 0.8);
    font-size: 0.95rem;
    line-height: 1.5;
-   margin-bottom: 1.5rem;
 }
 
 .project-description p {
@@ -299,7 +298,7 @@
 }
 
 .project-highlights {
-   margin: 1.5rem 0;
+   margin: .5rem 0;
 }
 
 .highlight {
@@ -322,7 +321,6 @@
 }
 
 .project-footer {
-   margin-top: auto;
    display: flex;
    justify-content: space-between;
    align-items: center;
@@ -370,11 +368,11 @@
 
 .project-image {
    overflow: hidden;
+   max-height: 575px;
    background: linear-gradient(90deg, #1c1c1c, #222222);
    display: flex;
    align-items: center;
    justify-content: center;
-   height: 100%;
 }
 
 .project-image img {

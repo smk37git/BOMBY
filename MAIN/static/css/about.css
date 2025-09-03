@@ -44,25 +44,6 @@
     align-items: center;
 }
 
-.about-image::before {
-    content: '';
-    position: absolute;
-    top: -10px;
-    left: -10px;
-    right: -10px;
-    bottom: -10px;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    animation: rotate 10s linear infinite;
-    z-index: 1;
-    height: 300px;
-}
-
-@keyframes rotate {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
 .about-image img {
     width: 100%;
     max-width: 300px;
@@ -70,7 +51,6 @@
     border-radius: 50%;
     object-fit: cover;
     border: 4px solid #ffffff;
-    box-shadow: 0 0 20px rgb(255, 255, 255);
     position: relative;
     z-index: 2;
 }
@@ -142,76 +122,51 @@
     transition: transform 0.3s ease;
 }
 
-.section-separator {
-    position: relative;
-    width: 100%;
-    height: 1px;
-    margin-bottom: -1px;
-    background: transparent;
-    z-index: 3;
-}
-
-.section-separator::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background: linear-gradient(to bottom, rgb(159, 159, 159), rgba(255, 255, 255, 0));
-}
-
 .contact-section {
-    position: relative;
     text-align: center;
-    padding: 20px;
-    padding-top: 30px;
+    padding: 15px 30px;
+    margin: 40px auto;
     background-color: #0a0a0a;
-    opacity: 1 !important;
-    border-top: none;
-    z-index: 2;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    color: white;
+    position: relative;
+    z-index: 4;
+    max-width: 90%;
+}
+
+.contact-section h2 {
+    font-size: 1.8em;
 }
 
 .contact-link {
-    padding: 12px 25px;
+    padding: 8px 15px;
     background: linear-gradient(45deg, #9e33e6, #505ed7);
     color: white;
     text-decoration: none;
     border-radius: 8px;
-    font-size: 1.1em;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative;
-    margin-bottom: 5px;
-    z-index: 5;
+    display: inline-block;
+    min-width: 100px;
+    text-align: center;
+    font-size: 1rem;
 }
 
 .contact-section h2 {
     font-size: 1.8rem;
-    margin-top: 0;
+    margin: 0;
+}
+
+.contact-section p {
+    margin-top: -10px;
+    margin: 15px 0px 35px;
 }
 
 .contact-links {
-    display: flex;
-    justify-content: center;
+    width: 100%;
+    display: inline-grid;
     gap: 20px;
-    flex-wrap: wrap;
-    margin-top: 20px;
-    position: relative;
-    z-index: 5;
-    margin-bottom: 0;
-}
-
-.contact-links a {
-    padding: 12px 25px;
-    background: linear-gradient(45deg, #9e33e6, #505ed7);
-    color: white;
-    text-decoration: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative;
-    margin-bottom: 10px;
-    z-index: 5;
+    flex-wrap: nowrap;
 }
 
 .contact-link:hover {
@@ -219,9 +174,9 @@
     box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
 }
 
-.contact-links a:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(160, 74, 226, 0.3);
+/* Hide mobile contact section on desktop */
+.mobile-contact-section {
+    display: none;
 }
 
 @media (min-width: 1440px) {
@@ -285,8 +240,13 @@
         font-size: 1.8rem !important;
     }
 
+    .contact-links {
+        margin-top: 25px;
+        display: block;
+    }
+
     .contact-link {
-        font-size: 2rem !important;
+        margin-right: 25px;
     }
 }
 
@@ -303,7 +263,7 @@
     }
     
     .about-section {
-        padding: 20px 15px 50px;
+        padding: 20px 15px 25px;
         min-height: 100vh;
         overflow-x: hidden;
         width: 100%;
@@ -337,7 +297,7 @@
     .about-image {
         margin-top: 10px;
         margin-bottom: 20px;
-        width: 220px;
+        width: 500px;
     }
     
     .about-image img {
@@ -356,7 +316,6 @@
     }
     
     .image-email {
-        margin-top: 10px;
         font-size: 0.9em;
         word-break: break-all;
         text-align: center;
@@ -371,20 +330,38 @@
     .about-details ul {
         padding: 5px;
     }
+
+    /* Hide desktop contact section on mobile */
+    .about-image .contact-section {
+        display: none;
+    }
+
+    /* Show mobile contact section */
+    .mobile-contact-section {
+        display: block !important;
+        width: 100%;
+        max-width: 100%;
+        margin: 30px auto 0 auto;
+    }
+
+    .mobile-contact-section p {
+        margin: 15px 0px;
+    }
     
-    .contact-section {
+    .mobile-contact-section .contact-links {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 10px;
         width: 100%;
     }
     
-    .contact-links {
-        gap: 15px;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-    
-    .contact-links a {
-        padding: 10px 20px;
-        font-size: 1em;
+    .mobile-contact-section .contact-link {
+        text-align: center;
+        padding: 10px 15px;
+        flex: 1;
+        min-width: 100px;
     }
 
     .binary-background {
@@ -432,7 +409,7 @@
     }
     
     .about-image {
-        width: 180px;
+        width: 500px;
     }
     
     .about-image img {
@@ -453,5 +430,9 @@
         font-size: 0.85em;
         margin-bottom: 15px;
         word-break: break-all;
+    }
+
+    .mobile-contact-section .contact-link {
+        width: 100%;
     }
 }
