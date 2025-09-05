@@ -1,6 +1,12 @@
 {% extends 'MAIN/base.html' %}
 {% load static %}
 
+{% block title %}Make a Donation - Support BOMBY{% endblock %}
+{% block description %}Support BOMBY with a donation. Help keep the website running and fund future projects. Donations over $10 receive Supporter role benefits.{% endblock %}
+{% block og_title %}Make a Donation - Support BOMBY{% endblock %}
+{% block og_description %}Support BOMBY with a donation. Help keep the website running and fund future projects. Donations over $10 receive Supporter role benefits.{% endblock %}
+{% block og_url %}https://bomby.us/store/donations/{% endblock %}
+
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/payment.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">

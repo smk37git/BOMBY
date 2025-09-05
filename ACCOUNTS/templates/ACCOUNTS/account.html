@@ -1,6 +1,12 @@
 {% extends 'MAIN/base.html' %}
 {% load static %}
 
+{% block title %}My Account | BOMBY{% endblock %}
+{% block description %}Manage your BOMBY account, view orders, update profile, and access promotional wall settings. Track your stream setup services and purchases.{% endblock %}
+{% block og_title %}My Account - BOMBY{% endblock %}
+{% block og_description %}Manage your BOMBY account, view orders, update profile, and access promotional wall settings. Track your stream setup services and purchases.{% endblock %}
+{% block og_url %}https://bomby.us/accounts/account{% endblock %}
+
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/profile.css' %}">
 {% endblock %}

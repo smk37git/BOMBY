@@ -2,6 +2,12 @@
 {% load static %}
 {% load socialaccount %}
 
+{% block title %}Login | BOMBY{% endblock %}
+{% block description %}Sign in to your BOMBY account to access stream setup services, track orders, and manage your profile on the promotional wall.{% endblock %}
+{% block og_title %}Login - BOMBY{% endblock %}
+{% block og_description %}Sign in to your BOMBY account to access stream setup services, track orders, and manage your profile on the promotional wall.{% endblock %}
+{% block og_url %}https://bomby.us/accounts/login/{% endblock %}
+
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/account_functions.css' %}">
 {% endblock %}

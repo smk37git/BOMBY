@@ -1,6 +1,12 @@
 {% extends 'MAIN/base.html' %}
 {% load static %}
 
+{% block title %}My Portfolio - Coding & Projects | BOMBY{% endblock %}
+{% block description %}View Sebastian Main's portfolio of web development projects, coding work, and technical achievements. Features Django websites, GitHub repositories, college projects, and stream setups.{% endblock %}
+{% block og_title %}Portfolio - BOMBY{% endblock %}
+{% block og_description %}View Sebastian Main's portfolio of web development projects, coding work, and technical achievements. Features Django websites, GitHub repositories, college projects, and stream setups.{% endblock %}
+{% block og_url %}https://bomby.us/portfolio/{% endblock %}
+
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/portfolio.css' %}">
 {% endblock %}

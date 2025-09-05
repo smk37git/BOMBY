@@ -1,6 +1,12 @@
 {% extends 'MAIN/base.html' %}
 {% load static %}
 
+{% block title %}My Orders - Order Management | BOMBY{% endblock %}
+{% block description %}View and manage your BOMBY orders. Track order status, view details, and communicate about your stream setup services and purchases.{% endblock %}
+{% block og_title %}My Orders - BOMBY{% endblock %}
+{% block og_description %}View and manage your BOMBY orders. Track order status, view details, and communicate about your stream setup services and purchases.{% endblock %}
+{% block og_url %}https://bomby.us/store/my-orders/{% endblock %}
+
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/orders.css' %}">
 {% endblock %}

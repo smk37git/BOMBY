@@ -14,12 +14,13 @@
     <meta name="theme-color" content="#0a0a0a">
 
     <!-- Open Graph Meta Tags -->
-    <meta property="og:title" content="BOMBY">
-    <meta property="og:description" content="Streaming and Recording Setup, Freelance Services, and Portfolio">
-    <meta name="description" content="Streaming and Recording Setup, Freelance Services, and Portfolio">
-    <meta property="og:image" content="https://bomby.us/static/images/bomby_meta.png">
-    <meta property="og:url" content="https://bomby.us">
-    <meta property="og:type" content="website">
+    <title>{% block title %}BOMBY - Streaming and Recording Setup, Freelance Services, and Portfolio{% endblock %}</title>
+    <meta name="description" content="{% block description %}Streaming and Recording Setup, Freelance Services, and Portfolio{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}BOMBY{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Streaming and Recording Setup, Freelance Services, and Portfolio{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}https://bomby.us/static/images/bomby_meta.png{% endblock %}">
+    <meta property="og:url" content="{% block og_url %}https://bomby.us{% endblock %}">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
     <meta name="apple-mobile-web-app-title" content="BOMBY">
     
     <!-- CSS -->
