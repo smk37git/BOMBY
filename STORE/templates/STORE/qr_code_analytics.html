@@ -36,6 +36,27 @@
             <a href="?time_frame=month" class="{% if time_frame == 'month' %}active{% endif %}">Last 30 days</a>
             <a href="?time_frame=year" class="{% if time_frame == 'year' %}active{% endif %}">Last year</a>
             <a href="?time_frame=all" class="{% if time_frame == 'all' %}active{% endif %}">All time</a>
+
+            <div class="analytics-actions">
+                <form method="post" action="{% url 'STORE:clear_qr_code_analytics' qr_code.code %}" 
+                      onsubmit="return confirm('Are you sure you want to clear ALL analytics data for this QR code? This action cannot be undone.');" 
+                      style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-clear-analytics" 
+                            style="background: linear-gradient(45deg, #e74c3c, #c0392b); 
+                                   color: white; 
+                                   border: none; 
+                                   padding: 10px 20px; 
+                                   border-radius: 8px; 
+                                   cursor: pointer; 
+                                   font-size: 14px; 
+                                   transition: all 0.3s ease;"
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 15px rgba(231, 76, 60, 0.3)';"
+                            onmouseout="this.style.transform=''; this.style.boxShadow='';">
+                        <i class="fas fa-broom"></i> Clear Analytics
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
     

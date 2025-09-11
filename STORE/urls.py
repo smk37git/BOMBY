@@ -88,6 +88,7 @@ urlpatterns = [
     path('admin/qr-codes/create/', views.create_qr_code, name='create_qr_code'),
     path('admin/qr-codes/<str:code>/toggle/', views.toggle_qr_code_status, name='toggle_qr_code_status'),
     path('admin/qr-codes/<str:code>/analytics/', views.qr_code_analytics, name='qr_code_analytics'),
+    path('admin/qr-codes/<str:code>/clear-analytics/', views.clear_qr_code_analytics, name='clear_qr_code_analytics'),
     path('admin/qr-codes/delete/', views.delete_qr_codes, name='delete_qr_codes'),
     path('qr-codes/edit/<str:code>/', views.edit_qr_code, name='edit_qr_code'),
     path('qr-codes/quick-edit/<str:code>/', views.quick_edit_qr_code, name='quick_edit_qr_code'),

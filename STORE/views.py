@@ -2650,3 +2650,25 @@ def quick_edit_qr_code(request, code):
         'new_destination': qr_code.destination_url,
         'new_description': qr_code.description
     })
+
+@require_POST
+@login_required
+@admin_code_required
+@user_passes_test(lambda u: u.is_staff)
+def clear_qr_code_analytics(request, code):
+    """Clear all analytics data for a specific QR code"""
+    qr_code = get_object_or_404(QRCodeRedirect, code=code)
+    
+    # Count clicks before deletion for confirmation message
+    click_count = qr_code.clicks.count()
+    
+    # Delete all click records for this QR code
+    qr_code.clicks.all().delete()
+    
+    # Reset the total clicks counter
+    qr_code.total_clicks = 0
+    qr_code.save()
+    
+    messages.success(request, f"Analytics cleared for QR code '{code}'. Removed {click_count} click records.")
+    
+    return redirect('STORE:qr_code_analytics', code=code)
