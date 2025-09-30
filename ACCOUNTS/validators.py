@@ -38,72 +38,30 @@ FALSE_POSITIVES = [
     "assessing", "assent", "passport", "bass", "class", "glass", "pass", "mass",
     "grasshopper", "classic", "classified", "classroom", "classification", "passage",
     "passion", "passive", "compassion", "compass", "embarrass", "harass",
-    
-    # Words containing "cock"
     "cockpit", "peacock", "hancock", "cockatoo", "cockatiel", "cocktail",
-    
-    # Words containing "cum"
     "accumulate", "cucumber", "document", "circumference", "circumstance",
-    
-    # Words containing "dick"
     "dictionary", "predict", "dictate", "verdict", "addiction", "benediction",
-    
-    # Words containing "fag"
     "fagaceae", "refagor",
-    
-    # Words containing "ho"
     "house", "home", "hour", "honest", "horizon", "honor", "hope", "host",
     "holiday", "hobby", "hotel", "hospital", "wholesale", "shoulder",
-    
-    # Words containing "jack"
-    "jacket", "jackpot", "hijack",
-    
-    # Words containing "jerk"
-    "jerkiness",
-    
-    # Words containing "piss"
-    "mississippi",
-    
-    # Words containing "puss"
-    "pushy",
-    
-    # Words containing "pussy"
-    "pussycat",
-    
-    # Words containing "sex"
+    "jacket", "jackpot", "hijack", "jerkiness", "mississippi", "pushy", "pussycat",
     "sextet", "sexagesimal", "sexennial", "sextant", "sexist", "sexism", "sexual",
     "sexuality", "sexology", "intersex", "middlesex", "essex", "sussex", "unisex",
-    
-    # Words containing "shit"
     "worship", "ownership", "leadership", "relationship", "friendship", "hardship",
     "scholarship", "citizenship", "township", "partnership", "dealership",
-    
-    # Words containing "tit"
     "institute", "institution", "title", "entitle", "titular", "titanic", "titration",
     "constitution", "substitute", "restitution", "petition", "competition", "nutrition",
     "intuition", "quantitative", "titillate", "attitude", "latitude", "gratitude",
     "altitude", "aptitude", "multitude", "platitude", "fortitude",
-    
-    # Words containing "wank"
     "swank", "swanky",
-    
-    # Words containing "whore"
     "whorehouse", "whorish",
-    
-    # Words containing "star"
     "start", "starting", "starter", "started", "restart", "star", "starry", "starvation",
     "starfish", "starboard", "starch", "stare", "staring", "stare", "starving",
     "stardom", "stargazer", "starlet", "starlight", "starship", "superstar", "startle",
-    
-    # Words containing "rat"
     "strategy", "congratulate", "separate", "elaborate", "celebrate", "accelerate", 
     "vibrate", "decorate", "narrate", "migrate", "quadrate", "moderate", "operate",
-    
-    # Words containing "scum"
     "scummy", "circumference", "circumstance", "circumvent", 
     "circumnavigate", "circumspect", "circumscribe",
-    
-    # Other potential false positives
     "analyze", "analytics", "analysis", "analytical", "analytic", "analyst",
     "specialty", "specialist", "special", "species", "specific", "specification",
     "grape", "grapefruit", "grapple", "rapeseed",
