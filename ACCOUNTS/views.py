@@ -1020,10 +1020,14 @@ def delete_messages(request):
 def bulk_change_fuzeobs_tier(request):
     if request.method == 'POST':
         selected_users = request.POST.get('selected_users', '').split(',')
+        # Filter out empty strings
+        selected_users = [uid for uid in selected_users if uid]
         fuzeobs_tier = request.POST.get('fuzeobs_tier')
         
         if selected_users and fuzeobs_tier in ['free', 'pro', 'lifetime']:
             User.objects.filter(id__in=selected_users).update(fuzeobs_tier=fuzeobs_tier)
             messages.success(request, f"Updated {len(selected_users)} user(s) to {fuzeobs_tier} tier.")
+        else:
+            messages.error(request, "No users selected.")
     
     return redirect('ACCOUNTS:user_management')
