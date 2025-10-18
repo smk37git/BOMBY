@@ -20,6 +20,9 @@ urlpatterns = [
 
     # Google Auth URL
     path('accounts/', include('allauth.urls')),
+
+    # FuzeOBS API
+    path('api/fuzeobs/', include('FUZEOBS.urls', namespace='FUZEOBS')),
 ]
 
 # Static files only

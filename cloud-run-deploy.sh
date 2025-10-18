@@ -65,7 +65,8 @@ AWS_ACCESS_KEY_ID=aws-access-key:latest,\
 AWS_SECRET_ACCESS_KEY=aws-secret-key:latest,\
 SENDGRID_API_KEY=sendgrid-api-key:latest,\
 PAYPAL_CLIENT_ID=paypal-client-id:latest,\
-PAYPAL_SECRET=paypal-secret:latest" \
+PAYPAL_SECRET=paypal-secret:latest,\
+ANTHROPIC_API_KEY=anthropic-api-key:latest" \ 
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
 echo "Deployment complete!"

@@ -34,6 +34,11 @@ class User(AbstractUser):
     class Meta:
         db_table = 'ACCOUNTS_user'
 
+    # FuzeOBS fields
+    fuzeobs_tier = models.CharField(max_length=20, default='free')
+    fuzeobs_ai_usage_monthly = models.IntegerField(default=0)
+    fuzeobs_usage_reset_date = models.DateField(null=True, blank=True)
+
     # Rest of model stays the same
     user_type = models.CharField(
         max_length=10,

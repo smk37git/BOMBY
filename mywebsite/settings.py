@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     'PORTFOLIO',
     'STORE',
     'storages',
+    'FUZEOBS',
 ]
 
 AUTHENTICATION_BACKENDS = [
