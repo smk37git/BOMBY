@@ -75,18 +75,21 @@ def fuzeobs_ai_chat(request):
     if not user:
         return JsonResponse({'error': 'Invalid token'}, status=401)
     
-    # Check subscription
-    if user.fuzeobs_tier not in ['pro', 'lifetime']:
-        return JsonResponse({'error': 'Pro subscription required'}, status=403)
-    
-    # Reset monthly usage if new month
+    # Reset monthly usage if new month (for ALL tiers)
     if not user.fuzeobs_usage_reset_date or user.fuzeobs_usage_reset_date.month != date.today().month:
         user.fuzeobs_ai_usage_monthly = 0
         user.fuzeobs_usage_reset_date = date.today()
         user.save()
     
-    # Smart model selection
-    model = "claude-haiku-3-5-20241022" if user.fuzeobs_ai_usage_monthly > 500 else "claude-sonnet-4-20250514"
+    # Check free tier limit
+    if user.fuzeobs_tier == 'free' and user.fuzeobs_ai_usage_monthly >= 2:
+        return JsonResponse({'error': 'Free tier limit reached (2/month). Upgrade to Pro for unlimited.'}, status=403)
+    
+    # Smart model selection (Pro/Lifetime use Haiku after 500)
+    if user.fuzeobs_tier in ['pro', 'lifetime']:
+        model = "claude-haiku-3-5-20241022" if user.fuzeobs_ai_usage_monthly > 500 else "claude-sonnet-4-20250514"
+    else:
+        model = "claude-haiku-3-5-20241022"  # Free always uses cheaper model
     
     # Get message
     data = json.loads(request.body)
@@ -116,6 +119,14 @@ def fuzeobs_ai_chat(request):
     
     return StreamingHttpResponse(generate(), content_type='text/event-stream')
 
+
+def get_user_from_token(token):
+    """Simple token verification - replace with JWT"""
+    try:
+        user_id, email = token.split(':')
+        return User.objects.get(id=int(user_id), email=email)
+    except:
+        return None
 
 def get_user_from_token(token):
     """Simple token verification - replace with JWT"""
