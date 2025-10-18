@@ -1012,3 +1012,18 @@ def delete_messages(request):
             messages.error(request, "No messages selected for deletion.")
     
     return redirect('ACCOUNTS:message_monitor')
+
+# FUZEOBS VIEWS
+@login_required
+@admin_code_required
+@user_passes_test(is_admin)
+def bulk_change_fuzeobs_tier(request):
+    if request.method == 'POST':
+        selected_users = request.POST.get('selected_users', '').split(',')
+        fuzeobs_tier = request.POST.get('fuzeobs_tier')
+        
+        if selected_users and fuzeobs_tier in ['free', 'pro', 'lifetime']:
+            User.objects.filter(id__in=selected_users).update(fuzeobs_tier=fuzeobs_tier)
+            messages.success(request, f"Updated {len(selected_users)} user(s) to {fuzeobs_tier} tier.")
+    
+    return redirect('ACCOUNTS:user_management')

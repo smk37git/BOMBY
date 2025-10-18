@@ -117,6 +117,21 @@
                     <button id="btn-change-type" type="submit" class="panel-action-button" disabled>Update</button>
                 </form>
             </div>
+
+            <!-- FuzeOBS Tier Section -->
+            <div class="action-section">
+                <h4>FuzeOBS Tier</h4>
+                <form id="bulk-fuzeobs-tier-form" method="post" action="{% url 'ACCOUNTS:bulk_change_fuzeobs_tier' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="selected-users-fuzeobs" name="selected_users" value="">
+                    <select name="fuzeobs_tier" class="user-type-select" disabled>
+                        <option value="free">Free</option>
+                        <option value="pro">Pro</option>
+                        <option value="lifetime">Lifetime</option>
+                    </select>
+                    <button id="btn-change-fuzeobs" type="submit" class="panel-action-button" disabled>Update Tier</button>
+                </form>
+            </div>
             
             <!-- New Discount Code Section -->
             <div class="action-section discount">
@@ -221,6 +236,13 @@
                 editUsernameBtn.href = '#';
                 editUsernameBtn.classList.add('disabled');
             }
+
+            // FuzeOBS Buttons
+            const fuzeobsSelect = document.querySelector('select[name="fuzeobs_tier"]');
+            const changeFuzeobsBtn = document.getElementById('btn-change-fuzeobs');
+
+            fuzeobsSelect.disabled = !hasSelection;
+            changeFuzeobsBtn.disabled = !hasSelection;
         }
         
         // Get IDs of selected users
@@ -297,6 +319,16 @@
             }
             
             document.getElementById('selected-users-check-discount').value = getSelectedUsers().join(',');
+        });
+
+        // Handler for FuzeOBS Tier form submit
+        document.getElementById('bulk-fuzeobs-tier-form').addEventListener('submit', function(e) {
+            if (changeFuzeobsBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+            
+            document.getElementById('selected-users-fuzeobs').value = getSelectedUsers().join(',');
         });
         
         // Handler for Delete button
