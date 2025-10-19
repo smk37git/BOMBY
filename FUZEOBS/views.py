@@ -57,9 +57,10 @@ def fuzeobs_verify(request):
         'tier': user.fuzeobs_tier
     })
 
+
 @csrf_exempt
 def fuzeobs_ai_chat(request):
-    """AI chat streaming endpoint"""
+    """AI chat streaming endpoint with proper SSE implementation"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     
@@ -95,16 +96,18 @@ def fuzeobs_ai_chat(request):
     
     # Get message
     data = json.loads(request.body)
-    message = data.get('message', '')
+    message = data.get('message', '').strip()
     
-    if not message.strip():
+    if not message:
         return JsonResponse({'error': 'Empty message'}, status=400)
     
-    # Stream response
+    # Initialize Anthropic client
     client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
     
     def generate():
+        """Generator function for SSE streaming"""
         try:
+            # Stream from Anthropic
             with client.messages.stream(
                 model=model,
                 max_tokens=4096,
@@ -139,19 +142,41 @@ KNOWLEDGE:
                 messages=[{"role": "user", "content": message}]
             ) as stream:
                 for text in stream.text_stream:
-                    yield f"data: {text}\n\n"
-            
+                    # Escape any potential SSE control characters
+                    clean_text = text.replace('\n', ' ').replace('\r', ' ')
+                    yield f"data: {clean_text}\n\n"
+                    
             # Increment usage AFTER successful completion
             user.fuzeobs_ai_usage_monthly += 1
             user.save()
             
+            # Send completion signal
             yield "data: [DONE]\n\n"
             
         except Exception as e:
             print(f"AI Stream Error: {e}")
-            yield f"data: [ERROR] {str(e)}\n\n"
+            yield f"data: [ERROR] Failed to generate response. Please try again.\n\n"
     
-    return StreamingHttpResponse(generate(), content_type='text/event-stream')
+    # Create streaming response with proper headers
+    response = StreamingHttpResponse(
+        generate(),
+        content_type='text/event-stream; charset=utf-8'
+    )
+    
+    # Essential headers for SSE and CORS
+    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response['Pragma'] = 'no-cache'
+    response['Expires'] = '0'
+    response['X-Accel-Buffering'] = 'no'  # Disable nginx buffering
+    response['Connection'] = 'keep-alive'
+    
+    # CORS headers
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response['Access-Control-Allow-Credentials'] = 'false'
+    
+    return response
 
 
 def get_user_from_token(token):
