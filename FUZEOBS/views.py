@@ -86,10 +86,17 @@ def fuzeobs_ai_chat(request):
     
     # Check free tier limit - block AFTER 2 messages (on the 3rd+)
     if user.fuzeobs_tier == 'free' and user.fuzeobs_ai_usage_monthly >= 2:
-        return JsonResponse({
-            'error': 'Free tier limit reached. You have used your 2 free queries this month.',
-            'upgrade_required': True
-        }, status=403)
+        def limit_message():
+            yield f"data: {json.dumps({'text': '**Free Tier Limit Reached**\n\nYou have used your 2 free AI queries this month. Upgrade to Pro for unlimited access to the AI assistant.'})}\n\n"
+            yield "data: [DONE]\n\n"
+        
+        response = StreamingHttpResponse(
+            limit_message(),
+            content_type='text/event-stream; charset=utf-8'
+        )
+        response['Cache-Control'] = 'no-cache'
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
     
     # Increment usage BEFORE streaming starts
     user.fuzeobs_ai_usage_monthly += 1
