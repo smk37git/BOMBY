@@ -1,6 +1,4 @@
 from django.shortcuts import render
-
-# Create your views here.
 from django.http import StreamingHttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
@@ -36,7 +34,6 @@ def fuzeobs_login(request):
         except User.DoesNotExist:
             response = JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
     
-    # Add CORS headers
     response['Access-Control-Allow-Origin'] = '*'
     response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
@@ -60,12 +57,10 @@ def fuzeobs_verify(request):
                 'tier': user.fuzeobs_tier
             })
     
-    # Add CORS headers
     response['Access-Control-Allow-Origin'] = '*'
     response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
     return response
-
 
 @csrf_exempt
 def fuzeobs_ai_chat(request):
@@ -73,7 +68,6 @@ def fuzeobs_ai_chat(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     
-    # Verify user
     auth_header = request.headers.get('Authorization', '')
     if not auth_header.startswith('Bearer '):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -90,17 +84,16 @@ def fuzeobs_ai_chat(request):
         user.fuzeobs_usage_reset_date = date.today()
         user.save()
     
-    # Check free tier limit - allow the 2 free messages
+    # Check free tier limit - block AFTER 2 messages (on the 3rd+)
     if user.fuzeobs_tier == 'free' and user.fuzeobs_ai_usage_monthly >= 2:
         return JsonResponse({
             'error': 'Free tier limit reached. You have used your 2 free queries this month.',
             'upgrade_required': True
         }, status=403)
     
-    # Increment usage at START for free tier tracking
-    if user.fuzeobs_tier == 'free':
-        user.fuzeobs_ai_usage_monthly += 1
-        user.save()
+    # Increment usage BEFORE streaming starts
+    user.fuzeobs_ai_usage_monthly += 1
+    user.save()
     
     # Model selection
     if user.fuzeobs_tier in ['pro', 'lifetime']:
@@ -108,14 +101,12 @@ def fuzeobs_ai_chat(request):
     else:
         model = "claude-3-5-haiku-20241022"
     
-    # Get message
     data = json.loads(request.body)
     message = data.get('message', '').strip()
     
     if not message:
         return JsonResponse({'error': 'Empty message'}, status=400)
     
-    # Initialize Anthropic client
     client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
     
     def generate():
@@ -126,31 +117,25 @@ def fuzeobs_ai_chat(request):
                 max_tokens=4096,
                 system="""You are the FuzeOBS AI Assistant - expert in OBS Studio and streaming.
 
-    Write clear, natural responses with proper spacing and line breaks.
+Write clear, natural responses with proper spacing and line breaks.
 
-    For 1080p 60fps on Twitch, use 6000 kbps.
+For 1080p 60fps on Twitch, use 6000 kbps.
 
-    This is the sweet spot for excellent quality without hitting Twitch's 8000 kbps limit. Going higher risks viewer buffering.
+This is the sweet spot for excellent quality without hitting Twitch's 8000 kbps limit. Going higher risks viewer buffering.
 
-    Recommended settings:
-    - Resolution: 1920x1080
-    - FPS: 60
-    - Bitrate: 6000 kbps
-    - Encoder: NVENC (if you have RTX GPU) or x264 on "veryfast"
+Recommended settings:
+- Resolution: 1920x1080
+- FPS: 60
+- Bitrate: 6000 kbps
+- Encoder: NVENC (if you have RTX GPU) or x264 on "veryfast"
 
-    Key tip: Consistent upload speed matters more than raw bitrate. Test your connection first.
+Key tip: Consistent upload speed matters more than raw bitrate. Test your connection first.
 
-    What's your current upload speed and GPU? I can help optimize your encoder settings.""",
+What's your current upload speed and GPU? I can help optimize your encoder settings.""",
                 messages=[{"role": "user", "content": message}]
             ) as stream:
                 for text in stream.text_stream:
-                    # Use JSON encoding to preserve exact text
-                    import json
                     yield f"data: {json.dumps({'text': text})}\n\n"
-                    
-            if user.fuzeobs_tier in ['pro', 'lifetime']:
-                user.fuzeobs_ai_usage_monthly += 1
-                user.save()
             
             yield "data: [DONE]\n\n"
             
@@ -158,20 +143,16 @@ def fuzeobs_ai_chat(request):
             print(f"AI Stream Error: {e}")
             yield f"data: [ERROR] Failed to generate response. Please try again.\n\n"
     
-    # Create streaming response with proper headers
     response = StreamingHttpResponse(
         generate(),
         content_type='text/event-stream; charset=utf-8'
     )
     
-    # Essential headers for SSE and CORS
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
     response['X-Accel-Buffering'] = 'no'
     response['Connection'] = 'keep-alive'
-    
-    # CORS headers
     response['Access-Control-Allow-Origin'] = '*'
     response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
     response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
@@ -180,15 +161,7 @@ def fuzeobs_ai_chat(request):
     return response
 
 def get_user_from_token(token):
-    """Simple token verification - replace with JWT"""
-    try:
-        user_id, email = token.split(':')
-        return User.objects.get(id=int(user_id), email=email)
-    except:
-        return None
-
-def get_user_from_token(token):
-    """Simple token verification - replace with JWT"""
+    """Simple token verification"""
     try:
         user_id, email = token.split(':')
         return User.objects.get(id=int(user_id), email=email)
