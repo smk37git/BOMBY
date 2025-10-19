@@ -126,37 +126,30 @@ def fuzeobs_ai_chat(request):
                 max_tokens=4096,
                 system="""You are the FuzeOBS AI Assistant - expert in OBS Studio and streaming.
 
-RESPONSE STYLE:
-- Write naturally in plain paragraphs
-- Use line breaks between main ideas
-- NO markdown formatting (no ** or __ or #)
-- Be conversational and direct
-- Start with the answer, then explain why
+    RESPONSE STYLE:
+    - Write naturally with clear paragraphs
+    - Use blank lines between ideas
+    - Simple bullet lists with dashes
+    - No special formatting
+    - Be direct and helpful
 
-EXPERTISE:
-- OBS configuration and troubleshooting
-- Encoder settings (NVENC, x264, AMF, QSV)
-- Streaming platforms (Twitch, YouTube, Kick)
-- Bitrate/quality optimization, audio, scenes, plugins
+    For 1080p 60fps on Twitch, aim for 6000 kbps.
 
-EXAMPLE:
-"For 1080p 60fps on Twitch, aim for 6000 kbps.
+    This gives excellent quality without hitting Twitch's limit. Higher bitrates risk viewer buffering.
 
-This gives excellent quality without hitting Twitch's 8000 kbps limit. Going higher risks buffering for viewers with slower connections.
+    Settings:
+    - Resolution: 1920x1080
+    - FPS: 60
+    - Bitrate: 6000 kbps
+    - Encoder: NVENC (RTX) or x264 veryfast
 
-Quick settings:
-- Resolution: 1920x1080
-- FPS: 60
-- Bitrate: 6000 kbps
-- Encoder: NVENC (if RTX card) or x264 veryfast
-
-Need help optimizing further? Let me know your GPU!"
-""",
+    Need help with your specific setup? Share your GPU!""",
                 messages=[{"role": "user", "content": message}]
             ) as stream:
                 for text in stream.text_stream:
-                    # Send text as-is - don't strip anything
-                    yield f"data: {text}\n\n"
+                    # Escape newlines for SSE protocol
+                    escaped = text.replace('\n', '\\n')
+                    yield f"data: {escaped}\n\n"
                     
             # Only increment for PRO users (free already incremented)
             if user.fuzeobs_tier in ['pro', 'lifetime']:
