@@ -87,7 +87,10 @@ def fuzeobs_ai_chat(request):
     # Check free tier limit - block AFTER 2 messages (on the 3rd+)
     if user.fuzeobs_tier == 'free' and user.fuzeobs_ai_usage_monthly >= 2:
         def limit_message():
-            yield f"data: {json.dumps({'text': '**Free Tier Limit Reached**\n\nYou have used your 2 free AI queries this month. Upgrade to Pro for unlimited access to the AI assistant.'})}\n\n"
+            message_data = {
+                'text': '**Free Tier Limit Reached**\n\nYou have used your 2 free AI queries this month. Upgrade to Pro for unlimited access to the AI assistant.'
+            }
+            yield "data: " + json.dumps(message_data) + "\n\n"
             yield "data: [DONE]\n\n"
         
         response = StreamingHttpResponse(
