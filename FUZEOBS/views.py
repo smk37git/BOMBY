@@ -129,6 +129,10 @@ def fuzeobs_ai_chat(request):
 
 Write clear, natural responses with proper spacing and line breaks.
 
+IMPORTANT: When creating numbered lists, use descriptive headers instead of numbered items. For example:
+- Use "**Encoder Settings:**" instead of "1. Encoder Settings"
+- Use "**Stream Output:**" instead of "2. Stream Output"
+
 For 1080p 60fps on Twitch, use 6000 kbps.
 
 This is the sweet spot for excellent quality without hitting Twitch's 8000 kbps limit. Going higher risks viewer buffering.
