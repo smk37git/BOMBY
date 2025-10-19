@@ -90,12 +90,17 @@ def fuzeobs_ai_chat(request):
         user.fuzeobs_usage_reset_date = date.today()
         user.save()
     
-    # Check free tier limit BEFORE incrementing
+    # Check free tier limit - allow the 2 free messages
     if user.fuzeobs_tier == 'free' and user.fuzeobs_ai_usage_monthly >= 2:
         return JsonResponse({
-            'error': 'Free tier limit reached (2/month). Upgrade to Pro for unlimited access.',
+            'error': 'Free tier limit reached. You have used your 2 free queries this month.',
             'upgrade_required': True
         }, status=403)
+    
+    # Increment usage at START for free tier tracking
+    if user.fuzeobs_tier == 'free':
+        user.fuzeobs_ai_usage_monthly += 1
+        user.save()
     
     # Model selection
     if user.fuzeobs_tier in ['pro', 'lifetime']:
@@ -120,34 +125,46 @@ def fuzeobs_ai_chat(request):
             with client.messages.stream(
                 model=model,
                 max_tokens=4096,
-                system="""You are FuzeOBS AI Assistant, an expert in OBS Studio, streaming, and content creation.
+                system="""You are the FuzeOBS AI Assistant - an expert in OBS Studio and streaming.
 
-EXPERTISE:
-- OBS Studio configuration and troubleshooting
-- Hardware encoders (NVENC, AMF, QSV) and software encoding (x264)
-- Streaming platforms (Twitch, YouTube, Kick, Facebook Gaming)
-- Bitrate optimization and network streaming
-- Audio configuration and mixing
-- Scene composition and sources
-- Filters and effects
-- Performance optimization
-- StreamElements/StreamLabs integration
+COMMUNICATION STYLE:
+- Write in clear, natural language like a knowledgeable friend
+- Break complex topics into digestible explanations
+- Use short paragraphs and bullet points for readability
+- Avoid jargon unless necessary, then explain it
+- Be encouraging and supportive
+
+EXPERTISE AREAS:
+- OBS configuration and troubleshooting
+- Encoder settings (NVENC, x264, AMF, QSV)
+- Streaming platforms (Twitch, YouTube, Kick)
+- Bitrate and quality optimization
+- Audio setup and mixing
+- Scene design and sources
+- Performance issues (dropped frames, lag, crashes)
 - Plugin recommendations
 
-RESPONSE STYLE:
-- Be concise but thorough
-- Provide specific numbers (bitrates, settings) when relevant
-- Use bullet points for multiple items
-- Give step-by-step instructions when needed
-- Explain WHY settings matter, not just WHAT to set
-- Recommend hardware-appropriate settings
+WHEN ANSWERING:
+- Start with a direct answer to the question
+- Provide specific settings when relevant
+- Explain why settings matter, not just what to set
+- Tailor advice to user's hardware when possible
+- For troubleshooting, suggest the most likely causes first
 
-KNOWLEDGE:
-- Twitch max: 8000 kbps (Partner), 6000 kbps recommended
-- YouTube max: 51000 kbps for 1080p60
-- NVENC quality tiers: RTX 40/30 series = excellent, RTX 20/GTX 16 = good, GTX 10 = acceptable
-- x264 presets: ultrafast to slow (slower = better quality, more CPU)
-- Common issues: dropped frames (network), skipped frames (encoding overload), rendering lag (GPU/game load)""",
+EXAMPLES OF GOOD RESPONSES:
+
+Question: "What NVENC settings for quality?"
+Answer: "For RTX 30/40 series, use these NVENC settings for best quality:
+
+**Preset:** Quality (not Max Quality - minimal difference)
+**Profile:** High
+**Look-ahead & Psycho Visual Tuning:** ON
+
+Why: RTX cards have excellent NVENC that rivals x264 medium. Look-ahead helps with motion, Psycho Visual improves perceived quality.
+
+If you're on a GTX 1660 or older, consider x264 veryfast instead - older NVENC is less impressive."
+
+Keep responses conversational but informative.""",
                 messages=[{"role": "user", "content": message}]
             ) as stream:
                 for text in stream.text_stream:
@@ -155,9 +172,10 @@ KNOWLEDGE:
                     clean_text = text.replace('\n', ' ').replace('\r', ' ')
                     yield f"data: {clean_text}\n\n"
                     
-            # Increment usage AFTER successful completion
-            user.fuzeobs_ai_usage_monthly += 1
-            user.save()
+            # Only increment for PRO users (free already incremented)
+            if user.fuzeobs_tier in ['pro', 'lifetime']:
+                user.fuzeobs_ai_usage_monthly += 1
+                user.save()
             
             # Send completion signal
             yield "data: [DONE]\n\n"
@@ -176,7 +194,7 @@ KNOWLEDGE:
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
-    response['X-Accel-Buffering'] = 'no'  # Disable nginx buffering
+    response['X-Accel-Buffering'] = 'no'
     response['Connection'] = 'keep-alive'
     
     # CORS headers
@@ -186,7 +204,6 @@ KNOWLEDGE:
     response['Access-Control-Allow-Credentials'] = 'false'
     
     return response
-
 
 def get_user_from_token(token):
     """Simple token verification - replace with JWT"""
