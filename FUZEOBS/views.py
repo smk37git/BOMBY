@@ -57,7 +57,6 @@ def fuzeobs_verify(request):
         'tier': user.fuzeobs_tier
     })
 
-
 @csrf_exempt
 def fuzeobs_ai_chat(request):
     """AI chat streaming endpoint"""
@@ -75,25 +74,31 @@ def fuzeobs_ai_chat(request):
     if not user:
         return JsonResponse({'error': 'Invalid token'}, status=401)
     
-    # Reset monthly usage if new month (for ALL tiers)
+    # Reset monthly usage if new month
     if not user.fuzeobs_usage_reset_date or user.fuzeobs_usage_reset_date.month != date.today().month:
         user.fuzeobs_ai_usage_monthly = 0
         user.fuzeobs_usage_reset_date = date.today()
         user.save()
     
-    # Check free tier limit
+    # Check free tier limit BEFORE incrementing
     if user.fuzeobs_tier == 'free' and user.fuzeobs_ai_usage_monthly >= 2:
-        return JsonResponse({'error': 'Free tier limit reached (2/month). Upgrade to Pro for unlimited.'}, status=403)
+        return JsonResponse({
+            'error': 'Free tier limit reached (2/month). Upgrade to Pro for unlimited access.',
+            'upgrade_required': True
+        }, status=403)
     
-    # Smart model selection (Pro/Lifetime use Haiku after 500)
+    # Model selection
     if user.fuzeobs_tier in ['pro', 'lifetime']:
         model = "claude-haiku-3-5-20241022" if user.fuzeobs_ai_usage_monthly > 500 else "claude-sonnet-4-20250514"
     else:
-        model = "claude-haiku-3-5-20241022"  # Free always uses cheaper model
+        model = "claude-haiku-3-5-20241022"
     
     # Get message
     data = json.loads(request.body)
     message = data.get('message', '')
+    
+    if not message.strip():
+        return JsonResponse({'error': 'Empty message'}, status=400)
     
     # Stream response
     client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
@@ -102,19 +107,48 @@ def fuzeobs_ai_chat(request):
         try:
             with client.messages.stream(
                 model=model,
-                max_tokens=2048,
-                system="You are FuzeOBS AI Assistant, an expert in OBS Studio, streaming, and content creation. Help users with OBS configuration, encoder settings (NVENC, x264, AMF, QSV), streaming platforms (Twitch, YouTube, Kick), StreamLabs, plugins, performance optimization, scene setup, and audio configuration. Keep responses concise but thorough.",
+                max_tokens=4096,
+                system="""You are FuzeOBS AI Assistant, an expert in OBS Studio, streaming, and content creation.
+
+EXPERTISE:
+- OBS Studio configuration and troubleshooting
+- Hardware encoders (NVENC, AMF, QSV) and software encoding (x264)
+- Streaming platforms (Twitch, YouTube, Kick, Facebook Gaming)
+- Bitrate optimization and network streaming
+- Audio configuration and mixing
+- Scene composition and sources
+- Filters and effects
+- Performance optimization
+- StreamElements/StreamLabs integration
+- Plugin recommendations
+
+RESPONSE STYLE:
+- Be concise but thorough
+- Provide specific numbers (bitrates, settings) when relevant
+- Use bullet points for multiple items
+- Give step-by-step instructions when needed
+- Explain WHY settings matter, not just WHAT to set
+- Recommend hardware-appropriate settings
+
+KNOWLEDGE:
+- Twitch max: 8000 kbps (Partner), 6000 kbps recommended
+- YouTube max: 51000 kbps for 1080p60
+- NVENC quality tiers: RTX 40/30 series = excellent, RTX 20/GTX 16 = good, GTX 10 = acceptable
+- x264 presets: ultrafast to slow (slower = better quality, more CPU)
+- Common issues: dropped frames (network), skipped frames (encoding overload), rendering lag (GPU/game load)""",
                 messages=[{"role": "user", "content": message}]
             ) as stream:
                 for text in stream.text_stream:
                     yield f"data: {text}\n\n"
             
-            # Track usage
+            # Increment usage AFTER successful completion
             user.fuzeobs_ai_usage_monthly += 1
             user.save()
             
             yield "data: [DONE]\n\n"
+            
         except Exception as e:
+            print(f"AI Stream Error: {e}")
             yield f"data: [ERROR] {str(e)}\n\n"
     
     return StreamingHttpResponse(generate(), content_type='text/event-stream')
