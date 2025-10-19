@@ -132,6 +132,16 @@
                     <button id="btn-change-fuzeobs" type="submit" class="panel-action-button" disabled>Update Tier</button>
                 </form>
             </div>
+
+            <!-- Reset FuzeOBS Usage Section -->
+            <div class="action-section">
+                <h4>Reset AI Usage</h4>
+                <form id="reset-fuzeobs-usage-form" method="post" action="{% url 'ACCOUNTS:reset_fuzeobs_usage' %}">
+                    {% csrf_token %}
+                    <input type="hidden" id="selected-users-reset" name="selected_users" value="">
+                    <button id="btn-reset-usage" type="submit" class="panel-action-button" disabled>Reset Monthly Usage</button>
+                </form>
+            </div>
             
             <!-- New Discount Code Section -->
             <div class="action-section discount">
@@ -204,6 +214,7 @@
         const removeDiscountBtn = document.getElementById('btn-remove-discount');
         const checkDiscountBtn = document.getElementById('btn-check-discount');
         const changeFuzeobsBtn = document.getElementById('btn-change-fuzeobs');
+        const resetUsageBtn = document.getElementById('btn-reset-usage');
         
         // Modal elements
         const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
@@ -241,6 +252,7 @@
             // FuzeOBS Buttons
             const fuzeobsSelect = document.querySelector('select[name="fuzeobs_tier"]');
             const changeFuzeobsBtn = document.getElementById('btn-change-fuzeobs');
+            resetUsageBtn.disabled = !hasSelection;
 
             fuzeobsSelect.disabled = !hasSelection;
             changeFuzeobsBtn.disabled = !hasSelection;
@@ -330,6 +342,16 @@
             }
             
             document.getElementById('selected-users-fuzeobs').value = getSelectedUsers().join(',');
+        });
+
+        // Handler for Reset Usage form submit
+        document.getElementById('reset-fuzeobs-usage-form').addEventListener('submit', function(e) {
+            if (resetUsageBtn.disabled) {
+                e.preventDefault();
+                return;
+            }
+            
+            document.getElementById('selected-users-reset').value = getSelectedUsers().join(',');
         });
         
         // Handler for Delete button

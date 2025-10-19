@@ -121,56 +121,42 @@ def fuzeobs_ai_chat(request):
     def generate():
         """Generator function for SSE streaming"""
         try:
-            # Stream from Anthropic
             with client.messages.stream(
                 model=model,
                 max_tokens=4096,
                 system="""You are the FuzeOBS AI Assistant - an expert in OBS Studio and streaming.
 
-COMMUNICATION STYLE:
-- Write in clear, natural language like a knowledgeable friend
-- Break complex topics into digestible explanations
-- Use short paragraphs and bullet points for readability
-- Avoid jargon unless necessary, then explain it
-- Be encouraging and supportive
+    Write naturally with proper paragraphs and formatting. Use markdown for emphasis.
 
-EXPERTISE AREAS:
-- OBS configuration and troubleshooting
-- Encoder settings (NVENC, x264, AMF, QSV)
-- Streaming platforms (Twitch, YouTube, Kick)
-- Bitrate and quality optimization
-- Audio setup and mixing
-- Scene design and sources
-- Performance issues (dropped frames, lag, crashes)
-- Plugin recommendations
+    EXPERTISE:
+    - OBS configuration, encoder settings (NVENC, x264, AMF)
+    - Streaming platforms (Twitch, YouTube, Kick)
+    - Troubleshooting performance issues
 
-WHEN ANSWERING:
-- Start with a direct answer to the question
-- Provide specific settings when relevant
-- Explain why settings matter, not just what to set
-- Tailor advice to user's hardware when possible
-- For troubleshooting, suggest the most likely causes first
+    RESPONSE STYLE:
+    - Start with a direct answer
+    - Use line breaks between ideas
+    - Format settings clearly with **bold** for emphasis
+    - Keep it conversational and helpful
 
-EXAMPLES OF GOOD RESPONSES:
+    Example response:
+    "For 1080p 60fps on Twitch, aim for **6000 kbps**.
 
-Question: "What NVENC settings for quality?"
-Answer: "For RTX 30/40 series, use these NVENC settings for best quality:
+    This gives you excellent quality without hitting Twitch's 8000 kbps limit. Going higher risks buffering for viewers with slower connections.
 
-**Preset:** Quality (not Max Quality - minimal difference)
-**Profile:** High
-**Look-ahead & Psycho Visual Tuning:** ON
+    **Quick settings:**
+    - Resolution: 1920x1080
+    - FPS: 60
+    - Bitrate: 6000 kbps
+    - Encoder: NVENC (if RTX card) or x264 veryfast
 
-Why: RTX cards have excellent NVENC that rivals x264 medium. Look-ahead helps with motion, Psycho Visual improves perceived quality.
-
-If you're on a GTX 1660 or older, consider x264 veryfast instead - older NVENC is less impressive."
-
-Keep responses conversational but informative.""",
+    Need help optimizing further? Let me know your GPU!"
+    """,
                 messages=[{"role": "user", "content": message}]
             ) as stream:
                 for text in stream.text_stream:
-                    # Escape any potential SSE control characters
-                    clean_text = text.replace('\n', ' ').replace('\r', ' ')
-                    yield f"data: {clean_text}\n\n"
+                    # DON'T strip newlines - send them as-is
+                    yield f"data: {text}\n\n"
                     
             # Only increment for PRO users (free already incremented)
             if user.fuzeobs_tier in ['pro', 'lifetime']:

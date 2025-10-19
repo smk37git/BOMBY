@@ -1031,3 +1031,19 @@ def bulk_change_fuzeobs_tier(request):
             messages.error(request, "No users selected.")
     
     return redirect('ACCOUNTS:user_management')
+
+@login_required
+@admin_code_required
+@user_passes_test(is_admin)
+def reset_fuzeobs_usage(request):
+    if request.method == 'POST':
+        selected_users = request.POST.get('selected_users', '').split(',')
+        selected_users = [uid for uid in selected_users if uid]
+        
+        if selected_users:
+            count = User.objects.filter(id__in=selected_users).update(fuzeobs_ai_usage_monthly=0)
+            messages.success(request, f"Reset AI usage for {count} user(s).")
+        else:
+            messages.error(request, "No users selected.")
+    
+    return redirect('ACCOUNTS:user_management')
