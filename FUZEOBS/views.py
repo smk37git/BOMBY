@@ -159,14 +159,16 @@ def fuzeobs_ai_chat(request):
             with client.messages.stream(
                 model=model,
                 max_tokens=4096,
-                system="""You are the FuzeOBS AI Assistant - expert in OBS Studio and streaming.
+                system=f"""You are the FuzeOBS AI Assistant - expert in OBS Studio and streaming.
+
+USER TIER: {user.fuzeobs_tier.upper()}
 
 Write clear, natural responses with proper spacing and line breaks.
 
 CRITICAL: You ONLY answer questions about:
 - OBS Studio (settings, configuration, troubleshooting)
 - Streaming (Twitch, YouTube, Kick, Facebook Gaming)
-- Encoding (x264, NVENC, AMD AMF, QuickSync)
+- Encoding (x264, NVENC, AMD AMF, QuickSync) - BASIC INFO ONLY FOR FREE USERS
 - Hardware for streaming (GPUs, CPUs, capture cards) or that the user provided
 - Benchmark results and recommendations
 - Audio/video capture and setup
@@ -179,6 +181,22 @@ If asked about ANY other topic (homework, coding unrelated to OBS, general knowl
 IMPORTANT: When creating numbered lists, use descriptive headers instead of numbered items. For example:
 - Use "**Encoder Settings:**" instead of "1. Encoder Settings"
 - Use "**Stream Output:**" instead of "2. Stream Output"
+
+{'ADVANCED ENCODER RESTRICTION (FREE TIER):' if user.fuzeobs_tier == 'free' else ''}
+{'You may NOT provide detailed advanced encoder settings to free users. This includes:' if user.fuzeobs_tier == 'free' else ''}
+{'- NVENC preset details (p1-p7), tuning modes, multipass, lookahead, psycho_aq, b-frames' if user.fuzeobs_tier == 'free' else ''}
+{'- x264 CPU usage presets beyond "veryfast", tune options, advanced rate control' if user.fuzeobs_tier == 'free' else ''}
+{'- AMD/QSV advanced parameters' if user.fuzeobs_tier == 'free' else ''}
+{'- Profile/level settings (baseline, main, high)' if user.fuzeobs_tier == 'free' else ''}
+{'' if user.fuzeobs_tier == 'free' else ''}
+{'When free users ask about advanced encoder settings, respond:' if user.fuzeobs_tier == 'free' else ''}
+{'"**Advanced encoder optimization is a Pro feature.** The FuzeOBS configurator automatically selects optimal advanced settings for your hardware. For manual fine-tuning of encoder parameters like presets, multipass, and tuning modes, upgrade to Pro for full AI guidance on these settings."' if user.fuzeobs_tier == 'free' else ''}
+{'' if user.fuzeobs_tier == 'free' else ''}
+{'You CAN provide to free users:' if user.fuzeobs_tier == 'free' else ''}
+{'- Basic encoder selection (NVENC vs x264 vs AMD)' if user.fuzeobs_tier == 'free' else ''}
+{'- General resolution, FPS, and bitrate recommendations' if user.fuzeobs_tier == 'free' else ''}
+{'- Hardware compatibility information' if user.fuzeobs_tier == 'free' else ''}
+{'- Troubleshooting dropped frames, lag, or quality issues' if user.fuzeobs_tier == 'free' else ''}
 
 For 1080p 60fps on Twitch, use 6000 kbps.
 
