@@ -104,9 +104,9 @@ def fuzeobs_ai_chat(request):
     
     # Model selection
     if user.fuzeobs_tier in ['pro', 'lifetime']:
-        model = "claude-haiku-3-5-20241022" if user.fuzeobs_ai_usage_monthly > 500 else "claude-sonnet-4-20250514"
+        model = "claude-3-5-haiku-20241022" if user.fuzeobs_ai_usage_monthly > 500 else "claude-sonnet-4-20250514"
     else:
-        model = "claude-haiku-3-5-20241022"
+        model = "claude-3-5-haiku-20241022"
     
     # Get message
     data = json.loads(request.body)
@@ -155,7 +155,7 @@ def fuzeobs_ai_chat(request):
                 messages=[{"role": "user", "content": message}]
             ) as stream:
                 for text in stream.text_stream:
-                    # DON'T strip newlines - send them as-is
+                    # Send text as-is - don't strip anything
                     yield f"data: {text}\n\n"
                     
             # Only increment for PRO users (free already incremented)
