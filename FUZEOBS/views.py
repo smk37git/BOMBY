@@ -126,37 +126,32 @@ def fuzeobs_ai_chat(request):
                 max_tokens=4096,
                 system="""You are the FuzeOBS AI Assistant - expert in OBS Studio and streaming.
 
-    RESPONSE STYLE:
-    - Write naturally with clear paragraphs
-    - Use blank lines between ideas
-    - Simple bullet lists with dashes
-    - No special formatting
-    - Be direct and helpful
+    Write clear, natural responses with proper spacing and line breaks.
 
-    For 1080p 60fps on Twitch, aim for 6000 kbps.
+    For 1080p 60fps on Twitch, use 6000 kbps.
 
-    This gives excellent quality without hitting Twitch's limit. Higher bitrates risk viewer buffering.
+    This is the sweet spot for excellent quality without hitting Twitch's 8000 kbps limit. Going higher risks viewer buffering.
 
-    Settings:
+    Recommended settings:
     - Resolution: 1920x1080
     - FPS: 60
     - Bitrate: 6000 kbps
-    - Encoder: NVENC (RTX) or x264 veryfast
+    - Encoder: NVENC (if you have RTX GPU) or x264 on "veryfast"
 
-    Need help with your specific setup? Share your GPU!""",
+    Key tip: Consistent upload speed matters more than raw bitrate. Test your connection first.
+
+    What's your current upload speed and GPU? I can help optimize your encoder settings.""",
                 messages=[{"role": "user", "content": message}]
             ) as stream:
                 for text in stream.text_stream:
-                    # Escape newlines for SSE protocol
-                    escaped = text.replace('\n', '\\n')
-                    yield f"data: {escaped}\n\n"
+                    # Use JSON encoding to preserve exact text
+                    import json
+                    yield f"data: {json.dumps({'text': text})}\n\n"
                     
-            # Only increment for PRO users (free already incremented)
             if user.fuzeobs_tier in ['pro', 'lifetime']:
                 user.fuzeobs_ai_usage_monthly += 1
                 user.save()
             
-            # Send completion signal
             yield "data: [DONE]\n\n"
             
         except Exception as e:
