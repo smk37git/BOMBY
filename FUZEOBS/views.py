@@ -6,6 +6,8 @@ import anthropic
 import os
 import json
 from datetime import date
+from django.core.cache import cache
+from datetime import datetime, timedelta
 
 User = get_user_model()
 
@@ -64,7 +66,7 @@ def fuzeobs_verify(request):
 
 @csrf_exempt
 def fuzeobs_ai_chat(request):
-    """AI chat streaming endpoint with proper SSE implementation"""
+    """AI chat streaming endpoint with rate limiting and topic validation"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     
@@ -78,30 +80,68 @@ def fuzeobs_ai_chat(request):
     if not user:
         return JsonResponse({'error': 'Invalid token'}, status=401)
     
+    # Rate limiting - 10 requests per minute per user
+    rate_limit_key = f'fuzeobs_ratelimit_{user.id}'
+    request_count = cache.get(rate_limit_key, 0)
+    
+    if request_count >= 10:
+        def rate_limit_message():
+            message_data = {'text': '**Rate Limit Exceeded**\n\nPlease wait a moment before sending another message. Maximum 10 messages per minute.'}
+            yield "data: " + json.dumps(message_data) + "\n\n"
+            yield "data: [DONE]\n\n"
+        
+        response = StreamingHttpResponse(rate_limit_message(), content_type='text/event-stream; charset=utf-8')
+        response['Cache-Control'] = 'no-cache'
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+    
+    # Increment rate limit counter
+    cache.set(rate_limit_key, request_count + 1, 60)  # 60 second window
+    
     # Reset monthly usage if new month
     if not user.fuzeobs_usage_reset_date or user.fuzeobs_usage_reset_date.month != date.today().month:
         user.fuzeobs_ai_usage_monthly = 0
         user.fuzeobs_usage_reset_date = date.today()
         user.save()
     
-    # Check free tier limit - block AFTER 2 messages (on the 3rd+)
+    # Check free tier limit
     if user.fuzeobs_tier == 'free' and user.fuzeobs_ai_usage_monthly >= 2:
         def limit_message():
-            message_data = {
-                'text': '**Free Tier Limit Reached**\n\nYou have used your 2 free AI queries this month. Upgrade to Pro for unlimited access to the AI assistant.'
-            }
+            message_data = {'text': '**Free Tier Limit Reached**\n\nYou have used your 2 free AI queries this month. Upgrade to Pro for unlimited access to the AI assistant.'}
             yield "data: " + json.dumps(message_data) + "\n\n"
             yield "data: [DONE]\n\n"
         
-        response = StreamingHttpResponse(
-            limit_message(),
-            content_type='text/event-stream; charset=utf-8'
-        )
+        response = StreamingHttpResponse(limit_message(), content_type='text/event-stream; charset=utf-8')
         response['Cache-Control'] = 'no-cache'
         response['Access-Control-Allow-Origin'] = '*'
         return response
     
-    # Increment usage BEFORE streaming starts
+    data = json.loads(request.body)
+    message = data.get('message', '').strip()
+    
+    if not message:
+        return JsonResponse({'error': 'Empty message'}, status=400)
+    
+    # Topic validation - check for non-streaming keywords
+    off_topic_keywords = [
+        'homework', 'essay', 'assignment', 'math problem', 'solve for', 
+        'write code', 'python script', 'javascript function', 'sql query',
+        'history of', 'who was', 'biography', 'recipe', 'medical advice'
+    ]
+    
+    message_lower = message.lower()
+    if any(keyword in message_lower for keyword in off_topic_keywords):
+        def off_topic_message():
+            message_data = {'text': '**Off-Topic Query Detected**\n\nThis AI assistant is specifically designed for OBS Studio and streaming questions only. Please ask about:\n\n• OBS settings and configuration\n• Stream quality and encoding\n• Hardware compatibility\n• Streaming platforms (Twitch, YouTube, etc.)\n• Audio/video capture issues\n• Scene setup and sources\n\nFor other topics, please use a general-purpose AI assistant.'}
+            yield "data: " + json.dumps(message_data) + "\n\n"
+            yield "data: [DONE]\n\n"
+        
+        response = StreamingHttpResponse(off_topic_message(), content_type='text/event-stream; charset=utf-8')
+        response['Cache-Control'] = 'no-cache'
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+    
+    # Increment usage BEFORE streaming
     user.fuzeobs_ai_usage_monthly += 1
     user.save()
     
@@ -110,12 +150,6 @@ def fuzeobs_ai_chat(request):
         model = "claude-3-5-haiku-20241022" if user.fuzeobs_ai_usage_monthly > 500 else "claude-sonnet-4-20250514"
     else:
         model = "claude-3-5-haiku-20241022"
-    
-    data = json.loads(request.body)
-    message = data.get('message', '').strip()
-    
-    if not message:
-        return JsonResponse({'error': 'Empty message'}, status=400)
     
     client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
     
@@ -128,6 +162,19 @@ def fuzeobs_ai_chat(request):
                 system="""You are the FuzeOBS AI Assistant - expert in OBS Studio and streaming.
 
 Write clear, natural responses with proper spacing and line breaks.
+
+CRITICAL: You ONLY answer questions about:
+- OBS Studio (settings, configuration, troubleshooting)
+- Streaming (Twitch, YouTube, Kick, Facebook Gaming)
+- Encoding (x264, NVENC, AMD AMF, QuickSync)
+- Hardware for streaming (GPUs, CPUs, capture cards) or that the user provided
+- Benchmark results and recommendations
+- Audio/video capture and setup
+- Scene creation and sources
+- Streaming performance and optimization
+
+If asked about ANY other topic (homework, coding unrelated to OBS, general knowledge, recipes, etc.), politely redirect them:
+"I'm specifically designed to help with OBS Studio and streaming questions only. For other topics, please use a general-purpose AI assistant."
 
 IMPORTANT: When creating numbered lists, use descriptive headers instead of numbered items. For example:
 - Use "**Encoder Settings:**" instead of "1. Encoder Settings"
@@ -155,13 +202,9 @@ What's your current upload speed and GPU? I can help optimize your encoder setti
             
         except Exception as e:
             print(f"AI Stream Error: {e}")
-            yield f"data: [ERROR] Failed to generate response. Please try again.\n\n"
+            yield "data: [ERROR] Failed to generate response. Please try again.\n\n"
     
-    response = StreamingHttpResponse(
-        generate(),
-        content_type='text/event-stream; charset=utf-8'
-    )
-    
+    response = StreamingHttpResponse(generate(), content_type='text/event-stream; charset=utf-8')
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'

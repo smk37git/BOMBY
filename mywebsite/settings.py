@@ -168,6 +168,13 @@ if DEBUG:
         }
     }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'fuzeobs-cache',
+    }
+}
+
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
@@ -250,10 +257,6 @@ AWS_REGION = os.environ.get('AWS_REGION', 'us-east-1')
 # AWS Rekognition
 ENABLE_IMAGE_MODERATION = os.environ.get('ENABLE_IMAGE_MODERATION')
 IMAGE_MODERATION_CONFIDENCE_THRESHOLD = os.environ.get('IMAGE_MODERATION_CONFIDENCE_THRESHOLD')
-    
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -333,10 +336,14 @@ CSP_FONT_SRC = (
 )
 
 # CORS Settings for FuzeOBS
-CORS_ALLOW_ALL_ORIGINS = True  # For development
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5000',     # FuzeOBS desktop app
+    'http://127.0.0.1:5000',
+]
 CORS_ALLOWED_HEADERS = [
     'accept',
-    'accept-encoding',
+    'accept-encoding', 
     'authorization',
     'content-type',
     'dnt',
