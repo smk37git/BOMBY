@@ -15,47 +15,56 @@ User = get_user_model()
 def fuzeobs_login(request):
     """Login endpoint for FuzeOBS desktop app"""
     if request.method != 'POST':
-        return JsonResponse({'error': 'POST only'}, status=405)
+        response = JsonResponse({'error': 'POST only'}, status=405)
+    else:
+        data = json.loads(request.body)
+        email = data.get('email')
+        password = data.get('password')
+        
+        try:
+            user = User.objects.get(email=email)
+            if user.check_password(password):
+                token = f"{user.id}:{user.email}"
+                response = JsonResponse({
+                    'success': True,
+                    'token': token,
+                    'tier': user.fuzeobs_tier,
+                    'email': user.email
+                })
+            else:
+                response = JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
+        except User.DoesNotExist:
+            response = JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
     
-    data = json.loads(request.body)
-    email = data.get('email')
-    password = data.get('password')
-    
-    try:
-        user = User.objects.get(email=email)
-        if user.check_password(password):
-            # Generate simple token (use JWT in production)
-            token = f"{user.id}:{user.email}"  # Replace with JWT
-            
-            return JsonResponse({
-                'success': True,
-                'token': token,
-                'tier': user.fuzeobs_tier,
-                'email': user.email
-            })
-        else:
-            return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
-    except User.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
-
+    # Add CORS headers
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+    return response
 
 @csrf_exempt
 def fuzeobs_verify(request):
     """Verify user has pro access"""
     auth_header = request.headers.get('Authorization', '')
     if not auth_header.startswith('Bearer '):
-        return JsonResponse({'has_pro': False}, status=401)
+        response = JsonResponse({'has_pro': False}, status=401)
+    else:
+        token = auth_header[7:]
+        user = get_user_from_token(token)
+        
+        if not user:
+            response = JsonResponse({'has_pro': False}, status=401)
+        else:
+            response = JsonResponse({
+                'has_pro': user.fuzeobs_tier in ['pro', 'lifetime'],
+                'tier': user.fuzeobs_tier
+            })
     
-    token = auth_header[7:]
-    user = get_user_from_token(token)
-    
-    if not user:
-        return JsonResponse({'has_pro': False}, status=401)
-    
-    return JsonResponse({
-        'has_pro': user.fuzeobs_tier in ['pro', 'lifetime'],
-        'tier': user.fuzeobs_tier
-    })
+    # Add CORS headers
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    return response
 
 
 @csrf_exempt

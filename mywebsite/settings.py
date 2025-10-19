@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'corsheaders',
     'MAIN',
     'ACCOUNTS',
     'allauth',
@@ -110,6 +111,7 @@ SOCIALACCOUNT_ADAPTER = 'ACCOUNTS.adapters.CustomSocialAccountAdapter'
 SITE_ID = 1
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -329,3 +331,18 @@ CSP_FONT_SRC = (
     "https://unpkg.com",
     "https://maxcdn.bootstrapcdn.com"
 )
+
+# CORS Settings for FuzeOBS
+CORS_ALLOW_ALL_ORIGINS = True  # For development
+CORS_ALLOWED_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+CORS_ALLOW_CREDENTIALS = False
