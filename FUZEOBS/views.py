@@ -254,9 +254,6 @@ def fuzeobs_save_chat(request):
                 data = json.loads(request.body)
                 chat_data = data.get('chat')
                 
-                print(f"[DEBUG] Saving chat for user {user.email}:")
-                print(f"[DEBUG] Chat data: {json.dumps(chat_data, indent=2)}")
-                
                 if not user.fuzeobs_chat_history:
                     user.fuzeobs_chat_history = []
                 
@@ -273,10 +270,6 @@ def fuzeobs_save_chat(request):
                 )[:50]
                 
                 user.save()
-                
-                print(f"[DEBUG] Total chats stored: {len(user.fuzeobs_chat_history)}")
-                print(f"[DEBUG] First chat: {json.dumps(user.fuzeobs_chat_history[0] if user.fuzeobs_chat_history else {}, indent=2)}")
-                
                 response = JsonResponse({'success': True})
     
     response['Access-Control-Allow-Origin'] = '*'
@@ -301,9 +294,6 @@ def fuzeobs_get_chats(request):
                 response = JsonResponse({'chats': []})
             else:
                 chats = user.fuzeobs_chat_history if user.fuzeobs_chat_history else []
-                print(f"[DEBUG] Getting chats for user {user.email}:")
-                print(f"[DEBUG] Found {len(chats)} chats")
-                print(f"[DEBUG] Chats: {json.dumps(chats, indent=2)}")
                 response = JsonResponse({'chats': chats})
     
     response['Access-Control-Allow-Origin'] = '*'
