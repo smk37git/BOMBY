@@ -254,28 +254,45 @@ def fuzeobs_save_chat(request):
                 data = json.loads(request.body)
                 chat_data = data.get('chat')
                 
-                if not user.fuzeobs_chat_history:
-                    user.fuzeobs_chat_history = []
-                
-                # Create a new list to trigger Django's change detection
-                chat_history = list(user.fuzeobs_chat_history)  # Make a copy
-                
-                existing_index = next((i for i, c in enumerate(chat_history) if c['id'] == chat_data['id']), None)
-                if existing_index is not None:
-                    # Replace the entire dict, don't update in place
-                    chat_history[existing_index] = chat_data
+                if not chat_data:
+                    response = JsonResponse({'error': 'No chat data provided'}, status=400)
                 else:
-                    chat_history.append(chat_data)
-                
-                # Reassign the field to trigger change detection
-                user.fuzeobs_chat_history = sorted(
-                    chat_history,
-                    key=lambda x: x.get('updated_at', 0),
-                    reverse=True
-                )[:50]
-                
-                user.save()
-                response = JsonResponse({'success': True})
+                    if not user.fuzeobs_chat_history:
+                        user.fuzeobs_chat_history = []
+                    
+                    # Create a new list to trigger Django's change detection
+                    chat_history = list(user.fuzeobs_chat_history)  # Make a copy
+                    
+                    # Normalize existing chats - unwrap any that have {chat: {...}} structure
+                    normalized_history = []
+                    for item in chat_history:
+                        if isinstance(item, dict):
+                            # Check if this item has a nested 'chat' key
+                            if 'chat' in item and isinstance(item['chat'], dict) and 'id' in item['chat']:
+                                normalized_history.append(item['chat'])  # Unwrap
+                            elif 'id' in item:
+                                normalized_history.append(item)  # Already correct format
+                            # Skip malformed items that have neither structure
+                        # Skip non-dict items
+                    
+                    # Find existing chat by ID
+                    existing_index = next((i for i, c in enumerate(normalized_history) if c.get('id') == chat_data.get('id')), None)
+                    
+                    if existing_index is not None:
+                        # Replace the entire dict, don't update in place
+                        normalized_history[existing_index] = chat_data
+                    else:
+                        normalized_history.append(chat_data)
+                    
+                    # Reassign the field to trigger change detection
+                    user.fuzeobs_chat_history = sorted(
+                        normalized_history,
+                        key=lambda x: x.get('updated_at', 0),
+                        reverse=True
+                    )[:50]
+                    
+                    user.save()
+                    response = JsonResponse({'success': True})
     
     response['Access-Control-Allow-Origin'] = '*'
     response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
