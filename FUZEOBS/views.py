@@ -257,14 +257,19 @@ def fuzeobs_save_chat(request):
                 if not user.fuzeobs_chat_history:
                     user.fuzeobs_chat_history = []
                 
-                existing = next((c for c in user.fuzeobs_chat_history if c['id'] == chat_data['id']), None)
-                if existing:
-                    existing.update(chat_data)
-                else:
-                    user.fuzeobs_chat_history.append(chat_data)
+                # Create a new list to trigger Django's change detection
+                chat_history = list(user.fuzeobs_chat_history)  # Make a copy
                 
+                existing_index = next((i for i, c in enumerate(chat_history) if c['id'] == chat_data['id']), None)
+                if existing_index is not None:
+                    # Replace the entire dict, don't update in place
+                    chat_history[existing_index] = chat_data
+                else:
+                    chat_history.append(chat_data)
+                
+                # Reassign the field to trigger change detection
                 user.fuzeobs_chat_history = sorted(
-                    user.fuzeobs_chat_history,
+                    chat_history,
                     key=lambda x: x.get('updated_at', 0),
                     reverse=True
                 )[:50]
