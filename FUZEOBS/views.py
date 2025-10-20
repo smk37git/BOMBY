@@ -359,6 +359,70 @@ def fuzeobs_clear_chats(request):
     response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
     return response
 
+@csrf_exempt
+def fuzeobs_analyze_benchmark(request):
+    """Analyze benchmark results with AI - PRO ONLY"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+    
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith('Bearer '):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    token = auth_header[7:]
+    user = get_user_from_token(token)
+    
+    if not user:
+        return JsonResponse({'error': 'Invalid token'}, status=401)
+    
+    if user.fuzeobs_tier not in ['pro', 'lifetime']:
+        def pro_required():
+            message_data = {'text': '**Pro Feature Required**\n\nAI benchmark analysis is exclusive to Pro users.'}
+            yield "data: " + json.dumps(message_data) + "\n\n"
+            yield "data: [DONE]\n\n"
+        
+        response = StreamingHttpResponse(pro_required(), content_type='text/event-stream; charset=utf-8')
+        response['Cache-Control'] = 'no-cache'
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+    
+    data = json.loads(request.body)
+    benchmark_data = data.get('benchmark_data', '').strip()
+    
+    if not benchmark_data:
+        return JsonResponse({'error': 'No benchmark data'}, status=400)
+    
+    client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+    model = "claude-sonnet-4-20250514"
+    
+    def generate():
+        try:
+            with client.messages.stream(
+                model=model,
+                max_tokens=6000,
+                system="""You are the FuzeOBS Performance Analysis Expert. Analyze benchmark results and provide:
+
+1. **Performance Summary** - Brief overview
+2. **Critical Issues** - Severe problems (if any)
+3. **Detailed Analysis** - CPU, GPU, Network, Frame Drops
+4. **Recommended Actions** - Numbered priority list with exact settings
+5. **Advanced Optimizations** - Fine-tuning for good streams
+
+Always provide EXACT settings (bitrate numbers, preset names). Explain WHY each change helps. Consider their specific hardware.""",
+                messages=[{"role": "user", "content": f"Analyze this streaming benchmark:\n\n{benchmark_data}"}]
+            ) as stream:
+                for text in stream.text_stream:
+                    yield f"data: {json.dumps({'text': text})}\n\n"
+            yield "data: [DONE]\n\n"
+        except Exception as e:
+            print(f"AI Error: {e}")
+            yield "data: [ERROR] Failed to analyze.\n\n"
+    
+    response = StreamingHttpResponse(generate(), content_type='text/event-stream; charset=utf-8')
+    response['Cache-Control'] = 'no-cache'
+    response['Access-Control-Allow-Origin'] = '*'
+    return response
+
 def get_user_from_token(token):
     """Simple token verification"""
     try:

@@ -11,4 +11,5 @@ urlpatterns = [
     path('get-chats', views.fuzeobs_get_chats, name='get_chats'),
     path('delete-chat', views.fuzeobs_delete_chat, name='delete_chat'),
     path('clear-chats', views.fuzeobs_clear_chats, name='clear_chats'),
+    path('analyze-benchmark', views.fuzeobs_analyze_benchmark, name='analyze_benchmark'),
 ]
