@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
+from django.db import models
 from .validators import validate_clean_content
 from PIL import Image
 import io
@@ -38,6 +38,7 @@ class User(AbstractUser):
     fuzeobs_tier = models.CharField(max_length=20, default='free')
     fuzeobs_ai_usage_monthly = models.IntegerField(default=0)
     fuzeobs_usage_reset_date = models.DateField(null=True, blank=True)
+    fuzeobs_chat_history = models.JSONField(default=list, blank=True)
 
     # Rest of model stays the same
     user_type = models.CharField(

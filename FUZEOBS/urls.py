@@ -7,4 +7,8 @@ urlpatterns = [
     path('login', views.fuzeobs_login, name='login'),
     path('verify', views.fuzeobs_verify, name='verify'),
     path('ai-chat', views.fuzeobs_ai_chat, name='ai_chat'),
+    path('save-chat', views.fuzeobs_save_chat, name='save_chat'),
+    path('get-chats', views.fuzeobs_get_chats, name='get_chats'),
+    path('delete-chat', views.fuzeobs_delete_chat, name='delete_chat'),
+    path('clear-chats', views.fuzeobs_clear_chats, name='clear_chats'),
 ]

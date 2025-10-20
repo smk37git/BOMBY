@@ -235,6 +235,133 @@ What's your current upload speed and GPU? I can help optimize your encoder setti
     
     return response
 
+@csrf_exempt
+def fuzeobs_save_chat(request):
+    """Save chat history for user"""
+    if request.method != 'POST':
+        response = JsonResponse({'error': 'POST only'}, status=405)
+    else:
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            response = JsonResponse({'error': 'Unauthorized'}, status=401)
+        else:
+            token = auth_header[7:]
+            user = get_user_from_token(token)
+            
+            if not user:
+                response = JsonResponse({'error': 'Invalid token'}, status=401)
+            else:
+                data = json.loads(request.body)
+                chat_data = data.get('chat')
+                
+                # Store in user's chat history field
+                if not hasattr(user, 'fuzeobs_chat_history'):
+                    user.fuzeobs_chat_history = []
+                
+                # Update existing or add new
+                existing = next((c for c in user.fuzeobs_chat_history if c['id'] == chat_data['id']), None)
+                if existing:
+                    existing.update(chat_data)
+                else:
+                    user.fuzeobs_chat_history.append(chat_data)
+                
+                # Keep last 50 chats
+                user.fuzeobs_chat_history = sorted(
+                    user.fuzeobs_chat_history,
+                    key=lambda x: x.get('updated_at', 0),
+                    reverse=True
+                )[:50]
+                
+                user.save()
+                response = JsonResponse({'success': True})
+    
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+    return response
+
+@csrf_exempt
+def fuzeobs_get_chats(request):
+    """Get all chats for user"""
+    if request.method != 'GET':
+        response = JsonResponse({'error': 'GET only'}, status=405)
+    else:
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            response = JsonResponse({'chats': []})
+        else:
+            token = auth_header[7:]
+            user = get_user_from_token(token)
+            
+            if not user:
+                response = JsonResponse({'chats': []})
+            else:
+                chats = getattr(user, 'fuzeobs_chat_history', [])
+                response = JsonResponse({'chats': chats})
+    
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+    return response
+
+@csrf_exempt
+def fuzeobs_delete_chat(request):
+    """Delete specific chat"""
+    if request.method != 'POST':
+        response = JsonResponse({'error': 'POST only'}, status=405)
+    else:
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            response = JsonResponse({'error': 'Unauthorized'}, status=401)
+        else:
+            token = auth_header[7:]
+            user = get_user_from_token(token)
+            
+            if not user:
+                response = JsonResponse({'error': 'Invalid token'}, status=401)
+            else:
+                data = json.loads(request.body)
+                chat_id = data.get('chatId')
+                
+                if hasattr(user, 'fuzeobs_chat_history'):
+                    user.fuzeobs_chat_history = [
+                        c for c in user.fuzeobs_chat_history 
+                        if c['id'] != chat_id
+                    ]
+                    user.save()
+                
+                response = JsonResponse({'success': True})
+    
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+    return response
+
+@csrf_exempt
+def fuzeobs_clear_chats(request):
+    """Clear all chats"""
+    if request.method != 'POST':
+        response = JsonResponse({'error': 'POST only'}, status=405)
+    else:
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            response = JsonResponse({'error': 'Unauthorized'}, status=401)
+        else:
+            token = auth_header[7:]
+            user = get_user_from_token(token)
+            
+            if not user:
+                response = JsonResponse({'error': 'Invalid token'}, status=401)
+            else:
+                user.fuzeobs_chat_history = []
+                user.save()
+                response = JsonResponse({'success': True})
+    
+    response['Access-Control-Allow-Origin'] = '*'
+    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+    return response
+
 def get_user_from_token(token):
     """Simple token verification"""
     try:
