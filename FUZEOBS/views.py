@@ -61,9 +61,17 @@ def fuzeobs_login(request):
                 'email': user.email
             })
             
-            # Set session cookie if remember_me
+            response['Access-Control-Allow-Origin'] = 'http://localhost:5000'
+            response['Access-Control-Allow-Credentials'] = 'true'
+            response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+            
             if remember_me:
-                response.set_cookie('fuzeobs_session', token, max_age=30*24*60*60)  # 30 days
+                response.set_cookie('fuzeobs_session', token, 
+                                  max_age=30*24*60*60,
+                                  httponly=True,
+                                  samesite='None',
+                                  secure=True)
             
             return response
         else:
