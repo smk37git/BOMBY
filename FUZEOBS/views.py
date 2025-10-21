@@ -7,7 +7,7 @@ import os
 import json
 from datetime import date
 from django.core.cache import cache
-from datetime import datetime, timedelta
+import random
 
 User = get_user_model()
 
@@ -40,6 +40,31 @@ def fuzeobs_login(request):
     response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
     return response
+
+@csrf_exempt
+def fuzeobs_signup(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+    
+    data = json.loads(request.body)
+    email = data.get('email')
+    password = data.get('password')
+    
+    if User.objects.filter(email=email).exists():
+        return JsonResponse({'success': False, 'error': 'Email already registered'}, status=400)
+    
+    username = email.split('@')[0] + str(random.randint(1000, 9999))
+    user = User.objects.create_user(username=username, email=email, password=password)
+    user.fuzeobs_tier = 'pro'
+    user.save()
+    
+    token = f"{user.id}:{user.email}"
+    return JsonResponse({
+        'success': True,
+        'token': token,
+        'tier': 'pro',
+        'email': user.email
+    })
 
 @csrf_exempt
 def fuzeobs_verify(request):
