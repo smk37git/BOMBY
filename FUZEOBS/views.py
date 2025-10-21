@@ -47,33 +47,18 @@ def fuzeobs_login(request):
     data = json.loads(request.body)
     email = data.get('email')
     password = data.get('password')
-    remember_me = data.get('remember_me', False)
     
     try:
         user = User.objects.get(email=email)
         if user.check_password(password):
             token = f"{user.id}:{user.email}"
             
-            response = JsonResponse({
+            return JsonResponse({
                 'success': True,
                 'token': token,
                 'tier': user.fuzeobs_tier,
                 'email': user.email
             })
-            
-            response['Access-Control-Allow-Origin'] = 'http://localhost:5000'
-            response['Access-Control-Allow-Credentials'] = 'true'
-            response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-            response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-            
-            if remember_me:
-                response.set_cookie('fuzeobs_session', token, 
-                                  max_age=30*24*60*60,
-                                  httponly=True,
-                                  samesite='None',
-                                  secure=True)
-            
-            return response
         else:
             return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
     except User.DoesNotExist:
