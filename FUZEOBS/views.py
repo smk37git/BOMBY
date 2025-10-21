@@ -12,59 +12,64 @@ import random
 User = get_user_model()
 
 @csrf_exempt
-def fuzeobs_login(request):
-    """Login endpoint for FuzeOBS desktop app"""
-    if request.method != 'POST':
-        response = JsonResponse({'error': 'POST only'}, status=405)
-    else:
-        data = json.loads(request.body)
-        email = data.get('email')
-        password = data.get('password')
-        
-        try:
-            user = User.objects.get(email=email)
-            if user.check_password(password):
-                token = f"{user.id}:{user.email}"
-                response = JsonResponse({
-                    'success': True,
-                    'token': token,
-                    'tier': user.fuzeobs_tier,
-                    'email': user.email
-                })
-            else:
-                response = JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
-        except User.DoesNotExist:
-            response = JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
-    
-    response['Access-Control-Allow-Origin'] = '*'
-    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-    return response
-
-@csrf_exempt
 def fuzeobs_signup(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     
     data = json.loads(request.body)
     email = data.get('email')
+    username = data.get('username')
     password = data.get('password')
     
     if User.objects.filter(email=email).exists():
         return JsonResponse({'success': False, 'error': 'Email already registered'}, status=400)
     
-    username = email.split('@')[0] + str(random.randint(1000, 9999))
+    if User.objects.filter(username=username).exists():
+        return JsonResponse({'success': False, 'error': 'Username already taken'}, status=400)
+    
     user = User.objects.create_user(username=username, email=email, password=password)
-    user.fuzeobs_tier = 'pro'
+    user.fuzeobs_tier = 'free'  # Changed to free
     user.save()
     
     token = f"{user.id}:{user.email}"
     return JsonResponse({
         'success': True,
         'token': token,
-        'tier': 'pro',
+        'tier': 'free',
         'email': user.email
     })
+
+@csrf_exempt
+def fuzeobs_login(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+    
+    data = json.loads(request.body)
+    email = data.get('email')
+    password = data.get('password')
+    remember_me = data.get('remember_me', False)
+    
+    try:
+        user = User.objects.get(email=email)
+        if user.check_password(password):
+            token = f"{user.id}:{user.email}"
+            
+            response = JsonResponse({
+                'success': True,
+                'token': token,
+                'tier': user.fuzeobs_tier,
+                'email': user.email
+            })
+            
+            # Set session cookie if remember_me
+            if remember_me:
+                response.set_cookie('fuzeobs_session', token, max_age=30*24*60*60)  # 30 days
+            
+            return response
+        else:
+            return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
 
 @csrf_exempt
 def fuzeobs_verify(request):
