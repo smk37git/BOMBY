@@ -63,25 +63,6 @@ def fuzeobs_login(request):
             return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
     except User.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
-    
-@csrf_exempt
-def fuzeobs_verify_token(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST only'}, status=405)
-    
-    data = json.loads(request.body)
-    token = data.get('token')
-    
-    user = get_user_from_token(token)
-    
-    if user:
-        return JsonResponse({
-            'valid': True,
-            'email': user.email,
-            'tier': user.fuzeobs_tier
-        })
-    
-    return JsonResponse({'valid': False}, status=401)
 
 @csrf_exempt
 def fuzeobs_verify(request):
