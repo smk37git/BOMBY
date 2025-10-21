@@ -6,6 +6,7 @@ app_name = 'FUZEOBS'
 urlpatterns = [
     path('signup', views.fuzeobs_signup, name='signup'),
     path('login', views.fuzeobs_login, name='login'),
+    path('verify-token', views.fuzeobs_verify_token, name='verify_token'),
     path('verify', views.fuzeobs_verify, name='verify'),
     path('ai-chat', views.fuzeobs_ai_chat, name='ai_chat'),
     path('save-chat', views.fuzeobs_save_chat, name='save_chat'),
