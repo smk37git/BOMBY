@@ -1,15 +1,34 @@
-from django.shortcuts import render
 from django.http import StreamingHttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 import anthropic
 import os
 import json
 from datetime import date
 from django.core.cache import cache
-import random
+import re
 
 User = get_user_model()
+
+def validate_username(username):
+    """Validate username matches Django rules"""
+    if not username:
+        raise ValidationError("Username is required")
+    
+    if len(username) > 20:
+        raise ValidationError("Username must be 20 characters or fewer")
+    
+    # Django's default username validator pattern
+    if not re.match(r'^[\w.@+-]+$', username):
+        raise ValidationError("Username can only contain letters, digits and @/./+/-/_ characters")
+    
+    # Import and use the same profanity checker from validators.py
+    from ACCOUNTS.validators import contains_profanity
+    if contains_profanity(username):
+        raise ValidationError("Username contains inappropriate language")
+    
+    return username
 
 @csrf_exempt
 def fuzeobs_signup(request):
@@ -21,6 +40,16 @@ def fuzeobs_signup(request):
     username = data.get('username')
     password = data.get('password')
     
+    # Validate username
+    try:
+        validate_username(username)
+    except ValidationError as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    
+    # Validate password length (Django default minimum is 8)
+    if len(password) < 8:
+        return JsonResponse({'success': False, 'error': 'Password must be at least 8 characters'}, status=400)
+    
     if User.objects.filter(email=email).exists():
         return JsonResponse({'success': False, 'error': 'Email already registered'}, status=400)
     
@@ -28,7 +57,7 @@ def fuzeobs_signup(request):
         return JsonResponse({'success': False, 'error': 'Username already taken'}, status=400)
     
     user = User.objects.create_user(username=username, email=email, password=password)
-    user.fuzeobs_tier = 'free'  # Changed to free
+    user.fuzeobs_tier = 'free'
     user.save()
     
     token = f"{user.id}:{user.email}"
@@ -47,18 +76,40 @@ def fuzeobs_login(request):
     data = json.loads(request.body)
     email = data.get('email')
     password = data.get('password')
+    remember_me = data.get('remember_me', False)
     
     try:
         user = User.objects.get(email=email)
         if user.check_password(password):
             token = f"{user.id}:{user.email}"
             
-            return JsonResponse({
+            response = JsonResponse({
                 'success': True,
                 'token': token,
                 'tier': user.fuzeobs_tier,
                 'email': user.email
             })
+            
+            # Set cookie based on remember_me setting
+            if remember_me:
+                # Remember for 30 days
+                response.set_cookie(
+                    'fuzeobs_token',
+                    token,
+                    max_age=30*24*60*60,  # 30 days in seconds
+                    httponly=True,
+                    samesite='Lax'
+                )
+            else:
+                # Session cookie (expires when browser closes)
+                response.set_cookie(
+                    'fuzeobs_token',
+                    token,
+                    httponly=True,
+                    samesite='Lax'
+                )
+            
+            return response
         else:
             return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
     except User.DoesNotExist:
@@ -190,77 +241,52 @@ Write clear, natural responses with proper spacing and line breaks.
 
 CRITICAL: You ONLY answer questions about:
 - OBS Studio (settings, configuration, troubleshooting)
-- Streaming (Twitch, YouTube, Kick, Facebook Gaming)
-- Encoding (x264, NVENC, AMD AMF, QuickSync) - BASIC INFO ONLY FOR FREE USERS
-- Hardware for streaming (GPUs, CPUs, capture cards) or that the user provided
-- Benchmark results and recommendations
-- Audio/video capture and setup
-- Scene creation and sources
-- Streaming performance and optimization
+- Streaming (Twitch, YouTube, Kick, etc.)
+- Recording and video capture
+- Audio setup for streaming
+- Hardware for streaming (GPUs, CPUs, capture cards)
+- Stream overlays and scenes
+- Encoding settings (x264, NVENC, etc.)
+- Bitrate and resolution optimization
+- Network issues affecting streaming
 
-If asked about ANY other topic (homework, coding unrelated to OBS, general knowledge, recipes, etc.), politely redirect them:
-"I'm specifically designed to help with OBS Studio and streaming questions only. For other topics, please use a general-purpose AI assistant."
+If asked about ANYTHING else (homework, general coding, math, history, recipes, etc.), politely redirect:
+"I'm specialized in OBS Studio and streaming. For that topic, please use a general AI assistant."
 
-IMPORTANT: When creating numbered lists, use descriptive headers instead of numbered items. For example:
-- Use "**Encoder Settings:**" instead of "1. Encoder Settings"
-- Use "**Stream Output:**" instead of "2. Stream Output"
+Response style:
+- Use **bold** for headings
+- Use proper markdown formatting
+- Add blank lines between sections
+- Use bullet points (•) or numbered lists for clarity
+- Keep paragraphs focused and scannable
 
-{'ADVANCED ENCODER RESTRICTION (FREE TIER):' if user.fuzeobs_tier == 'free' else ''}
-{'You may NOT provide detailed advanced encoder settings to free users. This includes:' if user.fuzeobs_tier == 'free' else ''}
-{'- NVENC preset details (p1-p7), tuning modes, multipass, lookahead, psycho_aq, b-frames' if user.fuzeobs_tier == 'free' else ''}
-{'- x264 CPU usage presets beyond "veryfast", tune options, advanced rate control' if user.fuzeobs_tier == 'free' else ''}
-{'- AMD/QSV advanced parameters' if user.fuzeobs_tier == 'free' else ''}
-{'- Profile/level settings (baseline, main, high)' if user.fuzeobs_tier == 'free' else ''}
-{'' if user.fuzeobs_tier == 'free' else ''}
-{'When free users ask about advanced encoder settings, respond:' if user.fuzeobs_tier == 'free' else ''}
-{'"**Advanced encoder optimization is a Pro feature.** The FuzeOBS configurator automatically selects optimal advanced settings for your hardware. For manual fine-tuning of encoder parameters like presets, multipass, and tuning modes, upgrade to Pro for full AI guidance on these settings."' if user.fuzeobs_tier == 'free' else ''}
-{'' if user.fuzeobs_tier == 'free' else ''}
-{'You CAN provide to free users:' if user.fuzeobs_tier == 'free' else ''}
-{'- Basic encoder selection (NVENC vs x264 vs AMD)' if user.fuzeobs_tier == 'free' else ''}
-{'- General resolution, FPS, and bitrate recommendations' if user.fuzeobs_tier == 'free' else ''}
-{'- Hardware compatibility information' if user.fuzeobs_tier == 'free' else ''}
-{'- Troubleshooting dropped frames, lag, or quality issues' if user.fuzeobs_tier == 'free' else ''}
-
-For 1080p 60fps on Twitch, use 6000 kbps.
-
-This is the sweet spot for excellent quality without hitting Twitch's 8000 kbps limit. Going higher risks viewer buffering.
-
-Recommended settings:
-- Resolution: 1920x1080
-- FPS: 60
-- Bitrate: 6000 kbps
-- Encoder: NVENC (if you have RTX GPU) or x264 on "veryfast"
-
-Key tip: Consistent upload speed matters more than raw bitrate. Test your connection first.
-
-What's your current upload speed and GPU? I can help optimize your encoder settings.""",
+Always provide:
+1. Direct answer to their question
+2. Specific settings or values when relevant
+3. Context for why a setting matters
+4. Warnings about common mistakes""",
                 messages=[{"role": "user", "content": message}]
             ) as stream:
                 for text in stream.text_stream:
-                    yield f"data: {json.dumps({'text': text})}\n\n"
+                    message_data = {'text': text}
+                    yield "data: " + json.dumps(message_data) + "\n\n"
             
             yield "data: [DONE]\n\n"
             
         except Exception as e:
-            print(f"AI Stream Error: {e}")
-            yield "data: [ERROR] Failed to generate response. Please try again.\n\n"
+            print(f"Streaming error: {e}")
+            error_data = {'text': 'Error processing your request. Please try again.'}
+            yield "data: " + json.dumps(error_data) + "\n\n"
+            yield "data: [DONE]\n\n"
     
     response = StreamingHttpResponse(generate(), content_type='text/event-stream; charset=utf-8')
-    response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response['Pragma'] = 'no-cache'
-    response['Expires'] = '0'
-    response['X-Accel-Buffering'] = 'no'
-    response['Connection'] = 'keep-alive'
+    response['Cache-Control'] = 'no-cache'
     response['Access-Control-Allow-Origin'] = '*'
-    response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    response['Access-Control-Allow-Credentials'] = 'false'
-    
     return response
 
 @csrf_exempt
 def fuzeobs_save_chat(request):
-    """Save chat history for user"""
+    """Save or update chat history"""
     if request.method != 'POST':
         response = JsonResponse({'error': 'POST only'}, status=405)
     else:
@@ -277,12 +303,9 @@ def fuzeobs_save_chat(request):
                 data = json.loads(request.body)
                 chat_data = data.get('chat')
                 
-                if not chat_data:
-                    response = JsonResponse({'error': 'No chat data provided'}, status=400)
+                if not chat_data or not isinstance(chat_data, dict):
+                    response = JsonResponse({'error': 'Invalid chat data'}, status=400)
                 else:
-                    if not user.fuzeobs_chat_history:
-                        user.fuzeobs_chat_history = []
-                    
                     # Create a new list to trigger Django's change detection
                     chat_history = list(user.fuzeobs_chat_history)  # Make a copy
                     
