@@ -66,26 +66,26 @@ def fuzeobs_login(request):
 
 @csrf_exempt
 def fuzeobs_verify(request):
-    """Verify user has pro access"""
+    """Verify token is still valid and return user info"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+    
     auth_header = request.headers.get('Authorization', '')
     if not auth_header.startswith('Bearer '):
-        response = JsonResponse({'has_pro': False}, status=401)
-    else:
-        token = auth_header[7:]
-        user = get_user_from_token(token)
-        
-        if not user:
-            response = JsonResponse({'has_pro': False}, status=401)
-        else:
-            response = JsonResponse({
-                'has_pro': user.fuzeobs_tier in ['pro', 'lifetime'],
-                'tier': user.fuzeobs_tier
-            })
+        return JsonResponse({'valid': False}, status=401)
     
-    response['Access-Control-Allow-Origin'] = '*'
-    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    response['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    return response
+    token = auth_header[7:]
+    user = get_user_from_token(token)
+    
+    if not user:
+        return JsonResponse({'valid': False}, status=401)
+    
+    return JsonResponse({
+        'valid': True,
+        'email': user.email,
+        'tier': user.fuzeobs_tier,
+        'token': token
+    })
 
 @csrf_exempt
 def fuzeobs_ai_chat(request):
