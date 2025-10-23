@@ -8,6 +8,9 @@ import json
 from datetime import date
 from django.core.cache import cache
 import re
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
+from django.views.decorators.http import require_http_methods
 
 User = get_user_model()
 
@@ -69,51 +72,62 @@ def fuzeobs_signup(request):
     })
 
 @csrf_exempt
+@require_http_methods(["POST"])
 def fuzeobs_login(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST only'}, status=405)
-    
-    data = json.loads(request.body)
-    email = data.get('email')
-    password = data.get('password')
-    remember_me = data.get('remember_me', False)
-    
     try:
-        user = User.objects.get(email=email)
-        if user.check_password(password):
-            token = f"{user.id}:{user.email}"
+        data = json.loads(request.body)
+        email_or_username = data.get('email', '').strip()
+        password = data.get('password', '')
+        remember_me = data.get('remember_me', False)
+        
+        if not email_or_username or not password:
+            return JsonResponse({
+                'success': False,
+                'error': 'Email/username and password required'
+            })
+        
+        # Try to authenticate with username first, then email
+        user = None
+        if '@' in email_or_username:
+            # Looks like email
+            try:
+                user_obj = User.objects.get(email=email_or_username)
+                user = authenticate(username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                pass
+        else:
+            # Try as username
+            user = authenticate(username=email_or_username, password=password)
+        
+        # If still no user, try as email even without @ (fallback)
+        if not user:
+            try:
+                user_obj = User.objects.get(email=email_or_username)
+                user = authenticate(username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                pass
+        
+        if user:
+            # Generate or get token (implement your token logic)
+            token = f"{user.id}:{os.urandom(32).hex()}"
             
-            response = JsonResponse({
+            return JsonResponse({
                 'success': True,
                 'token': token,
-                'tier': user.fuzeobs_tier,
-                'email': user.email
+                'email': user.email,
+                'tier': user.fuzeobs_tier
+            })
+        else:
+            return JsonResponse({
+                'success': False,
+                'error': 'Invalid credentials'
             })
             
-            # Set cookie based on remember_me setting
-            if remember_me:
-                # Remember for 30 days
-                response.set_cookie(
-                    'fuzeobs_token',
-                    token,
-                    max_age=30*24*60*60,  # 30 days in seconds
-                    httponly=True,
-                    samesite='Lax'
-                )
-            else:
-                # Session cookie (expires when browser closes)
-                response.set_cookie(
-                    'fuzeobs_token',
-                    token,
-                    httponly=True,
-                    samesite='Lax'
-                )
-            
-            return response
-        else:
-            return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
-    except User.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Invalid credentials'}, status=401)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 @csrf_exempt
 def fuzeobs_verify(request):
