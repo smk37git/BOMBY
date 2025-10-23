@@ -162,11 +162,16 @@ def fuzeobs_ai_chat(request):
         return JsonResponse({'error': 'POST only'}, status=405)
     
     auth_header = request.headers.get('Authorization', '')
-    is_logged_in = auth_header.startswith('Bearer ') and auth_header[7:] != 'guest'
+    
+    # Allow guest or logged-in users
+    if not auth_header.startswith('Bearer '):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    token = auth_header[7:]
+    is_logged_in = token != 'guest'
     
     # Get user or use guest identifier
     if is_logged_in:
-        token = auth_header[7:]
         user = get_user_from_token(token)
         if not user:
             return JsonResponse({'error': 'Invalid token'}, status=401)
