@@ -324,7 +324,7 @@ def get_user_tier(request):
     return JsonResponse({'tier': 'free'})
 
 @csrf_exempt
-def save_chat(request):
+def fuzeobs_save_chat(request):
     """Save chat history for user"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
@@ -369,7 +369,7 @@ def save_chat(request):
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @csrf_exempt
-def get_chats(request):
+def fuzeobs_get_chats(request):
     """Get user's chat history list"""
     if request.method != 'GET':
         return JsonResponse({'error': 'GET only'}, status=405)
@@ -393,7 +393,7 @@ def get_chats(request):
         return JsonResponse({'chats': []})
 
 @csrf_exempt  
-def get_chat(request, chat_id):
+def fuzeobs_get_chat(request, chat_id):
     """Get specific chat by ID"""
     if request.method != 'GET':
         return JsonResponse({'error': 'GET only'}, status=405)
@@ -420,7 +420,7 @@ def get_chat(request, chat_id):
         return JsonResponse({'error': str(e)}, status=500)
 
 @csrf_exempt
-def delete_chat(request, chat_id):
+def fuzeobs_delete_chat(request, chat_id):
     """Delete specific chat"""
     if request.method != 'DELETE':
         return JsonResponse({'error': 'DELETE only'}, status=405)
