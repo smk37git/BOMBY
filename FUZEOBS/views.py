@@ -408,7 +408,7 @@ def fuzeobs_delete_chat(request):
                 if hasattr(user, 'fuzeobs_chat_history'):
                     user.fuzeobs_chat_history = [
                         c for c in user.fuzeobs_chat_history 
-                        if c['id'] != chat_id
+                        if c.get("id") != chat_id
                     ]
                     user.save()
                 
