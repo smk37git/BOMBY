@@ -163,12 +163,17 @@ def fuzeobs_ai_chat(request):
     
     auth_header = request.headers.get('Authorization', '')
     
+    print(f"[DEBUG] Authorization header: '{auth_header}'")
+    
     # Allow guest or logged-in users
     if not auth_header.startswith('Bearer '):
+        print(f"[DEBUG] Rejecting - no Bearer prefix")
         return JsonResponse({'error': 'Unauthorized'}, status=401)
     
     token = auth_header[7:]
+    print(f"[DEBUG] Token extracted: '{token}'")
     is_logged_in = token != 'guest'
+    print(f"[DEBUG] Is logged in: {is_logged_in}")
     
     # Get user or use guest identifier
     if is_logged_in:
