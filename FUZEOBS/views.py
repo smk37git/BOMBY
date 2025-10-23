@@ -163,17 +163,12 @@ def fuzeobs_ai_chat(request):
     
     auth_header = request.headers.get('Authorization', '')
     
-    print(f"[DEBUG] Authorization header: '{auth_header}'")
-    
     # Allow guest or logged-in users
     if not auth_header.startswith('Bearer '):
-        print(f"[DEBUG] Rejecting - no Bearer prefix")
         return JsonResponse({'error': 'Unauthorized'}, status=401)
     
     token = auth_header[7:]
-    print(f"[DEBUG] Token extracted: '{token}'")
     is_logged_in = token != 'guest'
-    print(f"[DEBUG] Is logged in: {is_logged_in}")
     
     # Get user or use guest identifier
     if is_logged_in:
@@ -281,7 +276,13 @@ Core Guidelines:
 • Provide specific settings, numbers, and exact configuration steps
 • Consider the user's hardware when giving recommendations
 • Be direct and technical - users want actionable solutions
-• If hardware specs are provided, optimize recommendations for that setup
+• If hardware specs are provided, optimize recommendations for that setup  (If you don't know it, ask the user to scan their hardware in the Detection Tab)
+
+FuzeOBS Tiers:
+• There are 3 Tiers of FuzeOBS (Free/Pro/Lifetime)
+• The Pro/Lifetime tiers will include unlimted AI (on a smarter model) messages, Advanced Output OBS settings, Benchmarking, and more detailed scene collections
+• The Free tier will have 5 AI messages a day (on a lower-performing model),  Simple Output OBS Settings, No Benchmarking, Simple Scene collections
+• If a Free tier user is requesting Pro/Lifetime features or assistance, recommend the Pro tier LIGHTLY as means of assistance
 
 Topics You Handle:
 ✓ OBS settings and configuration
@@ -292,12 +293,12 @@ Topics You Handle:
 ✓ Scene setup, sources, and filters
 ✓ Audio configuration and mixing
 ✓ Platform-specific settings (Twitch, YouTube, etc.)
-✓ Troubleshooting dropped frames, lag, quality issues
+✓ Troubleshooting dropped frames, lag, quality issues, network issues
 
 Topics You Redirect:
 ✗ General programming or coding tasks
-✗ Non-streaming hardware/software
-✗ Unrelated technical support
+✗ Non-streaming related hardware/software
+✗ Unrelated technical support (aside from WiFi/Ethernet troubleshooting like resetting a router)
 ✗ General knowledge questions
 
 Response Style:
