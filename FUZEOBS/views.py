@@ -167,12 +167,36 @@ def fuzeobs_ai_chat(request):
     
     token = auth_header[7:]
     user = get_user_from_token(token)
+    is_guest = False
+    guest_id = None
     
     if not user:
-        return JsonResponse({'error': 'Invalid token'}, status=401)
+        if token.startswith('guest:'):
+            is_guest = True
+            guest_id = token[6:]
+        else:
+            return JsonResponse({'error': 'Invalid token'}, status=401)
+    
+    # Guest daily limit (5 messages/day)
+    if is_guest:
+        daily_limit_key = f'guest_daily_{guest_id}_{date.today()}'
+        guest_count = cache.get(daily_limit_key, 0)
+        
+        if guest_count >= 5:
+            def guest_limit_message():
+                message_data = {'text': '**Daily Limit Reached**\n\nYou\'ve used all 5 free messages today. Sign up to get more messages and save chat history!'}
+                yield "data: " + json.dumps(message_data) + "\n\n"
+                yield "data: [DONE]\n\n"
+            
+            response = StreamingHttpResponse(guest_limit_message(), content_type='text/event-stream; charset=utf-8')
+            response['Cache-Control'] = 'no-cache'
+            response['Access-Control-Allow-Origin'] = '*'
+            return response
+        
+        cache.set(daily_limit_key, guest_count + 1, 86400)
     
     # Rate limiting - 10 requests per minute per user
-    rate_limit_key = f'fuzeobs_ratelimit_{user.id}'
+    rate_limit_key = f'fuzeobs_ratelimit_{user.id if user else guest_id}'
     request_count = cache.get(rate_limit_key, 0)
     
     if request_count >= 10:
@@ -189,14 +213,14 @@ def fuzeobs_ai_chat(request):
     # Increment rate limit counter
     cache.set(rate_limit_key, request_count + 1, 60)  # 60 second window
     
-    # Reset monthly usage if new month
-    if not user.fuzeobs_usage_reset_date or user.fuzeobs_usage_reset_date.month != date.today().month:
+    # Reset monthly usage if new month (logged in users only)
+    if user and (not user.fuzeobs_usage_reset_date or user.fuzeobs_usage_reset_date.month != date.today().month):
         user.fuzeobs_ai_usage_monthly = 0
         user.fuzeobs_usage_reset_date = date.today()
         user.save()
     
-    # Check free tier limit
-    if user.fuzeobs_tier == 'free' and user.fuzeobs_ai_usage_monthly >= 2:
+    # Check free tier limit (logged in users only)
+    if user and user.fuzeobs_tier == 'free' and user.fuzeobs_ai_usage_monthly >= 2:
         def limit_message():
             message_data = {'text': '**Free Tier Limit Reached**\n\nYou have used your 2 free AI queries this month. Upgrade to Pro for unlimited access to the AI assistant.'}
             yield "data: " + json.dumps(message_data) + "\n\n"
