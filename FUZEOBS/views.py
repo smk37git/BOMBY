@@ -157,79 +157,79 @@ def fuzeobs_verify(request):
 
 @csrf_exempt
 def fuzeobs_ai_chat(request):
-    """AI chat streaming endpoint with rate limiting and topic validation"""
+    """AI chat streaming endpoint with tier-based rate limiting"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     
     auth_header = request.headers.get('Authorization', '')
-    if not auth_header.startswith('Bearer '):
-        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    is_logged_in = auth_header.startswith('Bearer ') and auth_header[7:] != 'guest'
     
-    token = auth_header[7:]
-    user = get_user_from_token(token)
-    is_guest = False
-    guest_id = None
-    
-    if not user:
-        if token.startswith('guest:'):
-            is_guest = True
-            guest_id = token[6:]
-        else:
+    # Get user or use guest identifier
+    if is_logged_in:
+        token = auth_header[7:]
+        user = get_user_from_token(token)
+        if not user:
             return JsonResponse({'error': 'Invalid token'}, status=401)
+        user_id = f'user_{user.id}'
+        tier = user.fuzeobs_tier
+    else:
+        # Guest user - use IP for tracking
+        user_id = f'guest_{request.META.get("REMOTE_ADDR", "unknown")}'
+        user = None
+        tier = 'guest'
     
-    # Guest daily limit (5 messages/day)
-    if is_guest:
-        daily_limit_key = f'guest_daily_{guest_id}_{date.today()}'
-        guest_count = cache.get(daily_limit_key, 0)
+    # Reset daily usage at midnight
+    today = date.today().isoformat()
+    daily_key = f'fuzeobs_daily_{user_id}_{today}'
+    daily_count = cache.get(daily_key, 0)
+    
+    # Tier limits
+    if tier in ['pro', 'lifetime']:
+        # Pro/Lifetime: 100 messages per 5 hours
+        rate_key = f'fuzeobs_pro_rate_{user_id}'
+        rate_count = cache.get(rate_key, 0)
+        rate_limit = 100
+        rate_window = 18000  # 5 hours in seconds
+        model = "claude-sonnet-4-20250514"  # Smart model
         
-        if guest_count >= 5:
-            def guest_limit_message():
-                message_data = {'text': '**Daily Limit Reached**\n\nYou\'ve used all 5 free messages today. Sign up to get more messages and save chat history!'}
+        if rate_count >= rate_limit:
+            def limit_msg():
+                message_data = {'text': '**Rate Limit Reached**\n\nYou\'ve used 100 messages in 5 hours. Please wait before sending more.'}
                 yield "data: " + json.dumps(message_data) + "\n\n"
                 yield "data: [DONE]\n\n"
-            
-            response = StreamingHttpResponse(guest_limit_message(), content_type='text/event-stream; charset=utf-8')
+            response = StreamingHttpResponse(limit_msg(), content_type='text/event-stream; charset=utf-8')
             response['Cache-Control'] = 'no-cache'
             response['Access-Control-Allow-Origin'] = '*'
             return response
+        cache.set(rate_key, rate_count + 1, rate_window)
         
-        cache.set(daily_limit_key, guest_count + 1, 86400)
+    elif tier == 'free' or tier == 'guest':
+        # Free/Guest: 5 messages per day
+        if daily_count >= 5:
+            def limit_msg():
+                message_data = {'text': '**Daily Limit Reached**\n\nYou\'ve used your 5 free messages today. Upgrade to Pro for unlimited access.'}
+                yield "data: " + json.dumps(message_data) + "\n\n"
+                yield "data: [DONE]\n\n"
+            response = StreamingHttpResponse(limit_msg(), content_type='text/event-stream; charset=utf-8')
+            response['Cache-Control'] = 'no-cache'
+            response['Access-Control-Allow-Origin'] = '*'
+            return response
+        cache.set(daily_key, daily_count + 1, 86400)  # 24 hours
+        model = "claude-3-5-haiku-20241022"  # Cheaper model
     
-    # Rate limiting - 10 requests per minute per user
-    rate_limit_key = f'fuzeobs_ratelimit_{user.id if user else guest_id}'
-    request_count = cache.get(rate_limit_key, 0)
-    
-    if request_count >= 10:
-        def rate_limit_message():
-            message_data = {'text': '**Rate Limit Exceeded**\n\nPlease wait a moment before sending another message. Maximum 10 messages per minute.'}
+    # Anti-spam: 10 messages per minute for all users
+    spam_key = f'fuzeobs_spam_{user_id}'
+    spam_count = cache.get(spam_key, 0)
+    if spam_count >= 10:
+        def spam_msg():
+            message_data = {'text': '**Slow Down**\n\nMaximum 10 messages per minute. Please wait a moment.'}
             yield "data: " + json.dumps(message_data) + "\n\n"
             yield "data: [DONE]\n\n"
-        
-        response = StreamingHttpResponse(rate_limit_message(), content_type='text/event-stream; charset=utf-8')
+        response = StreamingHttpResponse(spam_msg(), content_type='text/event-stream; charset=utf-8')
         response['Cache-Control'] = 'no-cache'
         response['Access-Control-Allow-Origin'] = '*'
         return response
-    
-    # Increment rate limit counter
-    cache.set(rate_limit_key, request_count + 1, 60)  # 60 second window
-    
-    # Reset monthly usage if new month (logged in users only)
-    if user and (not user.fuzeobs_usage_reset_date or user.fuzeobs_usage_reset_date.month != date.today().month):
-        user.fuzeobs_ai_usage_monthly = 0
-        user.fuzeobs_usage_reset_date = date.today()
-        user.save()
-    
-    # Check free tier limit (logged in users only)
-    if user and user.fuzeobs_tier == 'free' and user.fuzeobs_ai_usage_monthly >= 2:
-        def limit_message():
-            message_data = {'text': '**Free Tier Limit Reached**\n\nYou have used your 2 free AI queries this month. Upgrade to Pro for unlimited access to the AI assistant.'}
-            yield "data: " + json.dumps(message_data) + "\n\n"
-            yield "data: [DONE]\n\n"
-        
-        response = StreamingHttpResponse(limit_message(), content_type='text/event-stream; charset=utf-8')
-        response['Cache-Control'] = 'no-cache'
-        response['Access-Control-Allow-Origin'] = '*'
-        return response
+    cache.set(spam_key, spam_count + 1, 60)
     
     data = json.loads(request.body)
     message = data.get('message', '').strip()
@@ -256,16 +256,6 @@ def fuzeobs_ai_chat(request):
         response['Access-Control-Allow-Origin'] = '*'
         return response
     
-    # Increment usage BEFORE streaming
-    user.fuzeobs_ai_usage_monthly += 1
-    user.save()
-    
-    # Model selection
-    if user.fuzeobs_tier in ['pro', 'lifetime']:
-        model = "claude-3-5-haiku-20241022" if user.fuzeobs_ai_usage_monthly > 500 else "claude-sonnet-4-20250514"
-    else:
-        model = "claude-3-5-haiku-20241022"
-    
     client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
     
     def generate():
@@ -273,51 +263,47 @@ def fuzeobs_ai_chat(request):
         try:
             with client.messages.stream(
                 model=model,
-                max_tokens=4096,
-                system=f"""You are the FuzeOBS AI Assistant - expert in OBS Studio and streaming.
+                max_tokens=4000,
+                system="""You are the FuzeOBS AI Assistant - an expert in OBS Studio, streaming, and broadcast technology.
 
-USER TIER: {user.fuzeobs_tier.upper()}
+Core Guidelines:
+• ONLY answer questions about OBS, streaming, encoding, hardware for streaming, and related topics
+• Provide specific settings, numbers, and exact configuration steps
+• Consider the user's hardware when giving recommendations
+• Be direct and technical - users want actionable solutions
+• If hardware specs are provided, optimize recommendations for that setup
 
-Write clear, natural responses with proper spacing and line breaks.
+Topics You Handle:
+✓ OBS settings and configuration
+✓ Encoding (NVENC, x264, QuickSync, etc.)
+✓ Bitrate, resolution, and quality settings
+✓ Stream performance and optimization
+✓ Hardware compatibility and recommendations
+✓ Scene setup, sources, and filters
+✓ Audio configuration and mixing
+✓ Platform-specific settings (Twitch, YouTube, etc.)
+✓ Troubleshooting dropped frames, lag, quality issues
 
-CRITICAL: You ONLY answer questions about:
-- OBS Studio (settings, configuration, troubleshooting)
-- Streaming (Twitch, YouTube, Kick, etc.)
-- Recording and video capture
-- Audio setup for streaming
-- Hardware for streaming (GPUs, CPUs, capture cards)
-- Stream overlays and scenes
-- Encoding settings (x264, NVENC, etc.)
-- Bitrate and resolution optimization
-- Network issues affecting streaming
+Topics You Redirect:
+✗ General programming or coding tasks
+✗ Non-streaming hardware/software
+✗ Unrelated technical support
+✗ General knowledge questions
 
-If asked about ANYTHING else (homework, general coding, math, history, recipes, etc.), politely redirect:
-"I'm specialized in OBS Studio and streaming. For that topic, please use a general AI assistant."
-
-Response style:
-- Use **bold** for headings
-- Use proper markdown formatting
-- Add blank lines between sections
-- Use bullet points (•) or numbered lists for clarity
-- Keep paragraphs focused and scannable
-
-Always provide:
-1. Direct answer to their question
-2. Specific settings or values when relevant
-3. Context for why a setting matters
-4. Warnings about common mistakes""",
+Response Style:
+• Start with a direct answer
+• Provide exact settings when applicable
+• Explain WHY a setting matters
+• Offer alternatives if relevant
+• Keep responses focused and scannable""",
                 messages=[{"role": "user", "content": message}]
             ) as stream:
                 for text in stream.text_stream:
-                    message_data = {'text': text}
-                    yield "data: " + json.dumps(message_data) + "\n\n"
-            
+                    yield f"data: {json.dumps({'text': text})}\n\n"
             yield "data: [DONE]\n\n"
-            
         except Exception as e:
-            print(f"Streaming error: {e}")
-            error_data = {'text': 'Error processing your request. Please try again.'}
-            yield "data: " + json.dumps(error_data) + "\n\n"
+            print(f"AI Error: {e}")
+            yield f"data: {json.dumps({'text': 'Error processing request.'})}\n\n"
             yield "data: [DONE]\n\n"
     
     response = StreamingHttpResponse(generate(), content_type='text/event-stream; charset=utf-8')
@@ -327,13 +313,15 @@ Always provide:
 
 @csrf_exempt
 def fuzeobs_save_chat(request):
-    """Save or update chat history"""
-    if request.method != 'POST':
+    """Save chat for logged-in users only"""
+    if request.method == 'OPTIONS':
+        response = JsonResponse({})
+    elif request.method != 'POST':
         response = JsonResponse({'error': 'POST only'}, status=405)
     else:
         auth_header = request.headers.get('Authorization', '')
         if not auth_header.startswith('Bearer '):
-            response = JsonResponse({'error': 'Unauthorized'}, status=401)
+            response = JsonResponse({'error': 'Must be logged in to save chats'}, status=401)
         else:
             token = auth_header[7:]
             user = get_user_from_token(token)
@@ -388,7 +376,7 @@ def fuzeobs_save_chat(request):
 
 @csrf_exempt
 def fuzeobs_get_chats(request):
-    """Get all chats for user"""
+    """Get all chats for logged-in users only"""
     if request.method != 'GET':
         response = JsonResponse({'error': 'GET only'}, status=405)
     else:
@@ -412,7 +400,7 @@ def fuzeobs_get_chats(request):
 
 @csrf_exempt
 def fuzeobs_delete_chat(request):
-    """Delete specific chat"""
+    """Delete specific chat for logged-in users only"""
     if request.method != 'POST':
         response = JsonResponse({'error': 'POST only'}, status=405)
     else:
@@ -445,7 +433,7 @@ def fuzeobs_delete_chat(request):
 
 @csrf_exempt
 def fuzeobs_clear_chats(request):
-    """Clear all chats"""
+    """Clear all chats for logged-in users only"""
     if request.method != 'POST':
         response = JsonResponse({'error': 'POST only'}, status=405)
     else:
