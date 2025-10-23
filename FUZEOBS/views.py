@@ -68,7 +68,8 @@ def fuzeobs_signup(request):
         'success': True,
         'token': token,
         'tier': 'free',
-        'email': user.email
+        'email': user.email,
+        'username': user.username
     })
 
 @csrf_exempt
@@ -115,6 +116,7 @@ def fuzeobs_login(request):
                 'success': True,
                 'token': token,
                 'email': user.email,
+                'username': user.username,
                 'tier': user.fuzeobs_tier
             })
         else:
@@ -148,6 +150,7 @@ def fuzeobs_verify(request):
     return JsonResponse({
         'valid': True,
         'email': user.email,
+        'username': user.username,
         'tier': user.fuzeobs_tier,
         'token': token
     })
