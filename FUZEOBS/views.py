@@ -136,6 +136,18 @@ def fuzeobs_login(request):
             'success': False,
             'error': str(e)
         }, status=500)
+    
+def get_user_from_fuzeobs_token(request):
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith('Bearer '):
+        return None
+    
+    token = auth_header[7:]
+    try:
+        user_id, email = token.split(':', 1)
+        return User.objects.get(id=int(user_id), email=email)
+    except (ValueError, User.DoesNotExist):
+        return None
 
 @csrf_exempt
 def fuzeobs_verify(request):
@@ -548,33 +560,34 @@ def get_user_from_token(token):
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_profiles(request):
-    if not request.user.is_authenticated:
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    user = get_user_from_token(token)
+    if not user:
         return JsonResponse({'error': 'Not authenticated', 'profiles': []}, status=401)
     
-    profiles = FuzeOBSProfile.objects.filter(user=request.user)
+    profiles = FuzeOBSProfile.objects.filter(user=user)
     return JsonResponse({
-        'profiles': [
-            {
-                'id': p.id,
-                'name': p.name,
-                'config': p.config,
-                'created_at': p.created_at.isoformat(),
-                'updated_at': p.updated_at.isoformat()
-            }
-            for p in profiles
-        ]
+        'profiles': [{
+            'id': p.id,
+            'name': p.name,
+            'config': p.config,
+            'created_at': p.created_at.isoformat(),
+            'updated_at': p.updated_at.isoformat()
+        } for p in profiles]
     })
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def fuzeobs_create_profile(request):
-    if not request.user.is_authenticated:
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    user = get_user_from_token(token)
+    if not user:
         return JsonResponse({'error': 'Not authenticated'}, status=401)
     
     try:
         data = json.loads(request.body)
         profile = FuzeOBSProfile.objects.create(
-            user=request.user,
+            user=user,
             name=data['name'],
             config=data['config']
         )
@@ -585,30 +598,34 @@ def fuzeobs_create_profile(request):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 def fuzeobs_delete_profile(request, profile_id):
-    if not request.user.is_authenticated:
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    user = get_user_from_token(token)
+    if not user:
         return JsonResponse({'error': 'Not authenticated'}, status=401)
     
     try:
         data = json.loads(request.body)
         profile_id = data.get('id', profile_id)
-        profile = FuzeOBSProfile.objects.get(id=profile_id, user=request.user)
+        profile = FuzeOBSProfile.objects.get(id=profile_id, user=user)
         profile.delete()
         return JsonResponse({'success': True})
     except FuzeOBSProfile.DoesNotExist:
-        return JsonResponse({'error': 'Profile not found'}, status=404)
+        return JsonResponse({'error': 'Not found'}, status=404)
 
 @csrf_exempt
 @require_http_methods(["PUT"])
 def fuzeobs_update_profile(request, profile_id):
-    if not request.user.is_authenticated:
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    user = get_user_from_token(token)
+    if not user:
         return JsonResponse({'error': 'Not authenticated'}, status=401)
     
     try:
-        profile = FuzeOBSProfile.objects.get(id=profile_id, user=request.user)
+        profile = FuzeOBSProfile.objects.get(id=profile_id, user=user)
         data = json.loads(request.body)
         profile.name = data.get('name', profile.name)
         profile.config = data.get('config', profile.config)
         profile.save()
         return JsonResponse({'success': True})
     except FuzeOBSProfile.DoesNotExist:
-        return JsonResponse({'error': 'Profile not found'}, status=404)
+        return JsonResponse({'error': 'Not found'}, status=404)
