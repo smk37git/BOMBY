@@ -12,6 +12,11 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 from .models import FuzeOBSProfile
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+import json
+from .models import FuzeOBSProfile
 
 User = get_user_model()
 
@@ -540,10 +545,11 @@ def get_user_from_token(token):
     except:
         return None
 
+@csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_profiles(request):
     if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Not authenticated'}, status=401)
+        return JsonResponse({'error': 'Not authenticated', 'profiles': []}, status=401)
     
     profiles = FuzeOBSProfile.objects.filter(user=request.user)
     return JsonResponse({
@@ -559,19 +565,39 @@ def fuzeobs_get_profiles(request):
         ]
     })
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def fuzeobs_create_profile(request):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Not authenticated'}, status=401)
     
-    data = json.loads(request.body)
-    profile = FuzeOBSProfile.objects.create(
-        user=request.user,
-        name=data['name'],
-        config=data['config']
-    )
-    return JsonResponse({'success': True, 'id': profile.id})
+    try:
+        data = json.loads(request.body)
+        profile = FuzeOBSProfile.objects.create(
+            user=request.user,
+            name=data['name'],
+            config=data['config']
+        )
+        return JsonResponse({'success': True, 'id': profile.id})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
+@csrf_exempt
+@require_http_methods(["DELETE"])
+def fuzeobs_delete_profile(request, profile_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    
+    try:
+        data = json.loads(request.body)
+        profile_id = data.get('id', profile_id)
+        profile = FuzeOBSProfile.objects.get(id=profile_id, user=request.user)
+        profile.delete()
+        return JsonResponse({'success': True})
+    except FuzeOBSProfile.DoesNotExist:
+        return JsonResponse({'error': 'Profile not found'}, status=404)
+
+@csrf_exempt
 @require_http_methods(["PUT"])
 def fuzeobs_update_profile(request, profile_id):
     if not request.user.is_authenticated:
@@ -583,20 +609,6 @@ def fuzeobs_update_profile(request, profile_id):
         profile.name = data.get('name', profile.name)
         profile.config = data.get('config', profile.config)
         profile.save()
-        return JsonResponse({'success': True})
-    except FuzeOBSProfile.DoesNotExist:
-        return JsonResponse({'error': 'Profile not found'}, status=404)
-
-@require_http_methods(["DELETE"])
-def fuzeobs_delete_profile(request, profile_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Not authenticated'}, status=401)
-    
-    try:
-        data = json.loads(request.body)
-        profile_id = data.get('id', profile_id)
-        profile = FuzeOBSProfile.objects.get(id=profile_id, user=request.user)
-        profile.delete()
         return JsonResponse({'success': True})
     except FuzeOBSProfile.DoesNotExist:
         return JsonResponse({'error': 'Profile not found'}, status=404)
