@@ -13,4 +13,8 @@ urlpatterns = [
     path('delete-chat', views.fuzeobs_delete_chat, name='delete_chat'),
     path('clear-chats', views.fuzeobs_clear_chats, name='clear_chats'),
     path('analyze-benchmark', views.fuzeobs_analyze_benchmark, name='analyze_benchmark'),
+    path('profiles', views.fuzeobs_get_profiles, name='get_profiles'),
+    path('profiles/create', views.fuzeobs_create_profile, name='create_profile'),
+    path('profiles/<int:profile_id>', views.fuzeobs_update_profile, name='update_profile'),
+    path('profiles/<int:profile_id>/delete', views.fuzeobs_delete_profile, name='delete_profile'),
 ]
