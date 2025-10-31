@@ -179,17 +179,18 @@ def fuzeobs_quickstart_dismiss(request):
     
     token = auth_header.split(' ')[1]
     
-    # Verify token and get user
     try:
         user = User.objects.get(auth_token=token)
+        try:
+            user.quickstart_dismissed = True
+            user.save()
+        except AttributeError:
+            # Fallback to cache if field doesn't exist
+            cache.set(f'fuzeobs_quickstart_dismissed_{user.id}', True, timeout=31536000)
+        
+        return JsonResponse({'success': True})
     except User.DoesNotExist:
         return JsonResponse({'error': 'Invalid token'}, status=401)
-    
-    # Store preference (using user profile or separate model)
-    # Assuming you have a user profile model or using cache
-    cache.set(f'fuzeobs_quickstart_dismissed_{user.id}', True, timeout=None)
-    
-    return JsonResponse({'success': True})
 
 @csrf_exempt
 @require_http_methods(["GET"])
@@ -203,7 +204,12 @@ def fuzeobs_quickstart_check(request):
     
     try:
         user = User.objects.get(auth_token=token)
-        dismissed = cache.get(f'fuzeobs_quickstart_dismissed_{user.id}', False)
+        # Check database field first, fallback to cache
+        try:
+            dismissed = user.quickstart_dismissed
+        except AttributeError:
+            dismissed = cache.get(f'fuzeobs_quickstart_dismissed_{user.id}', False)
+        
         return JsonResponse({'dismissed': dismissed})
     except User.DoesNotExist:
         return JsonResponse({'dismissed': False})

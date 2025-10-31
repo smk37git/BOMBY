@@ -39,6 +39,7 @@ class User(AbstractUser):
     fuzeobs_ai_usage_monthly = models.IntegerField(default=0)
     fuzeobs_usage_reset_date = models.DateField(null=True, blank=True)
     fuzeobs_chat_history = models.JSONField(default=list, blank=True)
+    quickstart_dismissed = models.BooleanField(default=False)
 
     # Rest of model stays the same
     user_type = models.CharField(
@@ -47,7 +48,7 @@ class User(AbstractUser):
         default=UserType.MEMBER,
     )
     
-    # All existing fields and methods remain unchanged
+    # All existing fields and methods
     profile_picture = models.ImageField(
         upload_to='profile_pictures/', 
         blank=True, 
