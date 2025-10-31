@@ -171,6 +171,26 @@ def fuzeobs_verify(request):
 
 @csrf_exempt
 @require_http_methods(["GET"])
+def fuzeobs_list_templates(request):
+    """List available templates based on user tier"""
+    user = get_user_from_fuzeobs_token(request)
+    
+    templates = [
+        {'id': 'simple', 'name': 'Simple Stream', 'tier': 'free'},
+        {'id': 'gaming', 'name': 'Gaming Stream', 'tier': 'free'},
+    ]
+    
+    if user and getattr(user, 'fuzeobs_tier', 'free') in ['pro', 'lifetime']:
+        templates.extend([
+            {'id': 'just-chatting', 'name': 'Just Chatting', 'tier': 'premium'},
+            {'id': 'tutorial', 'name': 'Desktop Tutorial', 'tier': 'premium'},
+            {'id': 'podcast', 'name': 'Podcast', 'tier': 'premium'},
+        ])
+    
+    return JsonResponse({'templates': templates})
+
+@csrf_exempt
+@require_http_methods(["GET"])
 def fuzeobs_get_template(request, template_id):
     user = get_user_from_fuzeobs_token(request)
     
