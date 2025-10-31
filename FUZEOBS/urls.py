@@ -17,4 +17,7 @@ urlpatterns = [
     path('profiles/create', views.fuzeobs_create_profile, name='create_profile'),
     path('profiles/<int:profile_id>', views.fuzeobs_update_profile, name='update_profile'),
     path('profiles/<int:profile_id>/delete', views.fuzeobs_delete_profile, name='delete_profile'),
+    path('templates', views.fuzeobs_get_templates, name='get_templates'),
+    path('templates/<str:template_id>', views.fuzeobs_get_template, name='get_template'),
+    path('backgrounds/<str:background_id>', views.fuzeobs_get_background, name='get_background'),
 ]

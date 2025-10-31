@@ -12,11 +12,8 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 from .models import FuzeOBSProfile
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_http_methods
-import json
-from .models import FuzeOBSProfile
+from pathlib import Path
+from django.conf import settings
 
 User = get_user_model()
 
@@ -172,6 +169,63 @@ def fuzeobs_verify(request):
         'tier': user.fuzeobs_tier,
         'token': token
     })
+
+@require_http_methods(["GET"])
+def fuzeobs_get_templates(request):
+    """List available templates based on user tier"""
+    user = request.user
+    
+    # Determine user tier (adjust based on your user model)
+    is_premium = getattr(user, 'is_premium', False)
+    
+    templates = [
+        {'id': 'simple', 'name': 'Simple Stream', 'tier': 'free'},
+        {'id': 'gaming', 'name': 'Gaming Stream', 'tier': 'free'},
+    ]
+    
+    if is_premium:
+        templates.extend([
+            {'id': 'just-chatting', 'name': 'Just Chatting', 'tier': 'premium'},
+            {'id': 'tutorial', 'name': 'Desktop Tutorial', 'tier': 'premium'},
+            {'id': 'podcast', 'name': 'Podcast', 'tier': 'premium'},
+        ])
+    
+    return JsonResponse({'templates': templates})
+
+@require_http_methods(["GET"])
+def fuzeobs_get_template(request, template_id):
+    """Get specific template JSON"""
+    user = request.user
+    is_premium = getattr(user, 'is_premium', False)
+    
+    # Define tier requirements
+    premium_templates = ['just-chatting', 'tutorial', 'podcast']
+    
+    if template_id in premium_templates and not is_premium:
+        return JsonResponse({'error': 'Premium required'}, status=403)
+    
+    # Load from static/templates/
+    template_path = Path(settings.BASE_DIR) / 'FUZEOBS' / 'static' / 'templates' / f'{template_id}.json'
+    
+    if not template_path.exists():
+        return JsonResponse({'error': 'Template not found'}, status=404)
+    
+    with open(template_path, 'r', encoding='utf-8') as f:
+        template_data = json.load(f)
+    
+    return JsonResponse(template_data)
+
+@require_http_methods(["GET"])
+def fuzeobs_get_background(request, background_id):
+    """Serve scene background images"""
+    from django.http import FileResponse
+    
+    bg_path = Path(settings.BASE_DIR) / 'FUZEOBS' / 'static' / 'templates' / 'scene-backgrounds' / f'{background_id}.png'
+    
+    if not bg_path.exists():
+        return JsonResponse({'error': 'Background not found'}, status=404)
+    
+    return FileResponse(open(bg_path, 'rb'), content_type='image/png')
 
 @csrf_exempt
 def fuzeobs_ai_chat(request):
