@@ -177,20 +177,16 @@ def fuzeobs_quickstart_dismiss(request):
     if not auth_header or not auth_header.startswith('Bearer '):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
     
-    token = auth_header.split(' ')[1]
+    token = auth_header[7:]
+    user = get_user_from_token(token)
     
-    try:
-        user = User.objects.get(auth_token=token)
-        try:
-            user.quickstart_dismissed = True
-            user.save()
-        except AttributeError:
-            # Fallback to cache if field doesn't exist
-            cache.set(f'fuzeobs_quickstart_dismissed_{user.id}', True, timeout=31536000)
-        
-        return JsonResponse({'success': True})
-    except User.DoesNotExist:
+    if not user:
         return JsonResponse({'error': 'Invalid token'}, status=401)
+    
+    user.quickstart_dismissed = True
+    user.save()
+    
+    return JsonResponse({'success': True})
 
 @csrf_exempt
 @require_http_methods(["GET"])
@@ -200,19 +196,13 @@ def fuzeobs_quickstart_check(request):
     if not auth_header or not auth_header.startswith('Bearer '):
         return JsonResponse({'dismissed': False})
     
-    token = auth_header.split(' ')[1]
+    token = auth_header[7:]
+    user = get_user_from_token(token)
     
-    try:
-        user = User.objects.get(auth_token=token)
-        # Check database field first, fallback to cache
-        try:
-            dismissed = user.quickstart_dismissed
-        except AttributeError:
-            dismissed = cache.get(f'fuzeobs_quickstart_dismissed_{user.id}', False)
-        
-        return JsonResponse({'dismissed': dismissed})
-    except User.DoesNotExist:
+    if not user:
         return JsonResponse({'dismissed': False})
+    
+    return JsonResponse({'dismissed': user.quickstart_dismissed})
 
 @csrf_exempt
 @require_http_methods(["GET"])
