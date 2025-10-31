@@ -371,6 +371,12 @@ FuzeOBS -- How it Works:
 • Tab 09 -- Benchmark (Pro/Lifetime users can benchmark their OBS after setting up their streams. It will analyze all their stats from component usage, to network stats, to quality. It will provide a graded report with stats and even allow AI to analyze it to understand results)
 • Tab 10 -- Fuze-AI (AI model that will answer any streaming related or OBS or FuzeOBS question!)
 
+FuzeOBS -- Additional Functions:
+• Profiles Button -- Allows users to save different configuration setups. Great to easily switch out settings and configurations.
+• Import/Export buttons -- Allows users to easily import or export other configuration files that will apply to OBS via Tab 03.
+• Test Websocket button on the sidebar, is the button to click to test the websocket connection on Tab 03 - Optimization.
+• Launch OBS button -- Launches OBS easily from FuzeOBS
+
 Topics You Handle:
 ✓ OBS settings and configuration
 ✓ Encoding (NVENC, x264, QuickSync, etc.)
