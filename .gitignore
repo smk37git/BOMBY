@@ -63,8 +63,10 @@ env/
 ehthumbs.db
 Thumbs.db
 
-# firebase
-firebase-credentials.json
+# FuzeOBS Configs
+FUZEOBS/static/templates/*.json
+FUZEOBS/static/templates/scene-backgrounds/*.png
+FUZEOBS/static/templates/scene-backgrounds/*.jpg
 
 # Google Bucket
 gcs-credentials.json
