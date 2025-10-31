@@ -170,20 +170,20 @@ def fuzeobs_verify(request):
         'token': token
     })
 
+@csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_templates(request):
     """List available templates based on user tier"""
-    user = request.user
+    user = get_user_from_fuzeobs_token(request)
     
-    # Determine user tier (adjust based on your user model)
-    is_premium = getattr(user, 'is_premium', False)
-    
+    # Free templates always available
     templates = [
         {'id': 'simple', 'name': 'Simple Stream', 'tier': 'free'},
         {'id': 'gaming', 'name': 'Gaming Stream', 'tier': 'free'},
     ]
     
-    if is_premium:
+    # Premium templates only if user is premium
+    if user and getattr(user, 'fuzeobs_tier', 'free') in ['pro', 'lifetime']:
         templates.extend([
             {'id': 'just-chatting', 'name': 'Just Chatting', 'tier': 'premium'},
             {'id': 'tutorial', 'name': 'Desktop Tutorial', 'tier': 'premium'},
@@ -192,19 +192,26 @@ def fuzeobs_get_templates(request):
     
     return JsonResponse({'templates': templates})
 
+@csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_template(request, template_id):
     """Get specific template JSON"""
-    user = request.user
-    is_premium = getattr(user, 'is_premium', False)
+    user = get_user_from_fuzeobs_token(request)
     
     # Define tier requirements
+    free_templates = ['simple', 'gaming']
     premium_templates = ['just-chatting', 'tutorial', 'podcast']
     
-    if template_id in premium_templates and not is_premium:
-        return JsonResponse({'error': 'Premium required'}, status=403)
+    # Block premium templates for free users
+    if template_id in premium_templates:
+        if not user or getattr(user, 'fuzeobs_tier', 'free') not in ['pro', 'lifetime']:
+            return JsonResponse({'error': 'Premium required'}, status=403)
     
-    # Load from static/templates/
+    # Allow free templates for everyone
+    if template_id not in free_templates + premium_templates:
+        return JsonResponse({'error': 'Template not found'}, status=404)
+    
+    # Load template from static/templates/
     template_path = Path(settings.BASE_DIR) / 'FUZEOBS' / 'static' / 'templates' / f'{template_id}.json'
     
     if not template_path.exists():
@@ -215,6 +222,7 @@ def fuzeobs_get_template(request, template_id):
     
     return JsonResponse(template_data)
 
+@csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_background(request, background_id):
     """Serve scene background images"""
