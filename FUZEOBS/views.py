@@ -12,8 +12,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 from .models import FuzeOBSProfile
-from pathlib import Path
-from django.conf import settings
+from google.cloud import storage
 
 User = get_user_model()
 
@@ -172,68 +171,41 @@ def fuzeobs_verify(request):
 
 @csrf_exempt
 @require_http_methods(["GET"])
-def fuzeobs_get_templates(request):
-    """List available templates based on user tier"""
-    user = get_user_from_fuzeobs_token(request)
-    
-    # Free templates always available
-    templates = [
-        {'id': 'simple', 'name': 'Simple Stream', 'tier': 'free'},
-        {'id': 'gaming', 'name': 'Gaming Stream', 'tier': 'free'},
-    ]
-    
-    # Premium templates only if user is premium
-    if user and getattr(user, 'fuzeobs_tier', 'free') in ['pro', 'lifetime']:
-        templates.extend([
-            {'id': 'just-chatting', 'name': 'Just Chatting', 'tier': 'premium'},
-            {'id': 'tutorial', 'name': 'Desktop Tutorial', 'tier': 'premium'},
-            {'id': 'podcast', 'name': 'Podcast', 'tier': 'premium'},
-        ])
-    
-    return JsonResponse({'templates': templates})
-
-@csrf_exempt
-@require_http_methods(["GET"])
 def fuzeobs_get_template(request, template_id):
-    """Get specific template JSON"""
     user = get_user_from_fuzeobs_token(request)
     
-    # Define tier requirements
     free_templates = ['simple', 'gaming']
     premium_templates = ['just-chatting', 'tutorial', 'podcast']
     
-    # Block premium templates for free users
     if template_id in premium_templates:
         if not user or getattr(user, 'fuzeobs_tier', 'free') not in ['pro', 'lifetime']:
             return JsonResponse({'error': 'Premium required'}, status=403)
     
-    # Allow free templates for everyone
     if template_id not in free_templates + premium_templates:
         return JsonResponse({'error': 'Template not found'}, status=404)
     
-    # Load template from static/templates/
-    template_path = Path(settings.BASE_DIR) / 'FUZEOBS' / 'static' / 'templates' / f'{template_id}.json'
-    
-    if not template_path.exists():
+    try:
+        client = storage.Client()
+        bucket = client.bucket('bomby-user-uploads')
+        blob = bucket.blob(f'fuzeobs-templates/{template_id}.json')
+        template_data = json.loads(blob.download_as_text())
+        return JsonResponse(template_data)
+    except:
         return JsonResponse({'error': 'Template not found'}, status=404)
-    
-    with open(template_path, 'r', encoding='utf-8') as f:
-        template_data = json.load(f)
-    
-    return JsonResponse(template_data)
 
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_background(request, background_id):
-    """Serve scene background images"""
-    from django.http import FileResponse
+    from django.http import HttpResponse
     
-    bg_path = Path(settings.BASE_DIR) / 'FUZEOBS' / 'static' / 'templates' / 'scene-backgrounds' / f'{background_id}.png'
-    
-    if not bg_path.exists():
+    try:
+        client = storage.Client()
+        bucket = client.bucket('bomby-user-uploads')
+        blob = bucket.blob(f'fuzeobs-templates/scene-backgrounds/{background_id}.png')
+        image_data = blob.download_as_bytes()
+        return HttpResponse(image_data, content_type='image/png')
+    except:
         return JsonResponse({'error': 'Background not found'}, status=404)
-    
-    return FileResponse(open(bg_path, 'rb'), content_type='image/png')
 
 @csrf_exempt
 def fuzeobs_ai_chat(request):
