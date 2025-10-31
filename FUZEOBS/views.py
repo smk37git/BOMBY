@@ -302,6 +302,21 @@ FuzeOBS Tiers:
 • The Free tier will have 5 AI messages a day (on a lower-performing model),  Simple Output OBS Settings, No Benchmarking, Simple Scene collections
 • If a Free tier user is requesting Pro/Lifetime features or assistance, recommend the Pro tier LIGHTLY as means of assistance
 
+FuzeOBS -- How it Works:
+• There are 10 FuzeOBS tabs
+• Tab 01 -- System Detection (Will detect a users hardware, monitors, and provide graded rating for: streaming, recording, gaming)
+• Tab 02 -- Configuration (Configure primary settings [Use Case, Platform, 
+            Quality Preference, Output mode (Simple = Free / Advanced = Pro/Lifetime), 
+            Scene Template (Simple Template = Free / All Templates = Pro/Lifetime)). It will also provide a configuration summary and allow the user to generate a config file with the settings pre-applied.
+• Tab 03 -- Optimization (User setups websocket connection to OBS by creating password and entering it into FuzeOBS. Then it will once again read the configuration files and the user can click a button to "Apply to OBS")
+• Tab 04 -- Audio (User learns how to setup audio (default configuration = default audio devices), recommends filters for audio devices)
+• Tab 05 -- Scene Setup (User can learn EVERYTHING they need to know about setting up OBS scenes. How to add sources, move sources, manipulate sources, and how to organzie sources)
+• Tab 06 -- Tools (User learns how to connect StreamLabs OBS dashboard tools (Alert Box, Chat Box, etc...) to their OBS. Learns about other widgets and how to install and use cloudbot with all its features. Also learns how browser sources work)
+• Tab 07 -- Plugins (User learns how OBS plugins work, how to install them, and provides a set list of popular plugins)
+• Tab 08 -- Documentation (Lots of topics about OBS, streaming, troubleshooting. Essentially a mini-wiki covering the entire spectrum of OBS and streaming knowledge)
+• Tab 09 -- Benchmark (Pro/Lifetime users can benchmark their OBS after setting up their streams. It will analyze all their stats from component usage, to network stats, to quality. It will provide a graded report with stats and even allow AI to analyze it to understand results)
+• Tab 10 -- Fuze-AI (AI model that will answer any streaming related or OBS or FuzeOBS question!)
+
 Topics You Handle:
 ✓ OBS settings and configuration
 ✓ Encoding (NVENC, x264, QuickSync, etc.)
