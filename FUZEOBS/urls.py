@@ -20,4 +20,6 @@ urlpatterns = [
     path('templates', views.fuzeobs_list_templates, name='list_templates'),
     path('templates/<str:template_id>', views.fuzeobs_get_template, name='get_template'),
     path('backgrounds/<str:background_id>', views.fuzeobs_get_background, name='get_background'),
+    path('quickstart/dismiss', views.fuzeobs_quickstart_dismiss, name='quickstart_dismiss'),
+    path('quickstart/check', views.fuzeobs_quickstart_check, name='quickstart_check'),
 ]

@@ -170,6 +170,45 @@ def fuzeobs_verify(request):
     })
 
 @csrf_exempt
+@require_http_methods(["POST"])
+def fuzeobs_quickstart_dismiss(request):
+    """Dismiss quick-start modal for logged-in user"""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    token = auth_header.split(' ')[1]
+    
+    # Verify token and get user
+    try:
+        user = User.objects.get(auth_token=token)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Invalid token'}, status=401)
+    
+    # Store preference (using user profile or separate model)
+    # Assuming you have a user profile model or using cache
+    cache.set(f'fuzeobs_quickstart_dismissed_{user.id}', True, timeout=None)
+    
+    return JsonResponse({'success': True})
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_quickstart_check(request):
+    """Check if user has dismissed quick-start modal"""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return JsonResponse({'dismissed': False})
+    
+    token = auth_header.split(' ')[1]
+    
+    try:
+        user = User.objects.get(auth_token=token)
+        dismissed = cache.get(f'fuzeobs_quickstart_dismissed_{user.id}', False)
+        return JsonResponse({'dismissed': dismissed})
+    except User.DoesNotExist:
+        return JsonResponse({'dismissed': False})
+
+@csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_list_templates(request):
     """List available templates based on user tier"""
