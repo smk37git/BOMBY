@@ -13,8 +13,65 @@ from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 from .models import FuzeOBSProfile
 from google.cloud import storage
+import hmac
+import hashlib
+import time
+from functools import wraps
 
 User = get_user_model()
+
+class SecureAuth:
+    def __init__(self, secret_key: str):
+        self.secret_key = secret_key.encode()
+    
+    def create_signed_token(self, user_id: int, tier: str) -> str:
+        timestamp = int(time.time())
+        message = f"{user_id}:{tier}:{timestamp}"
+        signature = hmac.new(self.secret_key, message.encode(), hashlib.sha256).hexdigest()
+        return f"{message}:{signature}"
+    
+    def verify_token(self, token: str) -> dict:
+        try:
+            parts = token.split(':')
+            if len(parts) != 4:
+                return {'valid': False}
+            user_id, tier, timestamp, signature = parts
+            message = f"{user_id}:{tier}:{timestamp}"
+            expected = hmac.new(self.secret_key, message.encode(), hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(signature, expected):
+                return {'valid': False}
+            if int(time.time()) - int(timestamp) > 2592000:  # 30 days
+                return {'valid': False}
+            return {'valid': True, 'user_id': int(user_id), 'tier': tier}
+        except:
+            return {'valid': False}
+
+auth_manager = SecureAuth(os.environ.get('FUZEOBS_SECRET_KEY', os.environ.get('DJANGO_SECRET_KEY')))
+
+def require_tier(min_tier):
+    tier_hierarchy = {'free': 0, 'pro': 1, 'lifetime': 2}
+    def decorator(func):
+        @wraps(func)
+        def wrapper(request, *args, **kwargs):
+            auth_header = request.headers.get('Authorization', '')
+            if not auth_header.startswith('Bearer '):
+                return JsonResponse({'error': 'No token'}, status=401)
+            token = auth_header.replace('Bearer ', '')
+            verification = auth_manager.verify_token(token)
+            if not verification['valid']:
+                return JsonResponse({'error': 'Invalid token'}, status=401)
+            try:
+                user = User.objects.get(id=verification['user_id'])
+                if user.fuzeobs_tier != verification['tier']:
+                    return JsonResponse({'error': 'Token mismatch'}, status=401)
+            except User.DoesNotExist:
+                return JsonResponse({'error': 'User not found'}, status=401)
+            if tier_hierarchy.get(user.fuzeobs_tier, 0) < tier_hierarchy.get(min_tier, 0):
+                return JsonResponse({'error': 'Insufficient tier', 'required': min_tier}, status=403)
+            request.fuzeobs_user = user
+            return func(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 def validate_username(username):
     """Validate username matches Django rules"""
@@ -65,7 +122,7 @@ def fuzeobs_signup(request):
     user.fuzeobs_tier = 'free'
     user.save()
     
-    token = f"{user.id}:{user.email}"
+    token = auth_manager.create_signed_token(user.id, 'free')
     return JsonResponse({
         'success': True,
         'token': token,
@@ -111,8 +168,7 @@ def fuzeobs_login(request):
                 pass
         
         if user:
-            # Generate or get token (implement your token logic)
-            token = f"{user.id}:{user.email}"
+            token = auth_manager.create_signed_token(user.id, user.fuzeobs_tier)
             
             return JsonResponse({
                 'success': True,
@@ -596,6 +652,7 @@ def fuzeobs_clear_chats(request):
     return response
 
 @csrf_exempt
+@require_tier('pro')
 def fuzeobs_analyze_benchmark(request):
     """Analyze benchmark results with AI - PRO ONLY"""
     if request.method != 'POST':
@@ -660,11 +717,15 @@ Always provide EXACT settings (bitrate numbers, preset names). Explain WHY each 
     return response
 
 def get_user_from_token(token):
-    """Simple token verification"""
+    verification = auth_manager.verify_token(token)
+    if not verification['valid']:
+        return None
     try:
-        user_id, email = token.split(':')
-        return User.objects.get(id=int(user_id), email=email)
-    except:
+        user = User.objects.get(id=verification['user_id'])
+        if user.fuzeobs_tier != verification['tier']:
+            return None
+        return user
+    except User.DoesNotExist:
         return None
 
 @csrf_exempt

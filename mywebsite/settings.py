@@ -353,3 +353,6 @@ CORS_ALLOWED_HEADERS = [
     'x-requested-with',
 ]
 CORS_ALLOW_CREDENTIALS = False
+
+# FuzeOBS Secret Key
+FUZEOBS_SECRET_KEY = os.environ.get('FUZEOBS_SECRET_KEY')
