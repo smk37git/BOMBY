@@ -20,6 +20,8 @@ from functools import wraps
 
 User = get_user_model()
 
+# ===== SECURE AUTHENTICATION SYSTEM =====
+
 class SecureAuth:
     def __init__(self, secret_key: str):
         self.secret_key = secret_key.encode()
@@ -49,6 +51,7 @@ class SecureAuth:
 auth_manager = SecureAuth(os.environ.get('FUZEOBS_SECRET_KEY', os.environ.get('DJANGO_SECRET_KEY')))
 
 def require_tier(min_tier):
+    """Decorator enforcing tier requirements SERVER-SIDE"""
     tier_hierarchy = {'free': 0, 'pro': 1, 'lifetime': 2}
     def decorator(func):
         @wraps(func)
@@ -73,24 +76,35 @@ def require_tier(min_tier):
         return wrapper
     return decorator
 
+def get_user_from_token(token):
+    """Secure token verification"""
+    verification = auth_manager.verify_token(token)
+    if not verification['valid']:
+        return None
+    try:
+        user = User.objects.get(id=verification['user_id'])
+        if user.fuzeobs_tier != verification['tier']:
+            return None
+        return user
+    except User.DoesNotExist:
+        return None
+
+# ===== VALIDATORS =====
+
 def validate_username(username):
     """Validate username matches Django rules"""
     if not username:
         raise ValidationError("Username is required")
-    
     if len(username) > 20:
         raise ValidationError("Username must be 20 characters or fewer")
-    
-    # Django's default username validator pattern
     if not re.match(r'^[\w.@+-]+$', username):
         raise ValidationError("Username can only contain letters, digits and @/./+/-/_ characters")
-    
-    # Import and use the same profanity checker from validators.py
     from ACCOUNTS.validators import contains_profanity
     if contains_profanity(username):
         raise ValidationError("Username contains inappropriate language")
-    
     return username
+
+# ===== AUTHENTICATION ENDPOINTS =====
 
 @csrf_exempt
 def fuzeobs_signup(request):
@@ -102,13 +116,11 @@ def fuzeobs_signup(request):
     username = data.get('username')
     password = data.get('password')
     
-    # Validate username
     try:
         validate_username(username)
     except ValidationError as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=400)
     
-    # Validate password length (Django default minimum is 8)
     if len(password) < 8:
         return JsonResponse({'success': False, 'error': 'Password must be at least 8 characters'}, status=400)
     
@@ -138,28 +150,20 @@ def fuzeobs_login(request):
         data = json.loads(request.body)
         email_or_username = data.get('email', '').strip()
         password = data.get('password', '')
-        remember_me = data.get('remember_me', False)
         
         if not email_or_username or not password:
-            return JsonResponse({
-                'success': False,
-                'error': 'Email/username and password required'
-            })
+            return JsonResponse({'success': False, 'error': 'Email/username and password required'})
         
-        # Try to authenticate with username first, then email
         user = None
         if '@' in email_or_username:
-            # Looks like email
             try:
                 user_obj = User.objects.get(email=email_or_username)
                 user = authenticate(username=user_obj.username, password=password)
             except User.DoesNotExist:
                 pass
         else:
-            # Try as username
             user = authenticate(username=email_or_username, password=password)
         
-        # If still no user, try as email even without @ (fallback)
         if not user:
             try:
                 user_obj = User.objects.get(email=email_or_username)
@@ -169,7 +173,6 @@ def fuzeobs_login(request):
         
         if user:
             token = auth_manager.create_signed_token(user.id, user.fuzeobs_tier)
-            
             return JsonResponse({
                 'success': True,
                 'token': token,
@@ -178,28 +181,10 @@ def fuzeobs_login(request):
                 'tier': user.fuzeobs_tier
             })
         else:
-            return JsonResponse({
-                'success': False,
-                'error': 'Invalid credentials'
-            })
+            return JsonResponse({'success': False, 'error': 'Invalid credentials'})
             
     except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
-    
-def get_user_from_fuzeobs_token(request):
-    auth_header = request.headers.get('Authorization', '')
-    if not auth_header.startswith('Bearer '):
-        return None
-    
-    token = auth_header[7:]
-    try:
-        user_id, email = token.split(':', 1)
-        return User.objects.get(id=int(user_id), email=email)
-    except (ValueError, User.DoesNotExist):
-        return None
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @csrf_exempt
 def fuzeobs_verify(request):
@@ -225,53 +210,45 @@ def fuzeobs_verify(request):
         'token': token
     })
 
+# ===== QUICK START =====
+
 @csrf_exempt
 @require_http_methods(["POST"])
+@require_tier('free')
 def fuzeobs_quickstart_dismiss(request):
     """Dismiss quick-start modal for logged-in user"""
-    auth_header = request.headers.get('Authorization')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        return JsonResponse({'error': 'Unauthorized'}, status=401)
-    
-    token = auth_header[7:]
-    user = get_user_from_token(token)
-    
-    if not user:
-        return JsonResponse({'error': 'Invalid token'}, status=401)
-    
+    user = request.fuzeobs_user
     user.quickstart_dismissed = True
     user.save()
-    
     return JsonResponse({'success': True})
 
 @csrf_exempt
 @require_http_methods(["GET"])
+@require_tier('free')
 def fuzeobs_quickstart_check(request):
     """Check if user has dismissed quick-start modal"""
-    auth_header = request.headers.get('Authorization')
-    if not auth_header or not auth_header.startswith('Bearer '):
-        return JsonResponse({'dismissed': False})
-    
-    token = auth_header[7:]
-    user = get_user_from_token(token)
-    
-    if not user:
-        return JsonResponse({'dismissed': False})
-    
+    user = request.fuzeobs_user
     return JsonResponse({'dismissed': user.quickstart_dismissed})
+
+# ===== TEMPLATES =====
 
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_list_templates(request):
     """List available templates based on user tier"""
-    user = get_user_from_fuzeobs_token(request)
+    auth_header = request.headers.get('Authorization', '')
+    user = None
+    
+    if auth_header.startswith('Bearer '):
+        token = auth_header[7:]
+        user = get_user_from_token(token)
     
     templates = [
         {'id': 'simple', 'name': 'Simple Stream', 'tier': 'free'},
         {'id': 'gaming', 'name': 'Gaming Stream', 'tier': 'free'},
     ]
     
-    if user and getattr(user, 'fuzeobs_tier', 'free') in ['pro', 'lifetime']:
+    if user and user.fuzeobs_tier in ['pro', 'lifetime']:
         templates.extend([
             {'id': 'just-chatting', 'name': 'Just Chatting', 'tier': 'premium'},
             {'id': 'tutorial', 'name': 'Desktop Tutorial', 'tier': 'premium'},
@@ -283,13 +260,18 @@ def fuzeobs_list_templates(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_template(request, template_id):
-    user = get_user_from_fuzeobs_token(request)
+    auth_header = request.headers.get('Authorization', '')
+    user = None
+    
+    if auth_header.startswith('Bearer '):
+        token = auth_header[7:]
+        user = get_user_from_token(token)
     
     free_templates = ['simple', 'gaming']
     premium_templates = ['just-chatting', 'tutorial', 'podcast']
     
     if template_id in premium_templates:
-        if not user or getattr(user, 'fuzeobs_tier', 'free') not in ['pro', 'lifetime']:
+        if not user or user.fuzeobs_tier not in ['pro', 'lifetime']:
             return JsonResponse({'error': 'Premium required'}, status=403)
     
     if template_id not in free_templates + premium_templates:
@@ -308,7 +290,6 @@ def fuzeobs_get_template(request, template_id):
 @require_http_methods(["GET"])
 def fuzeobs_get_background(request, background_id):
     from django.http import HttpResponse
-    
     try:
         client = storage.Client()
         bucket = client.bucket('bomby-user-uploads')
@@ -318,49 +299,29 @@ def fuzeobs_get_background(request, background_id):
     except:
         return JsonResponse({'error': 'Background not found'}, status=404)
 
+# ===== AI CHAT =====
+
 @csrf_exempt
+@require_tier('free')
 def fuzeobs_ai_chat(request):
     """AI chat streaming endpoint with tier-based rate limiting"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     
-    auth_header = request.headers.get('Authorization', '')
+    user = request.fuzeobs_user
+    tier = user.fuzeobs_tier
+    user_id = f'user_{user.id}'
     
-    # Allow guest or logged-in users
-    if not auth_header.startswith('Bearer '):
-        return JsonResponse({'error': 'Unauthorized'}, status=401)
-    
-    token = auth_header[7:]
-    is_logged_in = token != 'guest'
-    
-    # Get user or use guest identifier
-    if is_logged_in:
-        user = get_user_from_token(token)
-        if not user:
-            return JsonResponse({'error': 'Invalid token'}, status=401)
-        user_id = f'user_{user.id}'
-        tier = user.fuzeobs_tier
-    else:
-        # Guest user - use IP for tracking
-        user_id = f'guest_{request.META.get("REMOTE_ADDR", "unknown")}'
-        user = None
-        tier = 'guest'
-    
-    # Reset daily usage at midnight
     today = date.today().isoformat()
     daily_key = f'fuzeobs_daily_{user_id}_{today}'
     daily_count = cache.get(daily_key, 0)
     
     # Tier limits
     if tier in ['pro', 'lifetime']:
-        # Pro/Lifetime: 100 messages per 5 hours
         rate_key = f'fuzeobs_pro_rate_{user_id}'
         rate_count = cache.get(rate_key, 0)
-        rate_limit = 100
-        rate_window = 18000  # 5 hours in seconds
-        model = "claude-sonnet-4-20250514"  # Smart model
         
-        if rate_count >= rate_limit:
+        if rate_count >= 100:
             def limit_msg():
                 message_data = {'text': '**Rate Limit Reached**\n\nYou\'ve used 100 messages in 5 hours. Please wait before sending more.'}
                 yield "data: " + json.dumps(message_data) + "\n\n"
@@ -369,10 +330,11 @@ def fuzeobs_ai_chat(request):
             response['Cache-Control'] = 'no-cache'
             response['Access-Control-Allow-Origin'] = '*'
             return response
-        cache.set(rate_key, rate_count + 1, rate_window)
         
-    elif tier == 'free' or tier == 'guest':
-        # Free/Guest: 5 messages per day
+        cache.set(rate_key, rate_count + 1, 18000)
+        model = "claude-sonnet-4-20250514"
+        
+    else:  # free tier
         if daily_count >= 5:
             def limit_msg():
                 message_data = {'text': '**Daily Limit Reached**\n\nYou\'ve used your 5 free messages today. Upgrade to Pro for unlimited access.'}
@@ -382,10 +344,11 @@ def fuzeobs_ai_chat(request):
             response['Cache-Control'] = 'no-cache'
             response['Access-Control-Allow-Origin'] = '*'
             return response
-        cache.set(daily_key, daily_count + 1, 86400)  # 24 hours
-        model = "claude-3-5-haiku-20241022"  # Cheaper model
+        
+        cache.set(daily_key, daily_count + 1, 86400)
+        model = "claude-3-5-haiku-20241022"
     
-    # Anti-spam: 10 messages per minute for all users
+    # Anti-spam: 10 messages per minute
     spam_key = f'fuzeobs_spam_{user_id}'
     spam_count = cache.get(spam_key, 0)
     if spam_count >= 10:
@@ -405,15 +368,14 @@ def fuzeobs_ai_chat(request):
     if not message:
         return JsonResponse({'error': 'Empty message'}, status=400)
     
-    # Topic validation - check for non-streaming keywords
+    # Topic validation
     off_topic_keywords = [
         'homework', 'essay', 'assignment', 'math problem', 'solve for', 
         'write code', 'python script', 'javascript function', 'sql query',
         'history of', 'who was', 'biography', 'recipe', 'medical advice'
     ]
     
-    message_lower = message.lower()
-    if any(keyword in message_lower for keyword in off_topic_keywords):
+    if any(keyword in message.lower() for keyword in off_topic_keywords):
         def off_topic_message():
             message_data = {'text': '**Off-Topic Query Detected**\n\nThis AI assistant is specifically designed for OBS Studio and streaming questions only. Please ask about:\n\n• OBS settings and configuration\n• Stream quality and encoding\n• Hardware compatibility\n• Streaming platforms (Twitch, YouTube, etc.)\n• Audio/video capture issues\n• Scene setup and sources\n\nFor other topics, please use a general-purpose AI assistant.'}
             yield "data: " + json.dumps(message_data) + "\n\n"
@@ -427,7 +389,6 @@ def fuzeobs_ai_chat(request):
     client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
     
     def generate():
-        """Generator function for SSE streaming"""
         try:
             with client.messages.stream(
                 model=model,
@@ -439,20 +400,18 @@ Core Guidelines:
 • Provide specific settings, numbers, and exact configuration steps
 • Consider the user's hardware when giving recommendations
 • Be direct and technical - users want actionable solutions
-• If hardware specs are provided, optimize recommendations for that setup  (If you don't know it, ask the user to scan their hardware in the Detection Tab)
+• If hardware specs are provided, optimize recommendations for that setup (If you don't know it, ask the user to scan their hardware in the Detection Tab)
 
 FuzeOBS Tiers:
 • There are 3 Tiers of FuzeOBS (Free/Pro/Lifetime)
 • The Pro/Lifetime tiers will include unlimted AI (on a smarter model) messages, Advanced Output OBS settings, Benchmarking, and more detailed scene collections
-• The Free tier will have 5 AI messages a day (on a lower-performing model),  Simple Output OBS Settings, No Benchmarking, Simple Scene collections
+• The Free tier will have 5 AI messages a day (on a lower-performing model), Simple Output OBS Settings, No Benchmarking, Simple Scene collections
 • If a Free tier user is requesting Pro/Lifetime features or assistance, recommend the Pro tier LIGHTLY as means of assistance
 
 FuzeOBS -- How it Works:
 • There are 10 FuzeOBS tabs
 • Tab 01 -- System Detection (Will detect a users hardware, monitors, and provide graded rating for: streaming, recording, gaming)
-• Tab 02 -- Configuration (Configure primary settings [Use Case, Platform, 
-            Quality Preference, Output mode (Simple = Free / Advanced = Pro/Lifetime), 
-            Scene Template (Simple Template = Free / All Templates = Pro/Lifetime)). It will also provide a configuration summary and allow the user to generate a config file with the settings pre-applied.
+• Tab 02 -- Configuration (Configure primary settings [Use Case, Platform, Quality Preference, Output mode (Simple = Free / Advanced = Pro/Lifetime), Scene Template (Simple Template = Free / All Templates = Pro/Lifetime)]. It will also provide a configuration summary and allow the user to generate a config file with the settings pre-applied.
 • Tab 03 -- Optimization (User setups websocket connection to OBS by creating password and entering it into FuzeOBS. Then it will once again read the configuration files and the user can click a button to "Apply to OBS")
 • Tab 04 -- Audio (User learns how to setup audio (default configuration = default audio devices), recommends filters for audio devices)
 • Tab 05 -- Scene Setup (User can learn EVERYTHING they need to know about setting up OBS scenes. How to add sources, move sources, manipulate sources, and how to organzie sources)
@@ -506,7 +465,10 @@ Response Style:
     response['Access-Control-Allow-Origin'] = '*'
     return response
 
+# ===== CHAT HISTORY =====
+
 @csrf_exempt
+@require_tier('free')
 def fuzeobs_save_chat(request):
     """Save chat for logged-in users only"""
     if request.method == 'OPTIONS':
@@ -514,55 +476,39 @@ def fuzeobs_save_chat(request):
     elif request.method != 'POST':
         response = JsonResponse({'error': 'POST only'}, status=405)
     else:
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            response = JsonResponse({'error': 'Must be logged in to save chats'}, status=401)
+        user = request.fuzeobs_user
+        data = json.loads(request.body)
+        chat_data = data.get('chat')
+        
+        if not chat_data or not isinstance(chat_data, dict):
+            response = JsonResponse({'error': 'Invalid chat data'}, status=400)
         else:
-            token = auth_header[7:]
-            user = get_user_from_token(token)
+            chat_history = list(user.fuzeobs_chat_history)
             
-            if not user:
-                response = JsonResponse({'error': 'Invalid token'}, status=401)
+            # Normalize existing chats
+            normalized_history = []
+            for item in chat_history:
+                if isinstance(item, dict):
+                    if 'chat' in item and isinstance(item['chat'], dict) and 'id' in item['chat']:
+                        normalized_history.append(item['chat'])
+                    elif 'id' in item:
+                        normalized_history.append(item)
+            
+            existing_index = next((i for i, c in enumerate(normalized_history) if c.get('id') == chat_data.get('id')), None)
+            
+            if existing_index is not None:
+                normalized_history[existing_index] = chat_data
             else:
-                data = json.loads(request.body)
-                chat_data = data.get('chat')
-                
-                if not chat_data or not isinstance(chat_data, dict):
-                    response = JsonResponse({'error': 'Invalid chat data'}, status=400)
-                else:
-                    # Create a new list to trigger Django's change detection
-                    chat_history = list(user.fuzeobs_chat_history)  # Make a copy
-                    
-                    # Normalize existing chats - unwrap any that have {chat: {...}} structure
-                    normalized_history = []
-                    for item in chat_history:
-                        if isinstance(item, dict):
-                            # Check if this item has a nested 'chat' key
-                            if 'chat' in item and isinstance(item['chat'], dict) and 'id' in item['chat']:
-                                normalized_history.append(item['chat'])  # Unwrap
-                            elif 'id' in item:
-                                normalized_history.append(item)  # Already correct format
-                            # Skip malformed items that have neither structure
-                        # Skip non-dict items
-                    
-                    # Find existing chat by ID
-                    existing_index = next((i for i, c in enumerate(normalized_history) if c.get('id') == chat_data.get('id')), None)
-                    
-                    if existing_index is not None:
-                        # Replace the entire dict, don't update in place
-                        normalized_history[existing_index] = chat_data
-                    else:
-                        normalized_history.append(chat_data)
-                    
-                    # Reassign the field to trigger change detection
-                    user.fuzeobs_chat_history = sorted(
-                        normalized_history,
-                        key=lambda x: x.get('updated_at', 0),
-                        reverse=True
-                    )[:50]
-                    
-                    user.save()
-                    response = JsonResponse({'success': True})
+                normalized_history.append(chat_data)
+            
+            user.fuzeobs_chat_history = sorted(
+                normalized_history,
+                key=lambda x: x.get('updated_at', 0),
+                reverse=True
+            )[:50]
+            
+            user.save()
+            response = JsonResponse({'success': True})
     
     response['Access-Control-Allow-Origin'] = '*'
     response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
@@ -570,23 +516,15 @@ def fuzeobs_save_chat(request):
     return response
 
 @csrf_exempt
+@require_tier('free')
 def fuzeobs_get_chats(request):
     """Get all chats for logged-in users only"""
     if request.method != 'GET':
         response = JsonResponse({'error': 'GET only'}, status=405)
     else:
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            response = JsonResponse({'chats': []})
-        else:
-            token = auth_header[7:]
-            user = get_user_from_token(token)
-            
-            if not user:
-                response = JsonResponse({'chats': []})
-            else:
-                chats = user.fuzeobs_chat_history if user.fuzeobs_chat_history else []
-                response = JsonResponse({'chats': chats})
+        user = request.fuzeobs_user
+        chats = user.fuzeobs_chat_history if user.fuzeobs_chat_history else []
+        response = JsonResponse({'chats': chats})
     
     response['Access-Control-Allow-Origin'] = '*'
     response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
@@ -594,32 +532,24 @@ def fuzeobs_get_chats(request):
     return response
 
 @csrf_exempt
+@require_tier('free')
 def fuzeobs_delete_chat(request):
     """Delete specific chat for logged-in users only"""
     if request.method != 'POST':
         response = JsonResponse({'error': 'POST only'}, status=405)
     else:
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            response = JsonResponse({'error': 'Unauthorized'}, status=401)
-        else:
-            token = auth_header[7:]
-            user = get_user_from_token(token)
-            
-            if not user:
-                response = JsonResponse({'error': 'Invalid token'}, status=401)
-            else:
-                data = json.loads(request.body)
-                chat_id = data.get('chatId')
-                
-                if hasattr(user, 'fuzeobs_chat_history'):
-                    user.fuzeobs_chat_history = [
-                        c for c in user.fuzeobs_chat_history 
-                        if c.get("id") != chat_id
-                    ]
-                    user.save()
-                
-                response = JsonResponse({'success': True})
+        user = request.fuzeobs_user
+        data = json.loads(request.body)
+        chat_id = data.get('chatId')
+        
+        if hasattr(user, 'fuzeobs_chat_history'):
+            user.fuzeobs_chat_history = [
+                c for c in user.fuzeobs_chat_history 
+                if c.get("id") != chat_id
+            ]
+            user.save()
+        
+        response = JsonResponse({'success': True})
     
     response['Access-Control-Allow-Origin'] = '*'
     response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
@@ -627,29 +557,23 @@ def fuzeobs_delete_chat(request):
     return response
 
 @csrf_exempt
+@require_tier('free')
 def fuzeobs_clear_chats(request):
     """Clear all chats for logged-in users only"""
     if request.method != 'POST':
         response = JsonResponse({'error': 'POST only'}, status=405)
     else:
-        auth_header = request.headers.get('Authorization', '')
-        if not auth_header.startswith('Bearer '):
-            response = JsonResponse({'error': 'Unauthorized'}, status=401)
-        else:
-            token = auth_header[7:]
-            user = get_user_from_token(token)
-            
-            if not user:
-                response = JsonResponse({'error': 'Invalid token'}, status=401)
-            else:
-                user.fuzeobs_chat_history = []
-                user.save()
-                response = JsonResponse({'success': True})
+        user = request.fuzeobs_user
+        user.fuzeobs_chat_history = []
+        user.save()
+        response = JsonResponse({'success': True})
     
     response['Access-Control-Allow-Origin'] = '*'
     response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
     response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
     return response
+
+# ===== BENCHMARKING (PRO / LIFETIME ONLY) =====
 
 @csrf_exempt
 @require_tier('pro')
@@ -658,27 +582,7 @@ def fuzeobs_analyze_benchmark(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     
-    auth_header = request.headers.get('Authorization', '')
-    if not auth_header.startswith('Bearer '):
-        return JsonResponse({'error': 'Unauthorized'}, status=401)
-    
-    token = auth_header[7:]
-    user = get_user_from_token(token)
-    
-    if not user:
-        return JsonResponse({'error': 'Invalid token'}, status=401)
-    
-    if user.fuzeobs_tier not in ['pro', 'lifetime']:
-        def pro_required():
-            message_data = {'text': '**Pro Feature Required**\n\nAI benchmark analysis is exclusive to Pro users.'}
-            yield "data: " + json.dumps(message_data) + "\n\n"
-            yield "data: [DONE]\n\n"
-        
-        response = StreamingHttpResponse(pro_required(), content_type='text/event-stream; charset=utf-8')
-        response['Cache-Control'] = 'no-cache'
-        response['Access-Control-Allow-Origin'] = '*'
-        return response
-    
+    user = request.fuzeobs_user
     data = json.loads(request.body)
     benchmark_data = data.get('benchmark_data', '').strip()
     
@@ -716,26 +620,13 @@ Always provide EXACT settings (bitrate numbers, preset names). Explain WHY each 
     response['Access-Control-Allow-Origin'] = '*'
     return response
 
-def get_user_from_token(token):
-    verification = auth_manager.verify_token(token)
-    if not verification['valid']:
-        return None
-    try:
-        user = User.objects.get(id=verification['user_id'])
-        if user.fuzeobs_tier != verification['tier']:
-            return None
-        return user
-    except User.DoesNotExist:
-        return None
+# ===== PROFILES =====
 
 @csrf_exempt
 @require_http_methods(["GET"])
+@require_tier('free')
 def fuzeobs_get_profiles(request):
-    token = request.headers.get('Authorization', '').replace('Bearer ', '')
-    user = get_user_from_token(token)
-    if not user:
-        return JsonResponse({'error': 'Not authenticated', 'profiles': []}, status=401)
-    
+    user = request.fuzeobs_user
     profiles = FuzeOBSProfile.objects.filter(user=user)
     return JsonResponse({
         'profiles': [{
@@ -749,12 +640,9 @@ def fuzeobs_get_profiles(request):
 
 @csrf_exempt
 @require_http_methods(["POST"])
+@require_tier('free')
 def fuzeobs_create_profile(request):
-    token = request.headers.get('Authorization', '').replace('Bearer ', '')
-    user = get_user_from_token(token)
-    if not user:
-        return JsonResponse({'error': 'Not authenticated'}, status=401)
-    
+    user = request.fuzeobs_user
     try:
         data = json.loads(request.body)
         profile = FuzeOBSProfile.objects.create(
@@ -768,12 +656,9 @@ def fuzeobs_create_profile(request):
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
+@require_tier('free')
 def fuzeobs_delete_profile(request, profile_id):
-    token = request.headers.get('Authorization', '').replace('Bearer ', '')
-    user = get_user_from_token(token)
-    if not user:
-        return JsonResponse({'error': 'Not authenticated'}, status=401)
-    
+    user = request.fuzeobs_user
     try:
         data = json.loads(request.body)
         profile_id = data.get('id', profile_id)
@@ -785,12 +670,9 @@ def fuzeobs_delete_profile(request, profile_id):
 
 @csrf_exempt
 @require_http_methods(["PUT"])
+@require_tier('free')
 def fuzeobs_update_profile(request, profile_id):
-    token = request.headers.get('Authorization', '').replace('Bearer ', '')
-    user = get_user_from_token(token)
-    if not user:
-        return JsonResponse({'error': 'Not authenticated'}, status=401)
-    
+    user = request.fuzeobs_user
     try:
         profile = FuzeOBSProfile.objects.get(id=profile_id, user=user)
         data = json.loads(request.body)
