@@ -147,11 +147,23 @@ def fuzeobs_signup(request):
 @require_http_methods(["POST"])
 def fuzeobs_login(request):
     try:
+        # Rate limiting by IP
+        ip = request.META.get('REMOTE_ADDR', 'unknown')
+        attempts_key = f'fuzeobs_login_attempts_{ip}'
+        attempts = cache.get(attempts_key, 0)
+        
+        if attempts >= 5:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Too many login attempts. Please try again in 15 minutes.'
+            }, status=429)
+        
         data = json.loads(request.body)
         email_or_username = data.get('email', '').strip()
         password = data.get('password', '')
         
         if not email_or_username or not password:
+            cache.set(attempts_key, attempts + 1, 900)  # 15 min
             return JsonResponse({'success': False, 'error': 'Email/username and password required'})
         
         user = None
@@ -172,6 +184,8 @@ def fuzeobs_login(request):
                 pass
         
         if user:
+            # Success - clear attempts and create secure token
+            cache.delete(attempts_key)
             token = auth_manager.create_signed_token(user.id, user.fuzeobs_tier)
             return JsonResponse({
                 'success': True,
@@ -181,6 +195,8 @@ def fuzeobs_login(request):
                 'tier': user.fuzeobs_tier
             })
         else:
+            # Failed login - increment attempts
+            cache.set(attempts_key, attempts + 1, 900)  # 15 min
             return JsonResponse({'success': False, 'error': 'Invalid credentials'})
             
     except Exception as e:

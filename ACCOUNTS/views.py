@@ -1,13 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, authenticate, get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib import messages
-from django.views.generic import ListView, DetailView, UpdateView
 from .forms import CustomUserCreationForm, ProfileEditForm, UsernameEditForm
 from .models import User
-from django.conf import settings
-from PIL import Image
 from .moderation import moderate_image_content
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -21,18 +18,14 @@ from django.utils.http import urlsafe_base64_encode
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse_lazy
-from django.db.models import Q, Max, Count
+from django.db.models import Q
 from .models import Message, Conversation
 from .forms import MessageForm
 from STORE.models import Order
 from django.utils import timezone
-import json
-import io
-import boto3
 from django.core.management import call_command
 import os
 from django.core.paginator import Paginator
-from .decorators import admin_required
 from datetime import datetime, timedelta
 import random
 import string
