@@ -386,11 +386,13 @@ def fuzeobs_ai_chat(request):
         # FormData with potential files
         files = request.FILES.getlist('files')[:5]  # Max 5 files
         message = request.POST.get('message', '').strip()
+        style = request.POST.get('style', 'normal')
     else:
         # JSON only (no files)
         files = []
         data = json.loads(request.body)
         message = data.get('message', '').strip()
+        style = data.get('style', 'normal')
     
     if not message and not files:
         return JsonResponse({'error': 'Empty message'}, status=400)
@@ -448,10 +450,21 @@ def fuzeobs_ai_chat(request):
             # Use content array if files, otherwise just message string
             messages_content = content if files else message
             
+            # Style instructions
+            style_instructions = {
+                'normal': '- Start with a direct answer\n- Provide exact settings when applicable\n- Explain WHY a setting matters\n- Offer alternatives if relevant\n- Keep responses focused and scannable',
+                'concise': '- Be extremely brief and to-the-point\n- Use bullet points for lists\n- Only essential information\n- No explanations unless critical\n- Maximum efficiency',
+                'explanatory': '- Provide detailed step-by-step explanations\n- Explain the reasoning behind each recommendation\n- Include background context\n- Anticipate follow-up questions\n- Educational and thorough',
+                'formal': '- Use professional technical language\n- Structured and organized format\n- Precise terminology\n- Comprehensive coverage\n- Business-appropriate tone',
+                'learning': '- Break down concepts for beginners\n- Use analogies and examples\n- Explain technical terms\n- Build understanding progressively\n- Patient and encouraging tone'
+            }
+            
+            style_prompt = style_instructions.get(style, style_instructions['normal'])
+            
             with client.messages.stream(
                 model=model,
                 max_tokens=4000,
-                system="""You are the FuzeOBS AI Assistant - an expert in OBS Studio, streaming, and broadcast technology.
+                system=f"""You are the FuzeOBS AI Assistant - an expert in OBS Studio, streaming, and broadcast technology.
 
 Core Guidelines:
 - ONLY answer questions about OBS, streaming, encoding, hardware for streaming, and related topics
@@ -506,11 +519,7 @@ Topics You Redirect:
 ✗ General knowledge questions
 
 Response Style:
-- Start with a direct answer
-- Provide exact settings when applicable
-- Explain WHY a setting matters
-- Offer alternatives if relevant
-- Keep responses focused and scannable""",
+{style_prompt}""",
                 messages=[{"role": "user", "content": messages_content}]
             ) as stream:
                 for text in stream.text_stream:
