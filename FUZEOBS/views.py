@@ -17,10 +17,15 @@ import hmac
 import hashlib
 import time
 from functools import wraps
+from django.shortcuts import render
 
 User = get_user_model()
 
 # ===== VERSION CHECKING =====
+def fuzeobs_update_test(request):
+    """Hidden test page for update system"""
+    return render(request, 'FUZEOBS/update_test.html')
+
 CURRENT_VERSION = "0.9.3"  # Update with each release
 
 @csrf_exempt
