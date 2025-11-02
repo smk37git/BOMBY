@@ -4,6 +4,7 @@ from . import views
 app_name = 'FUZEOBS'
 
 urlpatterns = [
+    path('version', views.fuzeobs_version_check, name='version_check'),
     path('signup', views.fuzeobs_signup, name='signup'),
     path('login', views.fuzeobs_login, name='login'),
     path('verify', views.fuzeobs_verify, name='verify'),

@@ -20,6 +20,19 @@ from functools import wraps
 
 User = get_user_model()
 
+# ===== VERSION CHECKING =====
+CURRENT_VERSION = "0.9.2"  # Update with each release
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_version_check(request):
+    """Check for latest FuzeOBS version"""
+    return JsonResponse({
+        'version': CURRENT_VERSION,
+        'download_url': 'https://bomby.us/fuzeobs/download',
+        'changelog': 'Bug fixes and performance improvements'
+    })
+
 # ===== SECURE AUTHENTICATION SYSTEM =====
 
 class SecureAuth:
