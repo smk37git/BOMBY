@@ -320,7 +320,7 @@ def fuzeobs_get_background(request, background_id):
 @csrf_exempt
 @require_tier('free')
 def fuzeobs_ai_chat(request):
-    """AI chat streaming endpoint with tier-based rate limiting"""
+    """AI chat streaming endpoint with tier-based rate limiting and file upload"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     
@@ -378,70 +378,111 @@ def fuzeobs_ai_chat(request):
         return response
     cache.set(spam_key, spam_count + 1, 60)
     
-    data = json.loads(request.body)
-    message = data.get('message', '').strip()
+    # Handle both JSON and FormData
+    import base64
+    files = request.FILES.getlist('files')
     
-    if not message:
+    if files:
+        # FormData with files
+        message = request.POST.get('message', '').strip()
+    else:
+        # JSON only
+        data = json.loads(request.body)
+        message = data.get('message', '').strip()
+    
+    if not message and not files:
         return JsonResponse({'error': 'Empty message'}, status=400)
     
-    # Topic validation
-    off_topic_keywords = [
-        'homework', 'essay', 'assignment', 'math problem', 'solve for', 
-        'write code', 'python script', 'javascript function', 'sql query',
-        'history of', 'who was', 'biography', 'recipe', 'medical advice'
-    ]
-    
-    if any(keyword in message.lower() for keyword in off_topic_keywords):
-        def off_topic_message():
-            message_data = {'text': '**Off-Topic Query Detected**\n\nThis AI assistant is specifically designed for OBS Studio and streaming questions only. Please ask about:\n\n• OBS settings and configuration\n• Stream quality and encoding\n• Hardware compatibility\n• Streaming platforms (Twitch, YouTube, etc.)\n• Audio/video capture issues\n• Scene setup and sources\n\nFor other topics, please use a general-purpose AI assistant.'}
-            yield "data: " + json.dumps(message_data) + "\n\n"
-            yield "data: [DONE]\n\n"
+    # Topic validation (only on text)
+    if message:
+        off_topic_keywords = [
+            'homework', 'essay', 'assignment', 'math problem', 'solve for', 
+            'write code', 'python script', 'javascript function', 'sql query',
+            'history of', 'who was', 'biography', 'recipe', 'medical advice'
+        ]
         
-        response = StreamingHttpResponse(off_topic_message(), content_type='text/event-stream; charset=utf-8')
-        response['Cache-Control'] = 'no-cache'
-        response['Access-Control-Allow-Origin'] = '*'
-        return response
+        if any(keyword in message.lower() for keyword in off_topic_keywords):
+            def off_topic_message():
+                message_data = {'text': '**Off-Topic Query Detected**\n\nThis AI assistant is specifically designed for OBS Studio and streaming questions only. Please ask about:\n\n• OBS settings and configuration\n• Stream quality and encoding\n• Hardware compatibility\n• Streaming platforms (Twitch, YouTube, etc.)\n• Audio/video capture issues\n• Scene setup and sources\n\nFor other topics, please use a general-purpose AI assistant.'}
+                yield "data: " + json.dumps(message_data) + "\n\n"
+                yield "data: [DONE]\n\n"
+            
+            response = StreamingHttpResponse(off_topic_message(), content_type='text/event-stream; charset=utf-8')
+            response['Cache-Control'] = 'no-cache'
+            response['Access-Control-Allow-Origin'] = '*'
+            return response
     
     client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
     
     def generate():
         try:
+            # Build content array
+            content = []
+            
+            # Add files first
+            for file in files:
+                ext = file.name.lower().split('.')[-1]
+                if ext in ['jpg', 'jpeg', 'png']:
+                    encoded = base64.b64encode(file.read()).decode('utf-8')
+                    content.append({
+                        'type': 'image',
+                        'source': {
+                            'type': 'base64',
+                            'media_type': f'image/{"jpeg" if ext == "jpg" else ext}',
+                            'data': encoded
+                        }
+                    })
+                elif ext == 'json':
+                    file_content = file.read().decode('utf-8')
+                    content.append({
+                        'type': 'text',
+                        'text': f"[Uploaded file: {file.name}]\n```json\n{file_content}\n```"
+                    })
+            
+            # Add text message
+            if message:
+                content.append({'type': 'text', 'text': message})
+            
+            # Use content array if files, otherwise just message string
+            messages_content = content if files else message
+            
             with client.messages.stream(
                 model=model,
                 max_tokens=4000,
                 system="""You are the FuzeOBS AI Assistant - an expert in OBS Studio, streaming, and broadcast technology.
 
 Core Guidelines:
-• ONLY answer questions about OBS, streaming, encoding, hardware for streaming, and related topics
-• Provide specific settings, numbers, and exact configuration steps
-• Consider the user's hardware when giving recommendations
-• Be direct and technical - users want actionable solutions
-• If hardware specs are provided, optimize recommendations for that setup (If you don't know it, ask the user to scan their hardware in the Detection Tab)
+- ONLY answer questions about OBS, streaming, encoding, hardware for streaming, and related topics
+- Provide specific settings, numbers, and exact configuration steps
+- Consider the user's hardware when giving recommendations
+- Be direct and technical - users want actionable solutions
+- If hardware specs are provided, optimize recommendations for that setup (If you don't know it, ask the user to scan their hardware in the Detection Tab)
+- When analyzing images or files, be specific about what you see and provide detailed guidance
 
 FuzeOBS Tiers:
-• There are 3 Tiers of FuzeOBS (Free/Pro/Lifetime)
-• The Pro/Lifetime tiers will include unlimted AI (on a smarter model) messages, Advanced Output OBS settings, Benchmarking, and more detailed scene collections
-• The Free tier will have 5 AI messages a day (on a lower-performing model), Simple Output OBS Settings, No Benchmarking, Simple Scene collections
-• If a Free tier user is requesting Pro/Lifetime features or assistance, recommend the Pro tier LIGHTLY as means of assistance
+- There are 3 Tiers of FuzeOBS (Free/Pro/Lifetime)
+- The Pro/Lifetime tiers will include unlimted AI (on a smarter model) messages, Advanced Output OBS settings, Benchmarking, and more detailed scene collections
+- The Free tier will have 5 AI messages a day (on a lower-performing model), Simple Output OBS Settings, No Benchmarking, Simple Scene collections
+- If a Free tier user is requesting Pro/Lifetime features or assistance, recommend the Pro tier LIGHTLY as means of assistance
 
 FuzeOBS -- How it Works:
-• There are 10 FuzeOBS tabs
-• Tab 01 -- System Detection (Will detect a users hardware, monitors, and provide graded rating for: streaming, recording, gaming)
-• Tab 02 -- Configuration (Configure primary settings [Use Case, Platform, Quality Preference, Output mode (Simple = Free / Advanced = Pro/Lifetime), Scene Template (Simple Template = Free / All Templates = Pro/Lifetime)]. It will also provide a configuration summary and allow the user to generate a config file with the settings pre-applied.
-• Tab 03 -- Optimization (User setups websocket connection to OBS by creating password and entering it into FuzeOBS. Then it will once again read the configuration files and the user can click a button to "Apply to OBS")
-• Tab 04 -- Audio (User learns how to setup audio (default configuration = default audio devices), recommends filters for audio devices)
-• Tab 05 -- Scene Setup (User can learn EVERYTHING they need to know about setting up OBS scenes. How to add sources, move sources, manipulate sources, and how to organzie sources)
-• Tab 06 -- Tools (User learns how to connect StreamLabs OBS dashboard tools (Alert Box, Chat Box, etc...) to their OBS. Learns about other widgets and how to install and use cloudbot with all its features. Also learns how browser sources work)
-• Tab 07 -- Plugins (User learns how OBS plugins work, how to install them, and provides a set list of popular plugins)
-• Tab 08 -- Documentation (Lots of topics about OBS, streaming, troubleshooting. Essentially a mini-wiki covering the entire spectrum of OBS and streaming knowledge)
-• Tab 09 -- Benchmark (Pro/Lifetime users can benchmark their OBS after setting up their streams. It will analyze all their stats from component usage, to network stats, to quality. It will provide a graded report with stats and even allow AI to analyze it to understand results)
-• Tab 10 -- Fuze-AI (AI model that will answer any streaming related or OBS or FuzeOBS question!)
+- There are 10 FuzeOBS tabs
+- Tab 01 -- System Detection (Will detect a users hardware, monitors, and provide graded rating for: streaming, recording, gaming)
+- Tab 02 -- Configuration (Configure primary settings [Use Case, Platform, Quality Preference, Output mode (Simple = Free / Advanced = Pro/Lifetime), Scene Template (Simple Template = Free / All Templates = Pro/Lifetime)]. It will also provide a configuration summary and allow the user to generate a config file with the settings pre-applied.
+- Tab 03 -- Optimization (User setups websocket connection to OBS by creating password and entering it into FuzeOBS. Then it will once again read the configuration files and the user can click a button to "Apply to OBS")
+- Tab 04 -- Audio (User learns how to setup audio (default configuration = default audio devices), recommends filters for audio devices)
+- Tab 05 -- Scene Setup (User can learn EVERYTHING they need to know about setting up OBS scenes. How to add sources, move sources, manipulate sources, and how to organzie sources)
+- Tab 06 -- Tools (User learns how to connect StreamLabs OBS dashboard tools (Alert Box, Chat Box, etc...) to their OBS. Learns about other widgets and how to install and use cloudbot with all its features. Also learns how browser sources work)
+- Tab 07 -- Plugins (User learns how OBS plugins work, how to install them, and provides a set list of popular plugins)
+- Tab 08 -- Documentation (Lots of topics about OBS, streaming, troubleshooting. Essentially a mini-wiki covering the entire spectrum of OBS and streaming knowledge)
+- Tab 09 -- Benchmark (Pro/Lifetime users can benchmark their OBS after setting up their streams. It will analyze all their stats from component usage, to network stats, to quality. It will provide a graded report with stats and even allow AI to analyze it to understand results)
+- Tab 10 -- Fuze-AI (AI model that will answer any streaming related or OBS or FuzeOBS question!)
 
 FuzeOBS -- Additional Functions:
-• Profiles Button -- Allows users to save different configuration setups. Great to easily switch out settings and configurations.
-• Import/Export buttons -- Allows users to easily import or export other configuration files that will apply to OBS via Tab 03.
-• Test Websocket button on the sidebar, is the button to click to test the websocket connection on Tab 03 - Optimization.
-• Launch OBS button -- Launches OBS easily from FuzeOBS
+- Profiles Button -- Allows users to save different configuration setups. Great to easily switch out settings and configurations.
+- Import/Export buttons -- Allows users to easily import or export other configuration files that will apply to OBS via Tab 03.
+- Test Websocket button on the sidebar, is the button to click to test the websocket connection on Tab 03 - Optimization.
+- Launch OBS button -- Launches OBS easily from FuzeOBS
 
 Topics You Handle:
 ✓ OBS settings and configuration
@@ -453,6 +494,8 @@ Topics You Handle:
 ✓ Audio configuration and mixing
 ✓ Platform-specific settings (Twitch, YouTube, etc.)
 ✓ Troubleshooting dropped frames, lag, quality issues, network issues
+✓ Analyzing screenshots of OBS interfaces
+✓ Reviewing scene collection and profile JSON files
 
 Topics You Redirect:
 ✗ General programming or coding tasks
@@ -461,12 +504,12 @@ Topics You Redirect:
 ✗ General knowledge questions
 
 Response Style:
-• Start with a direct answer
-• Provide exact settings when applicable
-• Explain WHY a setting matters
-• Offer alternatives if relevant
-• Keep responses focused and scannable""",
-                messages=[{"role": "user", "content": message}]
+- Start with a direct answer
+- Provide exact settings when applicable
+- Explain WHY a setting matters
+- Offer alternatives if relevant
+- Keep responses focused and scannable""",
+                messages=[{"role": "user", "content": messages_content}]
             ) as stream:
                 for text in stream.text_stream:
                     yield f"data: {json.dumps({'text': text})}\n\n"
