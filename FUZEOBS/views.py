@@ -21,7 +21,7 @@ from functools import wraps
 User = get_user_model()
 
 # ===== VERSION CHECKING =====
-CURRENT_VERSION = "0.9.2"  # Update with each release
+CURRENT_VERSION = "0.9.3"  # Update with each release
 
 @csrf_exempt
 @require_http_methods(["GET"])
