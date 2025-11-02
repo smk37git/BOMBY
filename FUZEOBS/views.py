@@ -380,13 +380,15 @@ def fuzeobs_ai_chat(request):
     
     # Handle both JSON and FormData
     import base64
-    files = request.FILES.getlist('files')
     
-    if files:
-        # FormData with files
+    # Check content type to determine how to parse
+    if request.content_type and 'multipart/form-data' in request.content_type:
+        # FormData with potential files
+        files = request.FILES.getlist('files')[:5]  # Max 5 files
         message = request.POST.get('message', '').strip()
     else:
-        # JSON only
+        # JSON only (no files)
+        files = []
         data = json.loads(request.body)
         message = data.get('message', '').strip()
     
