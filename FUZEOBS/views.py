@@ -26,9 +26,9 @@ User = get_user_model()
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
-        'version': '0.9.1',
+        'version': '0.9.2',
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'Updated version number graphics',
+        'changelog': 'Updated settings with updates tab',
         'mandatory': False
     })
 
