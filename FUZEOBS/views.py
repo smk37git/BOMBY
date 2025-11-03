@@ -27,7 +27,7 @@ User = get_user_model()
 def fuzeobs_check_update(request):
     return JsonResponse({
         'version': '0.9.3',
-        'download_url': 'https://storage.googleapis.com/bomby-user-uploads/fuzeobs-installer/FuzeOBS-Installer.exe',
+        'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
         'changelog': 'Bug fixes and performance improvements',
         'mandatory': False
     })
