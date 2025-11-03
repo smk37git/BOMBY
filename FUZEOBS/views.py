@@ -1,4 +1,4 @@
-from django.http import StreamingHttpResponse, JsonResponse
+from django.http import StreamingHttpResponse, JsonResponse, FileResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -17,8 +17,27 @@ import hmac
 import hashlib
 import time
 from functools import wraps
+from django.conf import settings
 
 User = get_user_model()
+
+# ====== VERSION / UPDATES ======
+
+@require_http_methods(["GET"])
+def fuzeobs_check_update(request):
+    return JsonResponse({
+        'version': '1.0.2',
+        'download_url': 'https://bomby.us/static/fuzeobs/installers/FuzeOBS-Installer.exe',
+        'changelog': 'Bug fixes and performance improvements',
+        'mandatory': False
+    })
+
+@require_http_methods(["GET"])
+def fuzeobs_download_update(request):
+    file_path = os.path.join(settings.STATIC_ROOT, 'fuzeobs', 'installers', 'FuzeOBS-Installer.exe')
+    return FileResponse(open(file_path, 'rb'), 
+                       as_attachment=True,
+                       filename='FuzeOBS-Installer.exe')
 
 # ===== SECURE AUTHENTICATION SYSTEM =====
 
