@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 import anthropic
 import os
 import json
-from datetime import date
+from datetime import date, timedelta
 from django.core.cache import cache
 import re
 from django.contrib.auth import authenticate
@@ -25,14 +25,28 @@ User = get_user_model()
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
-    return JsonResponse({
-        'version': '0.9.3',
-        'download_url': 'https://bomby.us/static/fuzeobs/installers/FuzeOBS-Installer.exe',  # Direct static URL
-        'changelog': 'Bug fixes and performance improvements',
-        'mandatory': False
-    })
+    """Return update info with GCS signed URL (bypasses Cloud Run 32MB limit)"""
+    try:
+        client = storage.Client()
+        bucket = client.bucket('bomby-user-uploads')
+        blob = bucket.blob('fuzeobs-installer/FuzeOBS-Installer.exe')
+        
+        signed_url = blob.generate_signed_url(
+            version="v4",
+            expiration=timedelta(hours=1),
+            method="GET"
+        )
+        
+        return JsonResponse({
+            'version': '0.9.3', # Update the version
+            'download_url': signed_url,
+            'changelog': 'Bug fixes and performance improvements', # Update the description
+            'mandatory': False
+        })
+    except Exception as e:
+        print(f"Update check error: {e}")
+        return JsonResponse({'error': 'Update check failed'}, status=500)
 
-# ===== SECURE AUTHENTICATION SYSTEM =====
 
 class SecureAuth:
     def __init__(self, secret_key: str):
