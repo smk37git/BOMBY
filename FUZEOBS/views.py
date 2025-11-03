@@ -26,18 +26,11 @@ User = get_user_model()
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
-        'version': '1.0.2',
-        'download_url': 'https://bomby.us/static/fuzeobs/installers/FuzeOBS-Installer.exe',
+        'version': '0.9.3',
+        'download_url': 'https://bomby.us/static/fuzeobs/installers/FuzeOBS-Installer.exe',  # Direct static URL
         'changelog': 'Bug fixes and performance improvements',
         'mandatory': False
     })
-
-@require_http_methods(["GET"])
-def fuzeobs_download_update(request):
-    file_path = os.path.join(settings.STATIC_ROOT, 'fuzeobs', 'installers', 'FuzeOBS-Installer.exe')
-    return FileResponse(open(file_path, 'rb'), 
-                       as_attachment=True,
-                       filename='FuzeOBS-Installer.exe')
 
 # ===== SECURE AUTHENTICATION SYSTEM =====
 
