@@ -26,9 +26,9 @@ User = get_user_model()
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
-        'version': '0.9.2',
+        'version': '0.9.3',
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'Fixed double opening after update',
+        'changelog': 'AI Clipboard Pasting + Base/Output resolution fix',
         'mandatory': False
     })
 
