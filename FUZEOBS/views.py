@@ -270,7 +270,6 @@ def fuzeobs_login(request):
 
 @csrf_exempt
 def fuzeobs_verify(request):
-    """Verify token is still valid and return user info"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     
@@ -280,12 +279,23 @@ def fuzeobs_verify(request):
     
     token = auth_header[7:]
     user = get_user_from_token(token)
-    session_id = json.loads(request.body).get('session_id')
-    activate_fuzeobs_user(user)
-    update_active_session(user, session_id, request.META.get('REMOTE_ADDR'))
     
     if not user:
         return JsonResponse({'valid': False}, status=401)
+    
+    # Try to get session_id from body, but don't fail if empty
+    session_id = None
+    try:
+        if request.body:
+            data = json.loads(request.body)
+            session_id = data.get('session_id')
+    except:
+        pass
+    
+    # Only track if we have session_id
+    if session_id:
+        activate_fuzeobs_user(user)
+        update_active_session(user, session_id, request.META.get('REMOTE_ADDR'))
     
     return JsonResponse({
         'valid': True,
