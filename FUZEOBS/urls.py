@@ -23,4 +23,11 @@ urlpatterns = [
     path('backgrounds/<str:background_id>', views.fuzeobs_get_background, name='get_background'),
     path('quickstart/dismiss', views.fuzeobs_quickstart_dismiss, name='quickstart_dismiss'),
     path('quickstart/check', views.fuzeobs_quickstart_check, name='quickstart_check'),
+
+    # Website URLS
+    path('', views.fuzeobs_view, name="fuzeobs"),
+    path('download/windows', views.fuzeobs_download_windows, name='download_windows'),
+    path('download/mac', views.fuzeobs_download_mac, name='download_mac'),
+    path('analytics', views.fuzeobs_analytics_view, name='analytics'),
+    path('analytics/user/<int:user_id>/', views.fuzeobs_user_detail, name='user_detail'),
 ]

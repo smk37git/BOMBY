@@ -1,0 +1,126 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuzeobs_analytics.css' %}">
+<style>
+    .tier-free { background: #ff3f3f; padding: 4px 12px; border-radius: 4px; }
+    .tier-pro { background: #ffc824; padding: 4px 12px; border-radius: 4px; }
+    .tier-lifetime { background: #33ffa0; padding: 4px 12px; border-radius: 4px; }
+    .chat-preview { max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; font-size: 13px; }
+    .message-item { margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; }
+    .message-role { font-weight: bold; color: #a855f7; }
+</style>
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<h1 class="user_management-title" style="margin: 50px auto;">User Details: {{ view_user.username }}</h1>
+
+<div class="analytics-container">
+    <div class="analytics-header">
+        <h2>{{ view_user.username }} - AI Usage Details</h2>
+        <div class="time-filter">
+            <a href="?days=7" class="{% if days == 7 %}active{% endif %}">Last 7 days</a>
+            <a href="?days=30" class="{% if days == 30 %}active{% endif %}">Last 30 days</a>
+            <a href="?days=90" class="{% if days == 90 %}active{% endif %}">Last 90 days</a>
+            <a href="{% url 'FUZEOBS:analytics' %}" class="btn btn-secondary">← Back</a>
+        </div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-label">Total Requests</div>
+            <div class="metric-value">{{ ai_stats.total_requests }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Total Cost</div>
+            <div class="metric-value">${{ ai_stats.total_cost|floatformat:4 }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Total Tokens</div>
+            <div class="metric-value">{{ ai_stats.total_tokens|floatformat:0 }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Success Rate</div>
+            <div class="metric-value">{{ success_rate }}%</div>
+        </div>
+    </div>
+
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Recent AI Requests</h3>
+        </div>
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Type</th>
+                    <th>Tokens</th>
+                    <th>Cost</th>
+                    <th>Response Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for usage in ai_usage %}
+                <tr>
+                    <td>{{ usage.timestamp|date:"m/d H:i" }}</td>
+                    <td>{{ usage.request_type }}</td>
+                    <td>{{ usage.tokens_used }}</td>
+                    <td>${{ usage.estimated_cost|floatformat:6 }}</td>
+                    <td>{{ usage.response_time|floatformat:2 }}s</td>
+                    <td>{% if usage.success %}<span style="color: #33ffa0;">✓</span>{% else %}<span style="color: #ff3f3f;">✗</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Saved Chats</h3>
+        </div>
+        {% for chat in user_chats %}
+        <div style="margin-bottom: 20px; padding: 15px; background: rgba(30,30,30,0.5); border-radius: 8px;">
+            <h4 style="margin-top: 0;">{{ chat.title }}</h4>
+            <small style="color: rgba(255,255,255,0.5);">{{ chat.created_at|date:"m/d/Y H:i" }}</small>
+            <div class="chat-preview">
+                {% for msg in chat.messages %}
+                <div class="message-item">
+                    <span class="message-role">{{ msg.role|title }}:</span> {{ msg.content|truncatewords:30 }}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Recent Activity</h3>
+        </div>
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Activity</th>
+                    <th>Source</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for act in activity %}
+                <tr>
+                    <td>{{ act.timestamp|date:"m/d H:i" }}</td>
+                    <td>{{ act.activity_type }}</td>
+                    <td>{{ act.source }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

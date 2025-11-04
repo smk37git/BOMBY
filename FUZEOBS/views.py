@@ -1,11 +1,11 @@
-from django.http import StreamingHttpResponse, JsonResponse, FileResponse
+from django.http import StreamingHttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 import anthropic
 import os
 import json
-from datetime import date, timedelta
+from datetime import date
 from django.core.cache import cache
 import re
 from django.contrib.auth import authenticate
@@ -17,7 +17,19 @@ import hmac
 import hashlib
 import time
 from functools import wraps
-from django.conf import settings
+
+# Website Imports
+from django.shortcuts import render
+from django.shortcuts import redirect
+from .models import DownloadTracking
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.db.models import Count, Sum, Avg, Q
+from django.utils import timezone
+from datetime import timedelta
+from .models import FuzeOBSUser, AIUsage, UserActivity, TierChange
+from django.shortcuts import render, get_object_or_404
+from django.contrib.admin.views.decorators import staff_member_required
+from .models import DownloadTracking, FuzeOBSChat
 
 User = get_user_model()
 
@@ -26,9 +38,9 @@ User = get_user_model()
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
-        'version': '0.9.3',
+        'version': '0.9.4',
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'AI Clipboard Pasting + Base/Output resolution fix',
+        'changelog': 'FuzeOBS Analytics on Bomby + User Tracking',
         'mandatory': False
     })
 
@@ -762,3 +774,214 @@ def fuzeobs_update_profile(request, profile_id):
         return JsonResponse({'success': True})
     except FuzeOBSProfile.DoesNotExist:
         return JsonResponse({'error': 'Not found'}, status=404)
+    
+# ====== WEBSITE VIEWS =======
+@staff_member_required
+def fuzeobs_download_windows(request):
+    DownloadTracking.objects.create(
+        platform='windows',
+        version='0.9.3',
+        user=request.user if request.user.is_authenticated else None,
+        ip_address=request.META.get('REMOTE_ADDR'),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')
+    )
+    return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe')
+
+@staff_member_required
+def fuzeobs_download_mac(request):
+    DownloadTracking.objects.create(
+        platform='mac',
+        version='0.9.3',
+        user=request.user if request.user.is_authenticated else None,
+        ip_address=request.META.get('REMOTE_ADDR'),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')
+    )
+    return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe') # Temporary
+
+@staff_member_required
+def fuzeobs_user_detail(request, user_id):
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    
+    user = get_object_or_404(User, id=user_id)
+    days = int(request.GET.get('days', 30))
+    date_from = timezone.now() - timedelta(days=days)
+    
+    # AI Usage
+    ai_usage = AIUsage.objects.filter(user=user, timestamp__gte=date_from).order_by('-timestamp')
+    ai_stats = ai_usage.aggregate(
+        total_requests=Count('id'),
+        total_cost=Sum('estimated_cost'),
+        total_tokens=Sum('tokens_used'),
+        avg_response_time=Avg('response_time'),
+        success_count=Count('id', filter=Q(success=True))
+    )
+    
+    # Chats
+    user_chats = FuzeOBSChat.objects.filter(user=user).order_by('-created_at')[:10]
+    
+    # Activity
+    activity = UserActivity.objects.filter(user=user, timestamp__gte=date_from).order_by('-timestamp')[:20]
+    
+    context = {
+        'view_user': user,
+        'days': days,
+        'ai_usage': ai_usage[:50],  # Last 50 requests
+        'ai_stats': ai_stats,
+        'user_chats': user_chats,
+        'activity': activity,
+        'success_rate': round((ai_stats['success_count'] or 0) / (ai_stats['total_requests'] or 1) * 100, 1)
+    }
+    
+    return render(request, 'FUZEOBS/user_detail.html', context)
+
+@login_required
+@staff_member_required
+def fuzeobs_analytics_view(request):
+    days = int(request.GET.get('days', 30))
+    date_from = timezone.now() - timedelta(days=days)
+    
+    # Basic metrics
+    total_users = FuzeOBSUser.objects.count()
+    new_users = FuzeOBSUser.objects.filter(created_at__gte=date_from).count()
+    active_users = UserActivity.objects.filter(timestamp__gte=date_from).values('user').distinct().count()
+    
+    # Downloads
+    downloads = DownloadTracking.objects.filter(timestamp__gte=date_from)
+    total_downloads = downloads.count()
+    downloads_by_platform = list(downloads.values('platform').annotate(count=Count('id')))
+    
+    # AI usage
+    ai_stats = AIUsage.objects.filter(timestamp__gte=date_from).aggregate(
+        total=Count('id'),
+        success_count=Count('id', filter=Q(success=True)),
+        total_cost=Sum('estimated_cost'),
+        avg_tokens=Avg('tokens_used'),
+        avg_response_time=Avg('response_time')
+    )
+    
+    total_requests = ai_stats['total'] or 0
+    success_rate = round((ai_stats['success_count'] or 0) / total_requests * 100, 1) if total_requests > 0 else 0
+    total_cost = round(float(ai_stats['total_cost'] or 0), 2)
+    avg_tokens = round(ai_stats['avg_tokens'] or 0)
+    avg_response_time = round(ai_stats['avg_response_time'] or 0, 2)
+    
+    # AI cost by tier (free vs paid)
+    free_ai = AIUsage.objects.filter(timestamp__gte=date_from, user__fuzeobsuser__tier='free').aggregate(
+        count=Count('id'), cost=Sum('estimated_cost')
+    )
+    paid_ai = AIUsage.objects.filter(timestamp__gte=date_from).exclude(user__fuzeobsuser__tier='free').aggregate(
+        count=Count('id'), cost=Sum('estimated_cost')
+    )
+    
+    free_cost = round(float(free_ai['cost'] or 0), 2)
+    paid_cost = round(float(paid_ai['cost'] or 0), 2)
+    free_requests = free_ai['count'] or 0
+    paid_requests = paid_ai['count'] or 0
+    
+    # Tier distribution
+    tier_distribution = list(FuzeOBSUser.objects.values('tier').annotate(count=Count('id')))
+    
+    # Upgrades/downgrades
+    upgrades = TierChange.objects.filter(timestamp__gte=date_from).exclude(from_tier='free', to_tier='free').exclude(to_tier='free').count()
+    downgrades = TierChange.objects.filter(timestamp__gte=date_from, to_tier='free').count()
+    
+    # Cost by tier (detailed)
+    cost_by_tier_raw = AIUsage.objects.filter(timestamp__gte=date_from).values('user__fuzeobsuser__tier').annotate(
+        request_count=Count('id'), 
+        total_cost=Sum('estimated_cost')
+    )
+    
+    cost_by_tier = []
+    for item in cost_by_tier_raw:
+        tier = item['user__fuzeobsuser__tier'] or 'unknown'
+        cost_by_tier.append({
+            'tier_key': tier,
+            'tier_display': tier.title(),
+            'request_count': item['request_count'],
+            'total_cost': item['total_cost'] or 0,
+            'avg_cost': (item['total_cost'] or 0) / item['request_count'] if item['request_count'] > 0 else 0
+        })
+    
+    # Top users
+    top_users_raw = AIUsage.objects.filter(timestamp__gte=date_from).values(
+        'user__id', 'user__username', 'user__email', 'user__fuzeobsuser__tier'
+    ).annotate(
+        total_requests=Count('id'),
+        total_tokens=Sum('tokens_used'),
+        total_cost=Sum('estimated_cost')
+    ).order_by('-total_requests')[:20]
+
+    top_users = []
+    for user in top_users_raw:
+        tier = user['user__fuzeobsuser__tier'] or 'unknown'
+        top_users.append({
+            'user_id': user['user__id'],
+            'username': user['user__username'],
+            'email': user['user__email'],
+            'tier_key': tier,
+            'tier_display': tier.title(),
+            'total_requests': user['total_requests'],
+            'total_tokens': user['total_tokens'] or 0,
+            'total_cost': user['total_cost'] or 0
+        })
+    
+    # Feature usage
+    feature_usage = list(UserActivity.objects.filter(timestamp__gte=date_from).values('activity_type').annotate(count=Count('id')).order_by('-count'))
+    
+    # Recent tier changes
+    recent_tier_changes = TierChange.objects.select_related('user').filter(timestamp__gte=date_from)[:20]
+    
+    # Error tracking
+    error_count = AIUsage.objects.filter(timestamp__gte=date_from, success=False).count()
+    error_rate = round((error_count / total_requests * 100), 1) if total_requests > 0 else 0
+    
+    # Template usage
+    template_usage = list(UserActivity.objects.filter(
+        timestamp__gte=date_from, 
+        activity_type='template_use'
+    ).values('details__template_id').annotate(count=Count('id')).order_by('-count')[:10])
+    
+    # Daily active users trend (last 30 days for chart)
+    dau_data = []
+    for i in range(min(days, 30)):
+        day = timezone.now() - timedelta(days=i)
+        day_start = day.replace(hour=0, minute=0, second=0)
+        day_end = day.replace(hour=23, minute=59, second=59)
+        dau = UserActivity.objects.filter(timestamp__range=[day_start, day_end]).values('user').distinct().count()
+        dau_data.append({'date': day.strftime('%m/%d'), 'count': dau})
+    dau_data.reverse()
+    
+    context = {
+        'days': days,
+        'total_users': total_users,
+        'new_users': new_users,
+        'active_users': active_users,
+        'total_downloads': total_downloads,
+        'downloads_by_platform': downloads_by_platform,
+        'downloads_json': json.dumps(downloads_by_platform),
+        'total_requests': total_requests,
+        'success_rate': success_rate,
+        'error_rate': error_rate,
+        'total_cost': total_cost,
+        'free_cost': free_cost,
+        'paid_cost': paid_cost,
+        'free_requests': free_requests,
+        'paid_requests': paid_requests,
+        'avg_tokens': avg_tokens,
+        'avg_response_time': avg_response_time,
+        'tier_distribution': tier_distribution,
+        'tier_distribution_json': json.dumps(tier_distribution),
+        'upgrades': upgrades,
+        'downgrades': downgrades,
+        'cost_by_tier': cost_by_tier,
+        'top_users': top_users,
+        'feature_usage': feature_usage,
+        'feature_usage_json': json.dumps(feature_usage),
+        'recent_tier_changes': recent_tier_changes,
+        'template_usage': template_usage,
+        'dau_data': dau_data,
+        'dau_json': json.dumps(dau_data),
+    }
+    
+    return render(request, 'FUZEOBS/fuzeobs_analytics.html', context)

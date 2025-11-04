@@ -22,7 +22,7 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
 
     # FuzeOBS API
-    path('api/fuzeobs/', include('FUZEOBS.urls', namespace='FUZEOBS')),
+    path('fuzeobs/', include('FUZEOBS.urls', namespace='FUZEOBS')),
 ]
 
 # Static files only
