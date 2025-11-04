@@ -22,11 +22,10 @@ from functools import wraps
 from django.shortcuts import render
 from django.shortcuts import redirect
 from .models import DownloadTracking
-from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Count, Sum, Avg, Q
 from django.utils import timezone
 from datetime import timedelta
-from .models import FuzeOBSUser, AIUsage, UserActivity, TierChange
+from .models import AIUsage, UserActivity, TierChange
 from django.shortcuts import render, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import DownloadTracking, FuzeOBSChat
@@ -155,6 +154,15 @@ def fuzeobs_signup(request):
     user = User.objects.create_user(username=username, email=email, password=password)
     user.fuzeobs_tier = 'free'
     user.save()
+
+    # Track signup activity
+    UserActivity.objects.create(
+        user=user,
+        activity_type='signup',
+        source='app'
+    )
+
+    token = auth_manager.create_signed_token(user.id, 'free')
     
     token = auth_manager.create_signed_token(user.id, 'free')
     return JsonResponse({
@@ -206,8 +214,15 @@ def fuzeobs_login(request):
                 pass
         
         if user:
-            # Success - clear attempts and create secure token
             cache.delete(attempts_key)
+            
+            # Track login activity
+            UserActivity.objects.create(
+                user=user,
+                activity_type='login',
+                source='app'
+            )
+            
             token = auth_manager.create_signed_token(user.id, user.fuzeobs_tier)
             return JsonResponse({
                 'success': True,
@@ -838,15 +853,15 @@ def fuzeobs_user_detail(request, user_id):
     
     return render(request, 'FUZEOBS/user_detail.html', context)
 
-@login_required
 @staff_member_required
 def fuzeobs_analytics_view(request):
     days = int(request.GET.get('days', 30))
     date_from = timezone.now() - timedelta(days=days)
     
-    # Basic metrics
-    total_users = FuzeOBSUser.objects.count()
-    new_users = FuzeOBSUser.objects.filter(created_at__gte=date_from).count()
+    # Query users with fuzeobs_tier field
+    fuzeobs_users = User.objects.exclude(fuzeobs_tier='').exclude(fuzeobs_tier__isnull=True)
+    total_users = fuzeobs_users.count()
+    new_users = fuzeobs_users.filter(date_joined__gte=date_from).count()
     active_users = UserActivity.objects.filter(timestamp__gte=date_from).values('user').distinct().count()
     
     # Downloads
@@ -870,10 +885,10 @@ def fuzeobs_analytics_view(request):
     avg_response_time = round(ai_stats['avg_response_time'] or 0, 2)
     
     # AI cost by tier (free vs paid)
-    free_ai = AIUsage.objects.filter(timestamp__gte=date_from, user__fuzeobsuser__tier='free').aggregate(
+    free_ai = AIUsage.objects.filter(timestamp__gte=date_from, user__fuzeobs_tier='free').aggregate(
         count=Count('id'), cost=Sum('estimated_cost')
     )
-    paid_ai = AIUsage.objects.filter(timestamp__gte=date_from).exclude(user__fuzeobsuser__tier='free').aggregate(
+    paid_ai = AIUsage.objects.filter(timestamp__gte=date_from).exclude(user__fuzeobs_tier='free').aggregate(
         count=Count('id'), cost=Sum('estimated_cost')
     )
     
@@ -883,21 +898,23 @@ def fuzeobs_analytics_view(request):
     paid_requests = paid_ai['count'] or 0
     
     # Tier distribution
-    tier_distribution = list(FuzeOBSUser.objects.values('tier').annotate(count=Count('id')))
+    tier_distribution = list(fuzeobs_users.values('fuzeobs_tier').annotate(count=Count('id')))
+    for tier in tier_distribution:
+        tier['tier'] = tier.pop('fuzeobs_tier')
     
     # Upgrades/downgrades
     upgrades = TierChange.objects.filter(timestamp__gte=date_from).exclude(from_tier='free', to_tier='free').exclude(to_tier='free').count()
     downgrades = TierChange.objects.filter(timestamp__gte=date_from, to_tier='free').count()
     
     # Cost by tier (detailed)
-    cost_by_tier_raw = AIUsage.objects.filter(timestamp__gte=date_from).values('user__fuzeobsuser__tier').annotate(
+    cost_by_tier_raw = AIUsage.objects.filter(timestamp__gte=date_from).values('user__fuzeobs_tier').annotate(
         request_count=Count('id'), 
         total_cost=Sum('estimated_cost')
     )
     
     cost_by_tier = []
     for item in cost_by_tier_raw:
-        tier = item['user__fuzeobsuser__tier'] or 'unknown'
+        tier = item['user__fuzeobs_tier'] or 'unknown'
         cost_by_tier.append({
             'tier_key': tier,
             'tier_display': tier.title(),
@@ -908,16 +925,16 @@ def fuzeobs_analytics_view(request):
     
     # Top users
     top_users_raw = AIUsage.objects.filter(timestamp__gte=date_from).values(
-        'user__id', 'user__username', 'user__email', 'user__fuzeobsuser__tier'
+        'user__id', 'user__username', 'user__email', 'user__fuzeobs_tier'
     ).annotate(
         total_requests=Count('id'),
         total_tokens=Sum('tokens_used'),
         total_cost=Sum('estimated_cost')
     ).order_by('-total_requests')[:20]
-
+    
     top_users = []
     for user in top_users_raw:
-        tier = user['user__fuzeobsuser__tier'] or 'unknown'
+        tier = user['user__fuzeobs_tier'] or 'unknown'
         top_users.append({
             'user_id': user['user__id'],
             'username': user['user__username'],
@@ -945,7 +962,7 @@ def fuzeobs_analytics_view(request):
         activity_type='template_use'
     ).values('details__template_id').annotate(count=Count('id')).order_by('-count')[:10])
     
-    # Daily active users trend (last 30 days for chart)
+    # Daily active users trend
     dau_data = []
     for i in range(min(days, 30)):
         day = timezone.now() - timedelta(days=i)

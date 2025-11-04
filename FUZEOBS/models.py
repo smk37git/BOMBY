@@ -1,27 +1,6 @@
-# FUZEOBS/models.py
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
-
-class FuzeOBSUser(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    tier = models.CharField(max_length=20, choices=[
-        ('free', 'Free'),
-        ('pro', 'Pro'),
-        ('lifetime', 'Lifetime')
-    ], default='free')
-    registration_source = models.CharField(max_length=20, default='fuzeobs')
-    app_version = models.CharField(max_length=20, blank=True)
-    last_app_login = models.DateTimeField(null=True, blank=True)
-    total_app_sessions = models.IntegerField(default=0)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        indexes = [
-            models.Index(fields=['tier']),
-            models.Index(fields=['registration_source']),
-            models.Index(fields=['last_app_login']),
-        ]
 
 class AIUsage(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
