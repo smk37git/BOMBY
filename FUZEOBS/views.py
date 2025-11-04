@@ -776,6 +776,9 @@ def fuzeobs_update_profile(request, profile_id):
         return JsonResponse({'error': 'Not found'}, status=404)
     
 # ====== WEBSITE VIEWS =======
+def fuzeobs_view(request):
+    return render(request, 'FUZEOBS/fuzeobs.html')
+
 @staff_member_required
 def fuzeobs_download_windows(request):
     DownloadTracking.objects.create(
