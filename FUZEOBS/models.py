@@ -2,6 +2,17 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
+class ActiveSession(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    session_id = models.CharField(max_length=100, unique=True)
+    ip_address = models.GenericIPAddressField(null=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    last_ping = models.DateTimeField(auto_now=True)
+    is_anonymous = models.BooleanField(default=False)
+    
+    class Meta:
+        indexes = [models.Index(fields=['last_ping', 'is_anonymous'])]
+
 class AIUsage(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     message_count = models.IntegerField(default=1)

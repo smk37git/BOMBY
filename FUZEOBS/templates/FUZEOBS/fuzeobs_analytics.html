@@ -2,14 +2,16 @@
 {% load static %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/product_management.css' %}">
 <link rel="stylesheet" href="{% static 'css/fuzeobs_analytics.css' %}">
 <style>
-    .tier-free { background: #ff3f3f; padding: 4px 12px; border-radius: 4px; }
-    .tier-pro { background: #ffc824; padding: 4px 12px; border-radius: 4px; }
-    .tier-lifetime { background: #33ffa0; padding: 4px 12px; border-radius: 4px; }
-    .platform-windows { background: #0078d4; padding: 4px 12px; border-radius: 4px; }
-    .platform-mac { background: #555; padding: 4px 12px; border-radius: 4px; }
+    .tier-free { background: #ff3f3f; padding: 4px 12px; border-radius: 4px; color: white; }
+    .tier-pro { background: #ffc824; padding: 4px 12px; border-radius: 4px; color: black; }
+    .tier-lifetime { background: #33ffa0; padding: 4px 12px; border-radius: 4px; color: black; }
+    .platform-windows { background: #3b82f6; }
+    .platform-mac { background: #10b981; }
+    .platform-linux { background: #f59e0b; }
+    .view-link { color: #a855f7; text-decoration: none; font-weight: bold; }
+    .view-link:hover { color: #c084fc; text-decoration: underline; }
 </style>
 {% endblock %}
 
@@ -18,7 +20,7 @@
 {% endblock %}
 
 {% block content %}
-<h1 class="user_management-title" style="margin: 50px auto;">FuzeOBS Analytics</h1>
+<h1 class="user_management-title" style="margin: 50px auto;">FuzeOBS Analytics Dashboard</h1>
 
 <div class="analytics-container">
     <div class="analytics-header">
@@ -30,30 +32,23 @@
             <a href="?days=365" class="{% if days == 365 %}active{% endif %}">Last year</a>
         </div>
     </div>
-    
-    <!-- Key Metrics -->
+
     <div class="metrics-grid">
         <div class="metric-card">
             <div class="metric-label">Total Users</div>
             <div class="metric-value">{{ total_users }}</div>
-            <div class="metric-trend trend-up">
-                <i class="fas fa-arrow-up" style="margin-right: 5px;"></i> 
-                +{{ new_users }} in last {{ days }} days
-            </div>
+            <div class="metric-subtext">FuzeOBS activated accounts</div>
         </div>
-        
         <div class="metric-card">
             <div class="metric-label">Active Users</div>
             <div class="metric-value">{{ active_users }}</div>
-            <div class="metric-subtext">Logged in during period</div>
+            <div class="metric-subtext">Currently logged in</div>
         </div>
-        
         <div class="metric-card">
             <div class="metric-label">Total Downloads</div>
             <div class="metric-value">{{ total_downloads }}</div>
             <div class="metric-subtext">All platforms</div>
         </div>
-        
         <div class="metric-card">
             <div class="metric-label">Avg Response Time</div>
             <div class="metric-value">{{ avg_response_time }}s</div>
@@ -61,31 +56,26 @@
         </div>
     </div>
 
-    <!-- AI Cost Overview -->
     <div class="analytics-section">
         <div class="section-header">
             <h3>AI Usage & Cost Analysis</h3>
         </div>
-        
-        <div class="metrics-grid" style="margin-bottom: 20px;">
+        <div class="metrics-grid">
             <div class="metric-card">
                 <div class="metric-label">Total AI Cost</div>
                 <div class="metric-value">${{ total_cost }}</div>
                 <div class="metric-subtext">{{ total_requests }} requests</div>
             </div>
-            
             <div class="metric-card">
                 <div class="metric-label">Free Users Cost</div>
                 <div class="metric-value" style="color: #ff3f3f;">${{ free_cost }}</div>
                 <div class="metric-subtext">{{ free_requests }} requests</div>
             </div>
-            
             <div class="metric-card">
                 <div class="metric-label">Paid Users Cost</div>
                 <div class="metric-value" style="color: #33ffa0;">${{ paid_cost }}</div>
                 <div class="metric-subtext">{{ paid_requests }} requests</div>
             </div>
-            
             <div class="metric-card">
                 <div class="metric-label">Success Rate</div>
                 <div class="metric-value">{{ success_rate }}%</div>
@@ -94,358 +84,117 @@
         </div>
     </div>
 
-    <!-- Downloads by Platform -->
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>All FuzeOBS Users - Ranked by AI Usage</h3>
+        </div>
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Tier</th>
+                    <th>AI Requests</th>
+                    <th>Total Cost</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in top_users %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ u.user__username }}</td>
+                    <td><span class="tier-{{ u.user__fuzeobs_tier }}">{{ u.user__fuzeobs_tier|upper }}</span></td>
+                    <td>{{ u.total_requests }}</td>
+                    <td>${{ u.total_cost|floatformat:4 }}</td>
+                    <td><a href="{% url 'FUZEOBS:user_detail' u.user__id %}" class="view-link">View Details →</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 20px; color: #666;">No FuzeOBS users yet</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
     <div class="analytics-section">
         <div class="section-header">
             <h3>Downloads by Platform</h3>
         </div>
-        
         <div class="pie-container">
-            <div class="pie-chart" id="downloadPieChart"></div>
-            <div class="pie-legend" id="downloadLegend">
-                {% for platform in downloads_by_platform %}
+            <div class="pie-chart" id="downloadsPieChart"></div>
+            <div class="pie-legend">
+                {% for d in downloads_by_platform %}
                 <div class="pie-item">
-                    <div class="pie-color platform-{{ platform.platform }}"></div>
-                    <div>{{ platform.platform|title }}: {{ platform.count }}</div>
+                    <div class="pie-color platform-{{ d.platform }}"></div>
+                    <span>{{ d.platform|title }}: {{ d.count }}</span>
                 </div>
                 {% endfor %}
             </div>
         </div>
     </div>
-    
-    <!-- User Tier Distribution -->
+
     <div class="analytics-section">
         <div class="section-header">
             <h3>User Tier Distribution</h3>
         </div>
-        
         <div class="pie-container">
-            <div class="pie-chart" id="tierPieChart"></div>
-            <div class="pie-legend" id="tierLegend">
-                {% for tier in tier_distribution %}
+            <div class="pie-chart" id="tiersPieChart"></div>
+            <div class="pie-legend">
+                {% for t in tier_distribution %}
                 <div class="pie-item">
-                    <div class="pie-color tier-{{ tier.tier }}"></div>
-                    <div>{{ tier.tier|title }}: {{ tier.count }}</div>
+                    <div class="pie-color tier-{{ t.tier }}"></div>
+                    <span>{{ t.tier|title }}: {{ t.count }}</span>
                 </div>
                 {% endfor %}
             </div>
         </div>
     </div>
-
-    <!-- Daily Active Users Chart -->
-    {% if dau_data %}
-    <div class="analytics-section">
-        <div class="section-header">
-            <h3>Daily Active Users Trend</h3>
-        </div>
-        
-        <div class="chart-container">
-            <canvas id="dauChart"></canvas>
-        </div>
-    </div>
-    {% endif %}
-    
-    <!-- Tier Conversions -->
-    <div class="analytics-section">
-        <div class="section-header">
-            <h3>Tier Conversions ({{ days }} days)</h3>
-        </div>
-        
-        <div class="status-breakdown">
-            <div class="status-item">
-                <div class="status-count" style="color: #33ffa0;">{{ upgrades }}</div>
-                <div class="status-label">Upgrades</div>
-            </div>
-            <div class="status-item">
-                <div class="status-count" style="color: #ff3f3f;">{{ downgrades }}</div>
-                <div class="status-label">Downgrades</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- AI Usage by Tier -->
-    {% if cost_by_tier %}
-    <div class="analytics-section">
-        <div class="section-header">
-            <h3>AI Usage by Tier</h3>
-        </div>
-        
-        <table class="product-table">
-            <thead>
-                <tr>
-                    <th>Tier</th>
-                    <th>Requests</th>
-                    <th>Total Cost</th>
-                    <th>Avg Cost/Request</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in cost_by_tier %}
-                <tr>
-                    <td><span class="tier-{{ item.tier_key }}">{{ item.tier_display }}</span></td>
-                    <td>{{ item.request_count }}</td>
-                    <td>${{ item.total_cost|floatformat:4 }}</td>
-                    <td>${{ item.avg_cost|floatformat:4 }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-    
-    <!-- Top AI Users -->
-    {% if top_users %}
-<div class="analytics-section">
-    <div class="section-header">
-        <h3>Top AI Users ({{ days }} days)</h3>
-    </div>
-    
-    <table class="product-table">
-        <thead>
-            <tr>
-                <th>User</th>
-                <th>Email</th>
-                <th>Tier</th>
-                <th>Requests</th>
-                <th>Tokens</th>
-                <th>Cost</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in top_users %}
-            <tr>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td>
-                <td><span class="tier-{{ user.tier_key }}">{{ user.tier_display }}</span></td>
-                <td>{{ user.total_requests }}</td>
-                <td>{{ user.total_tokens|floatformat:0 }}</td>
-                <td>${{ user.total_cost|floatformat:4 }}</td>
-                <td><a href="{% url 'FUZEOBS:user_detail' user.user_id %}" style="color: #a855f7;">View Details</a></td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% endif %}
-
-    <!-- Template Usage -->
-    {% if template_usage %}
-    <div class="analytics-section">
-        <div class="section-header">
-            <h3>Most Used Templates</h3>
-        </div>
-        
-        <table class="product-table">
-            <thead>
-                <tr>
-                    <th>Template</th>
-                    <th>Usage Count</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for template in template_usage %}
-                <tr>
-                    <td>{{ template.details__template_id|default:"Unknown" }}</td>
-                    <td>{{ template.count }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
-    
-    <!-- Feature Usage -->
-    {% if feature_usage %}
-    <div class="analytics-section">
-        <div class="section-header">
-            <h3>Feature Usage ({{ days }} days)</h3>
-        </div>
-        
-        <div class="chart-container">
-            <canvas id="featureChart"></canvas>
-        </div>
-    </div>
-    {% endif %}
-    
-    <!-- Recent Tier Changes -->
-    {% if recent_tier_changes %}
-    <div class="analytics-section">
-        <div class="section-header">
-            <h3>Recent Tier Changes</h3>
-        </div>
-        
-        <table class="product-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>User</th>
-                    <th>Change</th>
-                    <th>Reason</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for change in recent_tier_changes %}
-                <tr>
-                    <td>{{ change.timestamp|date:"Y-m-d H:i" }}</td>
-                    <td>{{ change.user.username }}</td>
-                    <td>
-                        <span style="background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;">{{ change.from_tier }}</span>
-                        →
-                        <span style="background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 4px;">{{ change.to_tier }}</span>
-                    </td>
-                    <td>{{ change.reason|default:"—" }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% endif %}
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Tier Distribution Pie Chart
-    const tierDistribution = JSON.parse('{{ tier_distribution_json|escapejs }}');
-    if (tierDistribution && tierDistribution.length > 0) {
-        const total = tierDistribution.reduce((sum, t) => sum + t.count, 0);
-        const tierColors = {'free': '#ff3f3f', 'pro': '#ffc824', 'lifetime': '#33ffa0'};
+    const downloadsData = JSON.parse('{{ downloads_json|escapejs }}');
+    const downloadsTotal = downloadsData.reduce((sum, d) => sum + d.count, 0);
+    const downloadsChart = document.getElementById('downloadsPieChart');
+    
+    if (downloadsTotal > 0 && downloadsChart) {
+        let gradientStr = 'conic-gradient(';
+        let cumulative = 0;
+        const colors = {'windows': '#3b82f6', 'mac': '#10b981', 'linux': '#f59e0b'};
         
-        if (total > 0) {
-            let currentPercent = 0;
-            const gradientParts = tierDistribution.map(tier => {
-                const percent = (tier.count / total * 100);
-                const color = tierColors[tier.tier] || '#ffffff';
-                const start = currentPercent;
-                currentPercent += percent;
-                return color + ' ' + start + '% ' + currentPercent + '%';
-            });
-            
-            const pieChart = document.getElementById('tierPieChart');
-            if (pieChart && gradientParts.length > 0) {
-                pieChart.style.background = 'conic-gradient(' + gradientParts.join(', ') + ')';
-            }
-            
-            const legendItems = document.querySelectorAll('#tierLegend .pie-item div:last-child');
-            tierDistribution.forEach((tier, index) => {
-                if (legendItems[index]) {
-                    const percent = ((tier.count / total) * 100).toFixed(1);
-                    legendItems[index].textContent = tier.tier.charAt(0).toUpperCase() + tier.tier.slice(1) + ': ' + tier.count + ' (' + percent + '%)';
-                }
-            });
-        }
-    }
-
-    // Download Platform Pie Chart
-    const downloadData = JSON.parse('{{ downloads_json|escapejs }}');
-    if (downloadData && downloadData.length > 0) {
-        const total = downloadData.reduce((sum, d) => sum + d.count, 0);
-        const platformColors = {'windows': '#0078d4', 'mac': '#555', 'linux': '#f7a800'};
+        downloadsData.forEach((d, i) => {
+            const percent = (d.count / downloadsTotal * 100);
+            const color = colors[d.platform] || '#999';
+            gradientStr += `${color} ${cumulative}% ${cumulative + percent}%`;
+            cumulative += percent;
+            if (i < downloadsData.length - 1) gradientStr += ', ';
+        });
         
-        if (total > 0) {
-            let currentPercent = 0;
-            const gradientParts = downloadData.map(platform => {
-                const percent = (platform.count / total * 100);
-                const color = platformColors[platform.platform] || '#ffffff';
-                const start = currentPercent;
-                currentPercent += percent;
-                return color + ' ' + start + '% ' + currentPercent + '%';
-            });
-            
-            const pieChart = document.getElementById('downloadPieChart');
-            if (pieChart && gradientParts.length > 0) {
-                pieChart.style.background = 'conic-gradient(' + gradientParts.join(', ') + ')';
-            }
-            
-            const legendItems = document.querySelectorAll('#downloadLegend .pie-item div:last-child');
-            downloadData.forEach((platform, index) => {
-                if (legendItems[index]) {
-                    const percent = ((platform.count / total) * 100).toFixed(1);
-                    legendItems[index].textContent = platform.platform.charAt(0).toUpperCase() + platform.platform.slice(1) + ': ' + platform.count + ' (' + percent + '%)';
-                }
-            });
-        }
-    }
-
-    // Daily Active Users Chart
-    const dauData = JSON.parse('{{ dau_json|escapejs }}');
-    if (dauData && dauData.length > 0) {
-        const ctx = document.getElementById('dauChart');
-        if (ctx) {
-            new Chart(ctx.getContext('2d'), {
-                type: 'line',
-                data: {
-                    labels: dauData.map(d => d.date),
-                    datasets: [{
-                        label: 'Daily Active Users',
-                        data: dauData.map(d => d.count),
-                        backgroundColor: 'rgba(168, 85, 247, 0.2)',
-                        borderColor: 'rgba(168, 85, 247, 1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { color: '#fff' },
-                            grid: { color: 'rgba(255,255,255,0.1)' }
-                        },
-                        x: {
-                            ticks: { color: '#fff' },
-                            grid: { color: 'rgba(255,255,255,0.1)' }
-                        }
-                    },
-                    plugins: {
-                        legend: { labels: { color: '#fff' } }
-                    }
-                }
-            });
-        }
+        gradientStr += ')';
+        downloadsChart.style.background = gradientStr;
     }
     
-    // Feature Usage Bar Chart
-    const featureData = JSON.parse('{{ feature_usage_json|escapejs }}');
-    if (featureData && featureData.length > 0) {
-        const ctx = document.getElementById('featureChart');
-        if (ctx) {
-            new Chart(ctx.getContext('2d'), {
-                type: 'bar',
-                data: {
-                    labels: featureData.map(f => f.activity_type.replace(/_/g, ' ').toUpperCase()),
-                    datasets: [{
-                        label: 'Usage Count',
-                        data: featureData.map(f => f.count),
-                        backgroundColor: 'rgba(158, 51, 230, 0.7)',
-                        borderColor: 'rgba(158, 51, 230, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: { color: '#fff' },
-                            grid: { color: 'rgba(255,255,255,0.1)' }
-                        },
-                        x: {
-                            ticks: { color: '#fff' },
-                            grid: { color: 'rgba(255,255,255,0.1)' }
-                        }
-                    },
-                    plugins: {
-                        legend: { labels: { color: '#fff' } }
-                    }
-                }
-            });
-        }
+    const tiersData = JSON.parse('{{ tier_distribution_json|escapejs }}');
+    const tiersTotal = tiersData.reduce((sum, t) => sum + t.count, 0);
+    const tiersChart = document.getElementById('tiersPieChart');
+    
+    if (tiersTotal > 0 && tiersChart) {
+        let gradientStr = 'conic-gradient(';
+        let cumulative = 0;
+        const colors = {'free': '#ff3f3f', 'pro': '#ffc824', 'lifetime': '#33ffa0'};
+        
+        tiersData.forEach((t, i) => {
+            const percent = (t.count / tiersTotal * 100);
+            const color = colors[t.tier] || '#999';
+            gradientStr += `${color} ${cumulative}% ${cumulative + percent}%`;
+            cumulative += percent;
+            if (i < tiersData.length - 1) gradientStr += ', ';
+        });
+        
+        gradientStr += ')';
+        tiersChart.style.background = gradientStr;
     }
 });
 </script>

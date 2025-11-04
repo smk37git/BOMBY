@@ -32,6 +32,28 @@ from .models import DownloadTracking, FuzeOBSChat
 
 User = get_user_model()
 
+# ====== SEND ANALYTIC DATA =======
+
+def activate_fuzeobs_user(user):
+    if not user.fuzeobs_activated:
+        user.fuzeobs_activated = True
+        user.fuzeobs_first_login = timezone.now()
+    user.fuzeobs_last_active = timezone.now()
+    user.fuzeobs_total_sessions += 1
+    user.save()
+
+def update_active_session(user, session_id, ip_address=None):
+    from .models import ActiveSession
+    ActiveSession.objects.update_or_create(
+        session_id=session_id,
+        defaults={'user': user, 'ip_address': ip_address, 'last_ping': timezone.now(), 'is_anonymous': False}
+    )
+
+def cleanup_old_sessions():
+    from .models import ActiveSession
+    threshold = timezone.now() - timedelta(minutes=5)
+    ActiveSession.objects.filter(last_ping__lt=threshold).delete()
+
 # ====== VERSION / UPDATES ======
 
 @require_http_methods(["GET"])
@@ -153,6 +175,9 @@ def fuzeobs_signup(request):
     
     user = User.objects.create_user(username=username, email=email, password=password)
     user.fuzeobs_tier = 'free'
+    session_id = data.get('session_id')
+    activate_fuzeobs_user(user)
+    update_active_session(user, session_id, request.META.get('REMOTE_ADDR'))
     user.save()
 
     # Track signup activity
@@ -222,6 +247,10 @@ def fuzeobs_login(request):
                 activity_type='login',
                 source='app'
             )
+
+            session_id = data.get('session_id')
+            activate_fuzeobs_user(user)
+            update_active_session(user, session_id, request.META.get('REMOTE_ADDR'))
             
             token = auth_manager.create_signed_token(user.id, user.fuzeobs_tier)
             return JsonResponse({
@@ -251,6 +280,9 @@ def fuzeobs_verify(request):
     
     token = auth_header[7:]
     user = get_user_from_token(token)
+    session_id = json.loads(request.body).get('session_id')
+    activate_fuzeobs_user(user)
+    update_active_session(user, session_id, request.META.get('REMOTE_ADDR'))
     
     if not user:
         return JsonResponse({'valid': False}, status=401)
@@ -791,6 +823,37 @@ def fuzeobs_update_profile(request, profile_id):
         return JsonResponse({'error': 'Not found'}, status=404)
     
 # ====== WEBSITE VIEWS =======
+
+def activate_fuzeobs_user(user):
+    """Mark user as FuzeOBS user on first app login"""
+    from .models import ActiveSession
+    if not user.fuzeobs_activated:
+        user.fuzeobs_activated = True
+        user.fuzeobs_first_login = timezone.now()
+    user.fuzeobs_last_active = timezone.now()
+    user.fuzeobs_total_sessions += 1
+    user.save()
+
+def update_active_session(user, session_id, ip_address=None):
+    """Update or create active session"""
+    from .models import ActiveSession
+    ActiveSession.objects.update_or_create(
+        session_id=session_id,
+        defaults={
+            'user': user, 
+            'ip_address': ip_address, 
+            'last_ping': timezone.now(),
+            'is_anonymous': False
+        }
+    )
+
+def cleanup_old_sessions():
+    """Remove sessions inactive for 5+ minutes"""
+    from .models import ActiveSession
+    threshold = timezone.now() - timedelta(minutes=5)
+    ActiveSession.objects.filter(last_ping__lt=threshold).delete()
+
+# ====== WEBSITE VIEWS =======
 def fuzeobs_view(request):
     return render(request, 'FUZEOBS/fuzeobs.html')
 
@@ -798,7 +861,7 @@ def fuzeobs_view(request):
 def fuzeobs_download_windows(request):
     DownloadTracking.objects.create(
         platform='windows',
-        version='0.9.3',
+        version='0.9.4',
         user=request.user if request.user.is_authenticated else None,
         ip_address=request.META.get('REMOTE_ADDR'),
         user_agent=request.META.get('HTTP_USER_AGENT', '')
@@ -809,60 +872,65 @@ def fuzeobs_download_windows(request):
 def fuzeobs_download_mac(request):
     DownloadTracking.objects.create(
         platform='mac',
-        version='0.9.3',
+        version='0.9.4',
         user=request.user if request.user.is_authenticated else None,
         ip_address=request.META.get('REMOTE_ADDR'),
         user_agent=request.META.get('HTTP_USER_AGENT', '')
     )
-    return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe') # Temporary
+    return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe')
 
 @staff_member_required
 def fuzeobs_user_detail(request, user_id):
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
-    
-    user = get_object_or_404(User, id=user_id)
+    view_user = get_object_or_404(User, id=user_id)
     days = int(request.GET.get('days', 30))
-    date_from = timezone.now() - timedelta(days=days)
+    cutoff = timezone.now() - timedelta(days=days)
     
-    # AI Usage
-    ai_usage = AIUsage.objects.filter(user=user, timestamp__gte=date_from).order_by('-timestamp')
+    # AI usage
+    ai_usage = AIUsage.objects.filter(user=view_user, timestamp__gte=cutoff).order_by('-timestamp')[:50]
     ai_stats = ai_usage.aggregate(
-        total_requests=Count('id'),
         total_cost=Sum('estimated_cost'),
         total_tokens=Sum('tokens_used'),
-        avg_response_time=Avg('response_time'),
-        success_count=Count('id', filter=Q(success=True))
+        total_requests=Count('id')
     )
     
+    # Success rate
+    success_count = ai_usage.filter(success=True).count()
+    total_count = ai_usage.count()
+    success_rate = round((success_count / total_count * 100), 1) if total_count > 0 else 0
+    
     # Chats
-    user_chats = FuzeOBSChat.objects.filter(user=user).order_by('-created_at')[:10]
+    user_chats = FuzeOBSChat.objects.filter(user=view_user).order_by('-created_at')[:10]
     
     # Activity
-    activity = UserActivity.objects.filter(user=user, timestamp__gte=date_from).order_by('-timestamp')[:20]
+    activity = UserActivity.objects.filter(user=view_user, timestamp__gte=cutoff).order_by('-timestamp')[:20]
     
     context = {
-        'view_user': user,
-        'days': days,
-        'ai_usage': ai_usage[:50],  # Last 50 requests
+        'view_user': view_user,
+        'ai_usage': ai_usage,
         'ai_stats': ai_stats,
+        'success_rate': success_rate,
         'user_chats': user_chats,
         'activity': activity,
-        'success_rate': round((ai_stats['success_count'] or 0) / (ai_stats['total_requests'] or 1) * 100, 1)
+        'days': days
     }
     
     return render(request, 'FUZEOBS/user_detail.html', context)
 
 @staff_member_required
 def fuzeobs_analytics_view(request):
+    cleanup_old_sessions()
+    
     days = int(request.GET.get('days', 30))
     date_from = timezone.now() - timedelta(days=days)
     
-    # Query users with fuzeobs_tier field
-    fuzeobs_users = User.objects.exclude(fuzeobs_tier='').exclude(fuzeobs_tier__isnull=True)
+    # Query ONLY FuzeOBS users
+    fuzeobs_users = User.objects.filter(fuzeobs_activated=True)
     total_users = fuzeobs_users.count()
-    new_users = fuzeobs_users.filter(date_joined__gte=date_from).count()
-    active_users = UserActivity.objects.filter(timestamp__gte=date_from).values('user').distinct().count()
+    new_users = fuzeobs_users.filter(fuzeobs_first_login__gte=date_from).count()
+    
+    # Active users from sessions
+    from .models import ActiveSession
+    active_users = ActiveSession.objects.filter(user__isnull=False).values('user').distinct().count()
     
     # Downloads
     downloads = DownloadTracking.objects.filter(timestamp__gte=date_from)
@@ -919,32 +987,16 @@ def fuzeobs_analytics_view(request):
             'tier_key': tier,
             'tier_display': tier.title(),
             'request_count': item['request_count'],
-            'total_cost': item['total_cost'] or 0,
-            'avg_cost': (item['total_cost'] or 0) / item['request_count'] if item['request_count'] > 0 else 0
+            'total_cost': round(float(item['total_cost'] or 0), 2)
         })
     
-    # Top users
-    top_users_raw = AIUsage.objects.filter(timestamp__gte=date_from).values(
-        'user__id', 'user__username', 'user__email', 'user__fuzeobs_tier'
+    # Top users by AI usage
+    top_users = AIUsage.objects.filter(timestamp__gte=date_from).values(
+        'user__id', 'user__username', 'user__fuzeobs_tier'
     ).annotate(
-        total_requests=Count('id'),
-        total_tokens=Sum('tokens_used'),
-        total_cost=Sum('estimated_cost')
-    ).order_by('-total_requests')[:20]
-    
-    top_users = []
-    for user in top_users_raw:
-        tier = user['user__fuzeobs_tier'] or 'unknown'
-        top_users.append({
-            'user_id': user['user__id'],
-            'username': user['user__username'],
-            'email': user['user__email'],
-            'tier_key': tier,
-            'tier_display': tier.title(),
-            'total_requests': user['total_requests'],
-            'total_tokens': user['total_tokens'] or 0,
-            'total_cost': user['total_cost'] or 0
-        })
+        total_cost=Sum('estimated_cost'),
+        total_requests=Count('id')
+    ).order_by('-total_cost')[:50]
     
     # Feature usage
     feature_usage = list(UserActivity.objects.filter(timestamp__gte=date_from).values('activity_type').annotate(count=Count('id')).order_by('-count'))

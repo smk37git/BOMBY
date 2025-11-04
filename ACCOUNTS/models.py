@@ -40,6 +40,11 @@ class User(AbstractUser):
     fuzeobs_usage_reset_date = models.DateField(null=True, blank=True)
     fuzeobs_chat_history = models.JSONField(default=list, blank=True)
     quickstart_dismissed = models.BooleanField(default=False)
+    fuzeobs_activated = models.BooleanField(default=False)
+    fuzeobs_first_login = models.DateTimeField(null=True, blank=True)
+    fuzeobs_last_active = models.DateTimeField(null=True, blank=True)
+    fuzeobs_total_sessions = models.IntegerField(default=0)
+    fuzeobs_app_version = models.CharField(max_length=20, blank=True)
 
     # Rest of model stays the same
     user_type = models.CharField(
