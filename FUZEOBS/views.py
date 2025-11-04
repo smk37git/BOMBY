@@ -921,17 +921,20 @@ def fuzeobs_user_detail(request, user_id):
     cutoff = timezone.now() - timedelta(days=days)
     
     # AI usage
-    ai_usage = AIUsage.objects.filter(user=view_user, timestamp__gte=cutoff).order_by('-timestamp')[:50]
-    ai_stats = ai_usage.aggregate(
+    ai_usage_qs = AIUsage.objects.filter(user=view_user, timestamp__gte=cutoff).order_by('-timestamp')
+    ai_stats = ai_usage_qs.aggregate(
         total_cost=Sum('estimated_cost'),
         total_tokens=Sum('tokens_used'),
         total_requests=Count('id')
     )
-    
+
     # Success rate
-    success_count = ai_usage.filter(success=True).count()
-    total_count = ai_usage.count()
+    success_count = ai_usage_qs.filter(success=True).count()
+    total_count = ai_usage_qs.count()
     success_rate = round((success_count / total_count * 100), 1) if total_count > 0 else 0
+
+    # Get sliced for display
+    ai_usage = ai_usage_qs[:50]
     
     # Chats
     user_chats = FuzeOBSChat.objects.filter(user=view_user).order_by('-created_at')[:10]
