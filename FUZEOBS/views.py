@@ -460,14 +460,11 @@ def fuzeobs_ai_chat(request):
     # Handle both JSON and FormData
     import base64
     
-    # Check content type to determine how to parse
     if request.content_type and 'multipart/form-data' in request.content_type:
-        # FormData with potential files
-        files = request.FILES.getlist('files')[:5]  # Max 5 files
+        files = request.FILES.getlist('files')[:5]
         message = request.POST.get('message', '').strip()
         style = request.POST.get('style', 'normal')
     else:
-        # JSON only (no files)
         files = []
         data = json.loads(request.body)
         message = data.get('message', '').strip()
@@ -476,7 +473,6 @@ def fuzeobs_ai_chat(request):
     if not message and not files:
         return JsonResponse({'error': 'Empty message'}, status=400)
     
-    # Topic validation (only on text)
     if message:
         off_topic_keywords = [
             'homework', 'essay', 'assignment', 'math problem', 'solve for', 
@@ -486,7 +482,7 @@ def fuzeobs_ai_chat(request):
         
         if any(keyword in message.lower() for keyword in off_topic_keywords):
             def off_topic_message():
-                message_data = {'text': '**Off-Topic Query Detected**\n\nThis AI assistant is specifically designed for OBS Studio and streaming questions only. Please ask about:\n\n• OBS settings and configuration\n• Stream quality and encoding\n• Hardware compatibility\n• Streaming platforms (Twitch, YouTube, etc.)\n• Audio/video capture issues\n• Scene setup and sources\n\nFor other topics, please use a general-purpose AI assistant.'}
+                message_data = {'text': '**Off-Topic Query Detected**\n\nThis AI assistant is specifically designed for OBS Studio and streaming questions only.'}
                 yield "data: " + json.dumps(message_data) + "\n\n"
                 yield "data: [DONE]\n\n"
             
@@ -497,12 +493,17 @@ def fuzeobs_ai_chat(request):
     
     client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
     
+    start_time = time.time()
+    input_tokens = 0
+    output_tokens = 0
+    success = True
+    error_msg = ""
+    
     def generate():
+        nonlocal input_tokens, output_tokens, success, error_msg
         try:
-            # Build content array
             content = []
             
-            # Add files first
             for file in files:
                 ext = file.name.lower().split('.')[-1]
                 if ext in ['jpg', 'jpeg', 'png']:
@@ -522,20 +523,17 @@ def fuzeobs_ai_chat(request):
                         'text': f"[Uploaded file: {file.name}]\n```json\n{file_content}\n```"
                     })
             
-            # Add text message
             if message:
                 content.append({'type': 'text', 'text': message})
             
-            # Use content array if files, otherwise just message string
             messages_content = content if files else message
             
-            # Style instructions
             style_instructions = {
-                'normal': '- Start with a direct answer\n- Provide exact settings when applicable\n- Explain WHY a setting matters\n- Offer alternatives if relevant\n- Keep responses focused and scannable',
-                'concise': '- Be extremely brief and to-the-point\n- Use bullet points for lists\n- Only essential information\n- No explanations unless critical\n- Maximum efficiency',
-                'explanatory': '- Provide detailed step-by-step explanations\n- Explain the reasoning behind each recommendation\n- Include background context\n- Anticipate follow-up questions\n- Educational and thorough',
-                'formal': '- Use professional technical language\n- Structured and organized format\n- Precise terminology\n- Comprehensive coverage\n- Business-appropriate tone',
-                'learning': '- Break down concepts for beginners\n- Use analogies and examples\n- Explain technical terms\n- Build understanding progressively\n- Patient and encouraging tone'
+                'normal': '- Start with a direct answer\n- Provide exact settings when applicable',
+                'concise': '- Be extremely brief\n- Only essential information',
+                'explanatory': '- Detailed step-by-step\n- Include background context',
+                'formal': '- Professional technical language\n- Structured format',
+                'learning': '- Break down for beginners\n- Use analogies'
             }
             
             style_prompt = style_instructions.get(style, style_instructions['normal'])
@@ -603,11 +601,38 @@ Response Style:
             ) as stream:
                 for text in stream.text_stream:
                     yield f"data: {json.dumps({'text': text})}\n\n"
+                
+                final_message = stream.get_final_message()
+                input_tokens = final_message.usage.input_tokens
+                output_tokens = final_message.usage.output_tokens
+            
             yield "data: [DONE]\n\n"
         except Exception as e:
+            success = False
+            error_msg = str(e)
             print(f"AI Error: {e}")
             yield f"data: {json.dumps({'text': 'Error processing request.'})}\n\n"
             yield "data: [DONE]\n\n"
+        finally:
+            response_time = time.time() - start_time
+            total_tokens = input_tokens + output_tokens
+            
+            if model == "claude-sonnet-4-20250514":
+                cost = (input_tokens / 1_000_000 * 3) + (output_tokens / 1_000_000 * 15)
+            else:
+                cost = (input_tokens / 1_000_000 * 1) + (output_tokens / 1_000_000 * 5)
+            
+            AIUsage.objects.create(
+                user=user,
+                tokens_used=total_tokens,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                estimated_cost=cost,
+                request_type='chat',
+                response_time=response_time,
+                success=success,
+                error_message=error_msg
+            )
     
     response = StreamingHttpResponse(generate(), content_type='text/event-stream; charset=utf-8')
     response['Cache-Control'] = 'no-cache'
