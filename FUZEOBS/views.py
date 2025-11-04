@@ -937,7 +937,7 @@ def fuzeobs_user_detail(request, user_id):
     ai_usage = ai_usage_qs[:50]
     
     # Chats
-    user_chats = FuzeOBSChat.objects.filter(user=view_user).order_by('-created_at')[:10]
+    user_chats = view_user.fuzeobs_chat_history[:10] if view_user.fuzeobs_chat_history else []
     
     # Activity
     activity = UserActivity.objects.filter(user=view_user, timestamp__gte=cutoff).order_by('-timestamp')[:20]
