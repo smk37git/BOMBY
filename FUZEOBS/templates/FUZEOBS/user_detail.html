@@ -4,9 +4,9 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/fuzeobs_analytics.css' %}">
 <style>
-    .tier-free { background: #a74646; padding: 4px 12px; border-radius: 2px; color: white; }
-    .tier-pro { background: #59c933; padding: 4px 12px; border-radius: 2px; color: rgb(255, 255, 255); }
-    .tier-lifetime { background: #7139d2; padding: 4px 12px; border-radius: 2px; color: rgb(255, 255, 255); }
+    .tier-free { background: #ff3f3f; padding: 4px 12px; border-radius: 4px; }
+    .tier-pro { background: #ffc824; padding: 4px 12px; border-radius: 4px; }
+    .tier-lifetime { background: #33ffa0; padding: 4px 12px; border-radius: 4px; }
     .chat-preview { max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; font-size: 13px; }
     .message-item { margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; }
     .message-role { font-weight: bold; color: #a855f7; }
@@ -30,8 +30,14 @@
     .expand-btn.active {
         background: rgba(168, 85, 247, 0.4);
     }
-    .hidden-rows { display: none; }
-    .hidden-rows.show { display: table-row; }
+    .collapsible-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    .collapsible-content.show {
+        max-height: 2000px;
+    }
     .hidden-items { display: none; }
     .hidden-items.show { display: block; }
 </style>
@@ -91,7 +97,8 @@
             </thead>
             <tbody>
                 {% for usage in ai_usage %}
-                <tr {% if forloop.counter > 5 %}class="hidden-rows"{% endif %}>
+                {% if forloop.counter <= 5 %}
+                <tr>
                     <td>{{ usage.timestamp|date:"m/d H:i" }}</td>
                     <td>{{ usage.request_type }}</td>
                     <td>{{ usage.tokens_used }}</td>
@@ -99,11 +106,31 @@
                     <td>{{ usage.response_time|floatformat:2 }}s</td>
                     <td>{% if usage.success %}<span style="color: #33ffa0;">✓</span>{% else %}<span style="color: #ff3f3f;">✗</span>{% endif %}</td>
                 </tr>
+                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
+        
         {% if ai_usage|length > 5 %}
-        <button class="expand-btn" onclick="toggleRows(this, 'ai-requests')">
+        <div class="collapsible-content" id="ai-requests-content">
+            <table class="product-table">
+                <tbody>
+                    {% for usage in ai_usage %}
+                    {% if forloop.counter > 5 %}
+                    <tr>
+                        <td>{{ usage.timestamp|date:"m/d H:i" }}</td>
+                        <td>{{ usage.request_type }}</td>
+                        <td>{{ usage.tokens_used }}</td>
+                        <td>${{ usage.estimated_cost|floatformat:6 }}</td>
+                        <td>{{ usage.response_time|floatformat:2 }}s</td>
+                        <td>{% if usage.success %}<span style="color: #33ffa0;">✓</span>{% else %}<span style="color: #ff3f3f;">✗</span>{% endif %}</td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <button class="expand-btn" onclick="toggleDropdown('ai-requests-content', this)">
             Show All ({{ ai_usage|length }})
         </button>
         {% endif %}
@@ -127,7 +154,7 @@
         </div>
         {% endfor %}
         {% if user_chats|length > 1 %}
-        <button class="expand-btn" onclick="toggleItems(this, 'chats')">
+        <button class="expand-btn" onclick="toggleItems(this)">
             Show All Chats ({{ user_chats|length }})
         </button>
         {% endif %}
@@ -147,16 +174,34 @@
             </thead>
             <tbody>
                 {% for act in activity %}
-                <tr {% if forloop.counter > 5 %}class="hidden-rows"{% endif %}>
+                {% if forloop.counter <= 5 %}
+                <tr>
                     <td>{{ act.timestamp|date:"m/d H:i" }}</td>
                     <td>{{ act.activity_type }}</td>
                     <td>{{ act.source }}</td>
                 </tr>
+                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
+        
         {% if activity|length > 5 %}
-        <button class="expand-btn" onclick="toggleRows(this, 'activity')">
+        <div class="collapsible-content" id="activity-content">
+            <table class="product-table">
+                <tbody>
+                    {% for act in activity %}
+                    {% if forloop.counter > 5 %}
+                    <tr>
+                        <td>{{ act.timestamp|date:"m/d H:i" }}</td>
+                        <td>{{ act.activity_type }}</td>
+                        <td>{{ act.source }}</td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <button class="expand-btn" onclick="toggleDropdown('activity-content', this)">
             Show All ({{ activity|length }})
         </button>
         {% endif %}
@@ -164,20 +209,18 @@
 </div>
 
 <script>
-function toggleRows(btn, section) {
-    const table = btn.previousElementSibling;
-    const hiddenRows = table.querySelectorAll('.hidden-rows');
+function toggleDropdown(contentId, btn) {
+    const content = document.getElementById(contentId);
     const isExpanded = btn.classList.contains('active');
     
-    hiddenRows.forEach(row => {
-        row.classList.toggle('show');
-    });
-    
+    content.classList.toggle('show');
     btn.classList.toggle('active');
-    btn.textContent = isExpanded ? `Show All (${hiddenRows.length + 5})` : 'Show Less';
+    
+    const totalCount = btn.textContent.match(/\d+/)[0];
+    btn.textContent = isExpanded ? `Show All (${totalCount})` : 'Show Less';
 }
 
-function toggleItems(btn, section) {
+function toggleItems(btn) {
     const container = btn.parentElement;
     const hiddenItems = container.querySelectorAll('.hidden-items');
     const isExpanded = btn.classList.contains('active');
