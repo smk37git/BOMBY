@@ -30,4 +30,5 @@ urlpatterns = [
     path('download/mac', views.fuzeobs_download_mac, name='download_mac'),
     path('analytics', views.fuzeobs_analytics_view, name='analytics'),
     path('analytics/user/<int:user_id>/', views.fuzeobs_user_detail, name='user_detail'),
+    path('analytics/user/<int:user_id>/chat/<int:chat_index>/', views.fuzeobs_chat_detail, name='chat_detail'),
 ]

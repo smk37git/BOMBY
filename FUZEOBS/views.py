@@ -955,6 +955,24 @@ def fuzeobs_user_detail(request, user_id):
     return render(request, 'FUZEOBS/user_detail.html', context)
 
 @staff_member_required
+def fuzeobs_chat_detail(request, user_id, chat_index):
+    view_user = get_object_or_404(User, id=user_id)
+    user_chats = view_user.fuzeobs_chat_history if view_user.fuzeobs_chat_history else []
+    
+    if chat_index >= len(user_chats):
+        return redirect('FUZEOBS:user_detail', user_id=user_id)
+    
+    chat = user_chats[chat_index]
+    
+    context = {
+        'view_user': view_user,
+        'chat': chat,
+        'chat_index': chat_index
+    }
+    
+    return render(request, 'FUZEOBS/chat_detail.html', context)
+
+@staff_member_required
 def fuzeobs_analytics_view(request):
     cleanup_old_sessions()
     

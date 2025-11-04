@@ -22,6 +22,8 @@
         font-size: 14px;
         margin-top: 12px;
         transition: all 0.2s;
+        border: none;
+        outline: none;
     }
     .expand-btn:hover {
         background: rgba(168, 85, 247, 0.3);
@@ -36,10 +38,25 @@
         transition: max-height 0.3s ease;
     }
     .collapsible-content.show {
-        max-height: 2000px;
+        max-height: 3000px;
+    }
+    .collapsible-content table {
+        margin-top: 0;
     }
     .hidden-items { display: none; }
     .hidden-items.show { display: block; }
+    .view-chat-link {
+        color: #a855f7;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 8px;
+    }
+    .view-chat-link:hover {
+        color: #c084fc;
+        text-decoration: underline;
+    }
 </style>
 {% endblock %}
 
@@ -151,6 +168,7 @@
                 </div>
                 {% endfor %}
             </div>
+            <a href="{% url 'FUZEOBS:chat_detail' view_user.id forloop.counter0 %}" class="view-chat-link">View Full Conversation →</a>
         </div>
         {% endfor %}
         {% if user_chats|length > 1 %}

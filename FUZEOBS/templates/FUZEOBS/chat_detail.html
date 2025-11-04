@@ -1,0 +1,132 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuzeobs_analytics.css' %}">
+<style>
+    .chat-container {
+        max-width: 900px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: #0a0a0a;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+    }
+    
+    .chat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 30px;
+    }
+    
+    .chat-title {
+        font-size: 24px;
+        font-weight: 600;
+        color: #fff;
+    }
+    
+    .chat-meta {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 8px;
+    }
+    
+    .message-container {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .message {
+        padding: 20px;
+        border-radius: 8px;
+        background: rgba(30, 30, 30, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .message-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .message-role {
+        font-weight: 700;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .message-role.user {
+        color: #3b82f6;
+    }
+    
+    .message-role.assistant {
+        color: #a855f7;
+    }
+    
+    .message-content {
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.7;
+        font-size: 15px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+    
+    .back-btn {
+        background: rgba(168, 85, 247, 0.2);
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        color: #a855f7;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    
+    .back-btn:hover {
+        background: rgba(168, 85, 247, 0.3);
+        border-color: rgba(168, 85, 247, 0.6);
+    }
+</style>
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="chat-container">
+    <div class="chat-header">
+        <div>
+            <div class="chat-title">{{ chat.title }}</div>
+            <div class="chat-meta">
+                {{ view_user.username }} • {{ chat.created_at|date:"F d, Y H:i" }}
+            </div>
+        </div>
+        <a href="{% url 'FUZEOBS:user_detail' view_user.id %}" class="back-btn">
+            ← Back to User
+        </a>
+    </div>
+    
+    <div class="message-container">
+        {% for msg in chat.messages %}
+        <div class="message">
+            <div class="message-header">
+                <span class="message-role {{ msg.role }}">{{ msg.role }}</span>
+            </div>
+            <div class="message-content">{{ msg.content }}</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
