@@ -4,12 +4,36 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/fuzeobs_analytics.css' %}">
 <style>
-    .tier-free { background: #ff3f3f; padding: 4px 12px; border-radius: 4px; }
-    .tier-pro { background: #ffc824; padding: 4px 12px; border-radius: 4px; }
-    .tier-lifetime { background: #33ffa0; padding: 4px 12px; border-radius: 4px; }
+    .tier-free { background: #a74646; padding: 4px 12px; border-radius: 2px; color: white; }
+    .tier-pro { background: #59c933; padding: 4px 12px; border-radius: 2px; color: rgb(255, 255, 255); }
+    .tier-lifetime { background: #7139d2; padding: 4px 12px; border-radius: 2px; color: rgb(255, 255, 255); }
     .chat-preview { max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; font-size: 13px; }
     .message-item { margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; }
     .message-role { font-weight: bold; color: #a855f7; }
+    
+    .collapsible-section { position: relative; }
+    .expand-btn {
+        background: rgba(168, 85, 247, 0.2);
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        color: #a855f7;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin-top: 12px;
+        transition: all 0.2s;
+    }
+    .expand-btn:hover {
+        background: rgba(168, 85, 247, 0.3);
+        border-color: rgba(168, 85, 247, 0.6);
+    }
+    .expand-btn.active {
+        background: rgba(168, 85, 247, 0.4);
+    }
+    .hidden-rows { display: none; }
+    .hidden-rows.show { display: table-row; }
+    .hidden-items { display: none; }
+    .hidden-items.show { display: block; }
 </style>
 {% endblock %}
 
@@ -50,7 +74,7 @@
         </div>
     </div>
 
-    <div class="analytics-section">
+    <div class="analytics-section collapsible-section">
         <div class="section-header">
             <h3>Recent AI Requests</h3>
         </div>
@@ -67,7 +91,7 @@
             </thead>
             <tbody>
                 {% for usage in ai_usage %}
-                <tr>
+                <tr {% if forloop.counter > 5 %}class="hidden-rows"{% endif %}>
                     <td>{{ usage.timestamp|date:"m/d H:i" }}</td>
                     <td>{{ usage.request_type }}</td>
                     <td>{{ usage.tokens_used }}</td>
@@ -78,14 +102,19 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if ai_usage|length > 5 %}
+        <button class="expand-btn" onclick="toggleRows(this, 'ai-requests')">
+            Show All ({{ ai_usage|length }})
+        </button>
+        {% endif %}
     </div>
 
-    <div class="analytics-section">
+    <div class="analytics-section collapsible-section">
         <div class="section-header">
             <h3>Saved Chats</h3>
         </div>
         {% for chat in user_chats %}
-        <div style="margin-bottom: 20px; padding: 15px; background: rgba(30,30,30,0.5); border-radius: 8px;">
+        <div style="margin-bottom: 20px; padding: 15px; background: rgba(30,30,30,0.5); border-radius: 8px;" {% if forloop.counter > 1 %}class="hidden-items"{% endif %}>
             <h4 style="margin-top: 0;">{{ chat.title }}</h4>
             <small style="color: rgba(255,255,255,0.5);">{{ chat.created_at|date:"m/d/Y H:i" }}</small>
             <div class="chat-preview">
@@ -97,9 +126,14 @@
             </div>
         </div>
         {% endfor %}
+        {% if user_chats|length > 1 %}
+        <button class="expand-btn" onclick="toggleItems(this, 'chats')">
+            Show All Chats ({{ user_chats|length }})
+        </button>
+        {% endif %}
     </div>
 
-    <div class="analytics-section">
+    <div class="analytics-section collapsible-section">
         <div class="section-header">
             <h3>Recent Activity</h3>
         </div>
@@ -113,7 +147,7 @@
             </thead>
             <tbody>
                 {% for act in activity %}
-                <tr>
+                <tr {% if forloop.counter > 5 %}class="hidden-rows"{% endif %}>
                     <td>{{ act.timestamp|date:"m/d H:i" }}</td>
                     <td>{{ act.activity_type }}</td>
                     <td>{{ act.source }}</td>
@@ -121,6 +155,39 @@
                 {% endfor %}
             </tbody>
         </table>
+        {% if activity|length > 5 %}
+        <button class="expand-btn" onclick="toggleRows(this, 'activity')">
+            Show All ({{ activity|length }})
+        </button>
+        {% endif %}
     </div>
 </div>
+
+<script>
+function toggleRows(btn, section) {
+    const table = btn.previousElementSibling;
+    const hiddenRows = table.querySelectorAll('.hidden-rows');
+    const isExpanded = btn.classList.contains('active');
+    
+    hiddenRows.forEach(row => {
+        row.classList.toggle('show');
+    });
+    
+    btn.classList.toggle('active');
+    btn.textContent = isExpanded ? `Show All (${hiddenRows.length + 5})` : 'Show Less';
+}
+
+function toggleItems(btn, section) {
+    const container = btn.parentElement;
+    const hiddenItems = container.querySelectorAll('.hidden-items');
+    const isExpanded = btn.classList.contains('active');
+    
+    hiddenItems.forEach(item => {
+        item.classList.toggle('show');
+    });
+    
+    btn.classList.toggle('active');
+    btn.textContent = isExpanded ? `Show All Chats (${hiddenItems.length + 1})` : 'Show Less';
+}
+</script>
 {% endblock %}
