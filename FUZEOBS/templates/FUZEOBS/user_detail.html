@@ -11,7 +11,6 @@
     .message-item { margin-bottom: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; }
     .message-role { font-weight: bold; color: #a855f7; }
     
-    .collapsible-section { position: relative; }
     .expand-btn {
         background: rgba(168, 85, 247, 0.2);
         border: 1px solid rgba(168, 85, 247, 0.4);
@@ -29,12 +28,8 @@
     .expand-btn.active {
         background: rgba(168, 85, 247, 0.4);
     }
-    .collapsible-content {
-        display: none;
-    }
-    .collapsible-content.show {
-        display: block;
-    }
+    .hidden-row { display: none; }
+    .hidden-row.show { display: table-row; }
     .hidden-items { display: none; }
     .hidden-items.show { display: block; }
     .view-chat-link {
@@ -102,7 +97,7 @@
         </div>
     </div>
 
-    <div class="analytics-section collapsible-section">
+    <div class="analytics-section">
         <div class="section-header">
             <h3>Recent AI Requests</h3>
         </div>
@@ -117,9 +112,9 @@
                     <th>Status</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="ai-requests-tbody">
                 {% for usage in ai_usage %}
-                <tr {% if forloop.counter > 5 %}class="collapsible-content" id="ai-requests-content"{% endif %}>
+                <tr {% if forloop.counter > 5 %}class="hidden-row"{% endif %}>
                     <td>{{ usage.timestamp|date:"m/d H:i" }}</td>
                     <td>{{ usage.request_type }}</td>
                     <td>{{ usage.tokens_used }}</td>
@@ -130,15 +125,14 @@
                 {% endfor %}
             </tbody>
         </table>
-        
         {% if ai_usage|length > 5 %}
-        <button class="expand-btn" onclick="toggleDropdown('ai-requests-content', this)">
+        <button class="expand-btn" onclick="toggleTable('ai-requests-tbody', this, '{{ ai_usage|length }}')">
             Show All ({{ ai_usage|length }})
         </button>
         {% endif %}
     </div>
 
-    <div class="analytics-section collapsible-section">
+    <div class="analytics-section">
         <div class="section-header">
             <h3>Saved Chats</h3>
         </div>
@@ -165,7 +159,7 @@
         {% endif %}
     </div>
 
-    <div class="analytics-section collapsible-section">
+    <div class="analytics-section">
         <div class="section-header">
             <h3>Recent Activity</h3>
         </div>
@@ -177,9 +171,9 @@
                     <th>Source</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="activity-tbody">
                 {% for act in activity %}
-                <tr {% if forloop.counter > 5 %}class="collapsible-content" id="activity-content"{% endif %}>
+                <tr {% if forloop.counter > 5 %}class="hidden-row"{% endif %}>
                     <td>{{ act.timestamp|date:"m/d H:i" }}</td>
                     <td>{{ act.activity_type }}</td>
                     <td>{{ act.source }}</td>
@@ -187,9 +181,8 @@
                 {% endfor %}
             </tbody>
         </table>
-        
         {% if activity|length > 5 %}
-        <button class="expand-btn" onclick="toggleDropdown('activity-content', this)">
+        <button class="expand-btn" onclick="toggleTable('activity-tbody', this, '{{ activity|length }}')">
             Show All ({{ activity|length }})
         </button>
         {% endif %}
@@ -197,15 +190,14 @@
 </div>
 
 <script>
-function toggleDropdown(contentId, btn) {
-    const content = document.getElementById(contentId);
+function toggleTable(tbodyId, btn, total) {
+    const tbody = document.getElementById(tbodyId);
+    const hiddenRows = tbody.querySelectorAll('.hidden-row');
     const isExpanded = btn.classList.contains('active');
     
-    content.classList.toggle('show');
+    hiddenRows.forEach(row => row.classList.toggle('show'));
     btn.classList.toggle('active');
-    
-    const totalCount = btn.textContent.match(/\d+/)[0];
-    btn.textContent = isExpanded ? `Show All (${totalCount})` : 'Show Less';
+    btn.textContent = isExpanded ? `Show All (${total})` : 'Show Less';
 }
 
 function toggleItems(btn) {
@@ -213,10 +205,7 @@ function toggleItems(btn) {
     const hiddenItems = container.querySelectorAll('.hidden-items');
     const isExpanded = btn.classList.contains('active');
     
-    hiddenItems.forEach(item => {
-        item.classList.toggle('show');
-    });
-    
+    hiddenItems.forEach(item => item.classList.toggle('show'));
     btn.classList.toggle('active');
     btn.textContent = isExpanded ? `Show All Chats (${hiddenItems.length + 1})` : 'Show Less';
 }
