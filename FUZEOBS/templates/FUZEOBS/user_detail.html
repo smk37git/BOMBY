@@ -136,16 +136,6 @@
         {% if ai_usage|length > 5 %}
         <div class="collapsible-content" id="ai-requests-content">
             <table class="product-table">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>Type</th>
-                        <th>Tokens</th>
-                        <th>Cost</th>
-                        <th>Response Time</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
                 <tbody>
                     {% for usage in ai_usage %}
                     {% if forloop.counter > 5 %}
@@ -223,13 +213,6 @@
         {% if activity|length > 5 %}
         <div class="collapsible-content" id="activity-content">
             <table class="product-table">
-                <thead>
-                    <tr>
-                        <th>Time</th>
-                        <th>Activity</th>
-                        <th>Source</th>
-                    </tr>
-                </thead>
                 <tbody>
                     {% for act in activity %}
                     {% if forloop.counter > 5 %}

@@ -15,7 +15,7 @@
         align-items: center;
         margin-bottom: 30px;
         padding-bottom: 20px;
-        border-bottom: 2px solid rgba(168, 85, 247, 0.3);
+        border-bottom: 2px solid rgba(255, 255, 255, 0.5);
     }
     
     .chat-title-section h1 {
@@ -63,11 +63,7 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    .message-role.user {
-        color: #3b82f6;
-    }
-    
-    .message-role.assistant {
+    .message-role.assistant, .message-role.user {
         color: #a855f7;
     }
     
@@ -91,7 +87,7 @@
         <div class="chat-title-section">
             <h1>{{ chat.title }}</h1>
             <div class="chat-meta">
-                {{ view_user.username }} • {{ chat.created_at|date:"m/d/Y H:i" }}
+                {{ view_user.username }}
             </div>
         </div>
         <a href="{% url 'FUZEOBS:user_detail' view_user.id %}" class="back-btn">
