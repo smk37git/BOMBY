@@ -126,6 +126,8 @@
             </div>
             <div class="message-content">{{ msg.content }}</div>
         </div>
+        {% empty %}
+        <p style="color: rgba(255,255,255,0.5); text-align: center; padding: 40px;">No messages in this chat</p>
         {% endfor %}
     </div>
 </div>

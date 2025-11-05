@@ -1,0 +1,64 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuzeobs_analytics.css' %}">
+<style>
+    .tier-free { background: #ff3f3f; padding: 4px 12px; border-radius: 4px; }
+    .tier-pro { background: #ffc824; padding: 4px 12px; border-radius: 4px; }
+    .tier-lifetime { background: #33ffa0; padding: 4px 12px; border-radius: 4px; }
+    .view-link { color: #a855f7; text-decoration: none; font-weight: bold; }
+    .view-link:hover { color: #c084fc; text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<h1 class="user_management-title" style="margin: 50px auto;">All FuzeOBS Users</h1>
+
+<div class="analytics-container">
+    <div class="analytics-header">
+        <h2>Complete User List</h2>
+        <a href="{% url 'FUZEOBS:analytics' %}" class="btn btn-secondary">← Back to Analytics</a>
+    </div>
+
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>All Users - Ranked by AI Usage</h3>
+        </div>
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Tier</th>
+                    <th>AI Requests</th>
+                    <th>Total Cost</th>
+                    <th>Last Activity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in all_users %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ user.username }}</td>
+                    <td><span class="tier-{{ user.fuzeobs_tier }}">{{ user.fuzeobs_tier|upper }}</span></td>
+                    <td>{{ user.total_ai_requests|default:0 }}</td>
+                    <td>${{ user.total_ai_cost|default:0|floatformat:4 }}</td>
+                    <td>{{ user.last_activity|date:"m/d/Y H:i"|default:"Never" }}</td>
+                    <td><a href="{% url 'FUZEOBS:user_detail' user.id %}" class="view-link">View Details →</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 20px; color: #666;">No users found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

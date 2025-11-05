@@ -12,6 +12,23 @@
     .platform-linux { background: #f59e0b; }
     .view-link { color: #a855f7; text-decoration: none; font-weight: bold; }
     .view-link:hover { color: #c084fc; text-decoration: underline; }
+    .btn-secondary {
+        background: rgba(168, 85, 247, 0.2);
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        color: #a855f7;
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+        background: rgba(168, 85, 247, 0.3);
+        border-color: rgba(168, 85, 247, 0.6);
+    }
 </style>
 {% endblock %}
 
@@ -86,7 +103,8 @@
 
     <div class="analytics-section">
         <div class="section-header">
-            <h3>All FuzeOBS Users - Ranked by AI Usage</h3>
+            <h3>Top 10 FuzeOBS Users by AI Usage</h3>
+            <a href="{% url 'FUZEOBS:all_users' %}" class="btn-secondary">View All Users →</a>
         </div>
         <table class="product-table">
             <thead>

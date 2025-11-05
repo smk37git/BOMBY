@@ -22,12 +22,9 @@
         font-size: 14px;
         margin-top: 12px;
         transition: all 0.2s;
-        border: none;
-        outline: none;
     }
     .expand-btn:hover {
         background: rgba(168, 85, 247, 0.3);
-        border-color: rgba(168, 85, 247, 0.6);
     }
     .expand-btn.active {
         background: rgba(168, 85, 247, 0.4);
@@ -39,9 +36,6 @@
     }
     .collapsible-content.show {
         max-height: 3000px;
-    }
-    .collapsible-content table {
-        margin-top: 0;
     }
     .hidden-items { display: none; }
     .hidden-items.show { display: block; }
@@ -56,6 +50,19 @@
     .view-chat-link:hover {
         color: #c084fc;
         text-decoration: underline;
+    }
+    .btn-secondary {
+        background: rgba(168, 85, 247, 0.2);
+        border: 1px solid rgba(168, 85, 247, 0.4);
+        color: #a855f7;
+        padding: 8px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+        background: rgba(168, 85, 247, 0.3);
     }
 </style>
 {% endblock %}
@@ -74,7 +81,7 @@
             <a href="?days=7" class="{% if days == 7 %}active{% endif %}">Last 7 days</a>
             <a href="?days=30" class="{% if days == 30 %}active{% endif %}">Last 30 days</a>
             <a href="?days=90" class="{% if days == 90 %}active{% endif %}">Last 90 days</a>
-            <a href="{% url 'FUZEOBS:analytics' %}" class="btn btn-secondary">← Back</a>
+            <a href="{% url 'FUZEOBS:analytics' %}" class="btn-secondary">← Back</a>
         </div>
     </div>
 
@@ -170,6 +177,8 @@
             </div>
             <a href="{% url 'FUZEOBS:chat_detail' view_user.id forloop.counter0 %}" class="view-chat-link">View Full Conversation →</a>
         </div>
+        {% empty %}
+        <p style="color: rgba(255,255,255,0.5); padding: 20px;">No saved chats</p>
         {% endfor %}
         {% if user_chats|length > 1 %}
         <button class="expand-btn" onclick="toggleItems(this)">

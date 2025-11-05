@@ -22,7 +22,7 @@ from functools import wraps
 from django.shortcuts import render
 from django.shortcuts import redirect
 from .models import DownloadTracking
-from django.db.models import Count, Sum, Avg, Q
+from django.db.models import Count, Sum, Avg, Q, Max
 from django.utils import timezone
 from datetime import timedelta
 from .models import AIUsage, UserActivity, TierChange
@@ -679,7 +679,7 @@ def fuzeobs_save_chat(request):
                 normalized_history,
                 key=lambda x: x.get('updated_at', 0),
                 reverse=True
-            )[:50]
+            )[:10]
             
             user.save()
             response = JsonResponse({'success': True})
@@ -934,7 +934,7 @@ def fuzeobs_user_detail(request, user_id):
     success_rate = round((success_count / total_count * 100), 1) if total_count > 0 else 0
 
     # Get sliced for display
-    ai_usage = ai_usage_qs[:50]
+    ai_usage = ai_usage_qs[:10]
     
     # Chats
     user_chats = view_user.fuzeobs_chat_history[:10] if view_user.fuzeobs_chat_history else []
@@ -1052,7 +1052,7 @@ def fuzeobs_analytics_view(request):
     ).annotate(
         total_cost=Sum('estimated_cost'),
         total_requests=Count('id')
-    ).order_by('-total_cost')[:50]
+    ).order_by('-total_cost')[:10]
     
     # Feature usage
     feature_usage = list(UserActivity.objects.filter(timestamp__gte=date_from).values('activity_type').annotate(count=Count('id')).order_by('-count'))
@@ -1113,3 +1113,15 @@ def fuzeobs_analytics_view(request):
     }
     
     return render(request, 'FUZEOBS/fuzeobs_analytics.html', context)
+
+@staff_member_required
+def fuzeobs_all_users_view(request):
+    # All FuzeOBS users with activity stats
+    all_users = User.objects.filter(fuzeobs_activated=True).annotate(
+        last_activity=Max('useractivity__timestamp'),
+        total_ai_requests=Count('aiusage', distinct=True),
+        total_ai_cost=Sum('aiusage__estimated_cost')
+    ).order_by('-total_ai_requests')
+    
+    context = {'all_users': all_users}
+    return render(request, 'FUZEOBS/fuzeobs_all_users.html', context)
