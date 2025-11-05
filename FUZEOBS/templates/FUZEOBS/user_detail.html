@@ -119,8 +119,7 @@
             </thead>
             <tbody>
                 {% for usage in ai_usage %}
-                {% if forloop.counter <= 5 %}
-                <tr>
+                <tr {% if forloop.counter > 5 %}class="collapsible-content" id="ai-requests-content"{% endif %}>
                     <td>{{ usage.timestamp|date:"m/d H:i" }}</td>
                     <td>{{ usage.request_type }}</td>
                     <td>{{ usage.tokens_used }}</td>
@@ -128,30 +127,11 @@
                     <td>{{ usage.response_time|floatformat:2 }}s</td>
                     <td>{% if usage.success %}<span style="color: #33ffa0;">✓</span>{% else %}<span style="color: #ff3f3f;">✗</span>{% endif %}</td>
                 </tr>
-                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
         
         {% if ai_usage|length > 5 %}
-        <div class="collapsible-content" id="ai-requests-content">
-            <table class="product-table">
-                <tbody>
-                    {% for usage in ai_usage %}
-                    {% if forloop.counter > 5 %}
-                    <tr>
-                        <td>{{ usage.timestamp|date:"m/d H:i" }}</td>
-                        <td>{{ usage.request_type }}</td>
-                        <td>{{ usage.tokens_used }}</td>
-                        <td>${{ usage.estimated_cost|floatformat:6 }}</td>
-                        <td>{{ usage.response_time|floatformat:2 }}s</td>
-                        <td>{% if usage.success %}<span style="color: #33ffa0;">✓</span>{% else %}<span style="color: #ff3f3f;">✗</span>{% endif %}</td>
-                    </tr>
-                    {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
         <button class="expand-btn" onclick="toggleDropdown('ai-requests-content', this)">
             Show All ({{ ai_usage|length }})
         </button>
@@ -199,33 +179,16 @@
             </thead>
             <tbody>
                 {% for act in activity %}
-                {% if forloop.counter <= 5 %}
-                <tr>
+                <tr {% if forloop.counter > 5 %}class="collapsible-content" id="activity-content"{% endif %}>
                     <td>{{ act.timestamp|date:"m/d H:i" }}</td>
                     <td>{{ act.activity_type }}</td>
                     <td>{{ act.source }}</td>
                 </tr>
-                {% endif %}
                 {% endfor %}
             </tbody>
         </table>
         
         {% if activity|length > 5 %}
-        <div class="collapsible-content" id="activity-content">
-            <table class="product-table">
-                <tbody>
-                    {% for act in activity %}
-                    {% if forloop.counter > 5 %}
-                    <tr>
-                        <td>{{ act.timestamp|date:"m/d H:i" }}</td>
-                        <td>{{ act.activity_type }}</td>
-                        <td>{{ act.source }}</td>
-                    </tr>
-                    {% endif %}
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
         <button class="expand-btn" onclick="toggleDropdown('activity-content', this)">
             Show All ({{ activity|length }})
         </button>
