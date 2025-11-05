@@ -5,10 +5,10 @@
 <link rel="stylesheet" href="{% static 'css/fuzeobs_analytics.css' %}">
 <style>
     .chat-container {
-        max-width: 900px;
+        max-width: 1000px;
         margin: 50px auto;
         padding: 30px;
-        background-color: #0a0a0a;
+        background-color: rgba(10, 10, 10, 0.9);
         border: 2px solid rgba(255, 255, 255, 0.3);
         border-radius: 10px;
     }
@@ -38,12 +38,13 @@
         display: flex;
         flex-direction: column;
         gap: 20px;
+        margin-bottom: 20px;
     }
     
     .message {
         padding: 20px;
         border-radius: 8px;
-        background: rgba(30, 30, 30, 0.5);
+        background: rgba(30, 30, 30, 0.9);
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
@@ -72,7 +73,7 @@
     }
     
     .message-content {
-        color: rgba(255, 255, 255, 0.9);
+        color: rgba(255, 255, 255, 0.95);
         line-height: 1.7;
         font-size: 15px;
         white-space: pre-wrap;
@@ -110,7 +111,7 @@
         <div>
             <div class="chat-title">{{ chat.title }}</div>
             <div class="chat-meta">
-                {{ view_user.username }} • {{ chat.created_at|date:"F d, Y H:i" }}
+                {{ view_user.username }} • {{ chat.created_at|default:chat.updated_at }}
             </div>
         </div>
         <a href="{% url 'FUZEOBS:user_detail' view_user.id %}" class="back-btn">
@@ -119,16 +120,18 @@
     </div>
     
     <div class="message-container">
-        {% for msg in chat.messages %}
-        <div class="message">
-            <div class="message-header">
-                <span class="message-role {{ msg.role }}">{{ msg.role }}</span>
+        {% if chat.messages %}
+            {% for msg in chat.messages %}
+            <div class="message">
+                <div class="message-header">
+                    <span class="message-role {{ msg.role }}">{{ msg.role }}</span>
+                </div>
+                <div class="message-content">{{ msg.content }}</div>
             </div>
-            <div class="message-content">{{ msg.content }}</div>
-        </div>
-        {% empty %}
+            {% endfor %}
+        {% else %}
         <p style="color: rgba(255,255,255,0.5); text-align: center; padding: 40px;">No messages in this chat</p>
-        {% endfor %}
+        {% endif %}
     </div>
 </div>
 {% endblock %}

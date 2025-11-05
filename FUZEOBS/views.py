@@ -934,13 +934,13 @@ def fuzeobs_user_detail(request, user_id):
     success_rate = round((success_count / total_count * 100), 1) if total_count > 0 else 0
 
     # Get sliced for display
-    ai_usage = ai_usage_qs[:10]
+    ai_usage = ai_usage_qs
     
     # Chats
-    user_chats = view_user.fuzeobs_chat_history[:10] if view_user.fuzeobs_chat_history else []
+    user_chats = view_user.fuzeobs_chat_history if view_user.fuzeobs_chat_history else []
     
     # Activity
-    activity = UserActivity.objects.filter(user=view_user, timestamp__gte=cutoff).order_by('-timestamp')[:20]
+    activity = UserActivity.objects.filter(user=view_user, timestamp__gte=cutoff).order_by('-timestamp')
     
     context = {
         'view_user': view_user,
