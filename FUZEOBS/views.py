@@ -59,9 +59,9 @@ def cleanup_old_sessions():
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
-        'version': '0.9.5',
+        'version': '0.9.4',
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'Auto-Detecting Audio I/O + Webcams and applying them',
+        'changelog': 'Fixed Audio I/O Detection, should automatically apply to OBS',
         'mandatory': False
     })
 
