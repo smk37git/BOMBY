@@ -14,7 +14,9 @@ class ActiveSession(models.Model):
         indexes = [models.Index(fields=['last_ping', 'is_anonymous'])]
 
 class AIUsage(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    user_tier = models.CharField(max_length=20, default='free')
+    is_anonymous = models.BooleanField(default=False)
     message_count = models.IntegerField(default=1)
     tokens_used = models.IntegerField(default=0)
     input_tokens = models.IntegerField(default=0)
@@ -35,6 +37,7 @@ class AIUsage(models.Model):
             models.Index(fields=['timestamp']),
             models.Index(fields=['request_type']),
             models.Index(fields=['success']),
+            models.Index(fields=['is_anonymous']),
         ]
 
 class UserActivity(models.Model):

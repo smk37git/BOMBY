@@ -632,19 +632,20 @@ Response Style:
             else:
                 cost = (input_tokens / 1_000_000 * 1) + (output_tokens / 1_000_000 * 5)
             
-            # Only track AI usage for logged-in users
-            if user:
-                AIUsage.objects.create(
-                    user=user,
-                    tokens_used=total_tokens,
-                    input_tokens=input_tokens,
-                    output_tokens=output_tokens,
-                    estimated_cost=cost,
-                    request_type='chat',
-                    response_time=response_time,
-                    success=success,
-                    error_message=error_msg
-                )
+            # Track all AI usage (both logged-in and anonymous)
+            AIUsage.objects.create(
+                user=user,
+                user_tier=tier,
+                is_anonymous=(user is None),
+                tokens_used=total_tokens,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                estimated_cost=cost,
+                request_type='chat',
+                response_time=response_time,
+                success=success,
+                error_message=error_msg
+            )
     
     response = StreamingHttpResponse(generate(), content_type='text/event-stream; charset=utf-8')
     response['Cache-Control'] = 'no-cache'
@@ -1021,10 +1022,10 @@ def fuzeobs_analytics_view(request):
     avg_response_time = round(ai_stats['avg_response_time'] or 0, 2)
     
     # AI cost by tier (free vs paid)
-    free_ai = AIUsage.objects.filter(timestamp__gte=date_from, user__fuzeobs_tier='free').aggregate(
+    free_ai = AIUsage.objects.filter(timestamp__gte=date_from, user_tier='free').aggregate(
         count=Count('id'), cost=Sum('estimated_cost')
     )
-    paid_ai = AIUsage.objects.filter(timestamp__gte=date_from).exclude(user__fuzeobs_tier='free').aggregate(
+    paid_ai = AIUsage.objects.filter(timestamp__gte=date_from).exclude(user_tier='free').aggregate(
         count=Count('id'), cost=Sum('estimated_cost')
     )
     
@@ -1043,14 +1044,14 @@ def fuzeobs_analytics_view(request):
     downgrades = TierChange.objects.filter(timestamp__gte=date_from, to_tier='free').count()
     
     # Cost by tier (detailed)
-    cost_by_tier_raw = AIUsage.objects.filter(timestamp__gte=date_from).values('user__fuzeobs_tier').annotate(
+    cost_by_tier_raw = AIUsage.objects.filter(timestamp__gte=date_from).values('user_tier').annotate(
         request_count=Count('id'), 
         total_cost=Sum('estimated_cost')
     )
     
     cost_by_tier = []
     for item in cost_by_tier_raw:
-        tier = item['user__fuzeobs_tier'] or 'unknown'
+        tier = item['user_tier'] or 'unknown'
         cost_by_tier.append({
             'tier_key': tier,
             'tier_display': tier.title(),
