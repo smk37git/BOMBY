@@ -402,8 +402,6 @@ def fuzeobs_ai_chat(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     
-    user = request.fuzeobs_user
-    
     # Get user from token (allow anonymous)
     auth_header = request.headers.get('Authorization', '')
     user = None
