@@ -397,16 +397,28 @@ def fuzeobs_get_background(request, background_id):
 # ===== AI CHAT =====
 
 @csrf_exempt
-@require_tier('free')
 def fuzeobs_ai_chat(request):
     """AI chat streaming endpoint with tier-based rate limiting and file upload"""
     if request.method != 'POST':
         return JsonResponse({'error': 'POST only'}, status=405)
     
     user = request.fuzeobs_user
-    tier = user.fuzeobs_tier
-    user_id = f'user_{user.id}'
     
+    # Get user from token (allow anonymous)
+    auth_header = request.headers.get('Authorization', '')
+    user = None
+    tier = 'free'
+    
+    if auth_header.startswith('Bearer '):
+        token = auth_header[7:]
+        user = get_user_from_token(token)
+        if user:
+            tier = user.fuzeobs_tier
+            user_id = f'user_{user.id}'
+        else:
+            user_id = f'anon_{request.META.get("REMOTE_ADDR", "unknown")}'
+    else:
+        user_id = f'anon_{request.META.get("REMOTE_ADDR", "unknown")}'
     today = date.today().isoformat()
     daily_key = f'fuzeobs_daily_{user_id}_{today}'
     daily_count = cache.get(daily_key, 0)
@@ -622,17 +634,19 @@ Response Style:
             else:
                 cost = (input_tokens / 1_000_000 * 1) + (output_tokens / 1_000_000 * 5)
             
-            AIUsage.objects.create(
-                user=user,
-                tokens_used=total_tokens,
-                input_tokens=input_tokens,
-                output_tokens=output_tokens,
-                estimated_cost=cost,
-                request_type='chat',
-                response_time=response_time,
-                success=success,
-                error_message=error_msg
-            )
+            # Only track AI usage for logged-in users
+            if user:
+                AIUsage.objects.create(
+                    user=user,
+                    tokens_used=total_tokens,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    estimated_cost=cost,
+                    request_type='chat',
+                    response_time=response_time,
+                    success=success,
+                    error_message=error_msg
+                )
     
     response = StreamingHttpResponse(generate(), content_type='text/event-stream; charset=utf-8')
     response['Cache-Control'] = 'no-cache'
