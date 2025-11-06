@@ -5,16 +5,17 @@
 }
 
 .hero-badge {
-  display: inline-block;
-  padding: 6px 16px;
-  background: rgba(168, 85, 247, 0.1);
-  border: 1px solid rgba(168, 85, 247, 0.3);
-  border-radius: 20px;
-  font-size: 11px;
-  letter-spacing: 1.5px;
-  color: #a855f7;
-  margin-bottom: 32px;
-  text-transform: uppercase;
+ text-align: center;
+    font-size: 2.8rem;
+    padding: 15px 30px;
+    margin: 45px auto 25px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    width: fit-content;
+    color: white;
+    position: relative;
+    z-index: 4;
 }
 
 .hero-title {
