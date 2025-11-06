@@ -59,9 +59,9 @@ def cleanup_old_sessions():
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
-        'version': '0.9.4',
+        'version': '0.9.5',
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'FuzeOBS Analytics on Bomby + User Tracking',
+        'changelog': 'Auto-Detecting Audio I/O + Webcams and applying them',
         'mandatory': False
     })
 
