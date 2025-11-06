@@ -1059,8 +1059,11 @@ def fuzeobs_analytics_view(request):
             'total_cost': round(float(item['total_cost'] or 0), 2)
         })
     
-    # Top users by AI usage
-    top_users = AIUsage.objects.filter(timestamp__gte=date_from).values(
+    # Top users by AI usage (exclude anonymous)
+    top_users = AIUsage.objects.filter(
+        timestamp__gte=date_from,
+        user__isnull=False
+    ).values(
         'user__id', 'user__username', 'user__fuzeobs_tier'
     ).annotate(
         total_cost=Sum('estimated_cost'),
