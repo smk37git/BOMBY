@@ -123,12 +123,3 @@ class DownloadTracking(models.Model):
             models.Index(fields=['platform', 'timestamp']),
             models.Index(fields=['timestamp']),
         ]
-
-class MagicLoginToken(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    token = models.CharField(max_length=100, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    used = models.BooleanField(default=False)
-    
-    class Meta:
-        indexes = [models.Index(fields=['token', 'used'])]
