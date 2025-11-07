@@ -1,204 +1,34 @@
+{% extends 'MAIN/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Authentication Complete - FuzeOBS</title>
-    <link rel="stylesheet" href="{% static 'css/reset_password.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body {
-            background: #000;
-            color: #fff;
-            font-family: 'Courier New', monospace;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
 
-        /* Starry background */
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/fuzeobs_password.css' %}">
+{% endblock %}
 
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 3s infinite;
-        }
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
 
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        .auth-container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 40px;
-            background-color: #0a0a0a;
-            border-radius: 10px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            color: #fff;
-            text-align: center;
-            position: relative;
-            z-index: 10;
-        }
-
-        .auth-icon {
-            font-size: 4rem;
-            color: #55ff55;
-            margin-bottom: 20px;
-            animation: checkPulse 2s ease-in-out infinite;
-        }
-
-        @keyframes checkPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        .auth-header {
-            margin-bottom: 30px;
-        }
-
-        .auth-title {
-            font-size: 2.2rem;
-            margin: 0 0 10px 0;
-            letter-spacing: 2px;
-            font-weight: bold;
-        }
-
-        .auth-subtitle {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 1rem;
-            margin: 20px 0 0 0;
-        }
-
-        .success-badge {
-            display: inline-block;
-            padding: 10px 20px;
-            background: linear-gradient(45deg, #00ff00, #00cc00);
-            color: #000;
-            font-weight: bold;
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            margin: 20px 0;
-            border-radius: 5px;
-        }
-
-        .close-instruction {
-            margin-top: 30px;
-            padding: 15px;
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-        }
-
-        .fuzeobs-branding {
-            margin-top: 30px;
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.4);
-            letter-spacing: 3px;
-        }
-
-        @media screen and (min-width: 1920px) {
-            .auth-container {
-                max-width: 650px;
-                padding: 60px;
-            }
-
-            .auth-icon {
-                font-size: 6rem;
-            }
-
-            .auth-title {
-                font-size: 4rem;
-            }
-
-            .auth-subtitle {
-                font-size: 2rem;
-            }
-
-            .success-badge {
-                font-size: 1.5rem;
-                padding: 15px 30px;
-            }
-
-            .close-instruction {
-                font-size: 1.5rem;
-            }
-
-            .fuzeobs-branding {
-                font-size: 1.2rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .auth-container {
-                margin: 25px;
-                max-width: 90%;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Starry Background -->
-    <div class="stars" id="stars"></div>
-
-    <div class="auth-container">
-        <div class="auth-icon">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        
-        <div class="auth-header">
-            <h1 class="auth-title">AUTHENTICATION COMPLETE</h1>
-        </div>
-
-        <div class="success-badge">
-            ✓ SIGNED IN SUCCESSFULLY
-        </div>
-
-        <div class="close-instruction">
-            <p class="auth-subtitle">You can close this window and return to FuzeOBS</p>
-        </div>
-
-        <div class="fuzeobs-branding">
-            FUZEOBS
-        </div>
+{% block content %}
+<div class="auth-container">
+    <div class="auth-icon">
+        <i class="fas fa-check-circle"></i>
     </div>
+    
+    <div class="auth-header">
+        <h1 class="auth-title">Authentication Complete</h1>
+    </div>
+    
+    <div class="auth-message">
+        <p>You have successfully signed in with Google.</p>
+        <p>You can close this window and return to FuzeOBS.</p>
+    </div>
+</div>
 
-    <script>
-        // Generate stars
-        const starsContainer = document.getElementById('stars');
-        for (let i = 0; i < 100; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.width = Math.random() * 3 + 'px';
-            star.style.height = star.style.width;
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 3 + 's';
-            starsContainer.appendChild(star);
-        }
-
-        // Auto-close after 5 seconds (optional)
-        setTimeout(() => {
-            document.querySelector('.close-instruction p').textContent = 'This window will close automatically...';
-            setTimeout(() => {
-                window.close();
-            }, 2000);
-        }, 5000);
-    </script>
-</body>
-</html>
+<script>
+    // Auto-close after 5 seconds
+    setTimeout(() => {
+        window.close();
+    }, 5000);
+</script>
+{% endblock %}
