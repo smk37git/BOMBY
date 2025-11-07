@@ -11,7 +11,7 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
-from .models import FuzeOBSProfile
+from .models import FuzeOBSProfile, AIUsage, UserActivity, TierChange, MagicLoginToken, DownloadTracking
 from google.cloud import storage
 import hmac
 import hashlib
@@ -21,14 +21,14 @@ from functools import wraps
 # Website Imports
 from django.shortcuts import render
 from django.shortcuts import redirect
-from .models import DownloadTracking
 from django.db.models import Count, Sum, Avg, Q, Max
 from django.utils import timezone
 from datetime import timedelta
-from .models import AIUsage, UserActivity, TierChange
 from django.shortcuts import render, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
-from .models import DownloadTracking, FuzeOBSChat
+from itsdangerous import URLSafeTimedSerializer
+from django.core.mail import send_mail
+import secrets
 
 User = get_user_model()
 
@@ -303,6 +303,106 @@ def fuzeobs_verify(request):
         'username': user.username,
         'tier': user.fuzeobs_tier,
         'token': token
+    })
+
+@csrf_exempt
+def fuzeobs_request_magic_link(request):
+    """Request magic login link for OAuth users without passwords"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    data = json.loads(request.body)
+    email = data.get('email', '').strip()
+    
+    if not email:
+        return JsonResponse({'error': 'Email required'}, status=400)
+    
+    # Find user by email
+    user = User.objects.filter(email=email).first()
+    
+    if not user:
+        return JsonResponse({'error': 'No account found with this email'}, status=404)
+    
+    # Check if user has a password (OAuth users won't)
+    if user.password:
+        return JsonResponse({'error': 'This account has a password. Use regular login.'}, status=400)
+    
+    # Create magic token
+    token = secrets.token_urlsafe(32)
+    MagicLoginToken.objects.create(user=user, token=token)
+    
+    # Send email
+    magic_link = f"fuzeobs://magic-login/{token}"
+    
+    try:
+        send_mail(
+            subject='FuzeOBS Desktop Login',
+            message=f'Click to login to FuzeOBS:\n\n{magic_link}\n\nThis link expires in 5 minutes.',
+            from_email='noreply@bomby.us',
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        return JsonResponse({'error': 'Failed to send email'}, status=500)
+    
+    return JsonResponse({'success': True})
+
+
+@csrf_exempt
+def fuzeobs_magic_login(request):
+    """Verify magic token and login user"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    data = json.loads(request.body)
+    token = data.get('token', '').strip()
+    session_id = data.get('session_id')
+    
+    if not token:
+        return JsonResponse({'error': 'Token required'}, status=400)
+    
+    # Find valid token
+    magic_token = MagicLoginToken.objects.filter(
+        token=token,
+        used=False,
+        created_at__gte=timezone.now() - timedelta(minutes=5)
+    ).select_related('user').first()
+    
+    if not magic_token:
+        return JsonResponse({'error': 'Invalid or expired token'}, status=400)
+    
+    # Mark as used
+    magic_token.used = True
+    magic_token.save()
+    
+    user = magic_token.user
+    
+    # Create auth token
+    auth_token = secrets.token_urlsafe(32)
+    cache_key = f'fuzeobs_token_{auth_token}'
+    cache.set(cache_key, {
+        'user_id': user.id,
+        'email': user.email,
+        'tier': user.fuzeobs_tier,
+        'session_id': session_id
+    }, timeout=30*24*60*60)  # 30 days
+    
+    # Track activity
+    activate_fuzeobs_user(user)
+    if session_id:
+        update_active_session(user, session_id)
+    UserActivity.objects.create(
+        user=user,
+        activity_type='login',
+        source='app',
+        details={'method': 'magic_link'}
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'email': user.email,
+        'tier': user.fuzeobs_tier,
+        'token': auth_token
     })
 
 # ===== QUICK START =====
