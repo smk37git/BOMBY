@@ -369,41 +369,30 @@ def fuzeobs_google_auth_poll(request):
     })
 
 @csrf_exempt
+@require_http_methods(["POST"])
 def fuzeobs_verify(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST only'}, status=405)
-    
     auth_header = request.headers.get('Authorization', '')
     if not auth_header.startswith('Bearer '):
-        return JsonResponse({'valid': False}, status=401)
+        return JsonResponse({'valid': False, 'authenticated': False})
     
-    token = auth_header[7:]
+    token = auth_header.replace('Bearer ', '')
+    if token == 'none':
+        return JsonResponse({'valid': False, 'authenticated': False})
+    
     user = get_user_from_token(token)
+    if user:
+        session_id = request.META.get('HTTP_X_SESSION_ID')
+        if session_id:
+            update_active_session(user, session_id, request.META.get('REMOTE_ADDR'))
+        return JsonResponse({
+            'valid': True,
+            'authenticated': True,
+            'tier': user.fuzeobs_tier,
+            'email': user.email,
+            'username': user.username
+        })
     
-    if not user:
-        return JsonResponse({'valid': False}, status=401)
-    
-    # Try to get session_id from body, but don't fail if empty
-    session_id = None
-    try:
-        if request.body:
-            data = json.loads(request.body)
-            session_id = data.get('session_id')
-    except:
-        pass
-    
-    # Only track if we have session_id
-    if session_id:
-        activate_fuzeobs_user(user)
-        update_active_session(user, session_id, request.META.get('REMOTE_ADDR'))
-    
-    return JsonResponse({
-        'valid': True,
-        'email': user.email,
-        'username': user.username,
-        'tier': user.fuzeobs_tier,
-        'token': token
-    })
+    return JsonResponse({'valid': False, 'authenticated': False})
 
 # ===== QUICK START =====
 
