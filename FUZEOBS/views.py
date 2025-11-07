@@ -284,7 +284,7 @@ def fuzeobs_google_auth_init(request):
     cache.set(f'fuzeobs_oauth_state_{state_token}', session_id, timeout=600)  # 10 min
     
     # Build Google OAuth URL
-    auth_url = f"/accounts/google/login/?next=/fuzeobs/google-callback&state={state_token}"
+    auth_url = f"https://bomby.us/accounts/google/login/?next=https://bomby.us/fuzeobs/google-callback?state={state_token}"
     
     return JsonResponse({
         'success': True,
