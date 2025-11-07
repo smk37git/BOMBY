@@ -338,8 +338,9 @@ CSP_FONT_SRC = (
 # CORS Settings for FuzeOBS
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5000',     # FuzeOBS desktop app
-    'http://127.0.0.1:5000',
+    'https://bomby.us', 
+    'http://bomby.us', 
+    'https://bomby-799218251279.us-central1.run.app',
 ]
 CORS_ALLOWED_HEADERS = [
     'accept',

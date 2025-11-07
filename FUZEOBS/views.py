@@ -292,6 +292,7 @@ def fuzeobs_google_auth_init(request):
         'state': state_token
     })
 
+@csrf_exempt
 def fuzeobs_google_callback(request):
     """Handle Google OAuth callback for FuzeOBS"""
     state = request.GET.get('state')
