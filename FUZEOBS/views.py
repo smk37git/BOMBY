@@ -305,64 +305,6 @@ def fuzeobs_verify(request):
         'token': token
     })
 
-@csrf_exempt
-def fuzeobs_check_password(request):
-    """Check if user has a password set"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        email = data.get('email')
-        
-        if not email:
-            return JsonResponse({'error': 'Email required'}, status=400)
-        
-        from ACCOUNTS.models import User
-        user = User.objects.filter(email=email).first()
-        if not user:
-            return JsonResponse({'error': 'User not found'}, status=404)
-        
-        # Check if user has a usable password
-        has_password = user.has_usable_password()
-        
-        return JsonResponse({
-            'has_password': has_password,
-            'username': user.username
-        })
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-@csrf_exempt
-def fuzeobs_set_password(request):
-    """Allow user to set password for desktop app access"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        email = data.get('email')
-        password = data.get('password')
-        
-        if not email or not password:
-            return JsonResponse({'error': 'Email and password required'}, status=400)
-        
-        if len(password) < 8:
-            return JsonResponse({'error': 'Password must be at least 8 characters'}, status=400)
-        
-        from ACCOUNTS.models import User
-        user = User.objects.filter(email=email).first()
-        if not user:
-            return JsonResponse({'error': 'User not found'}, status=404)
-        
-        # Set the password
-        user.set_password(password)
-        user.save()
-        
-        return JsonResponse({'success': True, 'message': 'Password set successfully'})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
 # ===== QUICK START =====
 
 @csrf_exempt
