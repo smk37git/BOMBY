@@ -324,7 +324,7 @@ def fuzeobs_request_magic_link(request):
         return JsonResponse({'error': 'No account found with this email'}, status=404)
     
     # Check if user has a password (OAuth users won't)
-    if user.password:
+    if user.has_usable_password():
         return JsonResponse({'error': 'This account has a password. Use regular login.'}, status=400)
     
     # Create magic token
