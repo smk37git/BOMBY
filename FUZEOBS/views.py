@@ -1,4 +1,4 @@
-from django.http import StreamingHttpResponse, JsonResponse
+from django.http import StreamingHttpResponse, JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -26,6 +26,8 @@ from django.utils import timezone
 from datetime import timedelta
 from django.shortcuts import render, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
+import secrets
+from django.contrib.auth import login
 
 User = get_user_model()
 
@@ -264,6 +266,106 @@ def fuzeobs_login(request):
             
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@csrf_exempt
+def fuzeobs_google_auth_init(request):
+    """Initiate Google OAuth flow for FuzeOBS"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    data = json.loads(request.body)
+    session_id = data.get('session_id')
+    
+    if not session_id:
+        return JsonResponse({'error': 'session_id required'}, status=400)
+    
+    # Generate state token and store session mapping
+    state_token = secrets.token_urlsafe(32)
+    cache.set(f'fuzeobs_oauth_state_{state_token}', session_id, timeout=600)  # 10 min
+    
+    # Build Google OAuth URL
+    auth_url = f"/accounts/google/login/?next=/fuzeobs/google-callback&state={state_token}"
+    
+    return JsonResponse({
+        'success': True,
+        'auth_url': auth_url,
+        'state': state_token
+    })
+
+def fuzeobs_google_callback(request):
+    """Handle Google OAuth callback for FuzeOBS"""
+    state = request.GET.get('state')
+    
+    if not state:
+        return HttpResponse("Invalid state", status=400)
+    
+    session_id = cache.get(f'fuzeobs_oauth_state_{state}')
+    if not session_id:
+        return HttpResponse("State expired or invalid", status=400)
+    
+    # User is now authenticated via allauth
+    if not request.user.is_authenticated:
+        return HttpResponse("Authentication failed", status=401)
+    
+    user = request.user
+    
+    # Generate token for FuzeOBS
+    token = secrets.token_urlsafe(32)
+    cache.set(f'fuzeobs_token_{token}', user.id, timeout=86400 * 30)  # 30 days
+    
+    # Store token for session retrieval
+    cache.set(f'fuzeobs_google_token_{session_id}', {
+        'token': token,
+        'email': user.email,
+        'tier': user.fuzeobs_tier
+    }, timeout=120)  # 2 minutes to retrieve
+    
+    # Update user's FuzeOBS activation
+    if not user.fuzeobs_activated:
+        user.fuzeobs_activated = True
+        user.fuzeobs_first_login = timezone.now()
+        user.save()
+    
+    # Track activity
+    UserActivity.objects.create(
+        user=user,
+        activity_type='login',
+        source='app'
+    )
+    
+    return render(request, 'FUZEOBS/google_success.html')
+
+@csrf_exempt
+def fuzeobs_google_auth_poll(request):
+    """Poll for completed Google OAuth"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    data = json.loads(request.body)
+    session_id = data.get('session_id')
+    
+    if not session_id:
+        return JsonResponse({'error': 'session_id required'}, status=400)
+    
+    # Check if auth completed
+    auth_data = cache.get(f'fuzeobs_google_token_{session_id}')
+    
+    if auth_data:
+        # Clear the cache
+        cache.delete(f'fuzeobs_google_token_{session_id}')
+        
+        return JsonResponse({
+            'success': True,
+            'completed': True,
+            'token': auth_data['token'],
+            'email': auth_data['email'],
+            'tier': auth_data['tier']
+        })
+    
+    return JsonResponse({
+        'success': True,
+        'completed': False
+    })
 
 @csrf_exempt
 def fuzeobs_verify(request):
