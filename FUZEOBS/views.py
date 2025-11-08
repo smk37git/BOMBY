@@ -373,11 +373,11 @@ def fuzeobs_google_auth_poll(request):
 def fuzeobs_verify(request):
     auth_header = request.headers.get('Authorization', '')
     if not auth_header.startswith('Bearer '):
-        return JsonResponse({'valid': False, 'authenticated': False})
+        return JsonResponse({'valid': False, 'authenticated': False, 'reachable': True})
     
     token = auth_header.replace('Bearer ', '')
     if token == 'none':
-        return JsonResponse({'valid': False, 'authenticated': False})
+        return JsonResponse({'valid': False, 'authenticated': False, 'reachable': True})
     
     user = get_user_from_token(token)
     if user:
@@ -389,10 +389,11 @@ def fuzeobs_verify(request):
             'authenticated': True,
             'tier': user.fuzeobs_tier,
             'email': user.email,
-            'username': user.username
+            'username': user.username,
+            'reachable': True
         })
     
-    return JsonResponse({'valid': False, 'authenticated': False})
+    return JsonResponse({'valid': False, 'authenticated': False, 'reachable': True})
 
 # ===== QUICK START =====
 
