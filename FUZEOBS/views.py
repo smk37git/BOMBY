@@ -66,9 +66,9 @@ def cleanup_old_sessions():
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
-        'version': '0.9.6',
+        'version': '0.9.7',
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'Added Google Auth for Login',
+        'changelog': 'Fixed crashing, configuration issues, Audio I/O + Webcam issues',
         'mandatory': False
     })
 
