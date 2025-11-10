@@ -30,6 +30,14 @@ import secrets
 from django.contrib.auth import login
 
 User = get_user_model()
+# ====== HELPER FUNCTIONS =======
+
+def get_client_ip(request):
+    """Get real client IP, handling proxies correctly"""
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR', 'unknown')
 
 # ====== SEND ANALYTIC DATA =======
 
@@ -132,7 +140,6 @@ def get_user_from_token(token):
         return None
 
 # ===== VALIDATORS =====
-
 def validate_username(username):
     """Validate username matches Django rules"""
     if not username:
@@ -176,7 +183,7 @@ def fuzeobs_signup(request):
     user.fuzeobs_tier = 'free'
     session_id = data.get('session_id')
     activate_fuzeobs_user(user)
-    update_active_session(user, session_id, request.META.get('REMOTE_ADDR'))
+    update_active_session(user, session_id, get_client_ip(request))
     user.save()
 
     # Track signup activity
@@ -202,7 +209,7 @@ def fuzeobs_signup(request):
 def fuzeobs_login(request):
     try:
         # Rate limiting by IP
-        ip = request.META.get('REMOTE_ADDR', 'unknown')
+        ip = get_client_ip(request)
         attempts_key = f'fuzeobs_login_attempts_{ip}'
         attempts = cache.get(attempts_key, 0)
         
@@ -249,7 +256,7 @@ def fuzeobs_login(request):
 
             session_id = data.get('session_id')
             activate_fuzeobs_user(user)
-            update_active_session(user, session_id, request.META.get('REMOTE_ADDR'))
+            update_active_session(user, session_id, get_client_ip(request))
             
             token = auth_manager.create_signed_token(user.id, user.fuzeobs_tier)
             return JsonResponse({
@@ -386,7 +393,7 @@ def fuzeobs_verify(request):
     if user:
         session_id = request.META.get('HTTP_X_SESSION_ID')
         if session_id:
-            update_active_session(user, session_id, request.META.get('REMOTE_ADDR'))
+            update_active_session(user, session_id, get_client_ip(request))
         return JsonResponse({
             'valid': True,
             'authenticated': True,
@@ -507,9 +514,9 @@ def fuzeobs_ai_chat(request):
             tier = user.fuzeobs_tier
             user_id = f'user_{user.id}'
         else:
-            user_id = f'anon_{request.META.get("REMOTE_ADDR", "unknown")}'
+            user_id = f'anon_{get_client_ip(request)}'
     else:
-        user_id = f'anon_{request.META.get("REMOTE_ADDR", "unknown")}'
+        user_id = f'anon_{get_client_ip(request)}'
     today = date.today().isoformat()
     daily_key = f'fuzeobs_daily_{user_id}_{today}'
     daily_count = cache.get(daily_key, 0)
@@ -525,8 +532,7 @@ def fuzeobs_ai_chat(request):
                 yield "data: " + json.dumps(message_data) + "\n\n"
                 yield "data: [DONE]\n\n"
             response = StreamingHttpResponse(limit_msg(), content_type='text/event-stream; charset=utf-8')
-            response['Cache-Control'] = 'no-cache'
-            response['Access-Control-Allow-Origin'] = '*'
+            response['Cache-Control'] = 'no-cache'            
             return response
         
         cache.set(rate_key, rate_count + 1, 18000)
@@ -539,8 +545,7 @@ def fuzeobs_ai_chat(request):
                 yield "data: " + json.dumps(message_data) + "\n\n"
                 yield "data: [DONE]\n\n"
             response = StreamingHttpResponse(limit_msg(), content_type='text/event-stream; charset=utf-8')
-            response['Cache-Control'] = 'no-cache'
-            response['Access-Control-Allow-Origin'] = '*'
+            response['Cache-Control'] = 'no-cache'            
             return response
         
         cache.set(daily_key, daily_count + 1, 86400)
@@ -555,8 +560,7 @@ def fuzeobs_ai_chat(request):
             yield "data: " + json.dumps(message_data) + "\n\n"
             yield "data: [DONE]\n\n"
         response = StreamingHttpResponse(spam_msg(), content_type='text/event-stream; charset=utf-8')
-        response['Cache-Control'] = 'no-cache'
-        response['Access-Control-Allow-Origin'] = '*'
+        response['Cache-Control'] = 'no-cache'        
         return response
     cache.set(spam_key, spam_count + 1, 60)
     
@@ -590,8 +594,7 @@ def fuzeobs_ai_chat(request):
                 yield "data: [DONE]\n\n"
             
             response = StreamingHttpResponse(off_topic_message(), content_type='text/event-stream; charset=utf-8')
-            response['Cache-Control'] = 'no-cache'
-            response['Access-Control-Allow-Origin'] = '*'
+            response['Cache-Control'] = 'no-cache'            
             return response
     
     client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
@@ -741,8 +744,7 @@ Response Style:
             )
     
     response = StreamingHttpResponse(generate(), content_type='text/event-stream; charset=utf-8')
-    response['Cache-Control'] = 'no-cache'
-    response['Access-Control-Allow-Origin'] = '*'
+    response['Cache-Control'] = 'no-cache'    
     return response
 
 # ===== CHAT HISTORY =====
@@ -788,12 +790,8 @@ def fuzeobs_save_chat(request):
             )[:10]
             
             user.save()
-            response = JsonResponse({'success': True})
-    
-    response['Access-Control-Allow-Origin'] = '*'
-    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-    return response
+            response = JsonResponse({'success': True})    
+            return response
 
 @csrf_exempt
 @require_tier('free')
@@ -804,12 +802,8 @@ def fuzeobs_get_chats(request):
     else:
         user = request.fuzeobs_user
         chats = user.fuzeobs_chat_history if user.fuzeobs_chat_history else []
-        response = JsonResponse({'chats': chats})
-    
-    response['Access-Control-Allow-Origin'] = '*'
-    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    response['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
-    return response
+        response = JsonResponse({'chats': chats})    
+        return response
 
 @csrf_exempt
 @require_tier('free')
@@ -829,12 +823,8 @@ def fuzeobs_delete_chat(request):
             ]
             user.save()
         
-        response = JsonResponse({'success': True})
-    
-    response['Access-Control-Allow-Origin'] = '*'
-    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-    return response
+        response = JsonResponse({'success': True})    
+        return response
 
 @csrf_exempt
 @require_tier('free')
@@ -846,12 +836,8 @@ def fuzeobs_clear_chats(request):
         user = request.fuzeobs_user
         user.fuzeobs_chat_history = []
         user.save()
-        response = JsonResponse({'success': True})
-    
-    response['Access-Control-Allow-Origin'] = '*'
-    response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
-    response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
-    return response
+        response = JsonResponse({'success': True})    
+        return response
 
 # ===== BENCHMARKING (PRO / LIFETIME ONLY) =====
 
@@ -896,8 +882,7 @@ Always provide EXACT settings (bitrate numbers, preset names). Explain WHY each 
             yield "data: [ERROR] Failed to analyze.\n\n"
     
     response = StreamingHttpResponse(generate(), content_type='text/event-stream; charset=utf-8')
-    response['Cache-Control'] = 'no-cache'
-    response['Access-Control-Allow-Origin'] = '*'
+    response['Cache-Control'] = 'no-cache'    
     return response
 
 # ===== PROFILES =====
@@ -940,8 +925,6 @@ def fuzeobs_create_profile(request):
 def fuzeobs_delete_profile(request, profile_id):
     user = request.fuzeobs_user
     try:
-        data = json.loads(request.body)
-        profile_id = data.get('id', profile_id)
         profile = FuzeOBSProfile.objects.get(id=profile_id, user=user)
         profile.delete()
         return JsonResponse({'success': True})
@@ -1004,7 +987,7 @@ def fuzeobs_download_windows(request):
         platform='windows',
         version='0.9.4',
         user=request.user if request.user.is_authenticated else None,
-        ip_address=request.META.get('REMOTE_ADDR'),
+        ip_address=get_client_ip(request),
         user_agent=request.META.get('HTTP_USER_AGENT', '')
     )
     return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe')
@@ -1015,7 +998,7 @@ def fuzeobs_download_mac(request):
         platform='mac',
         version='0.9.4',
         user=request.user if request.user.is_authenticated else None,
-        ip_address=request.META.get('REMOTE_ADDR'),
+        ip_address=get_client_ip(request),
         user_agent=request.META.get('HTTP_USER_AGENT', '')
     )
     return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe')
