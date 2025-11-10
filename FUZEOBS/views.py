@@ -317,22 +317,20 @@ def fuzeobs_google_callback(request):
     
     user = request.user
     
-    # Generate token for FuzeOBS
-    token = secrets.token_urlsafe(32)
-    cache.set(f'fuzeobs_token_{token}', user.id, timeout=86400 * 30)  # 30 days
+    # FIX: Use signed token instead of random token
+    token = auth_manager.create_signed_token(user.id, user.fuzeobs_tier)
     
     # Store token for session retrieval
     cache.set(f'fuzeobs_google_token_{session_id}', {
         'token': token,
         'email': user.email,
+        'username': user.username,
         'tier': user.fuzeobs_tier
     }, timeout=120)  # 2 minutes to retrieve
     
     # Update user's FuzeOBS activation
-    if not user.fuzeobs_activated:
-        user.fuzeobs_activated = True
-        user.fuzeobs_first_login = timezone.now()
-        user.save()
+    activate_fuzeobs_user(user)
+    update_active_session(user, session_id, get_client_ip(request))
     
     # Track activity
     UserActivity.objects.create(
@@ -342,6 +340,7 @@ def fuzeobs_google_callback(request):
     )
     
     return render(request, 'FUZEOBS/google_success.html')
+
 
 @csrf_exempt
 def fuzeobs_google_auth_poll(request):
@@ -359,7 +358,6 @@ def fuzeobs_google_auth_poll(request):
     auth_data = cache.get(f'fuzeobs_google_token_{session_id}')
     
     if auth_data:
-        # Clear the cache
         cache.delete(f'fuzeobs_google_token_{session_id}')
         
         return JsonResponse({
@@ -367,6 +365,7 @@ def fuzeobs_google_auth_poll(request):
             'completed': True,
             'token': auth_data['token'],
             'email': auth_data['email'],
+            'username': auth_data['username'],
             'tier': auth_data['tier']
         })
     
