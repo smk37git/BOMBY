@@ -343,20 +343,13 @@ CORS_ALLOWED_ORIGINS = [
     'http://bomby.us', 
     'https://bomby-799218251279.us-central1.run.app',
 ]
-CORS_ALLOWED_HEADERS = [
-    'accept',
-    'accept-encoding', 
-    'authorization',
-    'content-type',
-    'dnt',
-    'origin',
-    'user-agent',
-    'x-csrftoken',
-    'x-requested-with',
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^http://localhost:\d+$",
+    r"^http://127\.0\.0\.1:\d+$",
 ]
 CORS_ALLOW_CREDENTIALS = False
 CORS_EXPOSE_HEADERS = ['Content-Type', 'Authorization']
-CORS_PREFLIGHT_MAX_AGE = 86400  # Cache preflight for 24hrs
+CORS_PREFLIGHT_MAX_AGE = 86400
 
 # FuzeOBS Secret Key
 FUZEOBS_SECRET_KEY = os.environ.get('FUZEOBS_SECRET_KEY')

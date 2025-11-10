@@ -369,8 +369,11 @@ def fuzeobs_google_auth_poll(request):
     })
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["POST", "OPTIONS"])
 def fuzeobs_verify(request):
+    if request.method == "OPTIONS":
+        return JsonResponse({'status': 'ok'})
+    
     auth_header = request.headers.get('Authorization', '')
     if not auth_header.startswith('Bearer '):
         return JsonResponse({'valid': False, 'authenticated': False, 'reachable': True})
