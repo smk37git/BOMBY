@@ -701,6 +701,10 @@ Topics You Redirect:
 ✗ Unrelated technical support (aside from WiFi/Ethernet troubleshooting like resetting a router)
 ✗ General knowledge questions
 
+A potential problem for webcams not appearing even though they are activated in OBS:
+- User has incorrect resolution set for webcam. If a webcam can only support 720p max, but has 1080p set it will NOT show.
+- However, if a webcam has a max of 1080p, but it is set to 720p, it will show at a lower resolution than the max.
+
 Response Style:
 {style_prompt}""",
                 messages=[{"role": "user", "content": messages_content}]

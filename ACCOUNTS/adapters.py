@@ -1,7 +1,6 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from allauth.account.utils import user_username, user_email, user_field
+from allauth.account.utils import user_username, user_email, user_field, perform_login
 from django.contrib.auth import get_user_model
-import random
 
 User = get_user_model()
 
@@ -17,9 +16,11 @@ class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
             
         # Check if a user with this email already exists
         try:
-            existing_user = User.objects.get(email=user.email)
+            existing_user = User.objects.get(email__iexact=user.email)
             # Connect the social account to the existing user
             sociallogin.connect(request, existing_user)
+            # Perform login with the existing account
+            perform_login(request, existing_user, email_verification='none')
         except User.DoesNotExist:
             # Generate a username if none exists
             if not user_username(user):
