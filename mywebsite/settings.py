@@ -58,7 +58,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    'corsheaders',
     'MAIN',
     'ACCOUNTS',
     'allauth',
@@ -111,7 +110,6 @@ SOCIALACCOUNT_ADAPTER = 'ACCOUNTS.adapters.CustomSocialAccountAdapter'
 SITE_ID = 1
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
     'FUZEOBS.middleware.CorsOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
