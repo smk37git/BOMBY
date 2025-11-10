@@ -369,8 +369,15 @@ def fuzeobs_google_auth_poll(request):
     })
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["POST", "OPTIONS"])
 def fuzeobs_verify(request):
+    if request.method == "OPTIONS":
+        response = JsonResponse({})
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Authorization, Content-Type, X-Session-ID'
+        response['Access-Control-Max-Age'] = '86400'
+        return response
     auth_header = request.headers.get('Authorization', '')
     if not auth_header.startswith('Bearer '):
         return JsonResponse({'valid': False, 'authenticated': False, 'reachable': True})
