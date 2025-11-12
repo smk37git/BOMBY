@@ -41,8 +41,6 @@ urlpatterns = [
     path('callback/<str:platform>', views.fuzeobs_platform_callback, name='platform_callback'),
 
     # Media Library
-    path('media-proxy/<int:user_id>/<str:filename>', views.fuzeobs_media_proxy, name='media_proxy'),
-    path('widget-proxy/<int:user_id>/<int:widget_id>', views.fuzeobs_widget_proxy, name='widget_proxy'),
     path('media', views.fuzeobs_get_media, name='get_media'),
     path('media/upload', views.fuzeobs_upload_media, name='upload_media'),
     path('media/<int:media_id>/delete', views.fuzeobs_delete_media, name='delete_media'),

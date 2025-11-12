@@ -1400,7 +1400,6 @@ def fuzeobs_get_widgets(request):
 @require_tier('free')
 def fuzeobs_save_widget(request):
     user = request.fuzeobs_user
-    
     try:
         data = json.loads(request.body)
         widget_id = data.get('widget_id')
@@ -1417,18 +1416,15 @@ def fuzeobs_save_widget(request):
                 config=data.get('config', {})
             )
         
-        # Generate HTML with correct signature
         widget_html = generate_widget_html(widget)
         
-        # Upload
         client = storage.Client()
-        bucket = client.bucket('bomby-user-uploads')
-        blob_path = f'fuzeobs-widgets/{user.id}/{widget.id}.html'
-        blob = bucket.blob(blob_path)
+        bucket = client.bucket('fuzeobs-public')
+        blob = bucket.blob(f'widgets/{user.id}/{widget.id}.html')
         blob.upload_from_string(widget_html, content_type='text/html')
+        blob.make_public()
         
-        # Use proxy URL
-        widget.gcs_url = f'https://bomby.us/fuzeobs/widget-proxy/{user.id}/{widget.id}'
+        widget.gcs_url = blob.public_url
         widget.save()
         
         UserActivity.objects.create(
@@ -1450,7 +1446,6 @@ def fuzeobs_save_widget(request):
                 'url': widget.gcs_url
             }
         })
-        
     except WidgetConfig.DoesNotExist:
         return JsonResponse({'error': 'Widget not found'}, status=404)
     except Exception as e:
@@ -1674,53 +1669,6 @@ def get_platform_username(platform, access_token):
     return 'Unknown'
 
 # ===== MEDIA LIBRARY =====
-
-@csrf_exempt
-def fuzeobs_media_proxy(request, user_id, filename):
-    """Generate fresh signed URL and redirect"""
-    try:
-        client = storage.Client()
-        bucket = client.bucket('bomby-user-uploads')
-        blob = bucket.blob(f'fuzeobs-media/{user_id}/{filename}')
-        
-        if not blob.exists():
-            return HttpResponse('Media not found', status=404)
-        
-        url = blob.generate_signed_url(
-            version="v4",
-            expiration=timedelta(hours=1),
-            method="GET"
-        )
-        
-        return redirect(url)
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return HttpResponse(f'Error: {str(e)}', status=500)
-    
-@csrf_exempt
-def fuzeobs_widget_proxy(request, user_id, widget_id):
-    """Generate fresh signed URL for widget HTML"""
-    try:
-        client = storage.Client()
-        bucket = client.bucket('bomby-user-uploads')
-        blob = bucket.blob(f'fuzeobs-widgets/{user_id}/{widget_id}.html')
-        
-        if not blob.exists():
-            return HttpResponse('Widget not found', status=404)
-        
-        url = blob.generate_signed_url(
-            version="v4",
-            expiration=timedelta(hours=1),
-            method="GET"
-        )
-        
-        return redirect(url)
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return HttpResponse(f'Error: {str(e)}', status=500)
-
 @csrf_exempt
 @require_http_methods(["GET"])
 @require_tier('free')
@@ -1754,19 +1702,16 @@ from datetime import timedelta
 @require_tier('free')
 def fuzeobs_upload_media(request):
     user = request.fuzeobs_user
-    
     file = request.FILES.get('file')
     if not file:
         return JsonResponse({'error': 'No file'}, status=400)
     
-    # Check size
     max_size = 100 * 1024 * 1024 if user.fuzeobs_tier in ['pro', 'lifetime'] else 25 * 1024 * 1024
     current = sum(m.file_size for m in MediaLibrary.objects.filter(user=user))
     
     if current + file.size > max_size:
         return JsonResponse({'error': 'Storage limit exceeded'}, status=400)
     
-    # Type
     if file.content_type.startswith('image'):
         media_type = 'image'
     elif file.content_type.startswith('audio'):
@@ -1776,23 +1721,18 @@ def fuzeobs_upload_media(request):
     else:
         return JsonResponse({'error': 'Invalid type'}, status=400)
     
-    # Upload
     client = storage.Client()
-    bucket = client.bucket('bomby-user-uploads')
+    bucket = client.bucket('fuzeobs-public')
     ext = file.name.split('.')[-1]
-    blob_path = f'fuzeobs-media/{user.id}/{uuid.uuid4()}.{ext}'
-    blob = bucket.blob(blob_path)
+    blob = bucket.blob(f'media/{user.id}/{uuid.uuid4()}.{ext}')
     blob.upload_from_file(file, content_type=file.content_type)
+    blob.make_public()
     
-    # Use proxy URL for permanent access
-    filename = blob_path.split('/')[-1]
-    file_url = f'https://bomby.us/fuzeobs/media-proxy/{user.id}/{filename}'
-
     media = MediaLibrary.objects.create(
         user=user,
         name=file.name,
         media_type=media_type,
-        file_url=file_url,
+        file_url=blob.public_url,
         file_size=file.size
     )
     
@@ -1807,33 +1747,28 @@ def fuzeobs_upload_media(request):
         }
     })
 
+
 @csrf_exempt
 @require_http_methods(["DELETE"])
 @require_tier('free')
 def fuzeobs_delete_media(request, media_id):
-    """Delete media file"""
     user = request.fuzeobs_user
-    
     try:
         media = MediaLibrary.objects.get(id=media_id, user=user)
         
-        # Delete from GCS
         try:
             client = storage.Client()
-            bucket = client.bucket('bomby-user-uploads')
-            # Extract blob path from URL
-            blob_path = media.file_url.split('bomby-user-uploads/')[-1]
+            bucket = client.bucket('fuzeobs-public')
+            blob_path = '/'.join(media.file_url.split('/')[-3:])
             blob = bucket.blob(blob_path)
             blob.delete()
         except:
             pass
         
         media.delete()
-        
         return JsonResponse({'success': True})
-        
     except MediaLibrary.DoesNotExist:
-        return JsonResponse({'error': 'Media not found'}, status=404)
+        return JsonResponse({'error': 'Not found'}, status=404)
 
 # ===== WIDGET EVENTS =====
 
