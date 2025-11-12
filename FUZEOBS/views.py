@@ -1417,8 +1417,8 @@ def fuzeobs_save_widget(request):
                 config=data.get('config', {})
             )
         
-        # Generate HTML
-        widget_html = generate_widget_html(widget)
+        # Generate HTML with correct signature
+        widget_html = generate_widget_html(widget.user.id, widget.widget_type, widget.config)
         
         # Upload
         client = storage.Client()
@@ -1427,7 +1427,7 @@ def fuzeobs_save_widget(request):
         blob = bucket.blob(blob_path)
         blob.upload_from_string(widget_html, content_type='text/html')
         
-        # Use proxy URL for permanent access
+        # Use proxy URL
         widget.gcs_url = f'https://bomby.us/fuzeobs/widget-proxy/{user.id}/{widget.id}'
         widget.save()
         
@@ -1454,6 +1454,8 @@ def fuzeobs_save_widget(request):
     except WidgetConfig.DoesNotExist:
         return JsonResponse({'error': 'Widget not found'}, status=404)
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=400)
 
 @csrf_exempt
