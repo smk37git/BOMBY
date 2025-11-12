@@ -1399,7 +1399,6 @@ def fuzeobs_get_widgets(request):
 @require_http_methods(["POST"])
 @require_tier('free')
 def fuzeobs_save_widget(request):
-    """Create or update widget"""
     user = request.fuzeobs_user
     
     try:
@@ -1407,12 +1406,10 @@ def fuzeobs_save_widget(request):
         widget_id = data.get('widget_id')
         
         if widget_id:
-            # Update existing
             widget = WidgetConfig.objects.get(id=widget_id, user=user)
             widget.name = data.get('name', widget.name)
             widget.config = data.get('config', widget.config)
         else:
-            # Create new
             widget = WidgetConfig.objects.create(
                 user=user,
                 widget_type=data['widget_type'],
@@ -1420,20 +1417,26 @@ def fuzeobs_save_widget(request):
                 config=data.get('config', {})
             )
         
-        # Generate and upload HTML
+        # Generate HTML
         widget_html = generate_widget_html(widget)
         
+        # Upload
         client = storage.Client()
         bucket = client.bucket('bomby-user-uploads')
         blob_path = f'fuzeobs-widgets/{user.id}/{widget.id}.html'
         blob = bucket.blob(blob_path)
         blob.upload_from_string(widget_html, content_type='text/html')
-        blob.make_public()
         
-        widget.gcs_url = blob.public_url
+        # Generate signed URL (30 days for widgets)
+        signed_url = blob.generate_signed_url(
+            version="v4",
+            expiration=timedelta(days=30),
+            method="GET"
+        )
+        
+        widget.gcs_url = signed_url
         widget.save()
         
-        # Track activity
         UserActivity.objects.create(
             user=user,
             activity_type='widget_create' if not widget_id else 'widget_update',
@@ -1703,6 +1706,7 @@ def fuzeobs_get_media(request):
         'max_size': max_size
     })
 
+from datetime import timedelta
 @csrf_exempt
 @require_http_methods(["POST"])
 @require_tier('free')
@@ -1737,13 +1741,19 @@ def fuzeobs_upload_media(request):
     blob_path = f'fuzeobs-media/{user.id}/{uuid.uuid4()}.{ext}'
     blob = bucket.blob(blob_path)
     blob.upload_from_file(file, content_type=file.content_type)
-    blob.make_public()
+    
+    # Generate signed URL (7 days)
+    signed_url = blob.generate_signed_url(
+        version="v4",
+        expiration=timedelta(days=7),
+        method="GET"
+    )
     
     media = MediaLibrary.objects.create(
         user=user,
         name=file.name,
         media_type=media_type,
-        file_url=blob.public_url,
+        file_url=signed_url,
         file_size=file.size
     )
     
