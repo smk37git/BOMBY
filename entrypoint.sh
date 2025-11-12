@@ -28,4 +28,4 @@ python manage.py collectstatic --noinput --clear
 
 # Start the server with increased timeout for large uploads
 echo "Starting gunicorn..."
-exec daphne -b 0.0.0.0 -p $PORT mywebsite.asgi:application --timeout 600
+exec daphne -b 0.0.0.0 -p $PORT mywebsite.asgi:application
