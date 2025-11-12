@@ -18,6 +18,7 @@ import hashlib
 import time
 from functools import wraps
 from django.contrib.auth.decorators import login_required
+from .widget_generator import generate_widget_html, generate_alert_box_html, generate_chat_box_html, upload_to_gcs
 
 # Website Imports
 from django.shortcuts import render
@@ -30,7 +31,6 @@ from django.contrib.admin.views.decorators import staff_member_required
 import secrets
 from django.contrib.auth import login
 from .models import WidgetConfig
-from .widget_generator import generate_alert_box_html, generate_chat_box_html, upload_to_gcs
 
 User = get_user_model()
 # ====== HELPER FUNCTIONS =======
