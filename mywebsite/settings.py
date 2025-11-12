@@ -345,6 +345,3 @@ CSP_FONT_SRC = (
 
 # FuzeOBS Secret Key
 FUZEOBS_SECRET_KEY = os.environ.get('FUZEOBS_SECRET_KEY')
-
-# Allow widgets to be embedded
-X_FRAME_OPTIONS = None
