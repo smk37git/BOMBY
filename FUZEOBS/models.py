@@ -123,3 +123,22 @@ class DownloadTracking(models.Model):
             models.Index(fields=['platform', 'timestamp']),
             models.Index(fields=['timestamp']),
         ]
+
+class WidgetConfig(models.Model):
+    WIDGET_TYPES = [
+        ('alert_box', 'Alert Box'),
+        ('chat_box', 'Chat Box'),
+        ('event_list', 'Event List'),
+        ('goal_bar', 'Goal Bar'),
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    widget_type = models.CharField(max_length=20, choices=WIDGET_TYPES)
+    name = models.CharField(max_length=100)
+    config = models.JSONField(default=dict)
+    gcs_url = models.URLField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-updated_at']

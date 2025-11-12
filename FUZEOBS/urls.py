@@ -26,6 +26,9 @@ urlpatterns = [
     path('backgrounds/<str:background_id>', views.fuzeobs_get_background, name='get_background'),
     path('quickstart/dismiss', views.fuzeobs_quickstart_dismiss, name='quickstart_dismiss'),
     path('quickstart/check', views.fuzeobs_quickstart_check, name='quickstart_check'),
+    path('widgets', views.fuzeobs_get_widgets, name='get_widgets'),
+    path('widgets/save', views.fuzeobs_save_widget, name='save_widget'),
+    path('widgets/<int:widget_id>/delete', views.fuzeobs_delete_widget, name='delete_widget'),
 
     # Website URLS
     path('', views.fuzeobs_view, name="fuzeobs"),

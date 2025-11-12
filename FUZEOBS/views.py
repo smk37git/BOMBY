@@ -11,7 +11,7 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
-from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange
+from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, WidgetConfig
 from google.cloud import storage
 import hmac
 import hashlib
@@ -28,6 +28,8 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 import secrets
 from django.contrib.auth import login
+from .models import WidgetConfig
+from .widget_generator import generate_alert_box_html, generate_chat_box_html, upload_to_gcs
 
 User = get_user_model()
 # ====== HELPER FUNCTIONS =======
@@ -1220,3 +1222,98 @@ def fuzeobs_all_users_view(request):
     
     context = {'all_users': all_users}
     return render(request, 'FUZEOBS/fuzeobs_all_users.html', context)
+
+# ===== WIDGETS =====
+@csrf_exempt
+def fuzeobs_get_widgets(request):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    session_id = request.headers.get('X-Session-ID')
+    if not session_id:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    try:
+        session = ActiveSession.objects.get(session_id=session_id)
+        if not session.user:
+            return JsonResponse({'error': 'User not found'}, status=404)
+        
+        widgets = WidgetConfig.objects.filter(user=session.user)
+        return JsonResponse({
+            'widgets': [{
+                'id': w.id,
+                'type': w.widget_type,
+                'name': w.name,
+                'config': w.config,
+                'url': w.gcs_url,
+                'updated_at': w.updated_at.isoformat()
+            } for w in widgets]
+        })
+    except:
+        return JsonResponse({'error': 'Session not found'}, status=404)
+
+@csrf_exempt
+def fuzeobs_save_widget(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    session_id = request.headers.get('X-Session-ID')
+    if not session_id:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    try:
+        session = ActiveSession.objects.get(session_id=session_id)
+        if not session.user:
+            return JsonResponse({'error': 'User not found'}, status=404)
+        
+        data = json.loads(request.body)
+        widget_type = data.get('widget_type')
+        name = data.get('name')
+        config = data.get('config', {})
+        
+        # Generate HTML
+        from .widget_generator import generate_alert_box_html, generate_chat_box_html, upload_to_gcs
+        
+        if widget_type == 'alert_box':
+            html = generate_alert_box_html(session.user.id, config)
+        elif widget_type == 'chat_box':
+            html = generate_chat_box_html(session.user.id, config)
+        else:
+            return JsonResponse({'error': 'Invalid widget type'}, status=400)
+        
+        # Upload to GCS
+        gcs_url = upload_to_gcs(html, session.user.id, widget_type)
+        
+        # Save to database
+        widget = WidgetConfig.objects.create(
+            user=session.user,
+            widget_type=widget_type,
+            name=name,
+            config=config,
+            gcs_url=gcs_url
+        )
+        
+        return JsonResponse({
+            'id': widget.id,
+            'url': gcs_url,
+            'message': 'Widget saved successfully'
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+def fuzeobs_delete_widget(request, widget_id):
+    if request.method != 'DELETE':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    session_id = request.headers.get('X-Session-ID')
+    if not session_id:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    try:
+        session = ActiveSession.objects.get(session_id=session_id)
+        widget = WidgetConfig.objects.get(id=widget_id, user=session.user)
+        widget.delete()
+        return JsonResponse({'message': 'Widget deleted'})
+    except:
+        return JsonResponse({'error': 'Widget not found'}, status=404)
