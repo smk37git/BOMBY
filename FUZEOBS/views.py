@@ -1676,17 +1676,16 @@ def get_platform_username(platform, access_token):
 # ===== MEDIA LIBRARY =====
 
 @csrf_exempt
-def fuzeobs_media_proxy(request, user_id, file_path):
+def fuzeobs_media_proxy(request, user_id, filename):
     """Generate fresh signed URL and redirect"""
     try:
         client = storage.Client()
         bucket = client.bucket('bomby-user-uploads')
-        blob = bucket.blob(f'fuzeobs-media/{user_id}/{file_path}')
+        blob = bucket.blob(f'fuzeobs-media/{user_id}/{filename}')
         
         if not blob.exists():
-            return HttpResponse('Not found', status=404)
+            return HttpResponse('Media not found', status=404)
         
-        # Generate 1-hour signed URL
         url = blob.generate_signed_url(
             version="v4",
             expiration=timedelta(hours=1),
@@ -1695,8 +1694,10 @@ def fuzeobs_media_proxy(request, user_id, file_path):
         
         return redirect(url)
     except Exception as e:
-        return HttpResponse(str(e), status=500)
-
+        import traceback
+        traceback.print_exc()
+        return HttpResponse(f'Error: {str(e)}', status=500)
+    
 @csrf_exempt
 def fuzeobs_widget_proxy(request, user_id, widget_id):
     """Generate fresh signed URL for widget HTML"""
@@ -1706,7 +1707,7 @@ def fuzeobs_widget_proxy(request, user_id, widget_id):
         blob = bucket.blob(f'fuzeobs-widgets/{user_id}/{widget_id}.html')
         
         if not blob.exists():
-            return HttpResponse('Not found', status=404)
+            return HttpResponse('Widget not found', status=404)
         
         url = blob.generate_signed_url(
             version="v4",
@@ -1716,7 +1717,9 @@ def fuzeobs_widget_proxy(request, user_id, widget_id):
         
         return redirect(url)
     except Exception as e:
-        return HttpResponse(str(e), status=500)
+        import traceback
+        traceback.print_exc()
+        return HttpResponse(f'Error: {str(e)}', status=500)
 
 @csrf_exempt
 @require_http_methods(["GET"])
