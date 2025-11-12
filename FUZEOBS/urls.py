@@ -26,9 +26,29 @@ urlpatterns = [
     path('backgrounds/<str:background_id>', views.fuzeobs_get_background, name='get_background'),
     path('quickstart/dismiss', views.fuzeobs_quickstart_dismiss, name='quickstart_dismiss'),
     path('quickstart/check', views.fuzeobs_quickstart_check, name='quickstart_check'),
+
+    # == Widget URLS ==
+
+    # Widget CRUD
     path('widgets', views.fuzeobs_get_widgets, name='get_widgets'),
     path('widgets/save', views.fuzeobs_save_widget, name='save_widget'),
     path('widgets/<int:widget_id>/delete', views.fuzeobs_delete_widget, name='delete_widget'),
+
+    # Platform Management
+    path('platforms', views.fuzeobs_get_platforms, name='get_platforms'),
+    path('platforms/connect', views.fuzeobs_connect_platform, name='connect_platform'),
+    path('platforms/disconnect', views.fuzeobs_disconnect_platform, name='disconnect_platform'),
+    path('callback/<str:platform>', views.fuzeobs_platform_callback, name='platform_callback'),
+
+    # Media Library
+    path('media', views.fuzeobs_get_media, name='get_media'),
+    path('media/upload', views.fuzeobs_upload_media, name='upload_media'),
+    path('media/<int:media_id>/delete', views.fuzeobs_delete_media, name='delete_media'),
+
+    # Widget Event Configuration
+    path('widgets/<int:widget_id>/events', views.fuzeobs_get_widget_events, name='get_widget_events'),
+    path('widgets/events/save', views.fuzeobs_save_widget_event, name='save_widget_event'),
+    path('widgets/events/<int:event_id>/delete', views.fuzeobs_delete_widget_event, name='delete_widget_event'),
 
     # Website URLS
     path('', views.fuzeobs_view, name="fuzeobs"),
