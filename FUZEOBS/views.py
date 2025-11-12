@@ -1418,7 +1418,7 @@ def fuzeobs_save_widget(request):
             )
         
         # Generate HTML with correct signature
-        widget_html = generate_widget_html(widget.user.id, widget.widget_type, widget.config)
+        widget_html = generate_widget_html(widget)
         
         # Upload
         client = storage.Client()
