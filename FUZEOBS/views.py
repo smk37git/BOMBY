@@ -1424,7 +1424,8 @@ def fuzeobs_save_widget(request):
         blob.upload_from_string(widget_html, content_type='text/html')
         blob.make_public()
         
-        widget.gcs_url = blob.public_url
+        # Use bomby.us URL
+        widget.gcs_url = f'https://bomby.us/fuzeobs/widgets/{user.id}/{widget.id}.html'
         widget.save()
         
         UserActivity.objects.create(
@@ -1669,6 +1670,43 @@ def get_platform_username(platform, access_token):
     return 'Unknown'
 
 # ===== MEDIA LIBRARY =====
+
+@csrf_exempt
+def fuzeobs_serve_widget(request, user_id, widget_id):
+    """Serve widget from GCS through our domain"""
+    try:
+        client = storage.Client()
+        bucket = client.bucket('fuzeobs-public')
+        blob = bucket.blob(f'widgets/{user_id}/{widget_id}.html')
+        
+        if not blob.exists():
+            return HttpResponse('Not found', status=404)
+        
+        content = blob.download_as_bytes()
+        response = HttpResponse(content, content_type='text/html')
+        response['Cache-Control'] = 'public, max-age=86400'  # 24hr cache
+        return response
+    except:
+        return HttpResponse('Error', status=500)
+
+@csrf_exempt
+def fuzeobs_serve_media(request, user_id, filename):
+    """Serve media from GCS through our domain"""
+    try:
+        client = storage.Client()
+        bucket = client.bucket('fuzeobs-public')
+        blob = bucket.blob(f'media/{user_id}/{filename}')
+        
+        if not blob.exists():
+            return HttpResponse('Not found', status=404)
+        
+        content = blob.download_as_bytes()
+        response = HttpResponse(content, content_type=blob.content_type or 'application/octet-stream')
+        response['Cache-Control'] = 'public, max-age=86400'
+        return response
+    except:
+        return HttpResponse('Error', status=500)
+
 @csrf_exempt
 @require_http_methods(["GET"])
 @require_tier('free')
@@ -1724,15 +1762,19 @@ def fuzeobs_upload_media(request):
     client = storage.Client()
     bucket = client.bucket('fuzeobs-public')
     ext = file.name.split('.')[-1]
-    blob = bucket.blob(f'media/{user.id}/{uuid.uuid4()}.{ext}')
+    filename = f'{uuid.uuid4()}.{ext}'
+    blob = bucket.blob(f'media/{user.id}/{filename}')
     blob.upload_from_file(file, content_type=file.content_type)
     blob.make_public()
+    
+    # Use bomby.us URL
+    file_url = f'https://bomby.us/fuzeobs/media/{user.id}/{filename}'
     
     media = MediaLibrary.objects.create(
         user=user,
         name=file.name,
         media_type=media_type,
-        file_url=blob.public_url,
+        file_url=file_url,
         file_size=file.size
     )
     
@@ -1746,7 +1788,6 @@ def fuzeobs_upload_media(request):
             'size': media.file_size
         }
     })
-
 
 @csrf_exempt
 @require_http_methods(["DELETE"])

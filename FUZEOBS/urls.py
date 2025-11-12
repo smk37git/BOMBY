@@ -40,6 +40,10 @@ urlpatterns = [
     path('platforms/disconnect', views.fuzeobs_disconnect_platform, name='disconnect_platform'),
     path('callback/<str:platform>', views.fuzeobs_platform_callback, name='platform_callback'),
 
+    # Proxy
+    path('widgets/<int:user_id>/<int:widget_id>.html', views.fuzeobs_serve_widget, name='serve_widget'),
+    path('media/<int:user_id>/<str:filename>', views.fuzeobs_serve_media, name='serve_media'),
+
     # Media Library
     path('media', views.fuzeobs_get_media, name='get_media'),
     path('media/upload', views.fuzeobs_upload_media, name='upload_media'),
