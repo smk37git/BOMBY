@@ -1427,14 +1427,8 @@ def fuzeobs_save_widget(request):
         blob = bucket.blob(blob_path)
         blob.upload_from_string(widget_html, content_type='text/html')
         
-        # Generate signed URL (30 days for widgets)
-        signed_url = blob.generate_signed_url(
-            version="v4",
-            expiration=timedelta(days=30),
-            method="GET"
-        )
-        
-        widget.gcs_url = signed_url
+        # Use proxy URL for permanent access
+        widget.gcs_url = f'https://bomby.us/fuzeobs/widget-proxy/{user.id}/{widget.id}'
         widget.save()
         
         UserActivity.objects.create(
@@ -1680,6 +1674,49 @@ def get_platform_username(platform, access_token):
 # ===== MEDIA LIBRARY =====
 
 @csrf_exempt
+def fuzeobs_media_proxy(request, user_id, file_path):
+    """Generate fresh signed URL and redirect"""
+    try:
+        client = storage.Client()
+        bucket = client.bucket('bomby-user-uploads')
+        blob = bucket.blob(f'fuzeobs-media/{user_id}/{file_path}')
+        
+        if not blob.exists():
+            return HttpResponse('Not found', status=404)
+        
+        # Generate 1-hour signed URL
+        url = blob.generate_signed_url(
+            version="v4",
+            expiration=timedelta(hours=1),
+            method="GET"
+        )
+        
+        return redirect(url)
+    except Exception as e:
+        return HttpResponse(str(e), status=500)
+
+@csrf_exempt
+def fuzeobs_widget_proxy(request, user_id, widget_id):
+    """Generate fresh signed URL for widget HTML"""
+    try:
+        client = storage.Client()
+        bucket = client.bucket('bomby-user-uploads')
+        blob = bucket.blob(f'fuzeobs-widgets/{user_id}/{widget_id}.html')
+        
+        if not blob.exists():
+            return HttpResponse('Not found', status=404)
+        
+        url = blob.generate_signed_url(
+            version="v4",
+            expiration=timedelta(hours=1),
+            method="GET"
+        )
+        
+        return redirect(url)
+    except Exception as e:
+        return HttpResponse(str(e), status=500)
+
+@csrf_exempt
 @require_http_methods(["GET"])
 @require_tier('free')
 def fuzeobs_get_media(request):
@@ -1742,18 +1779,15 @@ def fuzeobs_upload_media(request):
     blob = bucket.blob(blob_path)
     blob.upload_from_file(file, content_type=file.content_type)
     
-    # Generate signed URL (7 days)
-    signed_url = blob.generate_signed_url(
-        version="v4",
-        expiration=timedelta(days=7),
-        method="GET"
-    )
-    
+    # Use proxy URL for permanent access
+    filename = blob_path.split('/')[-1]
+    file_url = f'https://bomby.us/fuzeobs/media-proxy/{user.id}/{filename}'
+
     media = MediaLibrary.objects.create(
         user=user,
         name=file.name,
         media_type=media_type,
-        file_url=signed_url,
+        file_url=file_url,
         file_size=file.size
     )
     
