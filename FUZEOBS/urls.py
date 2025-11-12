@@ -54,6 +54,9 @@ urlpatterns = [
     path('widgets/events/save', views.fuzeobs_save_widget_event, name='save_widget_event'),
     path('widgets/events/<int:event_id>/delete', views.fuzeobs_delete_widget_event, name='delete_widget_event'),
 
+    # Alert Testing
+    path('test-alert', views.fuzeobs_test_alert, name='test_alert'),
+
     # Website URLS
     path('', views.fuzeobs_view, name="fuzeobs"),
     path('download/windows', views.fuzeobs_download_windows, name='download_windows'),

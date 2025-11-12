@@ -68,7 +68,16 @@ INSTALLED_APPS = [
     'STORE',
     'storages',
     'FUZEOBS',
+    'channels',
 ]
+
+ASGI_APPLICATION = 'mywebsite.asgi.application'
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer'
+    }
+}
 
 AUTHENTICATION_BACKENDS = [
     # Existing backend

@@ -19,6 +19,8 @@ import time
 from functools import wraps
 from django.contrib.auth.decorators import login_required
 from .widget_generator import generate_widget_html, generate_alert_box_html, generate_chat_box_html, upload_to_gcs
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 # Website Imports
 from django.shortcuts import render
@@ -1901,3 +1903,36 @@ def fuzeobs_delete_widget_event(request, event_id):
         
     except WidgetEvent.DoesNotExist:
         return JsonResponse({'error': 'Event not found'}, status=404)
+
+# ==== ALERT TESTING ====
+@csrf_exempt
+@require_http_methods(["POST"])
+@require_tier('free')
+def fuzeobs_test_alert(request):
+    """Send test alert via WebSocket"""
+    user = request.fuzeobs_user
+    
+    try:
+        data = json.loads(request.body)
+        event_type = data.get('event_type', 'follow')
+        platform = data.get('platform', 'twitch')
+        
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'alerts_{user.id}',
+            {
+                'type': 'alert_event',
+                'data': {
+                    'event_type': event_type,
+                    'platform': platform,
+                    'username': 'TestUser',
+                    'amount': '100' if event_type in ['bits', 'superchat'] else None,
+                }
+            }
+        )
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=400)
