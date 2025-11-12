@@ -1,5 +1,6 @@
 from django.http import StreamingHttpResponse, JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 import anthropic
@@ -1672,8 +1673,8 @@ def get_platform_username(platform, access_token):
     return 'Unknown'
 
 # ===== MEDIA LIBRARY =====
-
 @csrf_exempt
+@xframe_options_exempt
 def fuzeobs_serve_widget(request, user_id, widget_id):
     """Serve widget from GCS through our domain"""
     try:
