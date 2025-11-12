@@ -1603,13 +1603,15 @@ def fuzeobs_platform_callback(request, platform):
     import requests
     redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
     
-    token_response = requests.post(config['token_url'], data={
-        'client_id': config['client_id'],
-        'client_secret': config['client_secret'],
-        'code': code,
-        'grant_type': 'authorization_code',
-        'redirect_uri': redirect_uri
-    })
+    token_response = requests.post(config['token_url'], 
+        headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        data={
+            'client_id': config['client_id'],
+            'client_secret': config['client_secret'],
+            'code': code,
+            'grant_type': 'authorization_code',
+            'redirect_uri': redirect_uri
+        })
     
     if token_response.status_code != 200:
         return HttpResponse('Token exchange failed', status=400)
@@ -1705,63 +1707,56 @@ def fuzeobs_get_media(request):
 @require_http_methods(["POST"])
 @require_tier('free')
 def fuzeobs_upload_media(request):
-    """Upload media file"""
     user = request.fuzeobs_user
     
-    try:
-        file = request.FILES.get('file')
-        if not file:
-            return JsonResponse({'error': 'No file provided'}, status=400)
-        
-        # Check size limits
-        max_size = 25 * 1024 * 1024 if user.fuzeobs_tier == 'free' else 100 * 1024 * 1024
-        current_size = sum(m.file_size for m in MediaLibrary.objects.filter(user=user))
-        
-        if current_size + file.size > max_size:
-            return JsonResponse({'error': 'Storage limit exceeded'}, status=400)
-        
-        # Determine media type
-        content_type = file.content_type
-        if content_type.startswith('image'):
-            media_type = 'image'
-        elif content_type.startswith('audio'):
-            media_type = 'sound'
-        elif content_type.startswith('video'):
-            media_type = 'video'
-        else:
-            return JsonResponse({'error': 'Invalid file type'}, status=400)
-        
-        # Upload to GCS
-        client = storage.Client()
-        bucket = client.bucket('bomby-user-uploads')
-        file_ext = file.name.split('.')[-1]
-        blob_path = f'fuzeobs-media/{user.id}/{uuid.uuid4()}.{file_ext}'
-        blob = bucket.blob(blob_path)
-        blob.upload_from_file(file, content_type=content_type)
-        blob.make_public()
-        
-        # Save to database
-        media = MediaLibrary.objects.create(
-            user=user,
-            name=file.name,
-            media_type=media_type,
-            file_url=blob.public_url,
-            file_size=file.size
-        )
-        
-        return JsonResponse({
-            'success': True,
-            'media': {
-                'id': media.id,
-                'name': media.name,
-                'type': media.media_type,
-                'url': media.file_url,
-                'size': media.file_size
-            }
-        })
-        
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+    file = request.FILES.get('file')
+    if not file:
+        return JsonResponse({'error': 'No file'}, status=400)
+    
+    # Check size
+    max_size = 100 * 1024 * 1024 if user.fuzeobs_tier in ['pro', 'lifetime'] else 25 * 1024 * 1024
+    current = sum(m.file_size for m in MediaLibrary.objects.filter(user=user))
+    
+    if current + file.size > max_size:
+        return JsonResponse({'error': 'Storage limit exceeded'}, status=400)
+    
+    # Type
+    if file.content_type.startswith('image'):
+        media_type = 'image'
+    elif file.content_type.startswith('audio'):
+        media_type = 'sound'
+    elif file.content_type.startswith('video'):
+        media_type = 'video'
+    else:
+        return JsonResponse({'error': 'Invalid type'}, status=400)
+    
+    # Upload
+    client = storage.Client()
+    bucket = client.bucket('bomby-user-uploads')
+    ext = file.name.split('.')[-1]
+    blob_path = f'fuzeobs-media/{user.id}/{uuid.uuid4()}.{ext}'
+    blob = bucket.blob(blob_path)
+    blob.upload_from_file(file, content_type=file.content_type)
+    blob.make_public()
+    
+    media = MediaLibrary.objects.create(
+        user=user,
+        name=file.name,
+        media_type=media_type,
+        file_url=blob.public_url,
+        file_size=file.size
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'media': {
+            'id': media.id,
+            'name': media.name,
+            'type': media.media_type,
+            'url': media.file_url,
+            'size': media.file_size
+        }
+    })
 
 @csrf_exempt
 @require_http_methods(["DELETE"])

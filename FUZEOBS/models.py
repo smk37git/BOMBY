@@ -143,89 +143,6 @@ class WidgetConfig(models.Model):
     class Meta:
         ordering = ['-updated_at']
 
-class PlatformConnection(models.Model):
-    PLATFORMS = [
-        ('twitch', 'Twitch'),
-        ('youtube', 'YouTube'),
-        ('kick', 'Kick'),
-    ]
-    
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    platform = models.CharField(max_length=20, choices=PLATFORMS)
-    platform_username = models.CharField(max_length=100)
-    access_token = models.TextField()
-    refresh_token = models.TextField(blank=True)
-    expires_at = models.DateTimeField(null=True)
-    connected_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        unique_together = ['user', 'platform']
-
-class MediaLibrary(models.Model):
-    MEDIA_TYPES = [
-        ('image', 'Image'),
-        ('sound', 'Sound'),
-        ('video', 'Video'),
-    ]
-    
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-    media_type = models.CharField(max_length=10, choices=MEDIA_TYPES)
-    file_url = models.URLField()
-    file_size = models.IntegerField()  # in bytes
-    uploaded_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        ordering = ['-uploaded_at']
-
-class WidgetEvent(models.Model):
-    widget = models.ForeignKey('WidgetConfig', on_delete=models.CASCADE)
-    event_type = models.CharField(max_length=50)  # follow, subscribe, donation, etc.
-    platform = models.CharField(max_length=20)
-    enabled = models.BooleanField(default=True)
-    config = models.JSONField(default=dict)  # layout, message template, media, animations, etc.
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        unique_together = ['widget', 'event_type', 'platform']
-
-class WidgetConfig(models.Model):
-    WIDGET_TYPES = [
-        ('alert_box', 'Alert Box'),
-        ('chat_box', 'Chat Box'),
-        ('event_list', 'Event List'),
-        ('goal_bar', 'Goal Bar'),
-    ]
-    
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    widget_type = models.CharField(max_length=20, choices=WIDGET_TYPES)
-    name = models.CharField(max_length=100)
-    config = models.JSONField(default=dict)
-    gcs_url = models.URLField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        ordering = ['-updated_at']
-
-class PlatformConnection(models.Model):
-    PLATFORMS = [
-        ('twitch', 'Twitch'),
-        ('youtube', 'YouTube'),
-        ('kick', 'Kick'),
-    ]
-    
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    platform = models.CharField(max_length=20, choices=PLATFORMS)
-    platform_username = models.CharField(max_length=100)
-    access_token = models.TextField()
-    refresh_token = models.TextField(blank=True)
-    expires_at = models.DateTimeField(null=True)
-    connected_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        unique_together = ['user', 'platform']
-
 class MediaLibrary(models.Model):
     MEDIA_TYPES = [
         ('image', 'Image'),
@@ -242,6 +159,24 @@ class MediaLibrary(models.Model):
     
     class Meta:
         ordering = ['-uploaded_at']
+
+class PlatformConnection(models.Model):
+    PLATFORMS = [
+        ('twitch', 'Twitch'),
+        ('youtube', 'YouTube'),
+        ('kick', 'Kick'),
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    platform = models.CharField(max_length=20, choices=PLATFORMS)
+    platform_username = models.CharField(max_length=100)
+    access_token = models.TextField()
+    refresh_token = models.TextField(blank=True)
+    expires_at = models.DateTimeField(null=True)
+    connected_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['user', 'platform']
 
 class WidgetEvent(models.Model):
     widget = models.ForeignKey('WidgetConfig', on_delete=models.CASCADE)
