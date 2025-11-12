@@ -56,6 +56,7 @@ urlpatterns = [
 
     # Alert Testing
     path('test-alert', views.fuzeobs_test_alert, name='test_alert'),
+    path('widgets/events/config/<int:user_id>', views.fuzeobs_get_widget_event_configs, name='get_widget_event_configs'),
 
     # Website URLS
     path('', views.fuzeobs_view, name="fuzeobs"),

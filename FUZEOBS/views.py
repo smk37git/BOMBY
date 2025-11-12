@@ -1686,9 +1686,13 @@ def fuzeobs_serve_widget(request, user_id, widget_id):
         
         content = blob.download_as_bytes()
         response = HttpResponse(content, content_type='text/html')
-        response['Cache-Control'] = 'public, max-age=86400'  # 24hr cache
+        response['Cache-Control'] = 'no-cache'
+        response['Access-Control-Allow-Origin'] = '*'
+        # Remove X-Frame-Options to allow OBS embedding
+        if 'X-Frame-Options' in response:
+            del response['X-Frame-Options']
         return response
-    except:
+    except Exception as e:
         return HttpResponse('Error', status=500)
 
 @csrf_exempt
@@ -1903,6 +1907,25 @@ def fuzeobs_delete_widget_event(request, event_id):
         
     except WidgetEvent.DoesNotExist:
         return JsonResponse({'error': 'Event not found'}, status=404)
+    
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_get_widget_event_configs(request, user_id):
+    """Get all event configurations for user's widgets"""
+    try:
+        widgets = WidgetConfig.objects.filter(user_id=user_id)
+        configs = {}
+        
+        for widget in widgets:
+            events = WidgetEvent.objects.filter(widget=widget, enabled=True)
+            for event in events:
+                key = f"{event.platform}-{event.event_type}"
+                configs[key] = event.config
+                configs[key]['enabled'] = True
+        
+        return JsonResponse({'configs': configs})
+    except Exception as e:
+        return JsonResponse({'configs': {}})
 
 # ==== ALERT TESTING ====
 @csrf_exempt
