@@ -66,9 +66,9 @@ def cleanup_old_sessions():
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
-        'version': '0.9.8',
+        'version': '0.9.9',
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'Fixed Google OAUTH -- Signs in to right account, timeout, looks fresh as hell',
+        'changelog': 'Responsiveness Update. Shoud look good on 1440p, 1080p, 1200p',
         'mandatory': False
     })
 
