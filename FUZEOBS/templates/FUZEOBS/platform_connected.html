@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Platform Connected</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: #000;
+            color: #fff;
+        }
+        .success {
+            text-align: center;
+        }
+        h1 { color: #00ff00; }
+    </style>
+</head>
+<body>
+    <div class="success">
+        <h1>✓ {{ platform|title }} Connected!</h1>
+        <p>You can close this window and return to FuzeOBS.</p>
+    </div>
+    <script>
+        setTimeout(() => window.close(), 3000);
+    </script>
+</body>
+</html>

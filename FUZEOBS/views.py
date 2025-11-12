@@ -1224,205 +1224,525 @@ def fuzeobs_all_users_view(request):
     context = {'all_users': all_users}
     return render(request, 'FUZEOBS/fuzeobs_all_users.html', context)
 
-# ===== WIDGETS =====
-# Platform Management
-@csrf_exempt
-@require_http_methods(["GET"])
-@login_required
-def fuzeobs_get_platforms(request):
-    try:
-        connections = PlatformConnection.objects.filter(user=request.user)
-        return JsonResponse({
-            'platforms': [{
-                'platform': c.platform,
-                'username': c.platform_username,
-                'connected_at': c.connected_at.isoformat()
-            } for c in connections]
-        })
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+# ===== WIDGETS SYSTEM =====
+import uuid
 
-@csrf_exempt
-@require_http_methods(["POST"])
-@login_required
-def fuzeobs_connect_platform(request):
-    try:
-        data = json.loads(request.body)
-        platform = data.get('platform')
+# Widget HTML generators
+def generate_widget_html(widget):
+    """Generate HTML for widget based on type"""
+    widget_type = widget.widget_type
+    config = widget.config
+    widget_id = widget.id
+    user_id = widget.user.id
+    
+    base_template = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{widget.name}</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ 
+            background: transparent; 
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+        }}
+        .widget-container {{ 
+            width: 100vw; 
+            height: 100vh; 
+            position: relative;
+        }}
+    </style>
+</head>
+<body>
+    <div class="widget-container" id="widget-{widget_id}">
+        {get_widget_content(widget_type, config, widget_id)}
+    </div>
+    <script>
+        const WIDGET_ID = {widget_id};
+        const USER_ID = {user_id};
+        const WS_URL = 'wss://bomby.us/ws/widgets/' + WIDGET_ID + '/';
         
-        if not platform:
-            return JsonResponse({'error': 'Platform required'}, status=400)
-        
-        # Generate OAuth state token
-        state = secrets.token_urlsafe(32)
-        
-        # OAuth URLs by platform
-        auth_urls = {
-            'twitch': f"https://id.twitch.tv/oauth2/authorize?client_id=YOUR_TWITCH_CLIENT_ID&redirect_uri=https://bomby.us/fuzeobs/callback/twitch&response_type=code&scope=user:read:email&state={state}",
-            'youtube': f"https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_YOUTUBE_CLIENT_ID&redirect_uri=https://bomby.us/fuzeobs/callback/youtube&response_type=code&scope=https://www.googleapis.com/auth/youtube.readonly&state={state}",
-            'kick': f"https://kick.com/oauth/authorize?client_id=YOUR_KICK_CLIENT_ID&redirect_uri=https://bomby.us/fuzeobs/callback/kick&response_type=code&scope=user:read&state={state}"
+        {get_widget_script(widget_type, config)}
+    </script>
+</body>
+</html>"""
+    
+    return base_template
+
+def get_widget_content(widget_type, config, widget_id):
+    """Get HTML content for specific widget type"""
+    if widget_type == 'alert_box':
+        return """
+        <div class="alert-container" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+            <div class="alert-image"></div>
+            <div class="alert-text" style="font-size: 32px; font-weight: bold; color: white; margin-top: 20px;"></div>
+        </div>
+        """
+    elif widget_type == 'chat_box':
+        return """
+        <div class="chat-container" style="position: absolute; bottom: 0; left: 0; width: 400px; height: 600px; background: rgba(0,0,0,0.7); overflow-y: auto; padding: 10px;">
+            <div class="chat-messages"></div>
+        </div>
+        """
+    elif widget_type == 'event_list':
+        return """
+        <div class="event-list" style="position: absolute; top: 0; right: 0; width: 300px; background: rgba(0,0,0,0.8); padding: 15px;">
+            <h3 style="color: white; margin-bottom: 10px;">Recent Events</h3>
+            <div class="events"></div>
+        </div>
+        """
+    elif widget_type == 'goal_bar':
+        return """
+        <div class="goal-container" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 600px; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px;">
+            <div class="goal-title" style="color: white; font-size: 24px; margin-bottom: 10px;">Goal Title</div>
+            <div class="progress-bar" style="width: 100%; height: 30px; background: #333; border-radius: 5px; overflow: hidden;">
+                <div class="progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00ff00, #00cc00); transition: width 0.3s;"></div>
+            </div>
+            <div class="goal-text" style="color: white; margin-top: 10px; text-align: center;">$0 / $1000</div>
+        </div>
+        """
+    return "<div>Widget content</div>"
+
+def get_widget_script(widget_type, config):
+    """Get JavaScript for specific widget type"""
+    base_script = """
+        let ws;
+        function connectWebSocket() {
+            ws = new WebSocket(WS_URL);
+            ws.onopen = () => console.log('Widget connected');
+            ws.onmessage = (event) => handleEvent(JSON.parse(event.data));
+            ws.onerror = (error) => console.error('WebSocket error:', error);
+            ws.onclose = () => setTimeout(connectWebSocket, 3000);
         }
         
-        auth_url = auth_urls.get(platform)
-        if not auth_url:
-            return JsonResponse({'error': 'Invalid platform'}, status=400)
+        function handleEvent(data) {
+            console.log('Event received:', data);
+            const eventType = data.event_type;
+            const eventData = data.event_data;
+            
+            if (eventType === 'follow') {
+                showAlert('New Follower!', eventData.username);
+            } else if (eventType === 'subscribe') {
+                showAlert('New Subscriber!', eventData.username);
+            } else if (eventType === 'bits') {
+                showAlert('Bits Donation!', eventData.username + ' - ' + eventData.amount);
+            }
+        }
+    """
+    
+    if widget_type == 'alert_box':
+        return base_script + """
+        function showAlert(title, message) {
+            const container = document.querySelector('.alert-container');
+            const text = document.querySelector('.alert-text');
+            
+            text.textContent = message;
+            container.style.display = 'block';
+            container.style.animation = 'fadeIn 0.5s';
+            
+            setTimeout(() => {
+                container.style.animation = 'fadeOut 0.5s';
+                setTimeout(() => container.style.display = 'none', 500);
+            }, 5000);
+        }
         
-        # Store state in session
-        request.session[f'oauth_state_{platform}'] = state
+        connectWebSocket();
+        """
+    elif widget_type == 'chat_box':
+        return base_script + """
+        function addChatMessage(username, message) {
+            const messages = document.querySelector('.chat-messages');
+            const msg = document.createElement('div');
+            msg.style.cssText = 'color: white; margin-bottom: 10px; padding: 5px; background: rgba(255,255,255,0.1); border-radius: 5px;';
+            msg.innerHTML = '<strong>' + username + ':</strong> ' + message;
+            messages.appendChild(msg);
+            messages.scrollTop = messages.scrollHeight;
+        }
         
-        return JsonResponse({'auth_url': auth_url, 'state': state})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.event_type === 'chat_message') {
+                addChatMessage(data.event_data.username, data.event_data.message);
+            }
+        };
+        
+        connectWebSocket();
+        """
+    
+    return base_script + "connectWebSocket();"
 
-@csrf_exempt
-@require_http_methods(["POST"])
-@login_required
-def fuzeobs_disconnect_platform(request):
-    try:
-        data = json.loads(request.body)
-        platform = data.get('platform')
-        
-        if not platform:
-            return JsonResponse({'error': 'Platform required'}, status=400)
-        
-        deleted_count = PlatformConnection.objects.filter(
-            user=request.user, 
-            platform=platform
-        ).delete()[0]
-        
-        return JsonResponse({'success': True, 'deleted': deleted_count})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+# ===== WIDGET CRUD =====
 
-# OAuth Callbacks (example for Twitch)
-@csrf_exempt
-def fuzeobs_platform_callback(request, platform):
-    """Handle OAuth callbacks from platforms"""
-    try:
-        code = request.GET.get('code')
-        state = request.GET.get('state')
-        
-        if not code or not state:
-            return JsonResponse({'error': 'Missing parameters'}, status=400)
-        
-        # Verify state
-        stored_state = request.session.get(f'oauth_state_{platform}')
-        if state != stored_state:
-            return JsonResponse({'error': 'Invalid state'}, status=400)
-        
-        # Exchange code for token (example for Twitch)
-        if platform == 'twitch':
-            import requests
-            token_response = requests.post('https://id.twitch.tv/oauth2/token', data={
-                'client_id': 'YOUR_CLIENT_ID',
-                'client_secret': 'YOUR_CLIENT_SECRET',
-                'code': code,
-                'grant_type': 'authorization_code',
-                'redirect_uri': 'https://bomby.us/fuzeobs/callback/twitch'
-            })
-            
-            if token_response.status_code != 200:
-                return JsonResponse({'error': 'Token exchange failed'}, status=400)
-            
-            token_data = token_response.json()
-            access_token = token_data['access_token']
-            
-            # Get user info
-            user_response = requests.get('https://api.twitch.tv/helix/users', headers={
-                'Authorization': f'Bearer {access_token}',
-                'Client-Id': 'YOUR_CLIENT_ID'
-            })
-            
-            if user_response.status_code != 200:
-                return JsonResponse({'error': 'Failed to get user info'}, status=400)
-            
-            user_data = user_response.json()['data'][0]
-            
-            # Save connection
-            PlatformConnection.objects.update_or_create(
-                user=request.user,
-                platform=platform,
-                defaults={
-                    'platform_username': user_data['display_name'],
-                    'access_token': access_token,
-                    'refresh_token': token_data.get('refresh_token', '')
-                }
-            )
-            
-            return JsonResponse({'success': True, 'username': user_data['display_name']})
-        
-        return JsonResponse({'error': 'Platform not implemented'}, status=400)
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-# Media Library Management
 @csrf_exempt
 @require_http_methods(["GET"])
-@login_required
-def fuzeobs_get_media(request):
-    try:
-        media = MediaLibrary.objects.filter(user=request.user)
-        total_size = sum(m.file_size for m in media)
-        max_size = 25 * 1024 * 1024  # 25MB
-        
-        return JsonResponse({
-            'media': [{
-                'id': m.id,
-                'name': m.name,
-                'type': m.media_type,
-                'url': m.file_url,
-                'size': m.file_size,
-                'uploaded_at': m.uploaded_at.isoformat()
-            } for m in media],
-            'total_size': total_size,
-            'max_size': max_size,
-            'remaining': max_size - total_size
-        })
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+@require_tier('free')
+def fuzeobs_get_widgets(request):
+    """Get all widgets for authenticated user"""
+    user = request.fuzeobs_user
+    widgets = WidgetConfig.objects.filter(user=user).order_by('-updated_at')
+    
+    return JsonResponse({
+        'widgets': [{
+            'id': w.id,
+            'type': w.widget_type,
+            'name': w.name,
+            'config': w.config,
+            'url': w.gcs_url or f'https://storage.googleapis.com/bomby-user-uploads/fuzeobs-widgets/{user.id}/{w.id}.html',
+            'created_at': w.created_at.isoformat(),
+            'updated_at': w.updated_at.isoformat()
+        } for w in widgets]
+    })
 
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
+@require_tier('free')
+def fuzeobs_save_widget(request):
+    """Create or update widget"""
+    user = request.fuzeobs_user
+    
+    try:
+        data = json.loads(request.body)
+        widget_id = data.get('widget_id')
+        
+        if widget_id:
+            # Update existing
+            widget = WidgetConfig.objects.get(id=widget_id, user=user)
+            widget.name = data.get('name', widget.name)
+            widget.config = data.get('config', widget.config)
+        else:
+            # Create new
+            widget = WidgetConfig.objects.create(
+                user=user,
+                widget_type=data['widget_type'],
+                name=data['name'],
+                config=data.get('config', {})
+            )
+        
+        # Generate and upload HTML
+        widget_html = generate_widget_html(widget)
+        
+        client = storage.Client()
+        bucket = client.bucket('bomby-user-uploads')
+        blob_path = f'fuzeobs-widgets/{user.id}/{widget.id}.html'
+        blob = bucket.blob(blob_path)
+        blob.upload_from_string(widget_html, content_type='text/html')
+        blob.make_public()
+        
+        widget.gcs_url = blob.public_url
+        widget.save()
+        
+        # Track activity
+        UserActivity.objects.create(
+            user=user,
+            activity_type='widget_create' if not widget_id else 'widget_update',
+            source='app',
+            details={'widget_type': widget.widget_type, 'widget_id': widget.id}
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'id': widget.id,
+            'url': widget.gcs_url,
+            'widget': {
+                'id': widget.id,
+                'type': widget.widget_type,
+                'name': widget.name,
+                'config': widget.config,
+                'url': widget.gcs_url
+            }
+        })
+        
+    except WidgetConfig.DoesNotExist:
+        return JsonResponse({'error': 'Widget not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+@require_http_methods(["DELETE"])
+@require_tier('free')
+def fuzeobs_delete_widget(request, widget_id):
+    """Delete widget"""
+    user = request.fuzeobs_user
+    
+    try:
+        widget = WidgetConfig.objects.get(id=widget_id, user=user)
+        
+        # Delete from GCS
+        try:
+            client = storage.Client()
+            bucket = client.bucket('bomby-user-uploads')
+            blob_path = f'fuzeobs-widgets/{user.id}/{widget.id}.html'
+            blob = bucket.blob(blob_path)
+            blob.delete()
+        except:
+            pass  # Ignore GCS errors
+        
+        widget.delete()
+        
+        return JsonResponse({'success': True})
+        
+    except WidgetConfig.DoesNotExist:
+        return JsonResponse({'error': 'Widget not found'}, status=404)
+
+# ===== PLATFORM CONNECTIONS =====
+
+PLATFORM_OAUTH_CONFIG = {
+    'twitch': {
+        'auth_url': 'https://id.twitch.tv/oauth2/authorize',
+        'token_url': 'https://id.twitch.tv/oauth2/token',
+        'client_id': os.environ.get('TWITCH_CLIENT_ID', ''),
+        'client_secret': os.environ.get('TWITCH_CLIENT_SECRET', ''),
+        'scopes': ['channel:read:subscriptions', 'bits:read', 'channel:read:redemptions']
+    },
+    'youtube': {
+        'auth_url': 'https://accounts.google.com/o/oauth2/v2/auth',
+        'token_url': 'https://oauth2.googleapis.com/token',
+        'client_id': os.environ.get('YOUTUBE_CLIENT_ID', ''),
+        'client_secret': os.environ.get('YOUTUBE_CLIENT_SECRET', ''),
+        'scopes': ['https://www.googleapis.com/auth/youtube.readonly']
+    },
+    'kick': {
+        'auth_url': 'https://kick.com/oauth2/authorize',
+        'token_url': 'https://kick.com/oauth2/token',
+        'client_id': os.environ.get('KICK_CLIENT_ID', ''),
+        'client_secret': os.environ.get('KICK_CLIENT_SECRET', ''),
+        'scopes': ['channel:subscriptions', 'channel:events']
+    }
+}
+
+@csrf_exempt
+@require_http_methods(["GET"])
+@require_tier('free')
+def fuzeobs_get_platforms(request):
+    """Get connected platforms for user"""
+    user = request.fuzeobs_user
+    platforms = PlatformConnection.objects.filter(user=user)
+    
+    return JsonResponse({
+        'platforms': [{
+            'platform': p.platform,
+            'username': p.platform_username,
+            'connected_at': p.connected_at.isoformat(),
+            'expires_at': p.expires_at.isoformat() if p.expires_at else None
+        } for p in platforms]
+    })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@require_tier('free')
+def fuzeobs_connect_platform(request):
+    """Initiate OAuth flow for platform"""
+    user = request.fuzeobs_user
+    
+    try:
+        data = json.loads(request.body)
+        platform = data['platform']
+        
+        if platform not in PLATFORM_OAUTH_CONFIG:
+            return JsonResponse({'error': 'Invalid platform'}, status=400)
+        
+        config = PLATFORM_OAUTH_CONFIG[platform]
+        
+        # Generate state token for CSRF protection
+        state = secrets.token_urlsafe(32)
+        cache.set(f'oauth_state_{state}', {'user_id': user.id, 'platform': platform}, timeout=600)
+        
+        # Build OAuth URL
+        redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
+        scopes = ' '.join(config['scopes'])
+        
+        auth_url = f"{config['auth_url']}?client_id={config['client_id']}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}&state={state}"
+        
+        return JsonResponse({
+            'success': True,
+            'auth_url': auth_url,
+            'state': state
+        })
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@require_tier('free')
+def fuzeobs_disconnect_platform(request):
+    """Disconnect platform"""
+    user = request.fuzeobs_user
+    
+    try:
+        data = json.loads(request.body)
+        platform = data['platform']
+        
+        PlatformConnection.objects.filter(user=user, platform=platform).delete()
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+def fuzeobs_platform_callback(request, platform):
+    """OAuth callback handler"""
+    code = request.GET.get('code')
+    state = request.GET.get('state')
+    
+    if not code or not state:
+        return HttpResponse('Invalid callback', status=400)
+    
+    # Verify state
+    state_data = cache.get(f'oauth_state_{state}')
+    if not state_data or state_data['platform'] != platform:
+        return HttpResponse('Invalid state', status=400)
+    
+    user = User.objects.get(id=state_data['user_id'])
+    config = PLATFORM_OAUTH_CONFIG[platform]
+    
+    # Exchange code for token
+    import requests
+    redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
+    
+    token_response = requests.post(config['token_url'], data={
+        'client_id': config['client_id'],
+        'client_secret': config['client_secret'],
+        'code': code,
+        'grant_type': 'authorization_code',
+        'redirect_uri': redirect_uri
+    })
+    
+    if token_response.status_code != 200:
+        return HttpResponse('Token exchange failed', status=400)
+    
+    token_data = token_response.json()
+    access_token = token_data['access_token']
+    refresh_token = token_data.get('refresh_token', '')
+    expires_in = token_data.get('expires_in', 3600)
+    
+    # Get user info from platform
+    username = get_platform_username(platform, access_token)
+    
+    # Save connection
+    PlatformConnection.objects.update_or_create(
+        user=user,
+        platform=platform,
+        defaults={
+            'platform_username': username,
+            'access_token': access_token,
+            'refresh_token': refresh_token,
+            'expires_at': timezone.now() + timedelta(seconds=expires_in)
+        }
+    )
+    
+    # Clean up state
+    cache.delete(f'oauth_state_{state}')
+    
+    return render(request, 'FUZEOBS/platform_connected.html', {'platform': platform})
+
+def get_platform_username(platform, access_token):
+    """Get username from platform API"""
+    import requests
+    
+    if platform == 'twitch':
+        headers = {
+            'Authorization': f'Bearer {access_token}',
+            'Client-Id': PLATFORM_OAUTH_CONFIG['twitch']['client_id']
+        }
+        response = requests.get('https://api.twitch.tv/helix/users', headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            return data['data'][0]['login']
+    
+    elif platform == 'youtube':
+        response = requests.get(
+            'https://www.googleapis.com/youtube/v3/channels',
+            params={'part': 'snippet', 'mine': 'true'},
+            headers={'Authorization': f'Bearer {access_token}'}
+        )
+        if response.status_code == 200:
+            data = response.json()
+            return data['items'][0]['snippet']['title']
+    
+    elif platform == 'kick':
+        headers = {'Authorization': f'Bearer {access_token}'}
+        response = requests.get('https://kick.com/api/v1/user', headers=headers)
+        if response.status_code == 200:
+            data = response.json()
+            return data['username']
+    
+    return 'Unknown'
+
+# ===== MEDIA LIBRARY =====
+
+@csrf_exempt
+@require_http_methods(["GET"])
+@require_tier('free')
+def fuzeobs_get_media(request):
+    """Get user's media library"""
+    user = request.fuzeobs_user
+    media = MediaLibrary.objects.filter(user=user).order_by('-uploaded_at')
+    
+    total_size = sum(m.file_size for m in media)
+    max_size = 25 * 1024 * 1024  # 25MB for free, could increase for pro
+    
+    if user.fuzeobs_tier in ['pro', 'lifetime']:
+        max_size = 100 * 1024 * 1024  # 100MB
+    
+    return JsonResponse({
+        'media': [{
+            'id': m.id,
+            'name': m.name,
+            'type': m.media_type,
+            'url': m.file_url,
+            'size': m.file_size,
+            'uploaded_at': m.uploaded_at.isoformat()
+        } for m in media],
+        'total_size': total_size,
+        'max_size': max_size
+    })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@require_tier('free')
 def fuzeobs_upload_media(request):
+    """Upload media file"""
+    user = request.fuzeobs_user
+    
     try:
         file = request.FILES.get('file')
         if not file:
             return JsonResponse({'error': 'No file provided'}, status=400)
         
-        # Check file size
-        if file.size > 25 * 1024 * 1024:  # 25MB
-            return JsonResponse({'error': 'File too large (max 25MB)'}, status=400)
+        # Check size limits
+        max_size = 25 * 1024 * 1024 if user.fuzeobs_tier == 'free' else 100 * 1024 * 1024
+        current_size = sum(m.file_size for m in MediaLibrary.objects.filter(user=user))
         
-        # Check total storage
-        current_size = sum(m.file_size for m in MediaLibrary.objects.filter(user=request.user))
-        if current_size + file.size > 25 * 1024 * 1024:
-            return JsonResponse({'error': 'Storage limit exceeded (25MB total)'}, status=400)
+        if current_size + file.size > max_size:
+            return JsonResponse({'error': 'Storage limit exceeded'}, status=400)
         
-        # Validate file type
-        allowed_types = ['image/', 'audio/', 'video/']
-        if not any(file.content_type.startswith(t) for t in allowed_types):
+        # Determine media type
+        content_type = file.content_type
+        if content_type.startswith('image'):
+            media_type = 'image'
+        elif content_type.startswith('audio'):
+            media_type = 'sound'
+        elif content_type.startswith('video'):
+            media_type = 'video'
+        else:
             return JsonResponse({'error': 'Invalid file type'}, status=400)
         
         # Upload to GCS
         client = storage.Client()
         bucket = client.bucket('bomby-user-uploads')
-        blob_name = f'fuzeobs-media/{request.user.id}/{file.name}'
-        blob = bucket.blob(blob_name)
-        blob.upload_from_file(file, content_type=file.content_type)
+        file_ext = file.name.split('.')[-1]
+        blob_path = f'fuzeobs-media/{user.id}/{uuid.uuid4()}.{file_ext}'
+        blob = bucket.blob(blob_path)
+        blob.upload_from_file(file, content_type=content_type)
         blob.make_public()
-        
-        # Determine media type
-        if file.content_type.startswith('image/'):
-            media_type = 'image'
-        elif file.content_type.startswith('audio/'):
-            media_type = 'sound'
-        else:
-            media_type = 'video'
         
         # Save to database
         media = MediaLibrary.objects.create(
-            user=request.user,
+            user=user,
             name=file.name,
             media_type=media_type,
             file_url=blob.public_url,
@@ -1439,78 +1759,49 @@ def fuzeobs_upload_media(request):
                 'size': media.file_size
             }
         })
+        
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': str(e)}, status=400)
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
-@login_required
+@require_tier('free')
 def fuzeobs_delete_media(request, media_id):
+    """Delete media file"""
+    user = request.fuzeobs_user
+    
     try:
-        media = get_object_or_404(MediaLibrary, id=media_id, user=request.user)
+        media = MediaLibrary.objects.get(id=media_id, user=user)
         
         # Delete from GCS
         try:
             client = storage.Client()
             bucket = client.bucket('bomby-user-uploads')
-            blob_name = media.file_url.split('bomby-user-uploads/')[-1]
-            blob = bucket.blob(blob_name)
+            # Extract blob path from URL
+            blob_path = media.file_url.split('bomby-user-uploads/')[-1]
+            blob = bucket.blob(blob_path)
             blob.delete()
         except:
-            pass  # Continue even if GCS delete fails
+            pass
         
         media.delete()
+        
         return JsonResponse({'success': True})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        
+    except MediaLibrary.DoesNotExist:
+        return JsonResponse({'error': 'Media not found'}, status=404)
 
-# Widget Event Configuration
-@csrf_exempt
-@require_http_methods(["POST"])
-@login_required
-def fuzeobs_save_widget_event(request):
-    try:
-        data = json.loads(request.body)
-        widget_id = data.get('widget_id')
-        event_type = data.get('event_type')
-        platform = data.get('platform')
-        config = data.get('config', {})
-        enabled = data.get('enabled', True)
-        
-        if not all([widget_id, event_type, platform]):
-            return JsonResponse({'error': 'Missing required fields'}, status=400)
-        
-        # Verify widget ownership
-        widget = get_object_or_404(WidgetConfig, id=widget_id, user=request.user)
-        
-        # Validate platform connection
-        if not PlatformConnection.objects.filter(user=request.user, platform=platform).exists():
-            return JsonResponse({'error': 'Platform not connected'}, status=400)
-        
-        event, created = WidgetEvent.objects.update_or_create(
-            widget=widget,
-            event_type=event_type,
-            platform=platform,
-            defaults={
-                'config': config,
-                'enabled': enabled
-            }
-        )
-        
-        return JsonResponse({
-            'success': True,
-            'event_id': event.id,
-            'created': created
-        })
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+# ===== WIDGET EVENTS =====
 
 @csrf_exempt
 @require_http_methods(["GET"])
-@login_required
+@require_tier('free')
 def fuzeobs_get_widget_events(request, widget_id):
+    """Get event configurations for widget"""
+    user = request.fuzeobs_user
+    
     try:
-        widget = get_object_or_404(WidgetConfig, id=widget_id, user=request.user)
+        widget = WidgetConfig.objects.get(id=widget_id, user=user)
         events = WidgetEvent.objects.filter(widget=widget)
         
         return JsonResponse({
@@ -1522,90 +1813,71 @@ def fuzeobs_get_widget_events(request, widget_id):
                 'config': e.config
             } for e in events]
         })
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        
+    except WidgetConfig.DoesNotExist:
+        return JsonResponse({'error': 'Widget not found'}, status=404)
 
-@csrf_exempt
-@require_http_methods(["DELETE"])
-@login_required
-def fuzeobs_delete_widget_event(request, event_id):
-    try:
-        event = get_object_or_404(WidgetEvent, id=event_id, widget__user=request.user)
-        event.delete()
-        return JsonResponse({'success': True})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-# Enhanced widget generation with event support
 @csrf_exempt
 @require_http_methods(["POST"])
-@login_required
-def fuzeobs_save_widget(request):
+@require_tier('free')
+def fuzeobs_save_widget_event(request):
+    """Save event configuration"""
+    user = request.fuzeobs_user
+    
     try:
         data = json.loads(request.body)
-        widget_type = data.get('widget_type')
-        name = data.get('name')
+        widget_id = data['widget_id']
+        event_type = data['event_type']
+        platform = data['platform']
         config = data.get('config', {})
         
-        if not widget_type or not name:
-            return JsonResponse({'error': 'Missing required fields'}, status=400)
+        widget = WidgetConfig.objects.get(id=widget_id, user=user)
         
-        # Generate widget HTML
-        from .widget_generator import generate_widget_html, upload_to_gcs
-        html = generate_widget_html(request.user.id, widget_type, config)
-        url = upload_to_gcs(html, request.user.id, widget_type)
-        
-        # Save widget
-        widget = WidgetConfig.objects.create(
-            user=request.user,
-            widget_type=widget_type,
-            name=name,
-            config=config,
-            gcs_url=url
+        event, created = WidgetEvent.objects.update_or_create(
+            widget=widget,
+            event_type=event_type,
+            platform=platform,
+            defaults={
+                'enabled': True,
+                'config': config
+            }
         )
+        
+        # Regenerate widget HTML with new config
+        widget_html = generate_widget_html(widget)
+        client = storage.Client()
+        bucket = client.bucket('bomby-user-uploads')
+        blob_path = f'fuzeobs-widgets/{user.id}/{widget.id}.html'
+        blob = bucket.blob(blob_path)
+        blob.upload_from_string(widget_html, content_type='text/html')
         
         return JsonResponse({
             'success': True,
-            'id': widget.id,
-            'name': widget.name,
-            'url': url,
-            'widget_type': widget_type
+            'event': {
+                'id': event.id,
+                'event_type': event.event_type,
+                'platform': event.platform,
+                'enabled': event.enabled,
+                'config': event.config
+            }
         })
+        
+    except WidgetConfig.DoesNotExist:
+        return JsonResponse({'error': 'Widget not found'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
-
-@csrf_exempt
-@require_http_methods(["GET"])
-@login_required
-def fuzeobs_get_widgets(request):
-    try:
-        widgets = WidgetConfig.objects.filter(user=request.user)
-        return JsonResponse({
-            'widgets': [{
-                'id': w.id,
-                'type': w.widget_type,
-                'name': w.name,
-                'config': w.config,
-                'url': w.gcs_url,
-                'created_at': w.created_at.isoformat()
-            } for w in widgets]
-        })
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': str(e)}, status=400)
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
-@login_required
-def fuzeobs_delete_widget(request, widget_id):
+@require_tier('free')
+def fuzeobs_delete_widget_event(request, event_id):
+    """Delete event configuration"""
+    user = request.fuzeobs_user
+    
     try:
-        widget = get_object_or_404(WidgetConfig, id=widget_id, user=request.user)
-        
-        # Delete associated events
-        WidgetEvent.objects.filter(widget=widget).delete()
-        
-        # Delete widget
-        widget.delete()
-        
+        event = WidgetEvent.objects.get(id=event_id, widget__user=user)
+        event.delete()
         return JsonResponse({'success': True})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        
+    except WidgetEvent.DoesNotExist:
+        return JsonResponse({'error': 'Event not found'}, status=404)
