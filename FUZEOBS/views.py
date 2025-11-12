@@ -1264,7 +1264,7 @@ def generate_widget_html(widget):
     <script>
         const WIDGET_ID = {widget_id};
         const USER_ID = {user_id};
-        const WS_URL = 'wss://bomby.us/ws/widgets/' + WIDGET_ID + '/';
+        const WS_URL = 'wss://bomby.us/ws/fuzeobs-alerts/' + USER_ID + '/';
         
         {get_widget_script(widget_type, config)}
     </script>
