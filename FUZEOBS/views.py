@@ -1993,7 +1993,7 @@ def fuzeobs_test_alert(request):
                 'data': {
                     'event_type': event_type,
                     'platform': platform,
-                    'event_data': {'username': 'TestUser',
+                    'event_data': {'username': 'Test_User',
                     'amount': '100' if event_type in ['bits', 'superchat'] else None,
                     }
                 }
