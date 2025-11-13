@@ -1462,6 +1462,7 @@ def fuzeobs_save_widget(request):
             widget = WidgetConfig.objects.get(id=widget_id, user=user)
             widget.name = data.get('name', widget.name)
             widget.config = data.get('config', widget.config)
+            widget.save()
         else:
             widget = WidgetConfig.objects.create(
                 user=user,
@@ -1470,16 +1471,9 @@ def fuzeobs_save_widget(request):
                 config=data.get('config', {})
             )
         
+        # Generate and upload widget HTML
         widget_html = generate_widget_html(widget.user.id, widget.widget_type, widget.config)
-        
-        client = storage.Client()
-        bucket = client.bucket('fuzeobs-public')
-        blob = bucket.blob(f'widgets/{user.id}/{widget.id}.html')
-        blob.upload_from_string(widget_html, content_type='text/html')
-        blob.make_public()
-        
-        # Use bomby.us URL
-        widget.gcs_url = f'https://bomby.us/fuzeobs/widgets/{user.id}/{widget.id}.html'
+        widget.gcs_url = upload_to_gcs(widget_html, widget.user.id, widget.widget_type)
         widget.save()
         
         UserActivity.objects.create(
