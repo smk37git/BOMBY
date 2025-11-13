@@ -22,169 +22,88 @@ def generate_alert_box_html(user_id, config):
 <head>
 <meta charset="UTF-8">
 <style>
-body {{
-    background: transparent;
-    margin: 0;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-}}
-#alert-container {{
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    display: none;
-}}
-
-/* Layout variants */
-.layout-standard, .layout-image-above {{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}}
-.layout-image-left {{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 20px;
-}}
-.layout-text-over-image {{
-    position: relative;
-    display: inline-block;
-}}
-.layout-text-over-image .alert-text {{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-}}
-
-.alert-image {{ max-width: 300px; display: block; }}
-.layout-image-left .alert-image {{ max-width: 200px; }}
-.layout-text-over-image .alert-image {{ max-width: 400px; }}
-
-/* Animations */
-.anim-fade {{ animation: fadeIn 0.5s forwards; }}
-.anim-slide {{ animation: slideIn 0.5s forwards; }}
-.anim-bounce {{ animation: bounceIn 0.5s forwards; }}
-.anim-zoom {{ animation: zoomIn 0.5s forwards; }}
-
-.anim-fade.out {{ animation: fadeOut 0.5s forwards; }}
-.anim-slide.out {{ animation: fadeOut 0.5s forwards; }}
-.anim-bounce.out {{ animation: fadeOut 0.5s forwards; }}
-.anim-zoom.out {{ animation: fadeOut 0.5s forwards; }}
-
+body {{ margin: 0; overflow: hidden; background: transparent; font-family: Arial; }}
+#container {{ position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); visibility: hidden; opacity: 0; }}
+.layout-standard, .layout-image_above {{ display: flex; flex-direction: column; align-items: center; text-align: center; gap: 20px; }}
+.layout-image_left {{ display: flex; flex-direction: row; align-items: center; gap: 20px; }}
+.layout-text_over_image {{ position: relative; display: inline-block; }}
+.layout-text_over_image .text {{ position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; text-align: center; }}
+.img {{ max-width: 300px; display: block; }}
+.layout-image_left .img {{ max-width: 200px; }}
+.layout-text_over_image .img {{ max-width: 400px; }}
 @keyframes fadeIn {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
 @keyframes slideIn {{ from {{ opacity: 0; transform: translateY(-100px); }} to {{ opacity: 1; transform: translateY(0); }} }}
-@keyframes bounceIn {{
-    0% {{ opacity: 0; transform: scale(0.3); }}
-    50% {{ opacity: 1; transform: scale(1.05); }}
-    70% {{ transform: scale(0.9); }}
-    100% {{ opacity: 1; transform: scale(1); }}
-}}
+@keyframes bounceIn {{ 0% {{ opacity: 0; transform: scale(0.3); }} 50% {{ transform: scale(1.05); }} 70% {{ transform: scale(0.9); }} 100% {{ opacity: 1; transform: scale(1); }} }}
 @keyframes zoomIn {{ from {{ opacity: 0; transform: scale(0); }} to {{ opacity: 1; transform: scale(1); }} }}
-@keyframes fadeOut {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
-
-/* Text animations */
-.text-wiggle {{ animation: textWiggle 1s infinite; }}
-.text-wave {{ animation: textWave 1s infinite; }}
-.text-bounce {{ animation: textBounce 1s infinite; }}
-.text-pulse {{ animation: textPulse 1s infinite; }}
-
-@keyframes textWiggle {{ 0%, 100% {{ transform: rotate(0deg); }} 25% {{ transform: rotate(-3deg); }} 75% {{ transform: rotate(3deg); }} }}
-@keyframes textWave {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-8px); }} }}
-@keyframes textBounce {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-12px); }} }}
-@keyframes textPulse {{ 0%, 100% {{ transform: scale(1); }} 50% {{ transform: scale(1.08); }} }}
+@keyframes fadeOut {{ to {{ opacity: 0; visibility: hidden; }} }}
+@keyframes wiggle {{ 0%, 100% {{ transform: rotate(0deg); }} 25% {{ transform: rotate(-3deg); }} 75% {{ transform: rotate(3deg); }} }}
+@keyframes wave {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-8px); }} }}
+@keyframes bounce {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-12px); }} }}
+@keyframes pulse {{ 0%, 100% {{ transform: scale(1); }} 50% {{ transform: scale(1.08); }} }}
 </style>
 </head>
 <body>
-<div id="alert-container">
-    <img class="alert-image" id="alert-img" style="display:none">
-    <div class="alert-text" id="alert-text"></div>
-</div>
-<audio id="alertSound" preload="auto"></audio>
+<div id="container"></div>
+<audio id="sound"></audio>
 <script>
-const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/{user_id}`);
-const eventConfigs = {{}};
-let currentTimeout;
-
-function loadConfigs() {{
-    fetch(`/fuzeobs/widgets/events/config/{user_id}?t=${{Date.now()}}`)
-        .then(r => r.json())
-        .then(data => {{
-            Object.keys(eventConfigs).forEach(k => delete eventConfigs[k]);
-            Object.assign(eventConfigs, data.configs);
-        }})
-        .catch(() => {{}});
-}}
-
-loadConfigs();
-setInterval(loadConfigs, 3000);
+const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}');
+let timeout;
 
 ws.onmessage = (e) => {{
-    const data = JSON.parse(e.data);
-    const configKey = `${{data.platform}}-${{data.event_type}}`;
-    const cfg = eventConfigs[configKey];
-    
-    if (!cfg || !cfg.enabled) return;
-    if (currentTimeout) clearTimeout(currentTimeout);
-    
-    const eventData = data.event_data || {{}};
-    let message = (cfg.message_template || '{{{{name}}}} just followed!')
-        .replace(/{{{{name}}}}/g, eventData.username || "Someone")
-        .replace(/{{{{amount}}}}/g, eventData.amount || '');
-    
-    const container = document.getElementById('alert-container');
-    const img = document.getElementById('alert-img');
-    const text = document.getElementById('alert-text');
-    
-    // Reset
-    container.className = '';
-    container.style.display = 'none';
-    img.style.display = 'none';
-    text.className = 'alert-text';
-    
-    // Apply layout
-    const layout = cfg.layout || 'standard';
-    container.className = `layout-${{layout}}`;
-    
-    // Image
-    if (cfg.image_url) {{
-        img.src = cfg.image_url;
-        img.style.display = 'block';
-    }}
-    
-    // Text styling
-    text.textContent = message;
-    text.style.fontSize = (cfg.font_size || 32) + 'px';
-    text.style.fontWeight = cfg.font_weight || 'normal';
-    text.style.color = cfg.text_color || '#FFFFFF';
-    text.style.textShadow = cfg.text_shadow !== false ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none';
-    
-    const textAnim = cfg.text_animation || 'none';
-    if (textAnim !== 'none') text.classList.add(`text-${{textAnim}}`);
-    
-    // Show with animation
-    const alertAnim = cfg.alert_animation || 'fade';
-    container.classList.add(`anim-${{alertAnim}}`);
-    container.style.display = layout === 'text-over-image' ? 'inline-block' : 'flex';
-    
-    // Sound
-    if (cfg.sound_url) {{
-        const audio = document.getElementById('alertSound');
-        audio.src = cfg.sound_url;
-        audio.volume = (cfg.sound_volume || 50) / 100;
-        audio.play().catch(() => {{}});
-    }}
-    
-    // Hide after duration
-    const duration = (cfg.duration || 5) * 1000;
-    currentTimeout = setTimeout(() => {{
-        container.classList.add('out');
-        setTimeout(() => {{ container.style.display = 'none'; }}, 500);
-    }}, duration);
+  const alert = JSON.parse(e.data);
+  if (!alert.config || !alert.config.enabled) return;
+  
+  const c = alert.config;
+  const d = alert.event_data || {{}};
+  
+  // Build message
+  let msg = (c.message_template || '{{{{name}}}} just followed!')
+    .replace(/{{{{name}}}}/g, d.username || 'Someone')
+    .replace(/{{{{amount}}}}/g, d.amount || '');
+  
+  // Build HTML
+  const layout = c.layout || 'standard';
+  let html = '';
+  
+  if (layout === 'text_over_image' && c.image_url) {{
+    html = `<div class="layout-text_over_image"><img class="img" src="${{c.image_url}}"><div class="text">${{msg}}</div></div>`;
+  }} else {{
+    html = `<div class="layout-${{layout}}">`;
+    if (c.image_url) html += `<img class="img" src="${{c.image_url}}">`;
+    html += `<div class="text">${{msg}}</div></div>`;
+  }}
+  
+  // Inject
+  const container = document.getElementById('container');
+  container.innerHTML = html;
+  
+  // Style text
+  const text = container.querySelector('.text');
+  text.style.fontSize = (c.font_size || 32) + 'px';
+  text.style.fontWeight = c.font_weight || 'normal';
+  text.style.color = c.text_color || '#FFF';
+  text.style.textShadow = c.text_shadow !== false ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none';
+  
+  const textAnim = c.text_animation || 'none';
+  if (textAnim !== 'none') text.style.animation = `${{textAnim}} 1s infinite`;
+  
+  // Show
+  const alertAnim = c.alert_animation || 'fade';
+  container.style.cssText = `animation: ${{alertAnim}}In 0.5s forwards; visibility: visible;`;
+  
+  // Sound
+  if (c.sound_url) {{
+    const audio = document.getElementById('sound');
+    audio.src = c.sound_url;
+    audio.volume = (c.sound_volume || 50) / 100;
+    audio.play().catch(() => {{}});
+  }}
+  
+  // Hide
+  if (timeout) clearTimeout(timeout);
+  timeout = setTimeout(() => {{
+    container.style.animation = 'fadeOut 0.5s forwards';
+  }}, (c.duration || 5) * 1000);
 }};
 </script>
 </body>
