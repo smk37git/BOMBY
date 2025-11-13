@@ -17,7 +17,6 @@ def generate_widget_html(user_id, widget_type, config):
         raise ValueError(f"Unknown widget type: {widget_type}")
 
 def generate_alert_box_html(user_id, config):
-    """Generate alert box HTML with event support"""
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -27,212 +26,166 @@ body {{
     background: transparent;
     margin: 0;
     overflow: hidden;
-    font-family: 'Arial', sans-serif;
+    font-family: Arial, sans-serif;
 }}
-#container {{
-    position: relative;
-    width: 100%;
-    height: 100vh;
+#alert-container {{
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
 }}
 
-@keyframes fadeIn {{
-    0% {{ opacity: 0; }}
-    100% {{ opacity: 1; }}
+/* Layout variants */
+.layout-standard, .layout-image-above {{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }}
-@keyframes slideIn {{
-    0% {{ opacity: 0; transform: translateY(-100px); }}
-    100% {{ opacity: 1; transform: translateY(0); }}
+.layout-image-left {{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
 }}
+.layout-text-over-image {{
+    position: relative;
+    display: inline-block;
+}}
+.layout-text-over-image .alert-text {{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 90%;
+}}
+
+.alert-image {{ max-width: 300px; display: block; }}
+.layout-image-left .alert-image {{ max-width: 200px; }}
+.layout-text-over-image .alert-image {{ max-width: 400px; }}
+
+/* Animations */
+.anim-fade {{ animation: fadeIn 0.5s forwards; }}
+.anim-slide {{ animation: slideIn 0.5s forwards; }}
+.anim-bounce {{ animation: bounceIn 0.5s forwards; }}
+.anim-zoom {{ animation: zoomIn 0.5s forwards; }}
+
+.anim-fade.out {{ animation: fadeOut 0.5s forwards; }}
+.anim-slide.out {{ animation: fadeOut 0.5s forwards; }}
+.anim-bounce.out {{ animation: fadeOut 0.5s forwards; }}
+.anim-zoom.out {{ animation: fadeOut 0.5s forwards; }}
+
+@keyframes fadeIn {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+@keyframes slideIn {{ from {{ opacity: 0; transform: translateY(-100px); }} to {{ opacity: 1; transform: translateY(0); }} }}
 @keyframes bounceIn {{
     0% {{ opacity: 0; transform: scale(0.3); }}
     50% {{ opacity: 1; transform: scale(1.05); }}
     70% {{ transform: scale(0.9); }}
     100% {{ opacity: 1; transform: scale(1); }}
 }}
-@keyframes zoomIn {{
-    0% {{ opacity: 0; transform: scale(0); }}
-    100% {{ opacity: 1; transform: scale(1); }}
-}}
+@keyframes zoomIn {{ from {{ opacity: 0; transform: scale(0); }} to {{ opacity: 1; transform: scale(1); }} }}
+@keyframes fadeOut {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
 
-@keyframes textWiggle {{
-    0%, 100% {{ transform: rotate(0deg); }}
-    25% {{ transform: rotate(-3deg); }}
-    75% {{ transform: rotate(3deg); }}
-}}
-@keyframes textWave {{
-    0%, 100% {{ transform: translateY(0); }}
-    50% {{ transform: translateY(-8px); }}
-}}
-@keyframes textBounce {{
-    0%, 100% {{ transform: translateY(0); }}
-    50% {{ transform: translateY(-12px); }}
-}}
-@keyframes textPulse {{
-    0%, 100% {{ transform: scale(1); }}
-    50% {{ transform: scale(1.08); }}
-}}
+/* Text animations */
+.text-wiggle {{ animation: textWiggle 1s infinite; }}
+.text-wave {{ animation: textWave 1s infinite; }}
+.text-bounce {{ animation: textBounce 1s infinite; }}
+.text-pulse {{ animation: textPulse 1s infinite; }}
 
-@keyframes fadeOut {{
-    0% {{ opacity: 1; }}
-    100% {{ opacity: 0; }}
-}}
+@keyframes textWiggle {{ 0%, 100% {{ transform: rotate(0deg); }} 25% {{ transform: rotate(-3deg); }} 75% {{ transform: rotate(3deg); }} }}
+@keyframes textWave {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-8px); }} }}
+@keyframes textBounce {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-12px); }} }}
+@keyframes textPulse {{ 0%, 100% {{ transform: scale(1); }} 50% {{ transform: scale(1.08); }} }}
 </style>
 </head>
 <body>
-<div id="container"></div>
+<div id="alert-container">
+    <img class="alert-image" id="alert-img" style="display:none">
+    <div class="alert-text" id="alert-text"></div>
+</div>
 <audio id="alertSound" preload="auto"></audio>
 <script>
-const userId = '{user_id}';
-const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}`);
+const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/{user_id}`);
 const eventConfigs = {{}};
+let currentTimeout;
 
-// Load configs and auto-reload when changed
 function loadConfigs() {{
-    fetch(`/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now()}}`)
+    fetch(`/fuzeobs/widgets/events/config/{user_id}?t=${{Date.now()}}`)
         .then(r => r.json())
         .then(data => {{
-            const newVersion = JSON.stringify(data.configs);
-            if (newVersion !== JSON.stringify(eventConfigs)) {{
-                Object.keys(eventConfigs).forEach(k => delete eventConfigs[k]);
-                Object.assign(eventConfigs, data.configs);
-                console.log('Configs updated:', eventConfigs);
-            }}
+            Object.keys(eventConfigs).forEach(k => delete eventConfigs[k]);
+            Object.assign(eventConfigs, data.configs);
         }})
-        .catch(err => console.log('Config error:', err));
+        .catch(() => {{}});
 }}
 
 loadConfigs();
-setInterval(loadConfigs, 3000); // Auto-poll like StreamLabs
+setInterval(loadConfigs, 3000);
 
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
     const configKey = `${{data.platform}}-${{data.event_type}}`;
-    const config = eventConfigs[configKey];
+    const cfg = eventConfigs[configKey];
     
-    if (!config || !config.enabled) return;
+    if (!cfg || !cfg.enabled) return;
+    if (currentTimeout) clearTimeout(currentTimeout);
     
     const eventData = data.event_data || {{}};
-    let message = config.message_template || '{{{{name}}}} just followed!';
-    message = message.replace(/{{{{name}}}}/g, eventData.username || "Someone");
-    message = message.replace(/{{{{amount}}}}/g, eventData.amount || '');
+    let message = (cfg.message_template || '{{{{name}}}} just followed!')
+        .replace(/{{{{name}}}}/g, eventData.username || "Someone")
+        .replace(/{{{{amount}}}}/g, eventData.amount || '');
     
-    const layout = config.layout || 'standard';
-    const alertAnim = config.alert_animation || 'fade';
+    const container = document.getElementById('alert-container');
+    const img = document.getElementById('alert-img');
+    const text = document.getElementById('alert-text');
     
-    // Create container
-    const alertWrap = document.createElement('div');
-    alertWrap.style.position = 'absolute';
-    alertWrap.style.top = '50%';
-    alertWrap.style.left = '50%';
-    alertWrap.style.transform = 'translate(-50%, -50%)';
+    // Reset
+    container.className = '';
+    container.style.display = 'none';
+    img.style.display = 'none';
+    text.className = 'alert-text';
     
-    if (layout === 'standard' || layout === 'image_above') {{
-        alertWrap.style.display = 'flex';
-        alertWrap.style.flexDirection = 'column';
-        alertWrap.style.alignItems = 'center';
-        alertWrap.style.textAlign = 'center';
-        
-        if (config.image_url) {{
-            const img = document.createElement('img');
-            img.src = config.image_url;
-            img.style.maxWidth = '300px';
-            img.style.marginBottom = '20px';
-            img.style.display = 'block';
-            alertWrap.appendChild(img);
-        }}
-        
-        const text = document.createElement('div');
-        text.textContent = message;
-        applyTextStyles(text, config);
-        alertWrap.appendChild(text);
-        
-    }} else if (layout === 'image_left') {{
-        alertWrap.style.display = 'flex';
-        alertWrap.style.flexDirection = 'row';
-        alertWrap.style.alignItems = 'center';
-        alertWrap.style.gap = '20px';
-        
-        if (config.image_url) {{
-            const img = document.createElement('img');
-            img.src = config.image_url;
-            img.style.maxWidth = '200px';
-            img.style.display = 'block';
-            alertWrap.appendChild(img);
-        }}
-        
-        const text = document.createElement('div');
-        text.textContent = message;
-        applyTextStyles(text, config);
-        alertWrap.appendChild(text);
-        
-    }} else if (layout === 'text_over_image') {{
-        if (config.image_url) {{
-            const imgWrap = document.createElement('div');
-            imgWrap.style.position = 'relative';
-            imgWrap.style.display = 'inline-block';
-            
-            const img = document.createElement('img');
-            img.src = config.image_url;
-            img.style.maxWidth = '400px';
-            img.style.display = 'block';
-            imgWrap.appendChild(img);
-            
-            const text = document.createElement('div');
-            text.textContent = message;
-            text.style.position = 'absolute';
-            text.style.top = '50%';
-            text.style.left = '50%';
-            text.style.transform = 'translate(-50%, -50%)';
-            text.style.width = '90%';
-            text.style.textAlign = 'center';
-            applyTextStyles(text, config);
-            imgWrap.appendChild(text);
-            
-            alertWrap.appendChild(imgWrap);
-        }} else {{
-            const text = document.createElement('div');
-            text.textContent = message;
-            text.style.textAlign = 'center';
-            applyTextStyles(text, config);
-            alertWrap.appendChild(text);
-        }}
+    // Apply layout
+    const layout = cfg.layout || 'standard';
+    container.className = `layout-${{layout}}`;
+    
+    // Image
+    if (cfg.image_url) {{
+        img.src = cfg.image_url;
+        img.style.display = 'block';
     }}
     
-    // Apply animation
-    alertWrap.style.animation = `${{alertAnim}}In 0.5s ease-out forwards`;
-    alertWrap.style.opacity = '0';
+    // Text styling
+    text.textContent = message;
+    text.style.fontSize = (cfg.font_size || 32) + 'px';
+    text.style.fontWeight = cfg.font_weight || 'normal';
+    text.style.color = cfg.text_color || '#FFFFFF';
+    text.style.textShadow = cfg.text_shadow !== false ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none';
+    
+    const textAnim = cfg.text_animation || 'none';
+    if (textAnim !== 'none') text.classList.add(`text-${{textAnim}}`);
+    
+    // Show with animation
+    const alertAnim = cfg.alert_animation || 'fade';
+    container.classList.add(`anim-${{alertAnim}}`);
+    container.style.display = layout === 'text-over-image' ? 'inline-block' : 'flex';
     
     // Sound
-    if (config.sound_url) {{
+    if (cfg.sound_url) {{
         const audio = document.getElementById('alertSound');
-        audio.src = config.sound_url;
-        audio.volume = (config.sound_volume || 50) / 100;
-        audio.play().catch(e => {{}});
+        audio.src = cfg.sound_url;
+        audio.volume = (cfg.sound_volume || 50) / 100;
+        audio.play().catch(() => {{}});
     }}
     
-    document.getElementById('container').appendChild(alertWrap);
-    
-    // Remove
-    const duration = (config.duration || 5) * 1000;
-    setTimeout(() => {{
-        alertWrap.style.animation = 'fadeOut 0.5s ease-out forwards';
-        setTimeout(() => alertWrap.remove(), 500);
+    // Hide after duration
+    const duration = (cfg.duration || 5) * 1000;
+    currentTimeout = setTimeout(() => {{
+        container.classList.add('out');
+        setTimeout(() => {{ container.style.display = 'none'; }}, 500);
     }}, duration);
 }};
-
-function applyTextStyles(text, config) {{
-    text.style.fontSize = (config.font_size || 32) + 'px';
-    text.style.fontWeight = config.font_weight || 'normal';
-    text.style.color = config.text_color || '#FFFFFF';
-    text.style.textShadow = config.text_shadow !== false ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none';
-    
-    const textAnim = config.text_animation || 'none';
-    if (textAnim !== 'none') {{
-        text.style.animation = `text${{textAnim.charAt(0).toUpperCase() + textAnim.slice(1)}} 1s ease-in-out infinite`;
-    }}
-}}
-
-ws.onerror = (error) => console.error('WebSocket error:', error);
 </script>
 </body>
 </html>"""

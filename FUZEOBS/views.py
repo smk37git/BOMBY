@@ -1914,14 +1914,6 @@ def fuzeobs_save_widget_event(request):
             }
         )
         
-        # Regenerate widget HTML with new config
-        widget_html = generate_widget_html(widget)
-        client = storage.Client()
-        bucket = client.bucket('fuzeobs-public')
-        blob_path = f'widgets/{user.id}/{widget.id}.html'
-        blob = bucket.blob(blob_path)
-        blob.upload_from_string(widget_html, content_type='text/html')
-        
         return JsonResponse({
             'success': True,
             'event': {
@@ -1937,7 +1929,7 @@ def fuzeobs_save_widget_event(request):
         return JsonResponse({'error': 'Widget not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
-
+    
 @csrf_exempt
 @require_http_methods(["DELETE"])
 @require_tier('free')
