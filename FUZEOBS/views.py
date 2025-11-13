@@ -1238,197 +1238,6 @@ def fuzeobs_all_users_view(request):
 # ===== WIDGETS SYSTEM =====
 import uuid
 
-# Widget HTML generators
-def generate_widget_html(widget):
-    """Generate HTML for widget based on type"""
-    widget_type = widget.widget_type
-    config = widget.config
-    widget_id = widget.id
-    user_id = widget.user.id
-    
-    base_template = f"""<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{widget.name}</title>
-    <style>
-        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-        body {{ 
-            background: transparent; 
-            font-family: 'Arial', sans-serif;
-            overflow: hidden;
-        }}
-        .widget-container {{ 
-            width: 100vw; 
-            height: 100vh; 
-            position: relative;
-        }}
-    </style>
-</head>
-<body>
-    <div class="widget-container" id="widget-{widget_id}">
-        {get_widget_content(widget_type, config, widget_id)}
-    </div>
-    <script>
-        const WIDGET_ID = {widget_id};
-        const USER_ID = {user_id};
-        const WS_URL = 'wss://bomby.us/ws/fuzeobs-alerts/' + USER_ID + '/';
-        
-        {get_widget_script(widget_type, config)}
-    </script>
-</body>
-</html>"""
-    
-    return base_template
-
-def get_widget_content(widget_type, config, widget_id):
-    """Get HTML content for specific widget type"""
-    if widget_type == 'alert_box':
-        return """
-        <div class="alert-container" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
-            <div class="alert-image"></div>
-            <div class="alert-text" style="font-size: 32px; font-weight: bold; color: white; margin-top: 20px;"></div>
-        </div>
-        """
-    elif widget_type == 'chat_box':
-        return """
-        <div class="chat-container" style="position: absolute; bottom: 0; left: 0; width: 400px; height: 600px; background: rgba(0,0,0,0.7); overflow-y: auto; padding: 10px;">
-            <div class="chat-messages"></div>
-        </div>
-        """
-    elif widget_type == 'event_list':
-        return """
-        <div class="event-list" style="position: absolute; top: 0; right: 0; width: 300px; background: rgba(0,0,0,0.8); padding: 15px;">
-            <h3 style="color: white; margin-bottom: 10px;">Recent Events</h3>
-            <div class="events"></div>
-        </div>
-        """
-    elif widget_type == 'goal_bar':
-        return """
-        <div class="goal-container" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 600px; background: rgba(0,0,0,0.8); padding: 20px; border-radius: 10px;">
-            <div class="goal-title" style="color: white; font-size: 24px; margin-bottom: 10px;">Goal Title</div>
-            <div class="progress-bar" style="width: 100%; height: 30px; background: #333; border-radius: 5px; overflow: hidden;">
-                <div class="progress-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00ff00, #00cc00); transition: width 0.3s;"></div>
-            </div>
-            <div class="goal-text" style="color: white; margin-top: 10px; text-align: center;">$0 / $1000</div>
-        </div>
-        """
-    return "<div>Widget content</div>"
-
-def get_widget_script(widget_type, config):
-    """Get JavaScript for specific widget type"""
-    base_script = """
-        const eventConfigs = {};
-        const defaultConfig = {
-            enabled: true,
-            alert_animation: 'fade',
-            font_size: 32,
-            text_color: '#FFFFFF',
-            message_template: '{name} just followed!',
-            duration: 5,
-            sound_volume: 50
-        };
-        
-        // Load event configs
-        fetch('/fuzeobs/widgets/events/config/' + USER_ID)
-            .then(r => r.json())
-            .then(data => {
-                Object.assign(eventConfigs, data.configs);
-                console.log('Loaded configs:', eventConfigs);
-            })
-            .catch(err => console.log('Using defaults:', err));
-        
-        let ws;
-        function connectWebSocket() {
-            ws = new WebSocket(WS_URL);
-            ws.onopen = () => console.log('Widget connected');
-            ws.onmessage = (event) => handleEvent(JSON.parse(event.data));
-            ws.onerror = (error) => console.error('WebSocket error:', error);
-            ws.onclose = () => setTimeout(connectWebSocket, 3000);
-        }
-        
-        function handleEvent(data) {
-            console.log('Event received:', data);
-            const configKey = data.platform + '-' + data.event_type;
-            const config = eventConfigs[configKey] || defaultConfig;
-            const eventData = data.event_data || {};
-            
-            if (!config.enabled) return;
-            
-            let message = config.message_template || defaultConfig.message_template;
-            message = message.replace(/{name}/g, eventData.username || 'Someone');
-            message = message.replace(/{amount}/g, eventData.amount || '');
-            
-            showAlert(message, config, eventData);
-        }
-    """
-    
-    if widget_type == 'alert_box':
-        return base_script + """
-        function showAlert(message, config, eventData) {
-            const container = document.querySelector('.alert-container');
-            const imgDiv = container.querySelector('.alert-image');
-            const text = container.querySelector('.alert-text');
-            
-            // Image
-            if (config.image_url) {
-                imgDiv.innerHTML = '<img src="' + config.image_url + '" style="max-width: 300px; max-height: 300px;">';
-            } else {
-                imgDiv.innerHTML = '';
-            }
-            
-            // Text
-            text.textContent = message;
-            text.style.fontSize = (config.font_size || 32) + 'px';
-            text.style.color = config.text_color || '#FFFFFF';
-            
-            // Sound
-            if (config.sound_url) {
-                const audio = new Audio(config.sound_url);
-                audio.volume = (config.sound_volume || 50) / 100;
-                audio.play().catch(err => console.log('Audio failed:', err));
-            }
-            
-            // Animation
-            container.style.display = 'block';
-            const animation = config.alert_animation || 'fade';
-            container.style.animation = animation + 'In 0.5s ease-out forwards';
-            
-            // Duration
-            const duration = (config.duration || 5) * 1000;
-            setTimeout(() => {
-                container.style.animation = 'fadeOut 0.5s';
-                setTimeout(() => container.style.display = 'none', 500);
-            }, duration);
-        }
-        
-        connectWebSocket();
-        """
-    elif widget_type == 'chat_box':
-        return base_script + """
-        function addChatMessage(username, message) {
-            const messages = document.querySelector('.chat-messages');
-            const msg = document.createElement('div');
-            msg.style.cssText = 'color: white; margin-bottom: 10px; padding: 5px; background: rgba(255,255,255,0.1); border-radius: 5px;';
-            msg.innerHTML = '<strong>' + username + ':</strong> ' + message;
-            messages.appendChild(msg);
-            messages.scrollTop = messages.scrollHeight;
-        }
-        
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.event_type === 'chat_message') {
-                addChatMessage(data.event_data.username, data.event_data.message);
-            }
-        };
-        
-        connectWebSocket();
-        """
-    
-    return base_script + "connectWebSocket();"
-
-
 @csrf_exempt
 @require_http_methods(["GET"])
 @require_tier('free')
@@ -1440,12 +1249,12 @@ def fuzeobs_get_widgets(request):
     return JsonResponse({
         'widgets': [{
             'id': w.id,
-            'type': w.widget_type,
+            'widget_type': w.widget_type,
             'name': w.name,
             'config': w.config,
-            'url': w.gcs_url or f'https://storage.googleapis.com/bomby-user-uploads/fuzeobs-widgets/{user.id}/{w.id}.html',
+            'gcs_url': w.gcs_url,
             'created_at': w.created_at.isoformat(),
-            'updated_at': w.updated_at.isoformat()
+            'updated_at': w.updated_at.isoformat(),
         } for w in widgets]
     })
 
@@ -1453,16 +1262,19 @@ def fuzeobs_get_widgets(request):
 @require_http_methods(["POST"])
 @require_tier('free')
 def fuzeobs_save_widget(request):
+    """Create or update widget"""
     user = request.fuzeobs_user
+    
     try:
         data = json.loads(request.body)
-        widget_id = data.get('widget_id')
+        widget_id = data.get('id')
         
+        # Update existing widget
         if widget_id:
             widget = WidgetConfig.objects.get(id=widget_id, user=user)
-            widget.name = data.get('name', widget.name)
-            widget.config = data.get('config', widget.config)
-            widget.save()
+            widget.name = data['name']
+            widget.config = data.get('config', {})
+        # Create new widget
         else:
             widget = WidgetConfig.objects.create(
                 user=user,
@@ -1478,30 +1290,29 @@ def fuzeobs_save_widget(request):
         
         UserActivity.objects.create(
             user=user,
-            activity_type='widget_create' if not widget_id else 'widget_update',
-            source='app',
-            details={'widget_type': widget.widget_type, 'widget_id': widget.id}
+            activity_type='template_use',
+            details={'widget_type': widget.widget_type, 'widget_name': widget.name},
+            source='app'
         )
         
         return JsonResponse({
             'success': True,
-            'id': widget.id,
-            'url': widget.gcs_url,
             'widget': {
                 'id': widget.id,
-                'type': widget.widget_type,
+                'widget_type': widget.widget_type,
                 'name': widget.name,
                 'config': widget.config,
-                'url': widget.gcs_url
+                'gcs_url': widget.gcs_url,
+                'created_at': widget.created_at.isoformat(),
+                'updated_at': widget.updated_at.isoformat(),
             }
         })
+        
     except WidgetConfig.DoesNotExist:
         return JsonResponse({'error': 'Widget not found'}, status=404)
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=400)
-
+    
 @csrf_exempt
 @require_http_methods(["DELETE"])
 @require_tier('free')
