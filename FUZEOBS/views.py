@@ -1311,6 +1311,26 @@ def get_widget_content(widget_type, config, widget_id):
 def get_widget_script(widget_type, config):
     """Get JavaScript for specific widget type"""
     base_script = """
+        const eventConfigs = {};
+        const defaultConfig = {
+            enabled: true,
+            alert_animation: 'fade',
+            font_size: 32,
+            text_color: '#FFFFFF',
+            message_template: '{name} just followed!',
+            duration: 5,
+            sound_volume: 50
+        };
+        
+        // Load event configs
+        fetch('/fuzeobs/widgets/events/config/' + USER_ID)
+            .then(r => r.json())
+            .then(data => {
+                Object.assign(eventConfigs, data.configs);
+                console.log('Loaded configs:', eventConfigs);
+            })
+            .catch(err => console.log('Using defaults:', err));
+        
         let ws;
         function connectWebSocket() {
             ws = new WebSocket(WS_URL);
@@ -1322,33 +1342,57 @@ def get_widget_script(widget_type, config):
         
         function handleEvent(data) {
             console.log('Event received:', data);
-            const eventType = data.event_type;
-            const eventData = data.event_data;
+            const configKey = data.platform + '-' + data.event_type;
+            const config = eventConfigs[configKey] || defaultConfig;
+            const eventData = data.event_data || {};
             
-            if (eventType === 'follow') {
-                showAlert('New Follower!', eventData.username);
-            } else if (eventType === 'subscribe') {
-                showAlert('New Subscriber!', eventData.username);
-            } else if (eventType === 'bits') {
-                showAlert('Bits Donation!', eventData.username + ' - ' + eventData.amount);
-            }
+            if (!config.enabled) return;
+            
+            let message = config.message_template || defaultConfig.message_template;
+            message = message.replace(/{name}/g, eventData.username || 'Someone');
+            message = message.replace(/{amount}/g, eventData.amount || '');
+            
+            showAlert(message, config, eventData);
         }
     """
     
     if widget_type == 'alert_box':
         return base_script + """
-        function showAlert(title, message) {
+        function showAlert(message, config, eventData) {
             const container = document.querySelector('.alert-container');
-            const text = document.querySelector('.alert-text');
+            const imgDiv = container.querySelector('.alert-image');
+            const text = container.querySelector('.alert-text');
             
+            // Image
+            if (config.image_url) {
+                imgDiv.innerHTML = '<img src="' + config.image_url + '" style="max-width: 300px; max-height: 300px;">';
+            } else {
+                imgDiv.innerHTML = '';
+            }
+            
+            // Text
             text.textContent = message;
-            container.style.display = 'block';
-            container.style.animation = 'fadeIn 0.5s';
+            text.style.fontSize = (config.font_size || 32) + 'px';
+            text.style.color = config.text_color || '#FFFFFF';
             
+            // Sound
+            if (config.sound_url) {
+                const audio = new Audio(config.sound_url);
+                audio.volume = (config.sound_volume || 50) / 100;
+                audio.play().catch(err => console.log('Audio failed:', err));
+            }
+            
+            // Animation
+            container.style.display = 'block';
+            const animation = config.alert_animation || 'fade';
+            container.style.animation = animation + 'In 0.5s ease-out forwards';
+            
+            // Duration
+            const duration = (config.duration || 5) * 1000;
             setTimeout(() => {
                 container.style.animation = 'fadeOut 0.5s';
                 setTimeout(() => container.style.display = 'none', 500);
-            }, 5000);
+            }, duration);
         }
         
         connectWebSocket();
@@ -1376,11 +1420,7 @@ def get_widget_script(widget_type, config):
     
     return base_script + "connectWebSocket();"
 
-# ===== WIDGET CRUD =====
 
-@csrf_exempt
-@require_http_methods(["GET"])
-@require_tier('free')
 def fuzeobs_get_widgets(request):
     """Get all widgets for authenticated user"""
     user = request.fuzeobs_user
@@ -1874,8 +1914,8 @@ def fuzeobs_save_widget_event(request):
         # Regenerate widget HTML with new config
         widget_html = generate_widget_html(widget)
         client = storage.Client()
-        bucket = client.bucket('bomby-user-uploads')
-        blob_path = f'fuzeobs-widgets/{user.id}/{widget.id}.html'
+        bucket = client.bucket('fuzeobs-public')
+        blob_path = f'widgets/{user.id}/{widget.id}.html'
         blob = bucket.blob(blob_path)
         blob.upload_from_string(widget_html, content_type='text/html')
         
