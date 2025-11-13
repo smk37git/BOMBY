@@ -106,6 +106,20 @@ const defaultConfig = {{
 
 // Event configurations fetched from server
 const eventConfigs = {{}};
+let configsLoaded = false;
+
+// Load configs first
+fetch(`/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now()}}`)
+    .then(r => r.json())
+    .then(data => {{
+        Object.assign(eventConfigs, data.configs);
+        configsLoaded = true;
+        console.log('Loaded configs:', eventConfigs);
+    }})
+    .catch(err => {{
+        configsLoaded = true;
+        console.log('Using defaults:', err);
+    }});
 
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
@@ -184,12 +198,11 @@ ws.onerror = (error) => {{
 }};
 
 // Fetch event configurations (optional - falls back to defaults)
-fetch(`/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now()}}`)
+fetch(`/fuzeobs/widgets/events/config/${{userId}}`)
     .then(r => r.json())
     .then(data => {{
         Object.assign(eventConfigs, data.configs);
         console.log('Loaded configs:', eventConfigs);
-        console.log('Config keys:', Object.keys(eventConfigs));
     }})
     .catch(err => console.log('Using default config:', err));
 </script>
