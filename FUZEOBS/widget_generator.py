@@ -184,11 +184,12 @@ ws.onerror = (error) => {{
 }};
 
 // Fetch event configurations (optional - falls back to defaults)
-fetch(`/fuzeobs/widgets/events/config/${{userId}}`)
+fetch(`/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now()}}`)
     .then(r => r.json())
     .then(data => {{
         Object.assign(eventConfigs, data.configs);
         console.log('Loaded configs:', eventConfigs);
+        console.log('Config keys:', Object.keys(eventConfigs));
     }})
     .catch(err => console.log('Using default config:', err));
 </script>
