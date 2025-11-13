@@ -44,7 +44,6 @@ body {{
 }}
 .alert-image {{
     max-width: 300px;
-    margin-bottom: 20px;
 }}
 .alert-text {{
     font-size: 32px;
@@ -52,7 +51,8 @@ body {{
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     margin: 10px 0;
 }}
-/* Animations */
+
+/* Alert Animations */
 @keyframes fadeIn {{
     from {{ opacity: 0; }}
     to {{ opacity: 1; }}
@@ -70,7 +70,8 @@ body {{
     from {{ transform: translate(-50%, -50%) scale(0); opacity: 0; }}
     to {{ transform: translate(-50%, -50%) scale(1); opacity: 1; }}
 }}
-/* Text animations */
+
+/* Text Animations */
 @keyframes wiggle {{
     0%, 100% {{ transform: rotate(0deg); }}
     25% {{ transform: rotate(-5deg); }}
@@ -80,6 +81,15 @@ body {{
     0%, 100% {{ transform: translateY(0); }}
     50% {{ transform: translateY(-10px); }}
 }}
+@keyframes bounce {{
+    0%, 100% {{ transform: translateY(0); }}
+    50% {{ transform: translateY(-15px); }}
+}}
+@keyframes pulse {{
+    0%, 100% {{ transform: scale(1); }}
+    50% {{ transform: scale(1.05); }}
+}}
+
 @keyframes fadeOut {{
     from {{ opacity: 1; }}
     to {{ opacity: 0; }}
@@ -93,42 +103,36 @@ body {{
 const userId = '{user_id}';
 const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}`);
 
-// Default configuration for when no config exists
 const defaultConfig = {{
     enabled: true,
     alert_animation: 'fade',
     font_size: 32,
+    font_weight: 'normal',
     text_color: '#FFFFFF',
     message_template: '{{{{name}}}} just followed!',
     duration: 5,
-    sound_volume: 50
+    sound_volume: 50,
+    layout: 'standard'
 }};
 
-// Event configurations fetched from server
 const eventConfigs = {{}};
 let configsLoaded = false;
 
-// Load configs first
 fetch(`/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now()}}`)
     .then(r => r.json())
     .then(data => {{
         Object.assign(eventConfigs, data.configs);
         configsLoaded = true;
-        console.log('Loaded configs:', eventConfigs);
     }})
     .catch(err => {{
         configsLoaded = true;
-        console.log('Using defaults:', err);
     }});
 
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
     const configKey = `${{data.platform}}-${{data.event_type}}`;
-    
-    // Use saved config if exists, otherwise use default
     const config = eventConfigs[configKey] || defaultConfig;
     
-    console.log('Alert:', data, 'Config:', config);
     if (!config.enabled) return;
     
     const alert = document.createElement('div');
@@ -136,46 +140,77 @@ ws.onmessage = (e) => {{
     
     // Apply layout
     const layout = config.layout || 'standard';
+    
     if (layout === 'image_above') {{
+        alert.style.display = 'flex';
         alert.style.flexDirection = 'column';
+        alert.style.alignItems = 'center';
+    }} else if (layout === 'image_left') {{
         alert.style.display = 'flex';
-    }} else if (layout === 'image_side') {{
         alert.style.flexDirection = 'row';
-        alert.style.display = 'flex';
         alert.style.alignItems = 'center';
         alert.style.gap = '20px';
+    }} else if (layout === 'text_over_image') {{
+        alert.style.display = 'flex';
+        alert.style.position = 'relative';
     }}
     
+    // Apply alert animation
     const animation = config.alert_animation || 'fade';
     alert.style.animation = `${{animation}}In 0.5s ease-out forwards`;
     
+    // Add image if configured
     if (config.image_url) {{
+        const imgContainer = document.createElement('div');
+        imgContainer.style.position = layout === 'text_over_image' ? 'relative' : 'static';
+        
         const img = document.createElement('img');
         img.src = config.image_url;
         img.className = 'alert-image';
-        alert.appendChild(img);
+        imgContainer.appendChild(img);
+        alert.appendChild(imgContainer);
     }}
     
+    // Add text
     const text = document.createElement('div');
     text.className = 'alert-text';
     text.style.fontSize = (config.font_size || 32) + 'px';
+    text.style.fontWeight = config.font_weight || 'normal';
     text.style.color = config.text_color || '#FFFFFF';
+    
     if (config.text_shadow) {{
         text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
     }}
     
+    // Position text over image if text_over_image layout
+    if (layout === 'text_over_image' && config.image_url) {{
+        text.style.position = 'absolute';
+        text.style.top = '50%';
+        text.style.left = '50%';
+        text.style.transform = 'translate(-50%, -50%)';
+        text.style.width = '100%';
+        text.style.zIndex = '10';
+    }}
+    
+    // Apply message template
     const eventData = data.event_data || {{}};
     let message = config.message_template || '{{{{name}}}} just followed!';
     message = message.replace(/{{{{name}}}}/g, eventData.username || "Someone");
     message = message.replace(/{{{{amount}}}}/g, eventData.amount || '');
     text.textContent = message;
     
+    // Apply text animation
     if (config.text_animation && config.text_animation !== 'none') {{
         text.style.animation = `${{config.text_animation}} 1s ease-in-out infinite`;
     }}
     
-    alert.appendChild(text);
+    if (layout === 'text_over_image' && config.image_url) {{
+        alert.firstChild.appendChild(text);
+    }} else {{
+        alert.appendChild(text);
+    }}
     
+    // Play sound if configured
     if (config.sound_url) {{
         const audio = document.getElementById('alertSound');
         audio.src = config.sound_url;
@@ -185,8 +220,8 @@ ws.onmessage = (e) => {{
     
     document.getElementById('container').appendChild(alert);
     
+    // Remove after duration
     const duration = (config.duration || 5) * 1000;
-    console.log('Duration:', duration/1000, 'sec');
     setTimeout(() => {{
         alert.style.animation = 'fadeOut 0.5s ease-out forwards';
         setTimeout(() => alert.remove(), 500);
@@ -196,15 +231,6 @@ ws.onmessage = (e) => {{
 ws.onerror = (error) => {{
     console.error('WebSocket error:', error);
 }};
-
-// Fetch event configurations (optional - falls back to defaults)
-fetch(`/fuzeobs/widgets/events/config/${{userId}}`)
-    .then(r => r.json())
-    .then(data => {{
-        Object.assign(eventConfigs, data.configs);
-        console.log('Loaded configs:', eventConfigs);
-    }})
-    .catch(err => console.log('Using default config:', err));
 </script>
 </body>
 </html>"""
@@ -272,7 +298,6 @@ ws.onmessage = (e) => {{
     chat.appendChild(msg);
     chat.scrollTop = chat.scrollHeight;
     
-    // Keep only last 50 messages
     while (chat.children.length > 50) {{
         chat.removeChild(chat.firstChild);
     }}
@@ -328,7 +353,6 @@ ws.onmessage = (e) => {{
     const container = document.getElementById('events');
     container.insertBefore(event, container.firstChild);
     
-    // Keep only last 10 events
     while (container.children.length > 10) {{
         container.removeChild(container.lastChild);
     }}
@@ -336,13 +360,13 @@ ws.onmessage = (e) => {{
 
 function getEventIcon(type) {{
     const icons = {{
-        'follow': '❤️',
-        'subscribe': '⭐',
-        'bits': '💎',
-        'donation': '💰',
-        'raid': '👥'
+        'follow': 'â¤ï¸',
+        'subscribe': 'â­',
+        'bits': 'ðŸ'Ž',
+        'donation': 'ðŸ'°',
+        'raid': 'ðŸ'¥'
     }};
-    return icons[type] || '🎉';
+    return icons[type] || 'ðŸŽ‰';
 }}
 </script>
 </body>
@@ -418,7 +442,6 @@ def upload_to_gcs(html_content, user_id, widget_type):
     client = storage.Client()
     bucket = client.bucket('bomby-user-uploads')
     
-    # Generate unique filename
     hash_id = hashlib.md5(f"{user_id}{widget_type}{html_content[:100]}".encode()).hexdigest()[:8]
     blob_name = f'fuzeobs-widgets/{user_id}/{widget_type}_{hash_id}.html'
     
