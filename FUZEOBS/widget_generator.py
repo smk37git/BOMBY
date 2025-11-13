@@ -89,53 +89,58 @@ body {{
 const userId = '{user_id}';
 const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}`);
 
-// Event configurations will be injected here
+// Default configuration for when no config exists
+const defaultConfig = {{
+    enabled: true,
+    alert_animation: 'fade',
+    font_size: 32,
+    text_color: '#FFFFFF',
+    message_template: '{{{{name}}}} just followed!',
+    duration: 5,
+    sound_volume: 50
+}};
+
+// Event configurations fetched from server
 const eventConfigs = {{}};
 
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
-    const config = eventConfigs[`${{data.platform}}-${{data.event_type}}`];
+    const configKey = `${{data.platform}}-${{data.event_type}}`;
     
-    if (!config || !config.enabled) return;
+    // Use saved config if exists, otherwise use default
+    const config = eventConfigs[configKey] || defaultConfig;
+    
+    if (!config.enabled) return;
     
     const alert = document.createElement('div');
     alert.className = 'alert';
     
-    // Apply animation
     const animation = config.alert_animation || 'fade';
     alert.style.animation = `${{animation}}In 0.5s ease-out forwards`;
     
-    // Add image if configured
     if (config.image_url) {{
         const img = document.createElement('img');
         img.src = config.image_url;
         img.className = 'alert-image';
-        
-        if (config.layout === 'image_above') {{
-            alert.appendChild(img);
-        }}
+        alert.appendChild(img);
     }}
     
-    // Add text
     const text = document.createElement('div');
     text.className = 'alert-text';
     text.style.fontSize = (config.font_size || 32) + 'px';
     text.style.color = config.text_color || '#FFFFFF';
     
-    // Replace template variables
-    let message = config.message_template || '{{name}} is now following!';
-    message = message.replace(/{{name}}/g, data.username);
-    message = message.replace(/{{amount}}/g, data.amount || '');
+    let message = config.message_template || '{{{{name}}}} just followed!';
+    message = message.replace(/{{{{name}}}}/g, data.username);
+    message = message.replace(/{{{{amount}}}}/g, data.amount || '');
     text.textContent = message;
     
-    // Apply text animation
     if (config.text_animation && config.text_animation !== 'none') {{
         text.style.animation = `${{config.text_animation}} 1s ease-in-out infinite`;
     }}
     
     alert.appendChild(text);
     
-    // Play sound if configured
     if (config.sound_url) {{
         const audio = document.getElementById('alertSound');
         audio.src = config.sound_url;
@@ -145,7 +150,6 @@ ws.onmessage = (e) => {{
     
     document.getElementById('container').appendChild(alert);
     
-    // Remove after duration
     const duration = (config.duration || 5) * 1000;
     setTimeout(() => {{
         alert.style.animation = 'fadeOut 0.5s ease-out forwards';
@@ -157,13 +161,14 @@ ws.onerror = (error) => {{
     console.error('WebSocket error:', error);
 }};
 
-// Fetch event configurations
+// Fetch event configurations (optional - falls back to defaults)
 fetch(`/fuzeobs/widgets/events/config/${{userId}}`)
     .then(r => r.json())
     .then(data => {{
         Object.assign(eventConfigs, data.configs);
+        console.log('Loaded configs:', eventConfigs);
     }})
-    .catch(err => console.error('Failed to load configs:', err));
+    .catch(err => console.log('Using default config:', err));
 </script>
 </body>
 </html>"""
