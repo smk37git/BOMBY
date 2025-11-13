@@ -18,14 +18,16 @@ def generate_alert_box_html(user_id, config):
 <style>
 * {{margin:0;padding:0;box-sizing:border-box}}
 body {{width:800px;height:600px;overflow:hidden;background:transparent;font-family:Arial;position:relative}}
-#container {{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;visibility:hidden;opacity:0;max-width:90%;max-height:90%}}
+#container {{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;visibility:hidden;opacity:0;max-width:90%;max-height:90%;padding:20px}}
 .standard,.image-above {{flex-direction:column;align-items:center;text-align:center;gap:20px}}
 .image-left {{flex-direction:row;align-items:center;gap:30px}}
 .text-over {{position:relative;display:inline-block}}
 .text-over .text {{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90%;text-align:center}}
-.image {{max-width:400px;max-height:400px;display:block;object-fit:contain}}
-.image-left .image {{max-width:300px;max-height:300px}}
-.text {{font-size:48px;font-weight:bold;color:#FFF;text-shadow:3px 3px 6px rgba(0,0,0,0.9);word-wrap:break-word;max-width:800px}}
+.image {{max-width:350px;max-height:350px;display:block;object-fit:contain}}
+.image-left .image {{max-width:280px;max-height:280px}}
+.text {{font-size:48px;font-weight:bold;color:#FFF;text-shadow:3px 3px 6px rgba(0,0,0,0.9);word-wrap:break-word;overflow-wrap:break-word;max-width:700px;line-height:1.2}}
+.standard .text,.image-above .text {{max-width:700px}}
+.image-left .text {{max-width:450px}}
 @keyframes fadeIn {{from{{opacity:0}}to{{opacity:1}}}}
 @keyframes slideIn {{from{{opacity:0;transform:translate(-50%,-150%)}}to{{opacity:1;transform:translate(-50%,-50%)}}}}
 @keyframes bounceIn {{0%{{opacity:0;transform:translate(-50%,-50%) scale(.3)}}50%{{transform:translate(-50%,-50%) scale(1.05)}}70%{{transform:translate(-50%,-50%) scale(.9)}}100%{{opacity:1;transform:translate(-50%,-50%) scale(1)}}}}
@@ -38,61 +40,78 @@ body {{width:800px;height:600px;overflow:hidden;background:transparent;font-fami
 </style></head><body>
 <div id="container"></div><audio id="audio"></audio>
 <script>
-console.log('Alert Box Widget v5.0');
-const ws=new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/');
-let timeout;
+console.log('Alert Box Widget v5.1');
+let ws;
+let reconnectInterval;
 
-ws.onmessage=e=>{{
-  const data=JSON.parse(e.data);
-  if(!data.config||!data.config.enabled)return;
+function connectWS() {{
+  ws=new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/');
   
-  const c=data.config;
-  const event=data.event_data||{{}};
-  const msg=(c.message_template||'{{{{name}}}} just followed!').replace(/{{{{name}}}}/g,event.username||'Someone').replace(/{{{{amount}}}}/g,event.amount||'');
-  const layout=c.layout||'standard';
+  ws.onopen=()=>{{
+    console.log('WS Connected');
+    clearInterval(reconnectInterval);
+  }};
   
-  let html='';
-  let className=layout==='image_above'?'image-above':layout==='image_left'?'image-left':layout==='text_over_image'?'text-over':'standard';
+  ws.onclose=()=>{{
+    console.log('WS Disconnected, reconnecting...');
+    reconnectInterval=setInterval(()=>{{
+      if(!ws || ws.readyState===WebSocket.CLOSED)connectWS();
+    }},3000);
+  }};
   
-  if(layout==='text_over_image'&&c.image_url){{
-    html=`<div class="text-over"><img class="image" src="${{c.image_url}}"><div class="text">${{msg}}</div></div>`;
-  }}else{{
-    html=`<div style="display:flex" class="${{className}}">`;
-    if(c.image_url)html+=`<img class="image" src="${{c.image_url}}">`;
-    html+=`<div class="text">${{msg}}</div></div>`;
-  }}
+  ws.onerror=e=>console.error('WS Error:',e);
   
-  const container=document.getElementById('container');
-  container.innerHTML=html;
-  
-  const textEl=container.querySelector('.text');
-  textEl.style.fontSize=(c.font_size||48)+'px';
-  textEl.style.fontWeight=c.font_weight||'bold';
-  textEl.style.color=c.text_color||'#FFF';
-  textEl.style.textShadow=c.text_shadow!==false?'3px 3px 6px rgba(0,0,0,0.9)':'none';
-  
-  const textAnim=c.text_animation||'none';
-  if(textAnim!=='none')textEl.style.animation=textAnim+' 1s infinite';
-  
-  const alertAnim=c.alert_animation||'fade';
-  container.style.animation=alertAnim+'In 0.6s forwards';
-  container.style.visibility='visible';
-  
-  if(c.sound_url){{
-    const audio=document.getElementById('audio');
-    audio.src=c.sound_url;
-    audio.volume=(c.sound_volume||50)/100;
-    audio.play().catch(()=>{{}});
-  }}
-  
-  if(timeout)clearTimeout(timeout);
-  timeout=setTimeout(()=>{{
-    container.style.animation='fadeOut 0.5s forwards';
-  }},(c.duration||5)*1000);
-}};
+  ws.onmessage=e=>{{
+    const data=JSON.parse(e.data);
+    if(!data.config||!data.config.enabled)return;
+    
+    const c=data.config;
+    const event=data.event_data||{{}};
+    const msg=(c.message_template||'{{{{name}}}} just followed!').replace(/{{{{name}}}}/g,event.username||'Someone').replace(/{{{{amount}}}}/g,event.amount||'');
+    const layout=c.layout||'standard';
+    
+    let html='';
+    let className=layout==='image_above'?'image-above':layout==='image_left'?'image-left':layout==='text_over_image'?'text-over':'standard';
+    
+    if(layout==='text_over_image'&&c.image_url){{
+      html=`<div class="text-over"><img class="image" src="${{c.image_url}}"><div class="text">${{msg}}</div></div>`;
+    }}else{{
+      html=`<div style="display:flex" class="${{className}}">`;
+      if(c.image_url)html+=`<img class="image" src="${{c.image_url}}">`;
+      html+=`<div class="text">${{msg}}</div></div>`;
+    }}
+    
+    const container=document.getElementById('container');
+    container.innerHTML=html;
+    
+    const textEl=container.querySelector('.text');
+    const fontSize=Math.min(c.font_size||48,120);
+    textEl.style.fontSize=fontSize+'px';
+    textEl.style.fontWeight=c.font_weight||'bold';
+    textEl.style.color=c.text_color||'#FFF';
+    textEl.style.textShadow=c.text_shadow!==false?'3px 3px 6px rgba(0,0,0,0.9)':'none';
+    
+    const textAnim=c.text_animation||'none';
+    if(textAnim!=='none')textEl.style.animation=textAnim+' 1s infinite';
+    
+    const alertAnim=c.alert_animation||'fade';
+    container.style.animation=alertAnim+'In 0.6s forwards';
+    container.style.visibility='visible';
+    
+    if(c.sound_url){{
+      const audio=document.getElementById('audio');
+      audio.src=c.sound_url;
+      audio.volume=(c.sound_volume||50)/100;
+      audio.play().catch(()=>{{}});
+    }}
+    
+    setTimeout(()=>{{
+      container.style.animation='fadeOut 0.5s forwards';
+    }},(c.duration||5)*1000);
+  }};
+}}
 
-ws.onerror=e=>console.error('WS Error:',e);
-ws.onopen=()=>console.log('WS Connected');
+connectWS();
 </script></body></html>"""
 
 def generate_chat_box_html(user_id, config):
@@ -113,17 +132,22 @@ body{{background:transparent;margin:0;overflow:hidden;font-family:Arial}}
 </style></head><body>
 <div class="cc" id="ch"></div>
 <script>
-const ws=new WebSocket('wss://bomby.us/ws/fuzeobs-chat/{user_id}');
-ws.onmessage=e=>{{
-  const d=JSON.parse(e.data);
-  const m=document.createElement('div');
-  m.className='m';
-  m.innerHTML=`<span class="u">${{d.username}}:</span>${{d.message}}`;
-  const ch=document.getElementById('ch');
-  ch.appendChild(m);
-  ch.scrollTop=ch.scrollHeight;
-  while(ch.children.length>50)ch.removeChild(ch.firstChild);
-}};
+let ws;
+function connectWS(){{
+  ws=new WebSocket('wss://bomby.us/ws/fuzeobs-chat/{user_id}');
+  ws.onclose=()=>setTimeout(connectWS,3000);
+  ws.onmessage=e=>{{
+    const d=JSON.parse(e.data);
+    const m=document.createElement('div');
+    m.className='m';
+    m.innerHTML=`<span class="u">${{d.username}}:</span>${{d.message}}`;
+    const ch=document.getElementById('ch');
+    ch.appendChild(m);
+    ch.scrollTop=ch.scrollHeight;
+    while(ch.children.length>50)ch.removeChild(ch.firstChild);
+  }};
+}}
+connectWS();
 </script></body></html>"""
 
 def generate_event_list_html(user_id, config):
@@ -138,17 +162,22 @@ body{{background:transparent;margin:0;padding:10px;font-family:Arial;color:white
 </style></head><body>
 <div id="ev"></div>
 <script>
-const ws=new WebSocket('wss://bomby.us/ws/fuzeobs-events/{user_id}');
-ws.onmessage=e=>{{
-  const d=JSON.parse(e.data);
-  const ev=document.createElement('div');
-  ev.className='e';
-  ev.innerHTML=`<div class="ei">${{getIcon(d.type)}}</div><div class="et">${{d.username}} ${{d.action}}</div>`;
-  const ct=document.getElementById('ev');
-  ct.insertBefore(ev,ct.firstChild);
-  while(ct.children.length>10)ct.removeChild(ct.lastChild);
-}};
-function getIcon(t){{const i={{'follow':'❤️','subscribe':'⭐','bits':'💎','donation':'💰','raid':'💥'}};return i[t]||'🎉'}}
+let ws;
+function connectWS(){{
+  ws=new WebSocket('wss://bomby.us/ws/fuzeobs-events/{user_id}');
+  ws.onclose=()=>setTimeout(connectWS,3000);
+  ws.onmessage=e=>{{
+    const d=JSON.parse(e.data);
+    const ev=document.createElement('div');
+    ev.className='e';
+    ev.innerHTML=`<div class="ei">${{getIcon(d.type)}}</div><div class="et">${{d.username}} ${{d.action}}</div>`;
+    const ct=document.getElementById('ev');
+    ct.insertBefore(ev,ct.firstChild);
+    while(ct.children.length>10)ct.removeChild(ct.lastChild);
+  }};
+}}
+function getIcon(t){{const i={{'follow':'â¤ï¸','subscribe':'â­','bits':'ðŸ'Ž','donation':'ðŸ'°','raid':'ðŸ'¥'}};return i[t]||'ðŸŽ‰'}}
+connectWS();
 </script></body></html>"""
 
 def generate_goal_bar_html(user_id, config):
@@ -166,14 +195,19 @@ body{{background:transparent;margin:0;padding:20px;font-family:Arial}}
   <div class="pb"><div class="pf" id="pr" style="width:0%"><span id="pt">0%</span></div></div>
 </div>
 <script>
-const ws=new WebSocket('wss://bomby.us/ws/fuzeobs-goals/{user_id}');
-ws.onmessage=e=>{{
-  const d=JSON.parse(e.data);
-  document.getElementById('ti').textContent=d.title;
-  const p=(d.current/d.goal)*100;
-  document.getElementById('pr').style.width=p+'%';
-  document.getElementById('pt').textContent=`${{d.current}}/${{d.goal}} (${{Math.round(p)}}%)`;
-}};
+let ws;
+function connectWS(){{
+  ws=new WebSocket('wss://bomby.us/ws/fuzeobs-goals/{user_id}');
+  ws.onclose=()=>setTimeout(connectWS,3000);
+  ws.onmessage=e=>{{
+    const d=JSON.parse(e.data);
+    document.getElementById('ti').textContent=d.title;
+    const p=(d.current/d.goal)*100;
+    document.getElementById('pr').style.width=p+'%';
+    document.getElementById('pt').textContent=`${{d.current}}/${{d.goal}} (${{Math.round(p)}}%)`;
+  }};
+}}
+connectWS();
 </script></body></html>"""
 
 def upload_to_gcs(html_content, user_id, widget_type):
