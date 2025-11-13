@@ -18,16 +18,14 @@ def generate_alert_box_html(user_id, config):
 <style>
 * {{margin:0;padding:0;box-sizing:border-box}}
 body {{width:800px;height:600px;overflow:hidden;background:transparent;font-family:Arial;position:relative}}
-#container {{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;visibility:hidden;opacity:0;max-width:90%;max-height:90%;padding:20px}}
+#container {{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;visibility:hidden;opacity:0;max-width:90%;max-height:90%}}
 .standard,.image-above {{flex-direction:column;align-items:center;text-align:center;gap:20px}}
 .image-left {{flex-direction:row;align-items:center;gap:30px}}
 .text-over {{position:relative;display:inline-block}}
 .text-over .text {{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:90%;text-align:center}}
-.image {{max-width:350px;max-height:350px;display:block;object-fit:contain}}
-.image-left .image {{max-width:280px;max-height:280px}}
-.text {{font-size:48px;font-weight:bold;color:#FFF;text-shadow:3px 3px 6px rgba(0,0,0,0.9);word-wrap:break-word;overflow-wrap:break-word;max-width:700px;line-height:1.2}}
-.standard .text,.image-above .text {{max-width:700px}}
-.image-left .text {{max-width:450px}}
+.image {{max-width:400px;max-height:400px;display:block;object-fit:contain}}
+.image-left .image {{max-width:300px;max-height:300px}}
+.text {{font-size:48px;font-weight:bold;color:#FFF;text-shadow:3px 3px 6px rgba(0,0,0,0.9);word-wrap:break-word;max-width:800px}}
 @keyframes fadeIn {{from{{opacity:0}}to{{opacity:1}}}}
 @keyframes slideIn {{from{{opacity:0;transform:translate(-50%,-150%)}}to{{opacity:1;transform:translate(-50%,-50%)}}}}
 @keyframes bounceIn {{0%{{opacity:0;transform:translate(-50%,-50%) scale(.3)}}50%{{transform:translate(-50%,-50%) scale(1.05)}}70%{{transform:translate(-50%,-50%) scale(.9)}}100%{{opacity:1;transform:translate(-50%,-50%) scale(1)}}}}
@@ -40,26 +38,15 @@ body {{width:800px;height:600px;overflow:hidden;background:transparent;font-fami
 </style></head><body>
 <div id="container"></div><audio id="audio"></audio>
 <script>
-console.log('Alert Box Widget v5.1');
+console.log('Alert Box Widget');
 let ws;
-let reconnectInterval;
+let timeout;
 
-function connectWS() {{
+function connect(){{
   ws=new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/');
-  
-  ws.onopen=()=>{{
-    console.log('WS Connected');
-    clearInterval(reconnectInterval);
-  }};
-  
-  ws.onclose=()=>{{
-    console.log('WS Disconnected, reconnecting...');
-    reconnectInterval=setInterval(()=>{{
-      if(!ws || ws.readyState===WebSocket.CLOSED)connectWS();
-    }},3000);
-  }};
-  
-  ws.onerror=e=>console.error('WS Error:',e);
+  ws.onopen=()=>console.log('Connected');
+  ws.onerror=e=>console.error('Error:',e);
+  ws.onclose=()=>{{console.log('Closed, reconnecting...');setTimeout(connect,3000)}};
   
   ws.onmessage=e=>{{
     const data=JSON.parse(e.data);
@@ -85,8 +72,7 @@ function connectWS() {{
     container.innerHTML=html;
     
     const textEl=container.querySelector('.text');
-    const fontSize=Math.min(c.font_size||48,120);
-    textEl.style.fontSize=fontSize+'px';
+    textEl.style.fontSize=(c.font_size||48)+'px';
     textEl.style.fontWeight=c.font_weight||'bold';
     textEl.style.color=c.text_color||'#FFF';
     textEl.style.textShadow=c.text_shadow!==false?'3px 3px 6px rgba(0,0,0,0.9)':'none';
@@ -105,13 +91,14 @@ function connectWS() {{
       audio.play().catch(()=>{{}});
     }}
     
-    setTimeout(()=>{{
+    if(timeout)clearTimeout(timeout);
+    timeout=setTimeout(()=>{{
       container.style.animation='fadeOut 0.5s forwards';
     }},(c.duration||5)*1000);
   }};
 }}
 
-connectWS();
+connect();
 </script></body></html>"""
 
 def generate_chat_box_html(user_id, config):
@@ -133,9 +120,9 @@ body{{background:transparent;margin:0;overflow:hidden;font-family:Arial}}
 <div class="cc" id="ch"></div>
 <script>
 let ws;
-function connectWS(){{
+function connect(){{
   ws=new WebSocket('wss://bomby.us/ws/fuzeobs-chat/{user_id}');
-  ws.onclose=()=>setTimeout(connectWS,3000);
+  ws.onclose=()=>setTimeout(connect,3000);
   ws.onmessage=e=>{{
     const d=JSON.parse(e.data);
     const m=document.createElement('div');
@@ -147,7 +134,7 @@ function connectWS(){{
     while(ch.children.length>50)ch.removeChild(ch.firstChild);
   }};
 }}
-connectWS();
+connect();
 </script></body></html>"""
 
 def generate_event_list_html(user_id, config):
@@ -163,9 +150,9 @@ body{{background:transparent;margin:0;padding:10px;font-family:Arial;color:white
 <div id="ev"></div>
 <script>
 let ws;
-function connectWS(){{
+function connect(){{
   ws=new WebSocket('wss://bomby.us/ws/fuzeobs-events/{user_id}');
-  ws.onclose=()=>setTimeout(connectWS,3000);
+  ws.onclose=()=>setTimeout(connect,3000);
   ws.onmessage=e=>{{
     const d=JSON.parse(e.data);
     const ev=document.createElement('div');
@@ -176,8 +163,8 @@ function connectWS(){{
     while(ct.children.length>10)ct.removeChild(ct.lastChild);
   }};
 }}
-function getIcon(t){{const i={{'follow':'â¤ï¸','subscribe':'â­','bits':'ðŸ'Ž','donation':'ðŸ'°','raid':'ðŸ'¥'}};return i[t]||'ðŸŽ‰'}}
-connectWS();
+function getIcon(t){{const i={{'follow':'❤️','subscribe':'⭐','bits':'💎','donation':'💰','raid':'💥'}};return i[t]||'🎉'}}
+connect();
 </script></body></html>"""
 
 def generate_goal_bar_html(user_id, config):
@@ -196,9 +183,9 @@ body{{background:transparent;margin:0;padding:20px;font-family:Arial}}
 </div>
 <script>
 let ws;
-function connectWS(){{
+function connect(){{
   ws=new WebSocket('wss://bomby.us/ws/fuzeobs-goals/{user_id}');
-  ws.onclose=()=>setTimeout(connectWS,3000);
+  ws.onclose=()=>setTimeout(connect,3000);
   ws.onmessage=e=>{{
     const d=JSON.parse(e.data);
     document.getElementById('ti').textContent=d.title;
@@ -207,7 +194,7 @@ function connectWS(){{
     document.getElementById('pt').textContent=`${{d.current}}/${{d.goal}} (${{Math.round(p)}}%)`;
   }};
 }}
-connectWS();
+connect();
 </script></body></html>"""
 
 def upload_to_gcs(html_content, user_id, widget_type):
