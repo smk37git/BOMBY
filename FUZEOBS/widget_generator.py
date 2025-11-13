@@ -38,7 +38,7 @@ body{{margin:0;overflow:hidden;background:transparent;font-family:Arial}}
 <div id="c"></div><audio id="s"></audio>
 <script>
 console.log('🟢 NEW WIDGET v4.0 - NO POLLING');
-const ws=new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}');
+const ws=new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/');
 let to;
 ws.onmessage=e=>{{
   const a=JSON.parse(e.data);
