@@ -1327,7 +1327,7 @@ def fuzeobs_delete_widget(request, widget_id):
         # Delete from GCS
         try:
             client = storage.Client()
-            bucket = client.bucket('bomby-user-uploads')
+            bucket = client.bucket('fuzeobs-public')
             blob_path = f'fuzeobs-widgets/{user.id}/{widget.id}.html'
             blob = bucket.blob(blob_path)
             blob.delete()

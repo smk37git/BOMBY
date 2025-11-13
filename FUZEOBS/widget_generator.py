@@ -162,7 +162,7 @@ ws.onmessage=e=>{{
 
 def upload_to_gcs(html_content, user_id, widget_type):
     client=storage.Client()
-    bucket=client.bucket('bomby-user-uploads')
+    bucket=client.bucket('fuzeobs-public')
     hash_id=hashlib.md5(f"{user_id}{widget_type}{html_content[:100]}".encode()).hexdigest()[:8]
     blob_name=f'fuzeobs-widgets/{user_id}/{widget_type}_{hash_id}.html'
     blob=bucket.blob(blob_name)
