@@ -131,7 +131,7 @@ ws.onmessage = (e) => {{
     text.style.fontSize = (config.font_size || 32) + 'px';
     text.style.color = config.text_color || '#FFFFFF';
     
-    const eventData = data.event_data || {};
+    const eventData = data.event_data || {{}};
     let message = config.message_template || '{{{{name}}}} just followed!';
     message = message.replace(/{{{{name}}}}/g, eventData.username || "Someone");
     message = message.replace(/{{{{amount}}}}/g, eventData.amount || '');
