@@ -34,23 +34,6 @@ body {{
     width: 100%;
     height: 100vh;
 }}
-.alert {{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    opacity: 0;
-}}
-.alert-image {{
-    max-width: 300px;
-}}
-.alert-text {{
-    font-size: 32px;
-    color: #FFFFFF;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    margin: 10px 0;
-}}
 
 /* Alert Animations */
 @keyframes fadeIn {{
@@ -58,17 +41,17 @@ body {{
     to {{ opacity: 1; }}
 }}
 @keyframes slideIn {{
-    from {{ transform: translate(-50%, -100%); opacity: 0; }}
-    to {{ transform: translate(-50%, -50%); opacity: 1; }}
+    from {{ transform: translateY(-100px); opacity: 0; }}
+    to {{ transform: translateY(0); opacity: 1; }}
 }}
 @keyframes bounceIn {{
-    0% {{ transform: translate(-50%, -50%) scale(0); opacity: 0; }}
-    50% {{ transform: translate(-50%, -50%) scale(1.1); }}
-    100% {{ transform: translate(-50%, -50%) scale(1); opacity: 1; }}
+    0% {{ transform: scale(0); opacity: 0; }}
+    50% {{ transform: scale(1.1); }}
+    100% {{ transform: scale(1); opacity: 1; }}
 }}
 @keyframes zoomIn {{
-    from {{ transform: translate(-50%, -50%) scale(0); opacity: 0; }}
-    to {{ transform: translate(-50%, -50%) scale(1); opacity: 1; }}
+    from {{ transform: scale(0); opacity: 0; }}
+    to {{ transform: scale(1); opacity: 1; }}
 }}
 
 /* Text Animations */
@@ -103,119 +86,175 @@ body {{
 const userId = '{user_id}';
 const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}`);
 
-const defaultConfig = {{
-    enabled: true,
-    alert_animation: 'fade',
-    font_size: 32,
-    font_weight: 'normal',
-    text_color: '#FFFFFF',
-    message_template: '{{{{name}}}} just followed!',
-    duration: 5,
-    sound_volume: 50,
-    layout: 'standard'
-}};
-
 const eventConfigs = {{}};
-let configsLoaded = false;
 
 fetch(`/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now()}}`)
     .then(r => r.json())
     .then(data => {{
         Object.assign(eventConfigs, data.configs);
-        configsLoaded = true;
+        console.log('Loaded configs:', eventConfigs);
     }})
-    .catch(err => {{
-        configsLoaded = true;
-    }});
+    .catch(err => console.log('Config load error:', err));
 
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
     const configKey = `${{data.platform}}-${{data.event_type}}`;
-    const config = eventConfigs[configKey] || defaultConfig;
+    const config = eventConfigs[configKey];
     
-    if (!config.enabled) return;
+    console.log('Event received:', data);
+    console.log('Using config:', config);
+    
+    if (!config || !config.enabled) return;
     
     const alert = document.createElement('div');
-    alert.className = 'alert';
+    alert.style.position = 'absolute';
+    alert.style.top = '50%';
+    alert.style.left = '50%';
+    alert.style.opacity = '0';
     
-    // Apply layout
     const layout = config.layout || 'standard';
+    const eventData = data.event_data || {{}};
+    let message = config.message_template || '{{{{name}}}} just followed!';
+    message = message.replace(/{{{{name}}}}/g, eventData.username || "Someone");
+    message = message.replace(/{{{{amount}}}}/g, eventData.amount || '');
     
-    if (layout === 'image_above') {{
+    // Apply layout-specific positioning
+    if (layout === 'standard') {{
         alert.style.display = 'flex';
         alert.style.flexDirection = 'column';
         alert.style.alignItems = 'center';
+        alert.style.transform = 'translate(-50%, -50%)';
+        alert.style.textAlign = 'center';
+        
+        if (config.image_url) {{
+            const img = document.createElement('img');
+            img.src = config.image_url;
+            img.style.maxWidth = '300px';
+            img.style.marginBottom = '20px';
+            alert.appendChild(img);
+        }}
+        
+        const text = document.createElement('div');
+        text.textContent = message;
+        text.style.fontSize = (config.font_size || 32) + 'px';
+        text.style.fontWeight = config.font_weight || 'normal';
+        text.style.color = config.text_color || '#FFFFFF';
+        if (config.text_shadow) text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
+        if (config.text_animation && config.text_animation !== 'none') {{
+            text.style.animation = `${{config.text_animation}} 1s ease-in-out infinite`;
+        }}
+        alert.appendChild(text);
+        
+    }} else if (layout === 'image_above') {{
+        alert.style.display = 'flex';
+        alert.style.flexDirection = 'column';
+        alert.style.alignItems = 'center';
+        alert.style.transform = 'translate(-50%, -50%)';
+        alert.style.textAlign = 'center';
+        
+        if (config.image_url) {{
+            const img = document.createElement('img');
+            img.src = config.image_url;
+            img.style.maxWidth = '300px';
+            img.style.marginBottom = '20px';
+            alert.appendChild(img);
+        }}
+        
+        const text = document.createElement('div');
+        text.textContent = message;
+        text.style.fontSize = (config.font_size || 32) + 'px';
+        text.style.fontWeight = config.font_weight || 'normal';
+        text.style.color = config.text_color || '#FFFFFF';
+        if (config.text_shadow) text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
+        if (config.text_animation && config.text_animation !== 'none') {{
+            text.style.animation = `${{config.text_animation}} 1s ease-in-out infinite`;
+        }}
+        alert.appendChild(text);
+        
     }} else if (layout === 'image_left') {{
         alert.style.display = 'flex';
         alert.style.flexDirection = 'row';
         alert.style.alignItems = 'center';
         alert.style.gap = '20px';
+        alert.style.transform = 'translate(-50%, -50%)';
+        
+        if (config.image_url) {{
+            const img = document.createElement('img');
+            img.src = config.image_url;
+            img.style.maxWidth = '200px';
+            alert.appendChild(img);
+        }}
+        
+        const text = document.createElement('div');
+        text.textContent = message;
+        text.style.fontSize = (config.font_size || 32) + 'px';
+        text.style.fontWeight = config.font_weight || 'normal';
+        text.style.color = config.text_color || '#FFFFFF';
+        text.style.textAlign = 'left';
+        if (config.text_shadow) text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
+        if (config.text_animation && config.text_animation !== 'none') {{
+            text.style.animation = `${{config.text_animation}} 1s ease-in-out infinite`;
+        }}
+        alert.appendChild(text);
+        
     }} else if (layout === 'text_over_image') {{
-        alert.style.display = 'flex';
-        alert.style.position = 'relative';
+        alert.style.position = 'absolute';
+        alert.style.top = '50%';
+        alert.style.left = '50%';
+        alert.style.transform = 'translate(-50%, -50%)';
+        
+        if (config.image_url) {{
+            const container = document.createElement('div');
+            container.style.position = 'relative';
+            
+            const img = document.createElement('img');
+            img.src = config.image_url;
+            img.style.maxWidth = '400px';
+            img.style.display = 'block';
+            container.appendChild(img);
+            
+            const text = document.createElement('div');
+            text.textContent = message;
+            text.style.position = 'absolute';
+            text.style.top = '50%';
+            text.style.left = '50%';
+            text.style.transform = 'translate(-50%, -50%)';
+            text.style.fontSize = (config.font_size || 32) + 'px';
+            text.style.fontWeight = config.font_weight || 'normal';
+            text.style.color = config.text_color || '#FFFFFF';
+            text.style.textAlign = 'center';
+            text.style.width = '100%';
+            text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
+            if (config.text_animation && config.text_animation !== 'none') {{
+                text.style.animation = `${{config.text_animation}} 1s ease-in-out infinite`;
+            }}
+            container.appendChild(text);
+            alert.appendChild(container);
+        }} else {{
+            const text = document.createElement('div');
+            text.textContent = message;
+            text.style.fontSize = (config.font_size || 32) + 'px';
+            text.style.fontWeight = config.font_weight || 'normal';
+            text.style.color = config.text_color || '#FFFFFF';
+            text.style.textAlign = 'center';
+            if (config.text_shadow) text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
+            if (config.text_animation && config.text_animation !== 'none') {{
+                text.style.animation = `${{config.text_animation}} 1s ease-in-out infinite`;
+            }}
+            alert.appendChild(text);
+        }}
     }}
     
     // Apply alert animation
     const animation = config.alert_animation || 'fade';
     alert.style.animation = `${{animation}}In 0.5s ease-out forwards`;
     
-    // Add image if configured
-    if (config.image_url) {{
-        const imgContainer = document.createElement('div');
-        imgContainer.style.position = layout === 'text_over_image' ? 'relative' : 'static';
-        
-        const img = document.createElement('img');
-        img.src = config.image_url;
-        img.className = 'alert-image';
-        imgContainer.appendChild(img);
-        alert.appendChild(imgContainer);
-    }}
-    
-    // Add text
-    const text = document.createElement('div');
-    text.className = 'alert-text';
-    text.style.fontSize = (config.font_size || 32) + 'px';
-    text.style.fontWeight = config.font_weight || 'normal';
-    text.style.color = config.text_color || '#FFFFFF';
-    
-    if (config.text_shadow) {{
-        text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
-    }}
-    
-    // Position text over image if text_over_image layout
-    if (layout === 'text_over_image' && config.image_url) {{
-        text.style.position = 'absolute';
-        text.style.top = '50%';
-        text.style.left = '50%';
-        text.style.transform = 'translate(-50%, -50%)';
-        text.style.width = '100%';
-        text.style.zIndex = '10';
-    }}
-    
-    // Apply message template
-    const eventData = data.event_data || {{}};
-    let message = config.message_template || '{{{{name}}}} just followed!';
-    message = message.replace(/{{{{name}}}}/g, eventData.username || "Someone");
-    message = message.replace(/{{{{amount}}}}/g, eventData.amount || '');
-    text.textContent = message;
-    
-    // Apply text animation
-    if (config.text_animation && config.text_animation !== 'none') {{
-        text.style.animation = `${{config.text_animation}} 1s ease-in-out infinite`;
-    }}
-    
-    if (layout === 'text_over_image' && config.image_url) {{
-        alert.firstChild.appendChild(text);
-    }} else {{
-        alert.appendChild(text);
-    }}
-    
-    // Play sound if configured
+    // Play sound
     if (config.sound_url) {{
         const audio = document.getElementById('alertSound');
         audio.src = config.sound_url;
         audio.volume = (config.sound_volume || 50) / 100;
-        audio.play().catch(err => console.log('Audio play failed:', err));
+        audio.play().catch(err => console.log('Audio error:', err));
     }}
     
     document.getElementById('container').appendChild(alert);
@@ -228,9 +267,7 @@ ws.onmessage = (e) => {{
     }}, duration);
 }};
 
-ws.onerror = (error) => {{
-    console.error('WebSocket error:', error);
-}};
+ws.onerror = (error) => console.error('WebSocket error:', error);
 </script>
 </body>
 </html>"""
