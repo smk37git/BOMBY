@@ -1470,7 +1470,7 @@ def fuzeobs_save_widget(request):
                 config=data.get('config', {})
             )
         
-        widget_html = generate_widget_html(widget)
+        widget_html = generate_widget_html(widget.user.id, widget.widget_type, widget.config)
         
         client = storage.Client()
         bucket = client.bucket('fuzeobs-public')
