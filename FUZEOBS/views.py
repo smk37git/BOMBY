@@ -19,9 +19,17 @@ import hashlib
 import time
 from functools import wraps
 from django.contrib.auth.decorators import login_required
-from .widget_generator import generate_widget_html, generate_alert_box_html, generate_chat_box_html, upload_to_gcs
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+
+import importlib
+import sys
+
+# Force reload widget_generator on every import
+if 'FUZEOBS.widget_generator' in sys.modules:
+    del sys.modules['FUZEOBS.widget_generator']
+    
+from .widget_generator import generate_widget_html, generate_alert_box_html, generate_chat_box_html, upload_to_gcs
 
 # Website Imports
 from django.shortcuts import render
