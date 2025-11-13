@@ -1421,6 +1421,9 @@ def get_widget_script(widget_type, config):
     return base_script + "connectWebSocket();"
 
 
+@csrf_exempt
+@require_http_methods(["GET"])
+@require_tier('free')
 def fuzeobs_get_widgets(request):
     """Get all widgets for authenticated user"""
     user = request.fuzeobs_user
