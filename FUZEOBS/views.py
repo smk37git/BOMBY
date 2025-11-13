@@ -1249,10 +1249,10 @@ def fuzeobs_get_widgets(request):
     return JsonResponse({
         'widgets': [{
             'id': w.id,
-            'widget_type': w.widget_type,
+            'type': w.widget_type,
             'name': w.name,
             'config': w.config,
-            'gcs_url': w.gcs_url,
+            'url': w.gcs_url,
             'created_at': w.created_at.isoformat(),
             'updated_at': w.updated_at.isoformat(),
         } for w in widgets]
@@ -1294,15 +1294,16 @@ def fuzeobs_save_widget(request):
             details={'widget_type': widget.widget_type, 'widget_name': widget.name},
             source='app'
         )
-        
+ 
         return JsonResponse({
             'success': True,
+            'id': widget.id,
             'widget': {
                 'id': widget.id,
-                'widget_type': widget.widget_type,
+                'type': widget.widget_type,
                 'name': widget.name,
                 'config': widget.config,
-                'gcs_url': widget.gcs_url,
+                'url': widget.gcs_url,
                 'created_at': widget.created_at.isoformat(),
                 'updated_at': widget.updated_at.isoformat(),
             }
