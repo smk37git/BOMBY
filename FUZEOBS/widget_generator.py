@@ -80,6 +80,10 @@ body {{
     0%, 100% {{ transform: translateY(0); }}
     50% {{ transform: translateY(-10px); }}
 }}
+@keyframes fadeOut {{
+    from {{ opacity: 1; }}
+    to {{ opacity: 0; }}
+}}
 </style>
 </head>
 <body>
@@ -116,6 +120,18 @@ ws.onmessage = (e) => {{
     const alert = document.createElement('div');
     alert.className = 'alert';
     
+    // Apply layout
+    const layout = config.layout || 'standard';
+    if (layout === 'image_above') {{
+        alert.style.flexDirection = 'column';
+        alert.style.display = 'flex';
+    }} else if (layout === 'image_side') {{
+        alert.style.flexDirection = 'row';
+        alert.style.display = 'flex';
+        alert.style.alignItems = 'center';
+        alert.style.gap = '20px';
+    }}
+    
     const animation = config.alert_animation || 'fade';
     alert.style.animation = `${{animation}}In 0.5s ease-out forwards`;
     
@@ -130,6 +146,9 @@ ws.onmessage = (e) => {{
     text.className = 'alert-text';
     text.style.fontSize = (config.font_size || 32) + 'px';
     text.style.color = config.text_color || '#FFFFFF';
+    if (config.text_shadow) {{
+        text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
+    }}
     
     const eventData = data.event_data || {{}};
     let message = config.message_template || '{{{{name}}}} just followed!';
