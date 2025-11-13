@@ -17,7 +17,7 @@ def generate_alert_box_html(user_id, config):
 <html><head><meta charset="UTF-8">
 <style>
 * {{margin:0;padding:0;box-sizing:border-box}}
-body {{width:1920px;height:1080px;overflow:hidden;background:transparent;font-family:Arial;position:relative}}
+body {{width:800px;height:600px;overflow:hidden;background:transparent;font-family:Arial;position:relative}}
 #container {{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;visibility:hidden;opacity:0;max-width:90%;max-height:90%}}
 .standard,.image-above {{flex-direction:column;align-items:center;text-align:center;gap:20px}}
 .image-left {{flex-direction:row;align-items:center;gap:30px}}
