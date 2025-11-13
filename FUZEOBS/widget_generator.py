@@ -110,6 +110,7 @@ ws.onmessage = (e) => {{
     // Use saved config if exists, otherwise use default
     const config = eventConfigs[configKey] || defaultConfig;
     
+    console.log('Alert:', data, 'Config:', config);
     if (!config.enabled) return;
     
     const alert = document.createElement('div');
@@ -130,9 +131,10 @@ ws.onmessage = (e) => {{
     text.style.fontSize = (config.font_size || 32) + 'px';
     text.style.color = config.text_color || '#FFFFFF';
     
+    const eventData = data.event_data || {};
     let message = config.message_template || '{{{{name}}}} just followed!';
-    message = message.replace(/{{{{name}}}}/g, data.username);
-    message = message.replace(/{{{{amount}}}}/g, data.amount || '');
+    message = message.replace(/{{{{name}}}}/g, eventData.username || "Someone");
+    message = message.replace(/{{{{amount}}}}/g, eventData.amount || '');
     text.textContent = message;
     
     if (config.text_animation && config.text_animation !== 'none') {{
@@ -151,6 +153,7 @@ ws.onmessage = (e) => {{
     document.getElementById('container').appendChild(alert);
     
     const duration = (config.duration || 5) * 1000;
+    console.log('Duration:', duration/1000, 'sec');
     setTimeout(() => {{
         alert.style.animation = 'fadeOut 0.5s ease-out forwards';
         setTimeout(() => alert.remove(), 500);
