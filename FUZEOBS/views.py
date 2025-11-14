@@ -1385,39 +1385,31 @@ def fuzeobs_get_platforms(request):
     })
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["GET"])
 @require_tier('free')
 def fuzeobs_connect_platform(request):
     """Initiate OAuth flow for platform"""
     user = request.fuzeobs_user
     
-    try:
-        data = json.loads(request.body)
-        platform = data['platform']
-        
-        if platform not in PLATFORM_OAUTH_CONFIG:
-            return JsonResponse({'error': 'Invalid platform'}, status=400)
-        
-        config = PLATFORM_OAUTH_CONFIG[platform]
-        
-        # Generate state token for CSRF protection
-        state = secrets.token_urlsafe(32)
-        cache.set(f'oauth_state_{state}', {'user_id': user.id, 'platform': platform}, timeout=600)
-        
-        # Build OAuth URL
-        redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
-        scopes = ' '.join(config['scopes'])
-        
-        auth_url = f"{config['auth_url']}?client_id={config['client_id']}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}&state={state}"
-        
-        return JsonResponse({
-            'success': True,
-            'auth_url': auth_url,
-            'state': state
-        })
-        
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+    platform = request.GET.get('platform')
+    
+    if not platform or platform not in PLATFORM_OAUTH_CONFIG:
+        return HttpResponse('Invalid platform', status=400)
+    
+    config = PLATFORM_OAUTH_CONFIG[platform]
+    
+    # Generate state token for CSRF protection
+    state = secrets.token_urlsafe(32)
+    cache.set(f'oauth_state_{state}', {'user_id': user.id, 'platform': platform}, timeout=600)
+    
+    # Build OAuth URL
+    redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
+    scopes = ' '.join(config['scopes'])
+    
+    auth_url = f"{config['auth_url']}?client_id={config['client_id']}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}&state={state}"
+    
+    # Redirect to OAuth provider
+    return redirect(auth_url)
 
 @csrf_exempt
 @require_http_methods(["POST"])
