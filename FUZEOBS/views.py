@@ -1925,9 +1925,6 @@ def fuzeobs_delete_widget_event(request, event_id):
 @csrf_exempt
 @require_http_methods(["POST"])
 @require_tier('free')
-@csrf_exempt
-@require_http_methods(["POST"])
-@require_tier('free')
 def fuzeobs_test_alert(request):
     """Send test alert via WebSocket"""
     user = request.fuzeobs_user
@@ -1957,3 +1954,26 @@ def fuzeobs_test_alert(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=400)
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_get_widget_event_configs(request, user_id):
+    """Get all event configurations for user's widgets - accessible from GCS widgets"""
+    try:
+        widgets = WidgetConfig.objects.filter(user_id=user_id)
+        configs = {}
+        
+        for widget in widgets:
+            events = WidgetEvent.objects.filter(widget=widget, enabled=True)
+            for event in events:
+                key = f"{event.platform}-{event.event_type}"
+                configs[key] = event.config
+                configs[key]['enabled'] = True
+        
+        response = JsonResponse({'configs': configs})
+        response['Access-Control-Allow-Origin'] = '*'
+        response['Cache-Control'] = 'no-cache'
+        return response
+    except Exception as e:
+        response = JsonResponse({'configs': {}})
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
