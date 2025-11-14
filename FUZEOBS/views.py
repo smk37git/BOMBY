@@ -1467,10 +1467,14 @@ def fuzeobs_save_widget(request):
         client = storage.Client()
         bucket = client.bucket('fuzeobs-public')
         blob = bucket.blob(f'widgets/{user.id}/{widget.id}.html')
-        blob.upload_from_string(widget_html, content_type='text/html')
-        blob.make_public()
+        blob.upload_from_string(
+            widget_html, 
+            content_type='text/html',
+            predefined_acl='publicRead'
+        )
+        blob.cache_control = 'no-cache, no-store, must-revalidate'
+        blob.patch()
         
-        # Use bomby.us URL
         widget.gcs_url = blob.public_url
         widget.save()
         
@@ -1777,10 +1781,14 @@ def fuzeobs_upload_media(request):
     ext = file.name.split('.')[-1]
     filename = f'{uuid.uuid4()}.{ext}'
     blob = bucket.blob(f'media/{user.id}/{filename}')
-    blob.upload_from_file(file, content_type=file.content_type)
-    blob.make_public()
+    blob.upload_from_file(
+        file, 
+        content_type=file.content_type,
+        predefined_acl='publicRead'
+    )
+    blob.cache_control = 'public, max-age=31536000'
+    blob.patch()
     
-    # Use bomby.us URL
     file_url = blob.public_url
     
     media = MediaLibrary.objects.create(
@@ -1916,23 +1924,62 @@ def fuzeobs_delete_widget_event(request, event_id):
         return JsonResponse({'error': 'Event not found'}, status=404)
     
 @csrf_exempt
-@require_http_methods(["GET"])
-def fuzeobs_get_widget_event_configs(request, user_id):
-    """Get all event configurations for user's widgets"""
-    try:
-        widgets = WidgetConfig.objects.filter(user_id=user_id)
-        configs = {}
-        
-        for widget in widgets:
-            events = WidgetEvent.objects.filter(widget=widget, enabled=True)
-            for event in events:
-                key = f"{event.platform}-{event.event_type}"
-                configs[key] = event.config
-                configs[key]['enabled'] = True
-        
-        return JsonResponse({'configs': configs})
-    except Exception as e:
-        return JsonResponse({'configs': {}})
+@require_http_methods(["POST"])
+@require_tier('free')
+def fuzeobs_upload_media(request):
+    user = request.fuzeobs_user
+    file = request.FILES.get('file')
+    if not file:
+        return JsonResponse({'error': 'No file'}, status=400)
+    
+    max_size = 100 * 1024 * 1024 if user.fuzeobs_tier in ['pro', 'lifetime'] else 25 * 1024 * 1024
+    current = sum(m.file_size for m in MediaLibrary.objects.filter(user=user))
+    
+    if current + file.size > max_size:
+        return JsonResponse({'error': 'Storage limit exceeded'}, status=400)
+    
+    if file.content_type.startswith('image'):
+        media_type = 'image'
+    elif file.content_type.startswith('audio'):
+        media_type = 'sound'
+    elif file.content_type.startswith('video'):
+        media_type = 'video'
+    else:
+        return JsonResponse({'error': 'Invalid type'}, status=400)
+    
+    client = storage.Client()
+    bucket = client.bucket('fuzeobs-public')
+    ext = file.name.split('.')[-1]
+    filename = f'{uuid.uuid4()}.{ext}'
+    blob = bucket.blob(f'media/{user.id}/{filename}')
+    blob.upload_from_file(
+        file, 
+        content_type=file.content_type,
+        predefined_acl='publicRead'
+    )
+    blob.cache_control = 'public, max-age=31536000'
+    blob.patch()
+    
+    file_url = blob.public_url
+    
+    media = MediaLibrary.objects.create(
+        user=user,
+        name=file.name,
+        media_type=media_type,
+        file_url=file_url,
+        file_size=file.size
+    )
+    
+    return JsonResponse({
+        'success': True,
+        'media': {
+            'id': media.id,
+            'name': media.name,
+            'type': media.media_type,
+            'url': media.file_url,
+            'size': media.file_size
+        }
+    })
 
 # ==== ALERT TESTING ====
 @csrf_exempt
