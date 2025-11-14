@@ -1791,17 +1791,44 @@ def fuzeobs_test_alert(request):
         event_type = data.get('event_type', 'follow')
         platform = data.get('platform', 'twitch')
         
+        # Get saved config or use defaults
+        widget = WidgetConfig.objects.filter(user=user, widget_type='alert_box').first()
+        config = None
+        if widget:
+            event = WidgetEvent.objects.filter(
+                widget=widget,
+                platform=platform,
+                event_type=event_type
+            ).first()
+            if event:
+                config = event.config
+        
+        # Default config for testing
+        if not config:
+            config = {
+                'enabled': True,
+                'layout': 'standard',
+                'message_template': '{name} just ' + event_type + '!',
+                'duration': 5,
+                'font_size': 48,
+                'text_color': '#FFFFFF',
+                'alert_animation': 'fade',
+                'text_animation': 'none'
+            }
+        
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f'alerts_{user.id}',
             {
                 'type': 'alert_event',
                 'data': {
-                    'event_type': event_type,
                     'platform': platform,
-                    'event_data': {'username': 'Test_User',
-                    'amount': '100' if event_type in ['bits', 'superchat'] else None,
-                    }
+                    'event_type': event_type,
+                    'event_data': {
+                        'username': 'Test_User',
+                        'amount': '100' if event_type in ['bits', 'superchat'] else None,
+                    },
+                    'config': config
                 }
             }
         )
@@ -1810,4 +1837,6 @@ def fuzeobs_test_alert(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=400)
+
         return JsonResponse({'error': str(e)}, status=400)

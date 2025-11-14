@@ -148,7 +148,7 @@ ws.onmessage=e=>{{
   ct.insertBefore(ev,ct.firstChild);
   while(ct.children.length>10)ct.removeChild(ct.lastChild);
 }};
-function getIcon(t){{const i={{'follow':'❤️','subscribe':'⭐','bits':'💎','donation':'💰','raid':'💥'}};return i[t]||'🎉'}}
+function getIcon(t){{const i={{'follow':'â¤ï¸','subscribe':'â­','bits':'ðŸ’Ž','donation':'ðŸ’°','raid':'ðŸ’¥'}};return i[t]||'ðŸŽ‰'}}
 </script></body></html>"""
 
 def generate_goal_bar_html(user_id, config):

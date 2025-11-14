@@ -13,11 +13,19 @@ class AlertConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
     
     async def alert_event(self, event):
-        # Get full config for this event type
-        config = await self.get_event_config(
-            event['data']['platform'],
-            event['data']['event_type']
-        )
+        # Config can come from message (testing) or DB (real events)
+        config = event['data'].get('config')
+        
+        # If no config in message, fetch from DB
+        if not config:
+            config = await self.get_event_config(
+                event['data']['platform'],
+                event['data']['event_type']
+            )
+        
+        # Skip if no config found and not enabled
+        if not config or not config.get('enabled', True):
+            return
         
         # Send complete package
         await self.send_json({
