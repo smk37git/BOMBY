@@ -104,7 +104,7 @@ body {{
 <audio id="alertSound" preload="auto"></audio>
 <script>
 const userId = '{user_id}';
-const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}`);
+const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/`);
 
 const defaultConfig = {{
     enabled: true,
