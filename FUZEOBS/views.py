@@ -1231,12 +1231,10 @@ def fuzeobs_all_users_view(request):
 # ===== WIDGETS SYSTEM =====
 # Widget HTML generators
 
-
 @csrf_exempt
 @require_http_methods(["GET"])
 @require_tier('free')
 def fuzeobs_get_widgets(request):
-    """Get all widgets for authenticated user"""
     user = request.fuzeobs_user
     widgets = WidgetConfig.objects.filter(user=user).order_by('-updated_at')
     
@@ -1246,11 +1244,24 @@ def fuzeobs_get_widgets(request):
             'type': w.widget_type,
             'name': w.name,
             'config': w.config,
-            'url': w.gcs_url or f'https://storage.googleapis.com/fuzeobs-public/widgets/{user.id}/{w.id}.html',
+            'url': f'https://bomby.us/fuzeobs/w/{w.token}',
             'created_at': w.created_at.isoformat(),
             'updated_at': w.updated_at.isoformat()
         } for w in widgets]
     })
+
+@xframe_options_exempt
+@require_http_methods(["GET"])
+def fuzeobs_serve_widget(request, token):
+    """Serve widget by token - clean URL"""
+    try:
+        widget = WidgetConfig.objects.get(token=token)
+        html = generate_widget_html(widget)
+        response = HttpResponse(html, content_type='text/html')
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return response
+    except WidgetConfig.DoesNotExist:
+        return HttpResponse('Widget not found', status=404)
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -1260,11 +1271,13 @@ def fuzeobs_save_widget(request):
     try:
         data = json.loads(request.body)
         widget_id = data.get('widget_id')
+        is_new = not widget_id
         
         if widget_id:
             widget = WidgetConfig.objects.get(id=widget_id, user=user)
             widget.name = data.get('name', widget.name)
             widget.config = data.get('config', widget.config)
+            widget.save()
         else:
             widget = WidgetConfig.objects.create(
                 user=user,
@@ -1273,39 +1286,25 @@ def fuzeobs_save_widget(request):
                 config=data.get('config', {})
             )
         
-        widget_html = generate_widget_html(widget)
-        
-        client = storage.Client()
-        bucket = client.bucket('fuzeobs-public')
-        blob = bucket.blob(f'widgets/{user.id}/{widget.id}.html')
-        blob.upload_from_string(
-            widget_html, 
-            content_type='text/html',
-            predefined_acl='publicRead'
-        )
-        blob.cache_control = 'no-cache, no-store, must-revalidate'
-        blob.patch()
-        
-        widget.gcs_url = blob.public_url
-        widget.save()
-        
         UserActivity.objects.create(
             user=user,
-            activity_type='widget_create' if not widget_id else 'widget_update',
+            activity_type='widget_create' if is_new else 'widget_update',
             source='app',
             details={'widget_type': widget.widget_type, 'widget_id': widget.id}
         )
         
+        widget_url = f'https://bomby.us/fuzeobs/w/{widget.token}'
+        
         return JsonResponse({
             'success': True,
             'id': widget.id,
-            'url': widget.gcs_url,
+            'url': widget_url,
             'widget': {
                 'id': widget.id,
                 'type': widget.widget_type,
                 'name': widget.name,
                 'config': widget.config,
-                'url': widget.gcs_url
+                'url': widget_url
             }
         })
     except WidgetConfig.DoesNotExist:
@@ -1319,24 +1318,11 @@ def fuzeobs_save_widget(request):
 @require_http_methods(["DELETE"])
 @require_tier('free')
 def fuzeobs_delete_widget(request, widget_id):
-    """Delete widget"""
     user = request.fuzeobs_user
     
     try:
         widget = WidgetConfig.objects.get(id=widget_id, user=user)
-        
-        # Delete from GCS
-        try:
-            client = storage.Client()
-            bucket = client.bucket('fuzeobs-public')
-            blob_path = f'widgets/{user.id}/{widget.id}.html'
-            blob = bucket.blob(blob_path)
-            blob.delete()
-        except:
-            pass  # Ignore GCS errors
-        
         widget.delete()
-        
         return JsonResponse({'success': True})
         
     except WidgetConfig.DoesNotExist:
@@ -1672,7 +1658,6 @@ def fuzeobs_get_widget_events(request, widget_id):
 @require_http_methods(["POST"])
 @require_tier('free')
 def fuzeobs_save_widget_event(request):
-    """Save event configuration"""
     user = request.fuzeobs_user
     
     try:
@@ -1693,20 +1678,6 @@ def fuzeobs_save_widget_event(request):
                 'config': config
             }
         )
-        
-        # Regenerate widget HTML with new config
-        widget_html = generate_widget_html(widget)
-        client = storage.Client()
-        bucket = client.bucket('fuzeobs-public')
-        blob_path = f'widgets/{user.id}/{widget.id}.html'
-        blob = bucket.blob(blob_path)
-        blob.upload_from_string(
-            widget_html, 
-            content_type='text/html',
-            predefined_acl='publicRead'
-        )
-        blob.cache_control = 'no-cache, no-store, must-revalidate'
-        blob.patch()
         
         return JsonResponse({
             'success': True,
@@ -1759,7 +1730,7 @@ def fuzeobs_test_alert(request):
                 'data': {
                     'event_type': event_type,
                     'platform': platform,
-                    'event_data': {'username': 'Test_User',
+                    'event_data': {'username': 'FuzeOBS',
                     'amount': '100' if event_type in ['bits', 'superchat'] else None,
                     }
                 }

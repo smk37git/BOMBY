@@ -116,7 +116,7 @@ const defaultConfig = {{
     message_template: '{{{{name}}}} just followed!',
     duration: 5,
     sound_volume: 50,
-    layout: 'standard'
+    layout: 'image_above'
 }};
 
 const eventConfigs = {{}};
@@ -142,8 +142,8 @@ ws.onmessage = (e) => {{
     const alert = document.createElement('div');
     alert.className = 'alert';
     
-    // Apply layout
-    const layout = config.layout || 'standard';
+    // Apply layout - default to image_above
+    const layout = config.layout || 'image_above';
     
     if (layout === 'image_above') {{
         alert.style.display = 'flex';
@@ -159,9 +159,6 @@ ws.onmessage = (e) => {{
         alert.style.flexDirection = 'row-reverse';
         alert.style.alignItems = 'center';
         alert.style.gap = '20px';
-    }} else if (layout === 'text_over_image') {{
-        alert.style.display = 'flex';
-        alert.style.position = 'relative';
     }}
     
     // Apply alert animation
@@ -171,11 +168,15 @@ ws.onmessage = (e) => {{
     // Add image if configured
     if (config.image_url) {{
         const imgContainer = document.createElement('div');
-        imgContainer.style.position = layout === 'text_over_image' ? 'relative' : 'static';
+        if (layout === 'text_over_image') {{
+            imgContainer.style.position = 'relative';
+            imgContainer.style.display = 'inline-block';
+        }}
         
         const img = document.createElement('img');
         img.src = config.image_url;
         img.className = 'alert-image';
+        img.style.display = 'block';
         imgContainer.appendChild(img);
         alert.appendChild(imgContainer);
     }}
@@ -200,6 +201,7 @@ ws.onmessage = (e) => {{
         text.style.transform = 'translate(-50%, -50%)';
         text.style.width = '100%';
         text.style.zIndex = '10';
+        text.style.margin = '0';
     }}
     
     // Apply message template

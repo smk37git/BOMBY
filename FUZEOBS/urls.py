@@ -29,6 +29,9 @@ urlpatterns = [
 
     # == Widget URLS ==
 
+    # Widget Serving (clean URL)
+    path('w/<str:token>', views.fuzeobs_serve_widget, name='serve_widget'),
+
     # Widget CRUD
     path('widgets', views.fuzeobs_get_widgets, name='get_widgets'),
     path('widgets/save', views.fuzeobs_save_widget, name='save_widget'),

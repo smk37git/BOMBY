@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+import secrets
 
 class ActiveSession(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
@@ -136,12 +137,21 @@ class WidgetConfig(models.Model):
     widget_type = models.CharField(max_length=20, choices=WIDGET_TYPES)
     name = models.CharField(max_length=100)
     config = models.JSONField(default=dict)
+    token = models.CharField(max_length=128, unique=True, blank=True)
     gcs_url = models.URLField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = secrets.token_urlsafe(64)
+        super().save(*args, **kwargs)
+    
     class Meta:
         ordering = ['-updated_at']
+        indexes = [
+            models.Index(fields=['token']),
+        ]
 
 class MediaLibrary(models.Model):
     MEDIA_TYPES = [
