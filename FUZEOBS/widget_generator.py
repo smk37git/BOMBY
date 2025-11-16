@@ -201,17 +201,6 @@ ws.onmessage = (e) => {{
         text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
     }}
     
-    // Position text over image if text_over_image layout
-    if (layout === 'text_over_image' && config.image_url) {{
-        text.style.position = 'absolute';
-        text.style.top = '50%';
-        text.style.left = '50%';
-        text.style.transform = 'translate(-50%, -50%)';
-        text.style.zIndex = '10';
-        text.style.margin = '0';
-        text.style.whiteSpace = 'nowrap';
-    }}
-    
     // Apply message template
     const eventData = data.event_data || {{}};
     let message = config.message_template || '{{{{name}}}} just followed!';
@@ -224,8 +213,17 @@ ws.onmessage = (e) => {{
         text.style.animation = `${{config.text_animation}} 1s ease-in-out infinite`;
     }}
     
+    // Position and append text
     if (layout === 'text_over_image' && config.image_url) {{
-        alert.firstChild.appendChild(text);
+        const textWrapper = document.createElement('div');
+        textWrapper.style.position = 'absolute';
+        textWrapper.style.top = '50%';
+        textWrapper.style.left = '50%';
+        textWrapper.style.transform = 'translate(-50%, -50%)';
+        textWrapper.style.zIndex = '10';
+        textWrapper.style.margin = '0';
+        textWrapper.appendChild(text);
+        alert.firstChild.appendChild(textWrapper);
     }} else {{
         alert.appendChild(text);
     }}
