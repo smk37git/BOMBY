@@ -1889,7 +1889,13 @@ def fuzeobs_save_widget_event(request):
         bucket = client.bucket('fuzeobs-public')
         blob_path = f'widgets/{user.id}/{widget.id}.html'
         blob = bucket.blob(blob_path)
-        blob.upload_from_string(widget_html, content_type='text/html')
+        blob.upload_from_string(
+            widget_html, 
+            content_type='text/html',
+            predefined_acl='publicRead'
+        )
+        blob.cache_control = 'no-cache, no-store, must-revalidate'
+        blob.patch()
         
         return JsonResponse({
             'success': True,

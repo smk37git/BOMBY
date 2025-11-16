@@ -69,6 +69,10 @@ body {{
     from {{ transform: translate(-50%, -50%) scale(0); opacity: 0; }}
     to {{ transform: translate(-50%, -50%) scale(1); opacity: 1; }}
 }}
+@keyframes rotateIn {{
+    from {{ transform: translate(-50%, -50%) rotate(-180deg) scale(0); opacity: 0; }}
+    to {{ transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }}
+}}
 
 /* Text Animations */
 @keyframes wiggle {{
@@ -107,6 +111,7 @@ const defaultConfig = {{
     alert_animation: 'fade',
     font_size: 32,
     font_weight: 'normal',
+    font_family: 'Arial',
     text_color: '#FFFFFF',
     message_template: '{{{{name}}}} just followed!',
     duration: 5,
@@ -149,6 +154,11 @@ ws.onmessage = (e) => {{
         alert.style.flexDirection = 'row';
         alert.style.alignItems = 'center';
         alert.style.gap = '20px';
+    }} else if (layout === 'image_right') {{
+        alert.style.display = 'flex';
+        alert.style.flexDirection = 'row-reverse';
+        alert.style.alignItems = 'center';
+        alert.style.gap = '20px';
     }} else if (layout === 'text_over_image') {{
         alert.style.display = 'flex';
         alert.style.position = 'relative';
@@ -175,6 +185,7 @@ ws.onmessage = (e) => {{
     text.className = 'alert-text';
     text.style.fontSize = (config.font_size || 32) + 'px';
     text.style.fontWeight = config.font_weight || 'normal';
+    text.style.fontFamily = config.font_family || 'Arial';
     text.style.color = config.text_color || '#FFFFFF';
     
     if (config.text_shadow) {{
@@ -359,13 +370,13 @@ ws.onmessage = (e) => {{
 
 function getEventIcon(type) {{
     const icons = {{
-        'follow': '❤️',
-        'subscribe': '⭐',
-        'bits': '💎',
-        'donation': '💰',
-        'raid': '🔥'
+        'follow': 'â¤ï¸',
+        'subscribe': 'â­',
+        'bits': 'ðŸ'Ž',
+        'donation': 'ðŸ'°',
+        'raid': 'ðŸ"¥'
     }};
-    return icons[type] || '🎉';
+    return icons[type] || 'ðŸŽ‰';
 }}
 </script>
 </body>
