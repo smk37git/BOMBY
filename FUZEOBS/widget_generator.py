@@ -122,7 +122,7 @@ const defaultConfig = {{
 const eventConfigs = {{}};
 let configsLoaded = false;
 
-fetch(`/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now()}}`)
+fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now()}}`)
     .then(r => r.json())
     .then(data => {{
         Object.assign(eventConfigs, data.configs);

@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 import anthropic
 import os
 import json
+import uuid
 from datetime import date
 from django.core.cache import cache
 import re
