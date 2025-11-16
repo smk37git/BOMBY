@@ -159,6 +159,8 @@ ws.onmessage = (e) => {{
         alert.style.flexDirection = 'row-reverse';
         alert.style.alignItems = 'center';
         alert.style.gap = '20px';
+    }} else if (layout === 'text_over_image') {{
+        alert.style.display = 'inline-block';
     }}
     
     // Apply alert animation
