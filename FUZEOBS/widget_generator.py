@@ -134,6 +134,12 @@ fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now(
 
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
+    
+    // Clear existing alerts if flag set
+    if (data.clear_existing) {{
+        document.getElementById('container').innerHTML = '';
+    }}
+    
     const configKey = `${{data.platform}}-${{data.event_type}}`;
     const config = eventConfigs[configKey] || defaultConfig;
     
@@ -201,9 +207,9 @@ ws.onmessage = (e) => {{
         text.style.top = '50%';
         text.style.left = '50%';
         text.style.transform = 'translate(-50%, -50%)';
-        text.style.width = '100%';
         text.style.zIndex = '10';
         text.style.margin = '0';
+        text.style.whiteSpace = 'nowrap';
     }}
     
     // Apply message template

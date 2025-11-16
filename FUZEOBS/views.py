@@ -1714,7 +1714,6 @@ def fuzeobs_delete_widget_event(request, event_id):
 @require_http_methods(["POST"])
 @require_tier('free')
 def fuzeobs_test_alert(request):
-    """Send test alert via WebSocket"""
     user = request.fuzeobs_user
     
     try:
@@ -1730,8 +1729,10 @@ def fuzeobs_test_alert(request):
                 'data': {
                     'event_type': event_type,
                     'platform': platform,
-                    'event_data': {'username': 'FuzeOBS',
-                    'amount': '100' if event_type in ['bits', 'superchat'] else None,
+                    'clear_existing': True,
+                    'event_data': {
+                        'username': 'FuzeOBS',
+                        'amount': '100' if event_type in ['bits', 'superchat'] else None,
                     }
                 }
             }
@@ -1742,6 +1743,7 @@ def fuzeobs_test_alert(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=400)
+    
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_widget_event_configs(request, user_id):
