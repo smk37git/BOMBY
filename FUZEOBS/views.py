@@ -1236,12 +1236,14 @@ def fuzeobs_all_users_view(request):
 @require_tier('free')
 def fuzeobs_get_widgets(request):
     user = request.fuzeobs_user
-    widgets = WidgetConfig.objects.filter(user=user).order_by('-updated_at')
+    platform = request.GET.get('platform', 'twitch')
+    widgets = WidgetConfig.objects.filter(user=user, platform=platform).order_by('-updated_at')
     
     return JsonResponse({
         'widgets': [{
             'id': w.id,
             'type': w.widget_type,
+            'platform': w.platform,
             'name': w.name,
             'config': w.config,
             'url': f'https://bomby.us/fuzeobs/w/{w.token}',
@@ -1270,27 +1272,33 @@ def fuzeobs_save_widget(request):
     user = request.fuzeobs_user
     try:
         data = json.loads(request.body)
-        widget_id = data.get('widget_id')
-        is_new = not widget_id
+        platform = data.get('platform', 'twitch')
+        widget_type = data['widget_type']
         
-        if widget_id:
-            widget = WidgetConfig.objects.get(id=widget_id, user=user)
-            widget.name = data.get('name', widget.name)
-            widget.config = data.get('config', widget.config)
+        # Get or create widget for this type+platform combo
+        widget, created = WidgetConfig.objects.get_or_create(
+            user=user,
+            widget_type=widget_type,
+            platform=platform,
+            defaults={
+                'name': data.get('name', f'{widget_type.replace("_", " ").title()} - {platform.title()}'),
+                'config': data.get('config', {})
+            }
+        )
+        
+        # Update if not created
+        if not created:
+            if 'name' in data:
+                widget.name = data['name']
+            if 'config' in data:
+                widget.config = data['config']
             widget.save()
-        else:
-            widget = WidgetConfig.objects.create(
-                user=user,
-                widget_type=data['widget_type'],
-                name=data['name'],
-                config=data.get('config', {})
-            )
         
         UserActivity.objects.create(
             user=user,
-            activity_type='widget_create' if is_new else 'widget_update',
+            activity_type='widget_create' if created else 'widget_update',
             source='app',
-            details={'widget_type': widget.widget_type, 'widget_id': widget.id}
+            details={'widget_type': widget.widget_type, 'platform': platform, 'widget_id': widget.id}
         )
         
         widget_url = f'https://bomby.us/fuzeobs/w/{widget.token}'
@@ -1302,13 +1310,12 @@ def fuzeobs_save_widget(request):
             'widget': {
                 'id': widget.id,
                 'type': widget.widget_type,
+                'platform': widget.platform,
                 'name': widget.name,
                 'config': widget.config,
                 'url': widget_url
             }
         })
-    except WidgetConfig.DoesNotExist:
-        return JsonResponse({'error': 'Widget not found'}, status=404)
     except Exception as e:
         import traceback
         traceback.print_exc()

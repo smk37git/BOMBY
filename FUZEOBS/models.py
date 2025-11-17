@@ -133,8 +133,15 @@ class WidgetConfig(models.Model):
         ('goal_bar', 'Goal Bar'),
     ]
     
+    PLATFORMS = [
+        ('twitch', 'Twitch'),
+        ('youtube', 'YouTube'),
+        ('kick', 'Kick'),
+    ]
+    
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     widget_type = models.CharField(max_length=20, choices=WIDGET_TYPES)
+    platform = models.CharField(max_length=20, choices=PLATFORMS)
     name = models.CharField(max_length=100)
     config = models.JSONField(default=dict)
     token = models.CharField(max_length=128, unique=True, blank=True)
@@ -149,6 +156,7 @@ class WidgetConfig(models.Model):
     
     class Meta:
         ordering = ['-updated_at']
+        unique_together = ['user', 'widget_type', 'platform']
         indexes = [
             models.Index(fields=['token']),
         ]
