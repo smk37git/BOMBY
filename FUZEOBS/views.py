@@ -1731,16 +1731,15 @@ def fuzeobs_delete_widget_event(request, event_id):
         return JsonResponse({'error': 'Event not found'}, status=404)
     
 @csrf_exempt
+@require_http_methods(["POST"])
+@require_tier('free')
 def fuzeobs_test_alert(request):
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
-    
     try:
         data = json.loads(request.body)
         event_type = data.get('event_type')
         platform = data.get('platform')
         
-        user = request.user
+        user = request.fuzeobs_user
         
         # Send test alert via WebSocket
         channel_layer = get_channel_layer()
@@ -1752,9 +1751,9 @@ def fuzeobs_test_alert(request):
                     'platform': platform,
                     'event_type': event_type,
                     'event_data': {
-                        'username': 'FuzeOBS',  # Test username
-                        'amount': random.randint(1, 2000),  # Random amount for bits/superchat/gift_sub
-                        'viewers': random.randint(1, 2000),  # Random viewers for raid/host
+                        'username': 'FuzeOBS',
+                        'amount': random.randint(1, 2000),
+                        'viewers': random.randint(1, 2000),
                     },
                     'clear_existing': True
                 }
