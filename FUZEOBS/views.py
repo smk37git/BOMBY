@@ -1818,6 +1818,8 @@ def fuzeobs_twitch_webhook(request):
     data = json.loads(body)
     msg_type = request.headers.get('Twitch-Eventsub-Message-Type')
     
+    print(f'[WEBHOOK] Type: {msg_type}')  # ADD
+    
     if msg_type == 'webhook_callback_verification':
         return HttpResponse(data['challenge'], content_type='text/plain')
     
@@ -1826,9 +1828,13 @@ def fuzeobs_twitch_webhook(request):
         sub_type = data['subscription']['type']
         condition = data['subscription']['condition']
         
+        print(f'[WEBHOOK] Event: {sub_type}')  # ADD
+        
         broadcaster_id = condition.get('broadcaster_user_id') or condition.get('to_broadcaster_user_id')
         try:
             conn = PlatformConnection.objects.get(platform='twitch', platform_user_id=broadcaster_id)
+            
+            print(f'[WEBHOOK] Found user: {conn.user.id}')  # ADD
             
             event_map = {
                 'channel.follow': ('follow', {'username': event['user_name']}),
@@ -1840,8 +1846,10 @@ def fuzeobs_twitch_webhook(request):
             
             if sub_type in event_map:
                 event_type, event_data = event_map[sub_type]
+                print(f'[WEBHOOK] Sending alert: {event_type} - {event_data}')  # ADD
                 send_alert(conn.user.id, event_type, 'twitch', event_data)
-        except:
-            pass
+                print(f'[WEBHOOK] Alert sent!')  # ADD
+        except Exception as e:
+            print(f'[WEBHOOK ERROR] {e}')  # ADD
     
     return JsonResponse({'status': 'ok'})
