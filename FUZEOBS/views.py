@@ -1347,7 +1347,7 @@ PLATFORM_OAUTH_CONFIG = {
         'token_url': 'https://id.twitch.tv/oauth2/token',
         'client_id': os.environ.get('TWITCH_CLIENT_ID', ''),
         'client_secret': os.environ.get('TWITCH_CLIENT_SECRET', ''),
-        'scopes': ['channel:read:subscriptions', 'bits:read', 'channel:read:redemptions']
+        'scopes': ['channel:read:subscriptions', 'bits:read', 'channel:read:redemptions', 'moderator:read:followers']
     },
     'youtube': {
         'auth_url': 'https://accounts.google.com/o/oauth2/v2/auth',
