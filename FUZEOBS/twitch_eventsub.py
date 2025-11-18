@@ -26,15 +26,18 @@ def subscribe_twitch_events(user_id, broadcaster_id, access_token):
             'condition': condition,
             'transport': {
                 'method': 'webhook',
-                'callback': f'https://bomby.us/fuzeobs/twitch-webhook',
+                'callback': 'https://bomby.us/fuzeobs/twitch-webhook',
                 'secret': settings.TWITCH_WEBHOOK_SECRET
             }
         }
-        requests.post(
+        resp = requests.post(
             'https://api.twitch.tv/helix/eventsub/subscriptions',
             headers=headers,
             json=payload
         )
+        print(f'[TWITCH] {event_type}: {resp.status_code}')
+        if resp.status_code != 202:
+            print(f'[ERROR] {resp.text}')
 
 def send_alert(user_id, event_type, platform, event_data):
     """Send alert to widget WebSocket"""
