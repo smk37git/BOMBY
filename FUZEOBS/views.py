@@ -1687,6 +1687,18 @@ def fuzeobs_save_widget_event(request):
             }
         )
         
+        # Send refresh message to OBS via WebSocket
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'alerts_{user.id}',
+            {
+                'type': 'alert_event',
+                'data': {
+                    'type': 'refresh'
+                }
+            }
+        )
+        
         return JsonResponse({
             'success': True,
             'event': {

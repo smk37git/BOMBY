@@ -135,6 +135,12 @@ fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now(
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
     
+    // Handle refresh message
+    if (data.type === 'refresh') {{
+        window.location.reload();
+        return;
+    }}
+    
     // Clear existing alerts if flag set
     if (data.clear_existing) {{
         document.getElementById('container').innerHTML = '';
@@ -203,7 +209,7 @@ ws.onmessage = (e) => {{
     
     // Apply message template
     const eventData = data.event_data || {{}};
-    let message = config.message_template || '{{{{name}}}} just followed!';
+    let message = config.message_template || '{{name}} just followed!';
     message = message.replace(/{{name}}/g, eventData.username || "Someone");
     message = message.replace(/{{amount}}/g, eventData.amount || '');
     message = message.replace(/{{viewers}}/g, eventData.viewers || '');
@@ -379,13 +385,13 @@ ws.onmessage = (e) => {{
 
 function getEventIcon(type) {{
     const icons = {{
-        'follow': 'â¤ï¸',
-        'subscribe': 'â­',
-        'bits': 'ðŸ'Ž',
-        'donation': 'ðŸ'°',
-        'raid': 'ðŸ"¥'
+        'follow': 'Ã¢Â¤Ã¯Â¸',
+        'subscribe': 'Ã¢Â­',
+        'bits': 'Ã°Å¸'Å½',
+        'donation': 'Ã°Å¸'Â°',
+        'raid': 'Ã°Å¸"Â¥'
     }};
-    return icons[type] || 'ðŸŽ‰';
+    return icons[type] || 'Ã°Å¸Å½â€°';
 }}
 </script>
 </body>
