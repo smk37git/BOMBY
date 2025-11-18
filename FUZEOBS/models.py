@@ -192,6 +192,7 @@ class PlatformConnection(models.Model):
     refresh_token = models.TextField(blank=True)
     expires_at = models.DateTimeField(null=True)
     connected_at = models.DateTimeField(auto_now_add=True)
+    platform_user_id = models.CharField(max_length=100, blank=True)
     
     class Meta:
         unique_together = ['user', 'platform']

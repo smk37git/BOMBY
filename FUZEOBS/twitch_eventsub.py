@@ -1,0 +1,52 @@
+import requests
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+from django.conf import settings
+
+def subscribe_twitch_events(user_id, broadcaster_id, access_token):
+    """Subscribe to Twitch events"""
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Client-Id': settings.TWITCH_CLIENT_ID,
+        'Content-Type': 'application/json'
+    }
+    
+    events = [
+        ('channel.follow', '2', {'broadcaster_user_id': broadcaster_id, 'moderator_user_id': broadcaster_id}),
+        ('channel.subscribe', '1', {'broadcaster_user_id': broadcaster_id}),
+        ('channel.subscription.gift', '1', {'broadcaster_user_id': broadcaster_id}),
+        ('channel.cheer', '1', {'broadcaster_user_id': broadcaster_id}),
+        ('channel.raid', '1', {'to_broadcaster_user_id': broadcaster_id}),
+    ]
+    
+    for event_type, version, condition in events:
+        payload = {
+            'type': event_type,
+            'version': version,
+            'condition': condition,
+            'transport': {
+                'method': 'webhook',
+                'callback': f'https://bomby.us/fuzeobs/twitch-webhook',
+                'secret': settings.TWITCH_WEBHOOK_SECRET
+            }
+        }
+        requests.post(
+            'https://api.twitch.tv/helix/eventsub/subscriptions',
+            headers=headers,
+            json=payload
+        )
+
+def send_alert(user_id, event_type, platform, event_data):
+    """Send alert to widget WebSocket"""
+    channel_layer = get_channel_layer()
+    async_to_sync(channel_layer.group_send)(
+        f'alerts_{user_id}',
+        {
+            'type': 'alert_event',
+            'data': {
+                'event_type': event_type,
+                'platform': platform,
+                'event_data': event_data
+            }
+        }
+    )

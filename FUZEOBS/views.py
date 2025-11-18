@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.http import StreamingHttpResponse, JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_exempt
@@ -24,6 +25,8 @@ from .widget_generator import generate_widget_html
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import random
+from .twitch_eventsub import send_alert
+import requests
 
 # Website Imports
 from django.shortcuts import render
@@ -1435,13 +1438,14 @@ def fuzeobs_disconnect_platform(request):
 @csrf_exempt
 def fuzeobs_platform_callback(request, platform):
     """OAuth callback handler"""
+    from .twitch_eventsub import subscribe_twitch_events
+    
     code = request.GET.get('code')
     state = request.GET.get('state')
     
     if not code or not state:
         return HttpResponse('Invalid callback', status=400)
     
-    # Verify state
     state_data = cache.get(f'oauth_state_{state}')
     if not state_data or state_data['platform'] != platform:
         return HttpResponse('Invalid state', status=400)
@@ -1449,8 +1453,6 @@ def fuzeobs_platform_callback(request, platform):
     user = User.objects.get(id=state_data['user_id'])
     config = PLATFORM_OAUTH_CONFIG[platform]
     
-    # Exchange code for token
-    import requests
     redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
     
     token_response = requests.post(config['token_url'], 
@@ -1471,28 +1473,32 @@ def fuzeobs_platform_callback(request, platform):
     refresh_token = token_data.get('refresh_token', '')
     expires_in = token_data.get('expires_in', 3600)
     
-    # Get user info from platform
-    username = get_platform_username(platform, access_token)
+    username, platform_user_id = get_platform_username(platform, access_token)
     
-    # Save connection
     PlatformConnection.objects.update_or_create(
         user=user,
         platform=platform,
         defaults={
             'platform_username': username,
+            'platform_user_id': platform_user_id,
             'access_token': access_token,
             'refresh_token': refresh_token,
             'expires_at': timezone.now() + timedelta(seconds=expires_in)
         }
     )
     
-    # Clean up state
+    if platform == 'twitch' and platform_user_id:
+        try:
+            subscribe_twitch_events(user.id, platform_user_id, access_token)
+        except Exception as e:
+            print(f'Error subscribing to Twitch events: {e}')
+    
     cache.delete(f'oauth_state_{state}')
     
     return render(request, 'FUZEOBS/platform_connected.html', {'platform': platform})
 
 def get_platform_username(platform, access_token):
-    """Get username from platform API"""
+    """Get username and user ID from platform API"""
     import requests
     
     if platform == 'twitch':
@@ -1503,7 +1509,7 @@ def get_platform_username(platform, access_token):
         response = requests.get('https://api.twitch.tv/helix/users', headers=headers)
         if response.status_code == 200:
             data = response.json()
-            return data['data'][0]['login']
+            return data['data'][0]['login'], data['data'][0]['id']
     
     elif platform == 'youtube':
         response = requests.get(
@@ -1513,17 +1519,16 @@ def get_platform_username(platform, access_token):
         )
         if response.status_code == 200:
             data = response.json()
-            return data['items'][0]['snippet']['title']
+            return data['items'][0]['snippet']['title'], data['items'][0]['id']
     
     elif platform == 'kick':
         headers = {'Authorization': f'Bearer {access_token}'}
         response = requests.get('https://kick.com/api/v1/user', headers=headers)
         if response.status_code == 200:
             data = response.json()
-            return data['username']
+            return data['username'], str(data['id'])
     
-    return 'Unknown'
-
+    return 'Unknown', ''
 
 # ===== MEDIA LIBRARY =====
 @csrf_exempt
@@ -1787,3 +1792,56 @@ def fuzeobs_get_widget_event_configs(request, user_id):
         response = JsonResponse({'configs': {}})
         response['Access-Control-Allow-Origin'] = '*'
         return response
+    
+# =========== TWITCH ALERTS ===========
+@csrf_exempt
+def fuzeobs_twitch_webhook(request):
+    """Receive Twitch EventSub webhooks"""
+    import hmac
+    import hashlib
+    
+    message_id = request.headers.get('Twitch-Eventsub-Message-Id', '')
+    timestamp = request.headers.get('Twitch-Eventsub-Message-Timestamp', '')
+    signature = request.headers.get('Twitch-Eventsub-Message-Signature', '')
+    
+    body = request.body.decode('utf-8')
+    message = message_id + timestamp + body
+    expected = 'sha256=' + hmac.new(
+        settings.TWITCH_WEBHOOK_SECRET.encode(),
+        message.encode(),
+        hashlib.sha256
+    ).hexdigest()
+    
+    if not hmac.compare_digest(expected, signature):
+        return JsonResponse({'error': 'Invalid signature'}, status=403)
+    
+    data = json.loads(body)
+    msg_type = request.headers.get('Twitch-Eventsub-Message-Type')
+    
+    if msg_type == 'webhook_callback_verification':
+        return HttpResponse(data['challenge'], content_type='text/plain')
+    
+    if msg_type == 'notification':
+        event = data['event']
+        sub_type = data['subscription']['type']
+        condition = data['subscription']['condition']
+        
+        broadcaster_id = condition.get('broadcaster_user_id') or condition.get('to_broadcaster_user_id')
+        try:
+            conn = PlatformConnection.objects.get(platform='twitch', platform_user_id=broadcaster_id)
+            
+            event_map = {
+                'channel.follow': ('follow', {'username': event['user_name']}),
+                'channel.subscribe': ('subscribe', {'username': event['user_name']}),
+                'channel.subscription.gift': ('subscribe', {'username': event.get('user_name', 'Anonymous'), 'amount': event.get('total', 1)}),
+                'channel.cheer': ('bits', {'username': event['user_name'], 'amount': event['bits']}),
+                'channel.raid': ('raid', {'username': event['from_broadcaster_user_name'], 'viewers': event['viewers']}),
+            }
+            
+            if sub_type in event_map:
+                event_type, event_data = event_map[sub_type]
+                send_alert(conn.user.id, event_type, 'twitch', event_data)
+        except:
+            pass
+    
+    return JsonResponse({'status': 'ok'})

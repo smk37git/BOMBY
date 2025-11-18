@@ -29,6 +29,9 @@ urlpatterns = [
 
     # == Widget URLS ==
 
+    # TWITCH ALERTS
+    path('twitch-webhook', views.fuzeobs_twitch_webhook, name='twitch_webhook'),
+
     # Widget Serving (clean URL)
     path('w/<str:token>', views.fuzeobs_serve_widget, name='serve_widget'),
 

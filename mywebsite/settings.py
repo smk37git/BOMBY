@@ -345,3 +345,8 @@ CSP_FONT_SRC = (
 
 # FuzeOBS Secret Key
 FUZEOBS_SECRET_KEY = os.environ.get('FUZEOBS_SECRET_KEY')
+
+# Twitch Keys
+TWITCH_CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')
+TWITCH_CLIENT_SECRET = os.environ.get('TWITCH_CLIENT_SECRET')
+TWITCH_WEBHOOK_SECRET = os.environ.get('TWITCH_WEBHOOK_SECRET')
