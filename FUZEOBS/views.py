@@ -1828,28 +1828,29 @@ def fuzeobs_twitch_webhook(request):
         sub_type = data['subscription']['type']
         condition = data['subscription']['condition']
         
-        print(f'[WEBHOOK] Event: {sub_type}')  # ADD
+        print(f'[WEBHOOK] Event: {sub_type}')
+        print(f'[WEBHOOK] Event data: {event}')
         
         broadcaster_id = condition.get('broadcaster_user_id') or condition.get('to_broadcaster_user_id')
         try:
             conn = PlatformConnection.objects.get(platform='twitch', platform_user_id=broadcaster_id)
             
-            print(f'[WEBHOOK] Found user: {conn.user.id}')  # ADD
+            print(f'[WEBHOOK] Found user: {conn.user.id}')
             
             event_map = {
-                'channel.follow': ('follow', {'username': event['user_name']}),
-                'channel.subscribe': ('subscribe', {'username': event['user_name']}),
+                'channel.follow': ('follow', {'username': event.get('user_name', event.get('user_login', 'Unknown'))}),
+                'channel.subscribe': ('subscribe', {'username': event.get('user_name', 'Unknown')}),
                 'channel.subscription.gift': ('subscribe', {'username': event.get('user_name', 'Anonymous'), 'amount': event.get('total', 1)}),
-                'channel.cheer': ('bits', {'username': event['user_name'], 'amount': event['bits']}),
-                'channel.raid': ('raid', {'username': event['from_broadcaster_user_name'], 'viewers': event['viewers']}),
+                'channel.cheer': ('bits', {'username': event.get('user_name', 'Unknown'), 'amount': event.get('bits', 0)}),
+                'channel.raid': ('raid', {'username': event.get('from_broadcaster_user_name', 'Unknown'), 'viewers': event.get('viewers', 0)}),
             }
             
             if sub_type in event_map:
                 event_type, event_data = event_map[sub_type]
-                print(f'[WEBHOOK] Sending alert: {event_type} - {event_data}')  # ADD
+                print(f'[WEBHOOK] Sending alert: {event_type} - {event_data}')
                 send_alert(conn.user.id, event_type, 'twitch', event_data)
-                print(f'[WEBHOOK] Alert sent!')  # ADD
+                print(f'[WEBHOOK] Alert sent!')
         except Exception as e:
-            print(f'[WEBHOOK ERROR] {e}')  # ADD
+            print(f'[WEBHOOK ERROR] {e}')
     
     return JsonResponse({'status': 'ok'})
