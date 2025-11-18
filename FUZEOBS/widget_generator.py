@@ -40,15 +40,23 @@ body {{
     transform: translate(-50%, -50%);
     text-align: center;
     opacity: 0;
+    max-width: 90vw;
+    max-height: 90vh;
 }}
 .alert-image {{
-    max-width: 300px;
+    max-width: min(600px, 70vw);
+    max-height: min(600px, 60vh);
+    width: auto;
+    height: auto;
+    object-fit: contain;
 }}
 .alert-text {{
     font-size: 32px;
     color: #FFFFFF;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     margin: 10px 0;
+    word-wrap: break-word;
+    max-width: 90vw;
 }}
 
 /* Alert Animations */
@@ -161,6 +169,7 @@ ws.onmessage = (e) => {{
         alert.style.display = 'flex';
         alert.style.flexDirection = 'column';
         alert.style.alignItems = 'center';
+        alert.style.gap = '15px';
     }} else if (layout === 'image_left') {{
         alert.style.display = 'flex';
         alert.style.flexDirection = 'row';
@@ -229,6 +238,9 @@ ws.onmessage = (e) => {{
         textWrapper.style.transform = 'translate(-50%, -50%)';
         textWrapper.style.zIndex = '10';
         textWrapper.style.margin = '0';
+        textWrapper.style.width = '100%';
+        textWrapper.style.padding = '0 10px';
+        textWrapper.style.boxSizing = 'border-box';
         textWrapper.appendChild(text);
         alert.firstChild.appendChild(textWrapper);
     }} else {{
@@ -385,13 +397,13 @@ ws.onmessage = (e) => {{
 
 function getEventIcon(type) {{
     const icons = {{
-        'follow': 'Ã¢Â¤Ã¯Â¸',
-        'subscribe': 'Ã¢Â­',
-        'bits': 'Ã°Å¸'Å½',
-        'donation': 'Ã°Å¸'Â°',
-        'raid': 'Ã°Å¸"Â¥'
+        'follow': '❤️',
+        'subscribe': '⭐',
+        'bits': '💎',
+        'donation': '💰',
+        'raid': '🔥'
     }};
-    return icons[type] || 'Ã°Å¸Å½â€°';
+    return icons[type] || '🎉';
 }}
 </script>
 </body>
