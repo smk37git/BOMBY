@@ -113,7 +113,7 @@ const defaultConfig = {{
     font_weight: 'normal',
     font_family: 'Arial',
     text_color: '#FFFFFF',
-    message_template: '{{{{name}}}} just followed!',
+    message_template: '{{name}} just followed!',
     duration: 5,
     sound_volume: 50,
     layout: 'image_above'
@@ -204,8 +204,9 @@ ws.onmessage = (e) => {{
     // Apply message template
     const eventData = data.event_data || {{}};
     let message = config.message_template || '{{{{name}}}} just followed!';
-    message = message.replace(/{{{{name}}}}/g, eventData.username || "Someone");
-    message = message.replace(/{{{{amount}}}}/g, eventData.amount || '');
+    message = message.replace(/{{name}}/g, eventData.username || "Someone");
+    message = message.replace(/{{amount}}/g, eventData.amount || '');
+    message = message.replace(/{{viewers}}/g, eventData.viewers || '');
     text.textContent = message;
     
     // Apply text animation
