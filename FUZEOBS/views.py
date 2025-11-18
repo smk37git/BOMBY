@@ -23,6 +23,7 @@ from django.contrib.auth.decorators import login_required
 from .widget_generator import generate_widget_html
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+import random
 
 # Website Imports
 from django.shortcuts import render
@@ -1718,38 +1719,39 @@ def fuzeobs_delete_widget_event(request, event_id):
         return JsonResponse({'error': 'Event not found'}, status=404)
     
 @csrf_exempt
-@require_http_methods(["POST"])
-@require_tier('free')
 def fuzeobs_test_alert(request):
-    user = request.fuzeobs_user
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
     
     try:
         data = json.loads(request.body)
-        event_type = data.get('event_type', 'follow')
-        platform = data.get('platform', 'twitch')
+        event_type = data.get('event_type')
+        platform = data.get('platform')
         
+        user = request.user
+        
+        # Send test alert via WebSocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f'alerts_{user.id}',
             {
                 'type': 'alert_event',
                 'data': {
-                    'event_type': event_type,
                     'platform': platform,
-                    'clear_existing': True,
+                    'event_type': event_type,
                     'event_data': {
-                        'username': 'FuzeOBS',
-                        'amount': '100' if event_type in ['bits', 'superchat'] else None,
-                    }
+                        'username': 'FuzeOBS',  # Test username
+                        'amount': random.randint(1, 2000),  # Random amount for bits/superchat/gift_sub
+                        'viewers': random.randint(1, 2000),  # Random viewers for raid/host
+                    },
+                    'clear_existing': True
                 }
             }
         )
         
         return JsonResponse({'success': True})
     except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
     
 @csrf_exempt
 @require_http_methods(["GET"])
