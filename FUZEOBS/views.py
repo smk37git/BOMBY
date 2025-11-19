@@ -1338,6 +1338,10 @@ def fuzeobs_delete_widget(request, widget_id):
         
     except WidgetConfig.DoesNotExist:
         return JsonResponse({'error': 'Widget not found'}, status=404)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=500)
 
 # ===== PLATFORM CONNECTIONS =====
 
@@ -1706,7 +1710,7 @@ def fuzeobs_save_widget_event(request):
         # Send refresh message to OBS via WebSocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            f'alerts_{user.id}',
+            f'alerts_{user.id}_{platform}',
             {
                 'type': 'alert_event',
                 'data': {
