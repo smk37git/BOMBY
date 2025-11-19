@@ -1711,6 +1711,50 @@ def fuzeobs_get_widget_events(request, widget_id):
     
     try:
         widget = WidgetConfig.objects.get(id=widget_id, user=user)
+        
+        # Auto-create missing default events if widget is alert_box
+        if widget.widget_type == 'alert_box':
+            EVENT_TEMPLATES = {
+                'twitch': {
+                    'follow': '{name} just followed!',
+                    'subscribe': '{name} just subscribed!',
+                    'bits': '{name} donated {amount} bits!',
+                    'raid': '{name} just raided with {viewers} viewers!',
+                    'host': '{name} just hosted with {viewers} viewers!',
+                },
+                'youtube': {
+                    'subscribe': '{name} just subscribed!',
+                    'member': '{name} became a member!',
+                    'superchat': '{name} sent {amount} in Super Chat!',
+                },
+                'kick': {
+                    'follow': '{name} just followed!',
+                    'subscribe': '{name} just subscribed!',
+                    'gift_sub': '{name} gifted {amount} subs!',
+                }
+            }
+            
+            templates = EVENT_TEMPLATES.get(widget.platform, {})
+            for event_type, message_template in templates.items():
+                WidgetEvent.objects.get_or_create(
+                    widget=widget,
+                    event_type=event_type,
+                    platform=widget.platform,
+                    defaults={
+                        'enabled': True,
+                        'config': {
+                            'message_template': message_template,
+                            'duration': 5,
+                            'alert_animation': 'fade',
+                            'font_size': 32,
+                            'font_weight': 'normal',
+                            'font_family': 'Arial',
+                            'text_color': '#FFFFFF',
+                            'sound_volume': 50,
+                            'layout': 'image_above'
+                        }
+                    }
+                )
         events = WidgetEvent.objects.filter(widget=widget)
         
         return JsonResponse({
