@@ -1757,10 +1757,10 @@ def fuzeobs_test_alert(request):
         
         user = request.fuzeobs_user
         
-        # Send test alert via WebSocket with platform-specific group
+        # Send test alert via WebSocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            f'alerts_{user.id}_{platform}',
+            f'alerts_{user.id}',
             {
                 'type': 'alert_event',
                 'data': {
@@ -1782,14 +1782,14 @@ def fuzeobs_test_alert(request):
     
 @csrf_exempt
 @require_http_methods(["GET"])
-def fuzeobs_get_widget_event_configs(request, user_id, platform):
-    """Get event configurations for user's platform-specific widgets"""
+def fuzeobs_get_widget_event_configs(request, user_id):
+    """Get all event configurations for user's widgets - accessible from GCS widgets"""
     try:
-        widgets = WidgetConfig.objects.filter(user_id=user_id, platform=platform)
+        widgets = WidgetConfig.objects.filter(user_id=user_id)
         configs = {}
         
         for widget in widgets:
-            events = WidgetEvent.objects.filter(widget=widget, platform=platform, enabled=True)
+            events = WidgetEvent.objects.filter(widget=widget, enabled=True)
             for event in events:
                 key = f"{event.platform}-{event.event_type}"
                 configs[key] = event.config
