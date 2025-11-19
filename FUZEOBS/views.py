@@ -1354,7 +1354,7 @@ PLATFORM_OAUTH_CONFIG = {
         'token_url': 'https://oauth2.googleapis.com/token',
         'client_id': os.environ.get('YOUTUBE_CLIENT_ID', ''),
         'client_secret': os.environ.get('YOUTUBE_CLIENT_SECRET', ''),
-        'scopes': ['https://www.googleapis.com/auth/youtube.readonly']
+        'scopes': ['https://www.googleapis.com/auth/youtube.readonly', 'https://www.googleapis.com/auth/youtube.force-ssl']
     },
     'kick': {
         'auth_url': 'https://kick.com/oauth2/authorize',
@@ -1408,6 +1408,9 @@ def fuzeobs_connect_platform(request):
         
         auth_url = f"{config['auth_url']}?client_id={config['client_id']}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}&state={state}"
         
+        if platform == 'youtube':
+            auth_url += '&access_type=offline&prompt=consent'
+
         return JsonResponse({
             'success': True,
             'auth_url': auth_url,
@@ -1492,6 +1495,12 @@ def fuzeobs_platform_callback(request, platform):
             subscribe_twitch_events(user.id, platform_user_id, access_token)
         except Exception as e:
             print(f'Error subscribing to Twitch events: {e}')
+    if platform == 'youtube' and platform_user_id:
+        from .youtube_pubsub import subscribe_youtube_channel
+        try:
+            subscribe_youtube_channel(platform_user_id, user.id)
+        except Exception as e:
+            print(f'Error subscribing to YouTube events: {e}')
     
     cache.delete(f'oauth_state_{state}')
     
@@ -1854,3 +1863,24 @@ def fuzeobs_twitch_webhook(request):
             print(f'[WEBHOOK ERROR] {e}')
     
     return JsonResponse({'status': 'ok'})
+
+# =========== YOUTUBE ALERTS ===========
+@csrf_exempt
+def fuzeobs_youtube_webhook(request):
+    """Receive YouTube PubSubHubbub notifications"""
+    if request.method == 'GET':
+        challenge = request.GET.get('hub.challenge')
+        if challenge:
+            return HttpResponse(challenge, content_type='text/plain')
+        return JsonResponse({'error': 'Invalid verification'}, status=400)
+    
+    if request.method == 'POST':
+        from .youtube_pubsub import handle_youtube_notification
+        user_id = request.GET.get('user_id')
+        if not user_id:
+            return JsonResponse({'error': 'Missing user_id'}, status=400)
+        body = request.body.decode('utf-8')
+        handle_youtube_notification(body, int(user_id))
+        return JsonResponse({'status': 'ok'})
+    
+    return JsonResponse({'error': 'Invalid method'}, status=405)

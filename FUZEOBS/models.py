@@ -193,6 +193,7 @@ class PlatformConnection(models.Model):
     expires_at = models.DateTimeField(null=True)
     connected_at = models.DateTimeField(auto_now_add=True)
     platform_user_id = models.CharField(max_length=100, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
     
     class Meta:
         unique_together = ['user', 'platform']
