@@ -1528,7 +1528,9 @@ def get_platform_username(platform, access_token):
         )
         if response.status_code == 200:
             data = response.json()
-            return data['items'][0]['snippet']['title'], data['items'][0]['id']
+            if data.get('items'):
+                return data['items'][0]['snippet']['title'], data['items'][0]['id']
+        return 'YouTube User', ''
     
     elif platform == 'kick':
         headers = {'Authorization': f'Bearer {access_token}'}
