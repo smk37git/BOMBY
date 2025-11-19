@@ -2,10 +2,11 @@ def generate_widget_html(widget):
     """Generate HTML for widget object"""
     user_id = widget.user.id
     widget_type = widget.widget_type
+    platform = widget.platform
     config = widget.config
     
     if widget_type == 'alert_box':
-        return generate_alert_box_html(user_id, config)
+        return generate_alert_box_html(user_id, platform, config)
     elif widget_type == 'chat_box':
         return generate_chat_box_html(user_id, config)
     elif widget_type == 'event_list':
@@ -15,7 +16,7 @@ def generate_widget_html(widget):
     else:
         raise ValueError(f"Unknown widget type: {widget_type}")
 
-def generate_alert_box_html(user_id, config):
+def generate_alert_box_html(user_id, platform, config):
     """Generate alert box HTML with event support"""
     return f"""<!DOCTYPE html>
 <html>
@@ -112,7 +113,8 @@ body {{
 <audio id="alertSound" preload="auto"></audio>
 <script>
 const userId = '{user_id}';
-const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/`);
+const platform = '{platform}';
+const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
 
 const defaultConfig = {{
     enabled: true,
@@ -130,7 +132,7 @@ const defaultConfig = {{
 const eventConfigs = {{}};
 let configsLoaded = false;
 
-fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now()}}`)
+fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/${{platform}}?t=${{Date.now()}}`)
     .then(r => r.json())
     .then(data => {{
         Object.assign(eventConfigs, data.configs);
