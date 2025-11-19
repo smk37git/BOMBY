@@ -1297,6 +1297,50 @@ def fuzeobs_save_widget(request):
             if 'config' in data:
                 widget.config = data['config']
             widget.save()
+        else:
+            # Auto-create default event configs for alert_box
+            if widget_type == 'alert_box':
+                EVENT_TEMPLATES = {
+                    'twitch': {
+                        'follow': '{name} just followed!',
+                        'subscribe': '{name} just subscribed!',
+                        'bits': '{name} donated {amount} bits!',
+                        'raid': '{name} just raided with {viewers} viewers!',
+                        'host': '{name} just hosted with {viewers} viewers!',
+                    },
+                    'youtube': {
+                        'subscribe': '{name} just subscribed!',
+                        'member': '{name} became a member!',
+                        'superchat': '{name} sent {amount} in Super Chat!',
+                    },
+                    'kick': {
+                        'follow': '{name} just followed!',
+                        'subscribe': '{name} just subscribed!',
+                        'gift_sub': '{name} gifted {amount} subs!',
+                    }
+                }
+                
+                templates = EVENT_TEMPLATES.get(platform, {})
+                for event_type, message_template in templates.items():
+                    WidgetEvent.objects.get_or_create(
+                        widget=widget,
+                        event_type=event_type,
+                        platform=platform,
+                        defaults={
+                            'enabled': True,
+                            'config': {
+                                'message_template': message_template,
+                                'duration': 5,
+                                'alert_animation': 'fade',
+                                'font_size': 32,
+                                'font_weight': 'normal',
+                                'font_family': 'Arial',
+                                'text_color': '#FFFFFF',
+                                'sound_volume': 50,
+                                'layout': 'image_above'
+                            }
+                        }
+                    )
         
         UserActivity.objects.create(
             user=user,
