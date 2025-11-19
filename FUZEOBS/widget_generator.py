@@ -2,22 +2,23 @@ def generate_widget_html(widget):
     """Generate HTML for widget object"""
     user_id = widget.user.id
     widget_type = widget.widget_type
-    widget_token = widget.token
     config = widget.config
+    config['platform'] = widget.platform
     
     if widget_type == 'alert_box':
-        return generate_alert_box_html(user_id, widget_token, config)
+        return generate_alert_box_html(user_id, config)
     elif widget_type == 'chat_box':
-        return generate_chat_box_html(user_id, widget_token, config)
+        return generate_chat_box_html(user_id, config)
     elif widget_type == 'event_list':
-        return generate_event_list_html(user_id, widget_token, config)
+        return generate_event_list_html(user_id, config)
     elif widget_type == 'goal_bar':
-        return generate_goal_bar_html(user_id, widget_token, config)
+        return generate_goal_bar_html(user_id, config)
     else:
         raise ValueError(f"Unknown widget type: {widget_type}")
 
-def generate_alert_box_html(user_id, widget_token, config):
+def generate_alert_box_html(user_id, config):
     """Generate alert box HTML with event support"""
+    platform = config.get('platform', 'twitch')  # Get platform from config
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -60,7 +61,6 @@ body {{
     max-width: 90vw;
 }}
 
-/* Alert Animations */
 @keyframes fadeIn {{
     from {{ opacity: 0; }}
     to {{ opacity: 1; }}
@@ -83,7 +83,6 @@ body {{
     to {{ transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }}
 }}
 
-/* Text Animations */
 @keyframes wiggle {{
     0%, 100% {{ transform: rotate(0deg); }}
     25% {{ transform: rotate(-5deg); }}
@@ -113,8 +112,8 @@ body {{
 <audio id="alertSound" preload="auto"></audio>
 <script>
 const userId = '{user_id}';
-const widgetToken = '{widget_token}';
-const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{widgetToken}}/`);
+const platform = '{platform}';
+const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
 
 const defaultConfig = {{
     enabled: true,
@@ -132,7 +131,7 @@ const defaultConfig = {{
 const eventConfigs = {{}};
 let configsLoaded = false;
 
-fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now()}}`)
+fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/${{platform}}?t=${{Date.now()}}`)
     .then(r => r.json())
     .then(data => {{
         Object.assign(eventConfigs, data.configs);
@@ -145,13 +144,11 @@ fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}?t=${{Date.now(
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
     
-    // Handle refresh message
     if (data.type === 'refresh') {{
         window.location.reload();
         return;
     }}
     
-    // Clear existing alerts if flag set
     if (data.clear_existing) {{
         document.getElementById('container').innerHTML = '';
     }}
@@ -164,7 +161,6 @@ ws.onmessage = (e) => {{
     const alert = document.createElement('div');
     alert.className = 'alert';
     
-    // Apply layout - default to image_above
     const layout = config.layout || 'image_above';
     
     if (layout === 'image_above') {{
@@ -186,11 +182,9 @@ ws.onmessage = (e) => {{
         alert.style.display = 'inline-block';
     }}
     
-    // Apply alert animation
     const animation = config.alert_animation || 'fade';
     alert.style.animation = `${{animation}}In 0.5s ease-out forwards`;
     
-    // Add image if configured
     if (config.image_url) {{
         const imgContainer = document.createElement('div');
         if (layout === 'text_over_image') {{
@@ -206,7 +200,6 @@ ws.onmessage = (e) => {{
         alert.appendChild(imgContainer);
     }}
     
-    // Add text
     const text = document.createElement('div');
     text.className = 'alert-text';
     text.style.fontSize = (config.font_size || 32) + 'px';
@@ -218,7 +211,6 @@ ws.onmessage = (e) => {{
         text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
     }}
     
-    // Apply message template
     const eventData = data.event_data || {{}};
     let message = config.message_template || '{{name}} just followed!';
     message = message.replace(/{{name}}/g, eventData.username || "Someone");
@@ -226,12 +218,10 @@ ws.onmessage = (e) => {{
     message = message.replace(/{{viewers}}/g, eventData.viewers || '');
     text.textContent = message;
     
-    // Apply text animation
     if (config.text_animation && config.text_animation !== 'none') {{
         text.style.animation = `${{config.text_animation}} 1s ease-in-out infinite`;
     }}
     
-    // Position and append text
     if (layout === 'text_over_image' && config.image_url) {{
         const textWrapper = document.createElement('div');
         textWrapper.style.position = 'absolute';
@@ -249,7 +239,6 @@ ws.onmessage = (e) => {{
         alert.appendChild(text);
     }}
     
-    // Play sound if configured
     if (config.sound_url) {{
         const audio = document.getElementById('alertSound');
         audio.src = config.sound_url;
@@ -259,7 +248,6 @@ ws.onmessage = (e) => {{
     
     document.getElementById('container').appendChild(alert);
     
-    // Remove after duration
     const duration = (config.duration || 5) * 1000;
     setTimeout(() => {{
         alert.style.animation = 'fadeOut 0.5s ease-out forwards';
@@ -274,7 +262,7 @@ ws.onerror = (error) => {{
 </body>
 </html>"""
 
-def generate_chat_box_html(user_id, widget_token, config):
+def generate_chat_box_html(user_id, config):
     """Generate chat box HTML"""
     height = config.get('height', 400)
     bg_color = config.get('bg_color', 'rgba(0,0,0,0.5)')
@@ -325,8 +313,7 @@ body {{
 <body>
 <div class="chat-container" id="chat"></div>
 <script>
-const widgetToken = '{widget_token}';
-const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{widgetToken}}/`);
+const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-chat/{user_id}');
 
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
@@ -346,7 +333,7 @@ ws.onmessage = (e) => {{
 </body>
 </html>"""
 
-def generate_event_list_html(user_id, widget_token, config):
+def generate_event_list_html(user_id, config):
     """Generate event list HTML"""
     return f"""<!DOCTYPE html>
 <html>
@@ -380,9 +367,7 @@ body {{
 <body>
 <div id="events"></div>
 <script>
-const widgetToken = '{widget_token}';
-const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{widgetToken}}/`);
-
+const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-events/{user_id}');
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
     const event = document.createElement('div');
@@ -414,7 +399,7 @@ function getEventIcon(type) {{
 </body>
 </html>"""
 
-def generate_goal_bar_html(user_id, widget_token, config):
+def generate_goal_bar_html(user_id, config):
     """Generate goal bar HTML"""
     return f"""<!DOCTYPE html>
 <html>
@@ -466,9 +451,7 @@ body {{
     </div>
 </div>
 <script>
-const widgetToken = '{widget_token}';
-const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{widgetToken}}/`);
-
+const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-goals/{user_id}');
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
     document.getElementById('title').textContent = data.title;

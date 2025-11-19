@@ -1259,15 +1259,15 @@ def fuzeobs_get_widgets(request):
 @xframe_options_exempt
 @require_http_methods(["GET"])
 def fuzeobs_serve_widget(request, token):
+    """Serve widget by token - clean URL"""
     try:
         widget = WidgetConfig.objects.get(token=token)
         html = generate_widget_html(widget)
-        # Inject token into HTML context if needed
-        html = html.replace('const widgetToken = new URLSearchParams', 
-                           f'const widgetToken = "{token}"; // Fallback\nconst widgetTokenFromURL = new URLSearchParams')
-        return HttpResponse(html, content_type='text/html')
+        response = HttpResponse(html, content_type='text/html')
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return response
     except WidgetConfig.DoesNotExist:
-        return JsonResponse({'error': 'Widget not found'}, status=404)
+        return HttpResponse('Widget not found', status=404)
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -1757,7 +1757,7 @@ def fuzeobs_test_alert(request):
         
         user = request.fuzeobs_user
         
-        # Send test alert via WebSocket
+        # Send test alert via WebSocket with platform-specific group
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f'alerts_{user.id}_{platform}',
@@ -1782,14 +1782,14 @@ def fuzeobs_test_alert(request):
     
 @csrf_exempt
 @require_http_methods(["GET"])
-def fuzeobs_get_widget_event_configs(request, user_id):
-    """Get all event configurations for user's widgets - accessible from GCS widgets"""
+def fuzeobs_get_widget_event_configs(request, user_id, platform):
+    """Get event configurations for user's platform-specific widgets"""
     try:
-        widgets = WidgetConfig.objects.filter(user_id=user_id)
+        widgets = WidgetConfig.objects.filter(user_id=user_id, platform=platform)
         configs = {}
         
         for widget in widgets:
-            events = WidgetEvent.objects.filter(widget=widget, enabled=True)
+            events = WidgetEvent.objects.filter(widget=widget, platform=platform, enabled=True)
             for event in events:
                 key = f"{event.platform}-{event.event_type}"
                 configs[key] = event.config
