@@ -1259,15 +1259,15 @@ def fuzeobs_get_widgets(request):
 @xframe_options_exempt
 @require_http_methods(["GET"])
 def fuzeobs_serve_widget(request, token):
-    """Serve widget by token - clean URL"""
     try:
         widget = WidgetConfig.objects.get(token=token)
         html = generate_widget_html(widget)
-        response = HttpResponse(html, content_type='text/html')
-        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        return response
+        # Inject token into HTML context if needed
+        html = html.replace('const widgetToken = new URLSearchParams', 
+                           f'const widgetToken = "{token}"; // Fallback\nconst widgetTokenFromURL = new URLSearchParams')
+        return HttpResponse(html, content_type='text/html')
     except WidgetConfig.DoesNotExist:
-        return HttpResponse('Widget not found', status=404)
+        return JsonResponse({'error': 'Widget not found'}, status=404)
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -1760,7 +1760,7 @@ def fuzeobs_test_alert(request):
         # Send test alert via WebSocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            f'alerts_{user.id}',
+            f'alerts_{user.id}_{platform}',
             {
                 'type': 'alert_event',
                 'data': {

@@ -51,10 +51,10 @@ def subscribe_twitch_events(user_id, broadcaster_id, user_access_token):
             print(f'[ERROR] {resp.text}')
 
 def send_alert(user_id, event_type, platform, event_data):
-    """Send alert to widget WebSocket"""
+    """Send alert to platform-specific widget WebSocket"""
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
-        f'alerts_{user_id}',
+        f'alerts_{user_id}_{platform}',
         {
             'type': 'alert_event',
             'data': {

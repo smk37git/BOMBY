@@ -2,20 +2,21 @@ def generate_widget_html(widget):
     """Generate HTML for widget object"""
     user_id = widget.user.id
     widget_type = widget.widget_type
+    widget_token = widget.token
     config = widget.config
     
     if widget_type == 'alert_box':
-        return generate_alert_box_html(user_id, config)
+        return generate_alert_box_html(user_id, widget_token, config)
     elif widget_type == 'chat_box':
-        return generate_chat_box_html(user_id, config)
+        return generate_chat_box_html(user_id, widget_token, config)
     elif widget_type == 'event_list':
-        return generate_event_list_html(user_id, config)
+        return generate_event_list_html(user_id, widget_token, config)
     elif widget_type == 'goal_bar':
-        return generate_goal_bar_html(user_id, config)
+        return generate_goal_bar_html(user_id, widget_token, config)
     else:
         raise ValueError(f"Unknown widget type: {widget_type}")
 
-def generate_alert_box_html(user_id, config):
+def generate_alert_box_html(user_id, widget_token, config):
     """Generate alert box HTML with event support"""
     return f"""<!DOCTYPE html>
 <html>
@@ -112,7 +113,8 @@ body {{
 <audio id="alertSound" preload="auto"></audio>
 <script>
 const userId = '{user_id}';
-const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/`);
+const widgetToken = '{widget_token}';
+const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{widgetToken}}/`);
 
 const defaultConfig = {{
     enabled: true,
@@ -272,7 +274,7 @@ ws.onerror = (error) => {{
 </body>
 </html>"""
 
-def generate_chat_box_html(user_id, config):
+def generate_chat_box_html(user_id, widget_token, config):
     """Generate chat box HTML"""
     height = config.get('height', 400)
     bg_color = config.get('bg_color', 'rgba(0,0,0,0.5)')
@@ -323,7 +325,8 @@ body {{
 <body>
 <div class="chat-container" id="chat"></div>
 <script>
-const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-chat/{user_id}');
+const widgetToken = '{widget_token}';
+const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{widgetToken}}/`);
 
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
@@ -343,7 +346,7 @@ ws.onmessage = (e) => {{
 </body>
 </html>"""
 
-def generate_event_list_html(user_id, config):
+def generate_event_list_html(user_id, widget_token, config):
     """Generate event list HTML"""
     return f"""<!DOCTYPE html>
 <html>
@@ -377,7 +380,9 @@ body {{
 <body>
 <div id="events"></div>
 <script>
-const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-events/{user_id}');
+const widgetToken = '{widget_token}';
+const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{widgetToken}}/`);
+
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
     const event = document.createElement('div');
@@ -409,7 +414,7 @@ function getEventIcon(type) {{
 </body>
 </html>"""
 
-def generate_goal_bar_html(user_id, config):
+def generate_goal_bar_html(user_id, widget_token, config):
     """Generate goal bar HTML"""
     return f"""<!DOCTYPE html>
 <html>
@@ -461,7 +466,9 @@ body {{
     </div>
 </div>
 <script>
-const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-goals/{user_id}');
+const widgetToken = '{widget_token}';
+const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{widgetToken}}/`);
+
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
     document.getElementById('title').textContent = data.title;
