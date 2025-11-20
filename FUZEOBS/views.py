@@ -1618,11 +1618,21 @@ def get_platform_username(platform, access_token):
     
     elif platform == 'kick':
         headers = {'Authorization': f'Bearer {access_token}'}
-        response = requests.get('https://api.kick.com/public/v1/users', headers=headers)
+        
+        # Try /user endpoint first
+        response = requests.get('https://api.kick.com/public/v1/user', headers=headers)
+        print(f'[KICK] /user Status: {response.status_code}')
+        print(f'[KICK] /user Response: {response.text[:1000]}')
+        
         if response.status_code == 200:
-            data = response.json()
-            # Adjust based on actual API response structure
-            return data.get('username', 'Kick User'), str(data.get('id', ''))
+            try:
+                data = response.json()
+                username = data.get('username') or data.get('slug') or 'Kick User'
+                user_id = str(data.get('id', ''))
+                print(f'[KICK] Username: {username}, ID: {user_id}')
+                return username, user_id
+            except Exception as e:
+                print(f'[KICK] Parse error: {e}')
     
     return 'Unknown', ''
 
