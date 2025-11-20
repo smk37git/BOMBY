@@ -2146,16 +2146,33 @@ def fuzeobs_kick_poll(request):
         try:
             resp = requests.get(f'https://kick.com/api/v2/channels/{conn.platform_username}', timeout=5)
             if resp.status_code == 200:
-                current = resp.json().get('followers_count', 0)
-                last = conn.metadata.get('last_follower_count', 0)
+                data = resp.json()
                 
-                if last > 0 and current > last:
-                    send_alert(conn.user.id, 'follow', 'kick', {'username': 'Someone'})
-                    alerts += 1
+                # Check followers
+                current_followers = data.get('followers_count', 0)
+                last_followers = conn.metadata.get('last_follower_count', 0)
                 
-                conn.metadata['last_follower_count'] = current
+                if last_followers > 0 and current_followers > last_followers:
+                    diff = current_followers - last_followers
+                    for _ in range(min(diff, 5)):  # Max 5 alerts to avoid spam
+                        send_alert(conn.user.id, 'follow', 'kick', {'username': 'Someone'})
+                        alerts += 1
+                
+                # Check subscribers
+                current_subs = data.get('subscribers_count', 0)
+                last_subs = conn.metadata.get('last_sub_count', 0)
+                
+                if last_subs > 0 and current_subs > last_subs:
+                    diff = current_subs - last_subs
+                    for _ in range(min(diff, 5)):
+                        send_alert(conn.user.id, 'subscribe', 'kick', {'username': 'Someone'})
+                        alerts += 1
+                
+                conn.metadata['last_follower_count'] = current_followers
+                conn.metadata['last_sub_count'] = current_subs
                 conn.save()
                 checked += 1
-        except: pass
+        except Exception as e:
+            print(f'[KICK POLL ERROR] {e}')
     
     return JsonResponse({'status': 'ok', 'checked': checked, 'alerts': alerts})
