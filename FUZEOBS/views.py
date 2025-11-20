@@ -1620,37 +1620,33 @@ def get_platform_username(platform, access_token):
         headers = {'Authorization': f'Bearer {access_token}'}
         
         try:
-            response = requests.get('https://api.kick.com/public/v1/channels', 
+            response = requests.get('https://api.kick.com/public/v1/users', 
                                    headers=headers, 
-                                   params={'broadcaster_user_id': 'me'},
                                    timeout=10)
-            print(f'[KICK] /channels Status: {response.status_code}')
-            print(f'[KICK] /channels Response: {response.text[:1000]}')
+            print(f'[KICK] /users Status: {response.status_code}')
+            print(f'[KICK] /users Response: {response.text[:1000]}')
             
             if response.status_code == 200:
                 data = response.json()
                 print(f'[KICK] Parsed JSON: {data}')
                 
-                # Response should have channel info with user details
+                # Get first user from array or the data itself
                 if isinstance(data, list) and len(data) > 0:
-                    channel = data[0]
+                    user = data[0]
                 elif isinstance(data, dict):
-                    channel = data
+                    user = data
                 else:
                     print('[KICK] Unexpected response format')
                     return 'Kick User', ''
                 
-                username = (channel.get('broadcaster_username') or 
-                           channel.get('slug') or 
-                           channel.get('username') or
-                           'Kick User')
-                user_id = str(channel.get('broadcaster_user_id') or 
-                            channel.get('user_id') or '')
+                # Extract username and ID from user object
+                username = user.get('username') or user.get('slug') or 'Kick User'
+                user_id = str(user.get('id') or '')
                 
                 print(f'[KICK] Extracted - Username: {username}, ID: {user_id}')
                 return username, user_id
             else:
-                print(f'[KICK] Failed, returning defaults')
+                print(f'[KICK] Failed with status {response.status_code}')
                 return 'Kick User', ''
                 
         except Exception as e:
