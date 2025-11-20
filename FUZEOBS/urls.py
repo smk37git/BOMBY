@@ -32,7 +32,8 @@ urlpatterns = [
     # PLATFORM ALERTS
     path('twitch-webhook', views.fuzeobs_twitch_webhook, name='twitch_webhook'),
     path('youtube-webhook', views.fuzeobs_youtube_webhook, name='youtube_webhook'),
-    path('kick-connect', views.fuzeobs_kick_connect, name='kick_connect'),
+    path('youtube-poll', views.fuzeobs_youtube_poll, name='youtube_poll'),
+    path('kick-poll', views.fuzeobs_kick_poll, name='kick_poll'),
 
     # Widget Serving (clean URL)
     path('w/<str:token>', views.fuzeobs_serve_widget, name='serve_widget'),

@@ -27,8 +27,6 @@ from asgiref.sync import async_to_sync
 import random
 from .twitch_eventsub import send_alert
 import requests
-import threading
-from .kick_websocket import start_kick_listener
 
 # Website Imports
 from django.shortcuts import render
@@ -1983,52 +1981,76 @@ def fuzeobs_youtube_webhook(request):
 
 # =========== KICK ALERTS ===========
 @csrf_exempt
-@require_http_methods(["POST"])
-@require_tier('free')
-def fuzeobs_kick_connect(request):
-    """Handle Kick connection (username-based, no OAuth)"""
-    user = request.fuzeobs_user
+def fuzeobs_kick_poll(request):
+    auth_header = request.headers.get('X-Cloudscheduler', '')
+    if auth_header != os.environ.get('KICK_POLL_SECRET', ''):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     
-    try:
-        data = json.loads(request.body)
-        kick_username = data.get('kick_username')
-        
-        if not kick_username:
-            return JsonResponse({'error': 'Missing kick_username'}, status=400)
-        
-        # Fetch Kick channel ID from API
-        resp = requests.get(f'https://kick.com/api/v2/channels/{kick_username}')
-        if resp.status_code != 200:
-            return JsonResponse({'error': 'Kick username not found'}, status=404)
-        
-        channel_data = resp.json()
-        channel_id = channel_data.get('id')
-        
-        # Save connection
-        PlatformConnection.objects.update_or_create(
-            user=user,
-            platform='kick',
-            defaults={
-                'platform_username': kick_username,
-                'platform_user_id': str(channel_id),
-                'access_token': '',  # No OAuth for Kick
-                'metadata': {'channel_data': channel_data}
-            }
-        )
-        
-        # Start WebSocket listener in background thread
-        thread = threading.Thread(
-            target=start_kick_listener,
-            args=(channel_id, user.id),
-            daemon=True
-        )
-        thread.start()
-        
-        return JsonResponse({
-            'success': True,
-            'platform': 'kick',
-            'username': kick_username
-        })
+    connections = PlatformConnection.objects.filter(platform='kick')
+    checked = alerts_sent = 0
     
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+    for conn in connections:
+        try:
+            resp = requests.get(f'https://kick.com/api/v2/channels/{conn.platform_username}', timeout=5)
+            if resp.status_code == 200:
+                current = resp.json().get('followers_count', 0)
+                last = conn.metadata.get('last_follower_count', 0)
+                
+                if last > 0 and current > last:
+                    send_alert(conn.user.id, 'follow', 'kick', {'username': 'Someone'})
+                    alerts_sent += 1
+                
+                conn.metadata['last_follower_count'] = current
+                conn.save()
+                checked += 1
+        except: pass
+    
+    return JsonResponse({'status': 'ok', 'checked': checked, 'alerts': alerts_sent})
+
+
+
+# =========== POLLING ENDPOINTS (for Cloud Scheduler) ===========
+@csrf_exempt
+def fuzeobs_youtube_poll(request):
+    """YouTube super chat polling - called by Cloud Scheduler"""
+    if request.headers.get('X-Cloudscheduler') != os.environ.get('SCHEDULER_SECRET'):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    from .youtube_pubsub import poll_super_chats
+    
+    connections = PlatformConnection.objects.filter(platform='youtube')
+    checked = live = 0
+    
+    for conn in connections:
+        if poll_super_chats(conn.access_token, conn.user.id):
+            live += 1
+        checked += 1
+    
+    return JsonResponse({'status': 'ok', 'checked': checked, 'live': live})
+
+@csrf_exempt
+def fuzeobs_kick_poll(request):
+    """Kick polling endpoint - called by Cloud Scheduler"""
+    if request.headers.get('X-Cloudscheduler') != os.environ.get('SCHEDULER_SECRET'):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    
+    connections = PlatformConnection.objects.filter(platform='kick')
+    checked = alerts = 0
+    
+    for conn in connections:
+        try:
+            resp = requests.get(f'https://kick.com/api/v2/channels/{conn.platform_username}', timeout=5)
+            if resp.status_code == 200:
+                current = resp.json().get('followers_count', 0)
+                last = conn.metadata.get('last_follower_count', 0)
+                
+                if last > 0 and current > last:
+                    send_alert(conn.user.id, 'follow', 'kick', {'username': 'Someone'})
+                    alerts += 1
+                
+                conn.metadata['last_follower_count'] = current
+                conn.save()
+                checked += 1
+        except: pass
+    
+    return JsonResponse({'status': 'ok', 'checked': checked, 'alerts': alerts})
