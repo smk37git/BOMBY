@@ -27,6 +27,8 @@ from asgiref.sync import async_to_sync
 import random
 from .twitch_eventsub import send_alert
 import requests
+import threading
+from .kick_websocket import start_kick_listener
 
 # Website Imports
 from django.shortcuts import render
@@ -1978,3 +1980,55 @@ def fuzeobs_youtube_webhook(request):
         return JsonResponse({'status': 'ok'})
     
     return JsonResponse({'error': 'Invalid method'}, status=405)
+
+# =========== KICK ALERTS ===========
+@csrf_exempt
+@require_http_methods(["POST"])
+@require_tier('free')
+def fuzeobs_kick_connect(request):
+    """Handle Kick connection (username-based, no OAuth)"""
+    user = request.fuzeobs_user
+    
+    try:
+        data = json.loads(request.body)
+        kick_username = data.get('kick_username')
+        
+        if not kick_username:
+            return JsonResponse({'error': 'Missing kick_username'}, status=400)
+        
+        # Fetch Kick channel ID from API
+        resp = requests.get(f'https://kick.com/api/v2/channels/{kick_username}')
+        if resp.status_code != 200:
+            return JsonResponse({'error': 'Kick username not found'}, status=404)
+        
+        channel_data = resp.json()
+        channel_id = channel_data.get('id')
+        
+        # Save connection
+        PlatformConnection.objects.update_or_create(
+            user=user,
+            platform='kick',
+            defaults={
+                'platform_username': kick_username,
+                'platform_user_id': str(channel_id),
+                'access_token': '',  # No OAuth for Kick
+                'metadata': {'channel_data': channel_data}
+            }
+        )
+        
+        # Start WebSocket listener in background thread
+        thread = threading.Thread(
+            target=start_kick_listener,
+            args=(channel_id, user.id),
+            daemon=True
+        )
+        thread.start()
+        
+        return JsonResponse({
+            'success': True,
+            'platform': 'kick',
+            'username': kick_username
+        })
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
