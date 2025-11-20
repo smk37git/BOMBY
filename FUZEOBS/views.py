@@ -1619,20 +1619,45 @@ def get_platform_username(platform, access_token):
     elif platform == 'kick':
         headers = {'Authorization': f'Bearer {access_token}'}
         
-        # Try /user endpoint first
-        response = requests.get('https://api.kick.com/public/v1/user', headers=headers)
-        print(f'[KICK] /user Status: {response.status_code}')
-        print(f'[KICK] /user Response: {response.text[:1000]}')
-        
-        if response.status_code == 200:
-            try:
+        try:
+            response = requests.get('https://api.kick.com/public/v1/channels', 
+                                   headers=headers, 
+                                   params={'broadcaster_user_id': 'me'},
+                                   timeout=10)
+            print(f'[KICK] /channels Status: {response.status_code}')
+            print(f'[KICK] /channels Response: {response.text[:1000]}')
+            
+            if response.status_code == 200:
                 data = response.json()
-                username = data.get('username') or data.get('slug') or 'Kick User'
-                user_id = str(data.get('id', ''))
-                print(f'[KICK] Username: {username}, ID: {user_id}')
+                print(f'[KICK] Parsed JSON: {data}')
+                
+                # Response should have channel info with user details
+                if isinstance(data, list) and len(data) > 0:
+                    channel = data[0]
+                elif isinstance(data, dict):
+                    channel = data
+                else:
+                    print('[KICK] Unexpected response format')
+                    return 'Kick User', ''
+                
+                username = (channel.get('broadcaster_username') or 
+                           channel.get('slug') or 
+                           channel.get('username') or
+                           'Kick User')
+                user_id = str(channel.get('broadcaster_user_id') or 
+                            channel.get('user_id') or '')
+                
+                print(f'[KICK] Extracted - Username: {username}, ID: {user_id}')
                 return username, user_id
-            except Exception as e:
-                print(f'[KICK] Parse error: {e}')
+            else:
+                print(f'[KICK] Failed, returning defaults')
+                return 'Kick User', ''
+                
+        except Exception as e:
+            print(f'[KICK] Exception: {e}')
+            import traceback
+            traceback.print_exc()
+            return 'Kick User', ''
     
     return 'Unknown', ''
 
