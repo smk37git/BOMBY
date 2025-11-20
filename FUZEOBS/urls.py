@@ -33,6 +33,7 @@ urlpatterns = [
     path('twitch-webhook', views.fuzeobs_twitch_webhook, name='twitch_webhook'),
     path('youtube-webhook', views.fuzeobs_youtube_webhook, name='youtube_webhook'),
     path('youtube-poll', views.fuzeobs_youtube_poll, name='youtube_poll'),
+    path('kick-webhook', views.fuzeobs_kick_webhook, name='kick_webhook'),
     path('kick-poll', views.fuzeobs_kick_poll, name='kick_poll'),
 
     # Widget Serving (clean URL)

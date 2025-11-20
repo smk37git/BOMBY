@@ -27,6 +27,8 @@ from asgiref.sync import async_to_sync
 import random
 from .twitch_eventsub import send_alert
 import requests
+import base64
+import secrets
 
 # Website Imports
 from django.shortcuts import render
@@ -1405,13 +1407,21 @@ PLATFORM_OAUTH_CONFIG = {
         'scopes': ['https://www.googleapis.com/auth/youtube.readonly', 'https://www.googleapis.com/auth/youtube.force-ssl']
     },
     'kick': {
-        'auth_url': 'https://kick.com/oauth2/authorize',
-        'token_url': 'https://kick.com/oauth2/token',
+        'auth_url': 'https://id.kick.com/oauth/authorize',
+        'token_url': 'https://id.kick.com/oauth/token',
         'client_id': os.environ.get('KICK_CLIENT_ID', ''),
         'client_secret': os.environ.get('KICK_CLIENT_SECRET', ''),
-        'scopes': ['channel:subscriptions', 'channel:events']
+        'scopes': ['user:read', 'channel:read', 'events:subscribe']
     }
 }
+
+def generate_pkce_pair():
+    """Generate PKCE code_verifier and code_challenge"""
+    code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')
+    code_challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(code_verifier.encode('utf-8')).digest()
+    ).decode('utf-8').rstrip('=')
+    return code_verifier, code_challenge
 
 @csrf_exempt
 @require_http_methods(["GET"])
@@ -1448,7 +1458,17 @@ def fuzeobs_connect_platform(request):
         
         # Generate state token for CSRF protection
         state = secrets.token_urlsafe(32)
-        cache.set(f'oauth_state_{state}', {'user_id': user.id, 'platform': platform}, timeout=600)
+        
+        # Kick requires PKCE (OAuth 2.1)
+        if platform == 'kick':
+            code_verifier, code_challenge = generate_pkce_pair()
+            cache.set(f'oauth_state_{state}', {
+                'user_id': user.id, 
+                'platform': platform,
+                'code_verifier': code_verifier
+            }, timeout=600)
+        else:
+            cache.set(f'oauth_state_{state}', {'user_id': user.id, 'platform': platform}, timeout=600)
         
         # Build OAuth URL
         redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
@@ -1458,6 +1478,8 @@ def fuzeobs_connect_platform(request):
         
         if platform == 'youtube':
             auth_url += '&access_type=offline&prompt=consent'
+        elif platform == 'kick':
+            auth_url += f'&code_challenge={code_challenge}&code_challenge_method=S256'
 
         return JsonResponse({
             'success': True,
@@ -1506,23 +1528,30 @@ def fuzeobs_platform_callback(request, platform):
     
     redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
     
+    # Build token request
+    token_data = {
+        'client_id': config['client_id'],
+        'client_secret': config['client_secret'],
+        'code': code,
+        'grant_type': 'authorization_code',
+        'redirect_uri': redirect_uri
+    }
+    
+    # Add code_verifier for Kick (PKCE)
+    if platform == 'kick' and 'code_verifier' in state_data:
+        token_data['code_verifier'] = state_data['code_verifier']
+    
     token_response = requests.post(config['token_url'], 
         headers={'Content-Type': 'application/x-www-form-urlencoded'},
-        data={
-            'client_id': config['client_id'],
-            'client_secret': config['client_secret'],
-            'code': code,
-            'grant_type': 'authorization_code',
-            'redirect_uri': redirect_uri
-        })
+        data=token_data)
     
     if token_response.status_code != 200:
-        return HttpResponse('Token exchange failed', status=400)
+        return HttpResponse(f'Token exchange failed: {token_response.text}', status=400)
     
-    token_data = token_response.json()
-    access_token = token_data['access_token']
-    refresh_token = token_data.get('refresh_token', '')
-    expires_in = token_data.get('expires_in', 3600)
+    token_json = token_response.json()
+    access_token = token_json['access_token']
+    refresh_token = token_json.get('refresh_token', '')
+    expires_in = token_json.get('expires_in', 3600)
     
     username, platform_user_id = get_platform_username(platform, access_token)
     
@@ -1538,17 +1567,24 @@ def fuzeobs_platform_callback(request, platform):
         }
     )
     
+    # Subscribe to platform events
     if platform == 'twitch' and platform_user_id:
         try:
             subscribe_twitch_events(user.id, platform_user_id, access_token)
         except Exception as e:
             print(f'Error subscribing to Twitch events: {e}')
-    if platform == 'youtube' and platform_user_id:
+    elif platform == 'youtube' and platform_user_id:
         from .youtube_pubsub import subscribe_youtube_channel
         try:
             subscribe_youtube_channel(platform_user_id, user.id)
         except Exception as e:
             print(f'Error subscribing to YouTube events: {e}')
+    elif platform == 'kick' and platform_user_id:
+        # Kick uses webhook subscriptions via API
+        try:
+            subscribe_kick_events(user.id, platform_user_id, access_token)
+        except Exception as e:
+            print(f'Error subscribing to Kick events: {e}')
     
     cache.delete(f'oauth_state_{state}')
     
@@ -1582,10 +1618,11 @@ def get_platform_username(platform, access_token):
     
     elif platform == 'kick':
         headers = {'Authorization': f'Bearer {access_token}'}
-        response = requests.get('https://kick.com/api/v1/user', headers=headers)
+        response = requests.get('https://api.kick.com/public/v1/users', headers=headers)
         if response.status_code == 200:
             data = response.json()
-            return data['username'], str(data['id'])
+            # Adjust based on actual API response structure
+            return data.get('username', 'Kick User'), str(data.get('id', ''))
     
     return 'Unknown', ''
 
@@ -1979,35 +2016,74 @@ def fuzeobs_youtube_webhook(request):
     
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
-# =========== KICK ALERTS ===========
-@csrf_exempt
-def fuzeobs_kick_poll(request):
-    auth_header = request.headers.get('X-Cloudscheduler', '')
-    if auth_header != os.environ.get('KICK_POLL_SECRET', ''):
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
+# =========== KICk ALERTS ===========
+def subscribe_kick_events(user_id, channel_id, access_token):
+    """Subscribe to Kick webhook events"""
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json'
+    }
     
-    connections = PlatformConnection.objects.filter(platform='kick')
-    checked = alerts_sent = 0
+    events = [
+        'channel.followed',
+        'channel.subscribed',
+        'kicks.gifted'
+    ]
     
-    for conn in connections:
+    for event_type in events:
+        payload = {
+            'event_type': event_type,
+            'webhook_url': f'https://bomby.us/fuzeobs/kick-webhook?user_id={user_id}'
+        }
+        
         try:
-            resp = requests.get(f'https://kick.com/api/v2/channels/{conn.platform_username}', timeout=5)
-            if resp.status_code == 200:
-                current = resp.json().get('followers_count', 0)
-                last = conn.metadata.get('last_follower_count', 0)
-                
-                if last > 0 and current > last:
-                    send_alert(conn.user.id, 'follow', 'kick', {'username': 'Someone'})
-                    alerts_sent += 1
-                
-                conn.metadata['last_follower_count'] = current
-                conn.save()
-                checked += 1
-        except: pass
+            resp = requests.post(
+                'https://api.kick.com/public/v1/webhooks/subscribe',
+                headers=headers,
+                json=payload,
+                timeout=10
+            )
+            print(f'[KICK] {event_type}: {resp.status_code}')
+            if resp.status_code not in [200, 201]:
+                print(f'[ERROR] {resp.text}')
+        except Exception as e:
+            print(f'[KICK ERROR] {event_type}: {e}')
+
+@csrf_exempt
+def fuzeobs_kick_webhook(request):
+    """Receive Kick webhook notifications"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
     
-    return JsonResponse({'status': 'ok', 'checked': checked, 'alerts': alerts_sent})
-
-
+    try:
+        data = json.loads(request.body)
+        user_id = request.GET.get('user_id')
+        
+        if not user_id:
+            return JsonResponse({'error': 'Missing user_id'}, status=400)
+        
+        event_type = data.get('event_type', '')
+        event_data = data.get('data', {})
+        
+        # Map Kick events to our event types
+        event_map = {
+            'channel.followed': ('follow', {'username': event_data.get('user', {}).get('username', 'Someone')}),
+            'channel.subscribed': ('subscribe', {'username': event_data.get('user', {}).get('username', 'Someone')}),
+            'kicks.gifted': ('gift_sub', {
+                'username': event_data.get('gifter', {}).get('username', 'Anonymous'),
+                'amount': event_data.get('quantity', 1)
+            })
+        }
+        
+        if event_type in event_map:
+            mapped_event, mapped_data = event_map[event_type]
+            send_alert(int(user_id), mapped_event, 'kick', mapped_data)
+        
+        return JsonResponse({'status': 'ok'})
+        
+    except Exception as e:
+        print(f'[KICK WEBHOOK ERROR] {e}')
+        return JsonResponse({'error': str(e)}, status=500)
 
 # =========== POLLING ENDPOINTS (for Cloud Scheduler) ===========
 @csrf_exempt
