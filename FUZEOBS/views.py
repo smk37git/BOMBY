@@ -1630,21 +1630,18 @@ def get_platform_username(platform, access_token):
                 data = response.json()
                 print(f'[KICK] Parsed JSON: {data}')
                 
-                # Get first user from array or the data itself
-                if isinstance(data, list) and len(data) > 0:
-                    user = data[0]
-                elif isinstance(data, dict):
-                    user = data
+                
+                # Response: {"data": [{"user_id": ..., "name": ...}], "message": "OK"}
+                if data.get('data') and len(data['data']) > 0:
+                    user = data['data'][0]
+                    username = user.get('name', 'Kick User')
+                    user_id = str(user.get('user_id', ''))
+                    
+                    print(f'[KICK] Extracted - Username: {username}, ID: {user_id}')
+                    return username, user_id
                 else:
-                    print('[KICK] Unexpected response format')
+                    print('[KICK] No user data in response')
                     return 'Kick User', ''
-                
-                # Extract username and ID from user object
-                username = user.get('username') or user.get('slug') or 'Kick User'
-                user_id = str(user.get('id') or '')
-                
-                print(f'[KICK] Extracted - Username: {username}, ID: {user_id}')
-                return username, user_id
             else:
                 print(f'[KICK] Failed with status {response.status_code}')
                 return 'Kick User', ''
