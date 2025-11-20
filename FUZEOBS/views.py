@@ -2052,30 +2052,31 @@ def subscribe_kick_events(user_id, channel_id, access_token):
         'Content-Type': 'application/json'
     }
     
-    events = [
-        'channel.followed',
-        'channel.subscribed',
-        'kicks.gifted'
-    ]
+    # Correct payload format for Kick API
+    payload = {
+        'events': [
+            {'name': 'channel.followed', 'version': 1},
+            {'name': 'channel.subscribed', 'version': 1},
+            {'name': 'kicks.gifted', 'version': 1}
+        ],
+        'method': 'webhook',
+        'broadcaster_user_id': int(user_id)
+    }
     
-    for event_type in events:
-        payload = {
-            'event_type': event_type,
-            'webhook_url': f'https://bomby.us/fuzeobs/kick-webhook?user_id={user_id}'
-        }
-        
-        try:
-            resp = requests.post(
-                'https://api.kick.com/public/v1/webhooks/subscribe',
-                headers=headers,
-                json=payload,
-                timeout=10
-            )
-            print(f'[KICK] {event_type}: {resp.status_code}')
-            if resp.status_code not in [200, 201]:
-                print(f'[ERROR] {resp.text}')
-        except Exception as e:
-            print(f'[KICK ERROR] {event_type}: {e}')
+    try:
+        resp = requests.post(
+            'https://api.kick.com/public/v1/events/subscriptions',
+            headers=headers,
+            json=payload,
+            timeout=10
+        )
+        print(f'[KICK] Subscribe: {resp.status_code}')
+        if resp.status_code not in [200, 201]:
+            print(f'[KICK ERROR] {resp.text}')
+        else:
+            print(f'[KICK] Subscribed successfully')
+    except Exception as e:
+        print(f'[KICK ERROR] {e}')
 
 @csrf_exempt
 def fuzeobs_kick_webhook(request):
