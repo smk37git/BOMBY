@@ -60,7 +60,7 @@ def start_kick_listener(user_id, channel_slug):
                             print(f'[KICK] ✓ New follower(s)! +{count} (now {followers})')
                             # Send one alert per new follower (max 5 to prevent spam)
                             for _ in range(min(count, 5)):
-                                send_alert(user_id, 'follow', 'kick', {'username': 'Someone'})
+                                send_alert(user_id, 'follow', 'kick', {'username': channel_slug})
                             last_followers = followers
                         
                         # Check for new subs
@@ -68,7 +68,7 @@ def start_kick_listener(user_id, channel_slug):
                             count = subs - last_subs
                             print(f'[KICK] ✓ New sub(s)! +{count} (now {subs})')
                             for _ in range(min(count, 5)):
-                                send_alert(user_id, 'subscribe', 'kick', {'username': 'Someone'})
+                                send_alert(user_id, 'subscribe', 'kick', {'username': channel_slug})
                             last_subs = subs
                     
                     # Reset error count on success

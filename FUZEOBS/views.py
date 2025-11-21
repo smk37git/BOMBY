@@ -2051,6 +2051,43 @@ def fuzeobs_youtube_webhook(request):
     
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+# =========== KICK ALERTS ===========
+@csrf_exempt
+@require_http_methods(["POST"])
+def fuzeobs_kick_webhook(request):
+    """Handle Kick webhook events"""
+    try:
+        event_type = request.headers.get('Kick-Event-Type', '')
+        data = json.loads(request.body)
+        
+        if event_type == 'channel.followed':
+            follower_username = data.get('follower', {}).get('username', 'Someone')
+            broadcaster_id = data.get('broadcaster', {}).get('user_id')
+            
+            try:
+                conn = PlatformConnection.objects.get(platform='kick', platform_user_id=str(broadcaster_id))
+                send_alert(conn.user_id, 'follow', 'kick', {'username': follower_username})
+                print(f'[KICK] Webhook follow: {follower_username}')
+            except PlatformConnection.DoesNotExist:
+                print(f'[KICK] No connection for broadcaster {broadcaster_id}')
+        
+        elif event_type == 'channel.subscription.new':
+            subscriber_username = data.get('subscriber', {}).get('username', 'Someone')
+            broadcaster_id = data.get('broadcaster', {}).get('user_id')
+            
+            try:
+                conn = PlatformConnection.objects.get(platform='kick', platform_user_id=str(broadcaster_id))
+                send_alert(conn.user_id, 'subscribe', 'kick', {'username': subscriber_username})
+                print(f'[KICK] Webhook sub: {subscriber_username}')
+            except PlatformConnection.DoesNotExist:
+                print(f'[KICK] No connection for broadcaster {broadcaster_id}')
+        
+        return JsonResponse({'status': 'ok'}, status=200)
+    
+    except Exception as e:
+        print(f'[KICK] Webhook error: {e}')
+        return JsonResponse({'error': str(e)}, status=500)
+
 # =========== POLLING ENDPOINTS (for Cloud Scheduler) ===========
 @csrf_exempt
 def fuzeobs_youtube_poll(request):
