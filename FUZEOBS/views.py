@@ -2118,16 +2118,11 @@ def fuzeobs_kick_webhook(request):
 @csrf_exempt
 def fuzeobs_youtube_poll(request):
     """YouTube super chat polling - called by Cloud Scheduler"""
-    received = request.headers.get('X-Cloudscheduler', 'MISSING')
-    expected = os.environ.get('SCHEDULER_SECRET', 'NOT_SET')
-    
-    print(f"[YOUTUBE POLL DEBUG] Received: '{received}' (len={len(received)})")
-    print(f"[YOUTUBE POLL DEBUG] Expected: '{expected}' (len={len(expected)})")
-    print(f"[YOUTUBE POLL DEBUG] Match: {received == expected}")
-    print(f"[YOUTUBE POLL DEBUG] All headers: {dict(request.headers)}")
+    received = request.headers.get('X-Cloudscheduler', '').split(',')[0]
+    expected = os.environ.get('SCHEDULER_SECRET')
     
     if received != expected:
-        return JsonResponse({'error': 'Unauthorized', 'debug': f'received_len={len(received)}, expected_len={len(expected)}'}, status=403)
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     
     from .youtube_pubsub import poll_super_chats
     
@@ -2142,20 +2137,14 @@ def fuzeobs_youtube_poll(request):
     return JsonResponse({'status': 'ok', 'checked': checked, 'live': live})
 
 
-# Replace fuzeobs_kick_poll (around line 2137)
 @csrf_exempt
 def fuzeobs_kick_poll(request):
     """Kick polling endpoint - called by Cloud Scheduler"""
-    received = request.headers.get('X-Cloudscheduler', 'MISSING')
-    expected = os.environ.get('SCHEDULER_SECRET', 'NOT_SET')
-    
-    print(f"[KICK POLL DEBUG] Received: '{received}' (len={len(received)})")
-    print(f"[KICK POLL DEBUG] Expected: '{expected}' (len={len(expected)})")
-    print(f"[KICK POLL DEBUG] Match: {received == expected}")
-    print(f"[KICK POLL DEBUG] All headers: {dict(request.headers)}")
+    received = request.headers.get('X-Cloudscheduler', '').split(',')[0]
+    expected = os.environ.get('SCHEDULER_SECRET')
     
     if received != expected:
-        return JsonResponse({'error': 'Unauthorized', 'debug': f'received_len={len(received)}, expected_len={len(expected)}'}, status=403)
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     
     connections = PlatformConnection.objects.filter(platform='kick')
     checked = alerts = 0
@@ -2166,17 +2155,15 @@ def fuzeobs_kick_poll(request):
             if resp.status_code == 200:
                 data = resp.json()
                 
-                # Check followers
                 current_followers = data.get('followers_count', 0)
                 last_followers = conn.metadata.get('last_follower_count', 0)
                 
                 if last_followers > 0 and current_followers > last_followers:
                     diff = current_followers - last_followers
-                    for _ in range(min(diff, 5)):  # Max 5 alerts to avoid spam
+                    for _ in range(min(diff, 5)):
                         send_alert(conn.user.id, 'follow', 'kick', {'username': 'Someone'})
                         alerts += 1
                 
-                # Check subscribers
                 current_subs = data.get('subscribers_count', 0)
                 last_subs = conn.metadata.get('last_sub_count', 0)
                 
