@@ -1,180 +1,114 @@
-import json
-import websocket
-import threading
 import time
+import requests
+import threading
 from .twitch import send_alert
 
-# Global dict to track active listeners
-kick_listeners = {}
-# Cache the working Pusher cluster
-_cached_cluster = None
-_cluster_lock = threading.Lock()
-
-PUSHER_KEY = 'eb1d5f283081a78b932c'
-PUSHER_CLUSTERS = ['mt1', 'us2', 'us3', 'eu', 'ap1', 'ap2', 'ap3', 'ap4']
-
-def detect_kick_cluster():
-    """Auto-detect working Kick Pusher cluster"""
-    global _cached_cluster
-    
-    with _cluster_lock:
-        if _cached_cluster:
-            print(f'[KICK] Using cached cluster: {_cached_cluster}')
-            return _cached_cluster
-        
-        print(f'[KICK] Detecting Pusher cluster...')
-        
-        for cluster in PUSHER_CLUSTERS:
-            try:
-                url = f'wss://ws-{cluster}.pusher.com/app/{PUSHER_KEY}?protocol=7&client=js&version=8.4.0-rc2'
-                print(f'[KICK] Testing cluster: {cluster}')
-                
-                ws = websocket.create_connection(url, timeout=3)
-                
-                # Send test subscribe
-                ws.send(json.dumps({
-                    'event': 'pusher:subscribe',
-                    'data': {'channel': 'test-channel'}
-                }))
-                
-                # Wait for response
-                response = ws.recv()
-                ws.close()
-                
-                data = json.loads(response)
-                
-                # Check if we got an error about cluster
-                if data.get('event') == 'pusher:error':
-                    error_code = data.get('data', {}).get('code')
-                    if error_code == 4001:  # Wrong cluster
-                        print(f'[KICK] ✗ Cluster {cluster} wrong')
-                        continue
-                
-                # No cluster error = correct cluster!
-                print(f'[KICK] ✓ Found working cluster: {cluster}')
-                _cached_cluster = cluster
-                return cluster
-                
-            except Exception as e:
-                print(f'[KICK] ✗ Cluster {cluster} failed: {e}')
-                continue
-        
-        print(f'[KICK] ❌ No working cluster found, using mt1 as fallback')
-        _cached_cluster = 'mt1'
-        return 'mt1'
+# Global dict to track active pollers
+kick_pollers = {}
+kick_poller_lock = threading.Lock()
 
 def start_kick_listener(user_id, channel_slug):
-    """Start real-time Kick listener via Pusher WebSocket"""
-    print(f'[KICK] ========== START LISTENER ==========')
-    print(f'[KICK] user_id={user_id}, channel={channel_slug}')
+    """Start 3-second polling for Kick channel"""
+    print(f'[KICK] Starting 3s polling for {channel_slug} (user {user_id})')
     
-    if channel_slug in kick_listeners:
-        print(f'[KICK] Already listening to {channel_slug}')
-        return
-    
-    # Detect cluster first
-    cluster = detect_kick_cluster()
-    ws_url = f'wss://ws-{cluster}.pusher.com/app/{PUSHER_KEY}?protocol=7&client=js&version=8.4.0-rc2'
-    
-    def on_message(ws, message):
-        try:
-            print(f'[KICK] ===== MESSAGE RECEIVED =====')
-            data = json.loads(message)
-            event = data.get('event')
-            print(f'[KICK] Event: {event}')
-            
-            # Handle connection established
-            if event == 'pusher:connection_established':
-                print(f'[KICK] ✓ Connection established')
-                return
-            
-            # Handle subscription success
-            if event == 'pusher_internal:subscription_succeeded':
-                print(f'[KICK] ✓ Subscribed to channel')
-                return
-            
-            # Handle errors
-            if event == 'pusher:error':
-                error_data = data.get('data', {})
-                print(f'[KICK] ❌ Error: {error_data}')
-                # If cluster error, clear cache and reconnect
-                if error_data.get('code') == 4001:
-                    global _cached_cluster
-                    _cached_cluster = None
-                    print(f'[KICK] Cluster cache cleared, will retry')
-                return
-            
-            # Handle follow events
-            if event == 'App\\Events\\FollowersUpdated':
-                print(f'[KICK] ✓ FOLLOW EVENT for user {user_id}')
-                send_alert(user_id, 'follow', 'kick', {'username': 'Someone'})
-                return
-            
-            # Handle subscription events
-            if event == 'App\\Events\\SubscriptionEvent':
-                print(f'[KICK] ✓ SUB EVENT for user {user_id}')
-                event_data = json.loads(data.get('data', '{}'))
-                send_alert(user_id, 'subscribe', 'kick', {
-                    'username': event_data.get('username', 'Someone')
-                })
-                return
-            
-            # Log other events for debugging
-            print(f'[KICK] ℹ Other event: {event}')
-            print(f'[KICK] Data: {json.dumps(data, indent=2)[:300]}')
-            
-        except Exception as e:
-            print(f'[KICK] ❌ Message error: {e}')
-            import traceback
-            traceback.print_exc()
-    
-    def on_open(ws):
-        channel_name = f'channel.{channel_slug}'
-        print(f'[KICK] ========== CONNECTED ==========')
-        print(f'[KICK] Cluster: {cluster}')
-        print(f'[KICK] Subscribing to: {channel_name}')
+    with kick_poller_lock:
+        if channel_slug in kick_pollers:
+            print(f'[KICK] Already polling {channel_slug}')
+            return
         
-        subscribe_msg = json.dumps({
-            'event': 'pusher:subscribe',
-            'data': {'channel': channel_name}
-        })
-        ws.send(subscribe_msg)
-        print(f'[KICK] ✓ Subscribe sent')
+        # Mark as active
+        kick_pollers[channel_slug] = {'active': True, 'user_id': user_id}
     
-    def on_error(ws, error):
-        print(f'[KICK] ❌ WebSocket error: {error}')
+    def poll_loop():
+        last_followers = None
+        last_subs = None
+        error_count = 0
+        max_errors = 5
+        
+        print(f'[KICK] ✓ Polling started for {channel_slug}')
+        
+        while True:
+            # Check if still active
+            with kick_poller_lock:
+                if channel_slug not in kick_pollers or not kick_pollers[channel_slug]['active']:
+                    print(f'[KICK] Polling stopped for {channel_slug}')
+                    break
+            
+            try:
+                # Poll Kick API
+                resp = requests.get(
+                    f'https://kick.com/api/v2/channels/{channel_slug}',
+                    timeout=2,
+                    headers={'User-Agent': 'FuzeOBS/1.0'}
+                )
+                
+                if resp.status_code == 200:
+                    data = resp.json()
+                    
+                    followers = data.get('followers_count', 0)
+                    subs = data.get('subscribers_count', 0)
+                    
+                    # Initialize on first poll
+                    if last_followers is None:
+                        last_followers = followers
+                        last_subs = subs
+                        print(f'[KICK] Initialized - Followers: {followers}, Subs: {subs}')
+                    else:
+                        # Check for new followers
+                        if followers > last_followers:
+                            count = followers - last_followers
+                            print(f'[KICK] ✓ New follower(s)! +{count} (now {followers})')
+                            # Send one alert per new follower (max 5 to prevent spam)
+                            for _ in range(min(count, 5)):
+                                send_alert(user_id, 'follow', 'kick', {'username': 'Someone'})
+                            last_followers = followers
+                        
+                        # Check for new subs
+                        if subs > last_subs:
+                            count = subs - last_subs
+                            print(f'[KICK] ✓ New sub(s)! +{count} (now {subs})')
+                            for _ in range(min(count, 5)):
+                                send_alert(user_id, 'subscribe', 'kick', {'username': 'Someone'})
+                            last_subs = subs
+                    
+                    # Reset error count on success
+                    error_count = 0
+                    
+                elif resp.status_code == 404:
+                    print(f'[KICK] ❌ Channel {channel_slug} not found')
+                    break
+                else:
+                    print(f'[KICK] API error {resp.status_code} for {channel_slug}')
+                    error_count += 1
+                    
+            except requests.Timeout:
+                print(f'[KICK] Timeout polling {channel_slug}')
+                error_count += 1
+            except Exception as e:
+                print(f'[KICK] Error polling {channel_slug}: {e}')
+                error_count += 1
+            
+            # Stop if too many errors
+            if error_count >= max_errors:
+                print(f'[KICK] ❌ Too many errors, stopping polling for {channel_slug}')
+                with kick_poller_lock:
+                    kick_pollers.pop(channel_slug, None)
+                break
+            
+            # Wait 3 seconds before next poll
+            time.sleep(3)
     
-    def on_close(ws, close_status_code, close_msg):
-        print(f'[KICK] ========== DISCONNECTED ==========')
-        print(f'[KICK] Channel: {channel_slug}')
-        print(f'[KICK] Status: {close_status_code}, Msg: {close_msg}')
-        kick_listeners.pop(channel_slug, None)
-    
-    def run_ws():
-        print(f'[KICK] Connecting to: {ws_url}')
-        ws = websocket.WebSocketApp(
-            ws_url,
-            on_open=on_open,
-            on_message=on_message,
-            on_error=on_error,
-            on_close=on_close
-        )
-        kick_listeners[channel_slug] = ws
-        print(f'[KICK] Starting WebSocket...')
-        ws.run_forever()
-        print(f'[KICK] WebSocket ended')
-    
-    thread = threading.Thread(target=run_ws, daemon=True)
+    # Start polling thread
+    thread = threading.Thread(target=poll_loop, daemon=True, name=f'kick-{channel_slug}')
     thread.start()
-    print(f'[KICK] ✓ Thread started for {channel_slug}')
 
 def stop_kick_listener(channel_slug):
-    """Stop Kick listener"""
-    print(f'[KICK] ========== STOP LISTENER ==========')
-    print(f'[KICK] Channel: {channel_slug}')
-    ws = kick_listeners.pop(channel_slug, None)
-    if ws:
-        ws.close()
-        print(f'[KICK] ✓ Listener stopped')
-    else:
-        print(f'[KICK] No listener found for {channel_slug}')
+    """Stop Kick polling"""
+    print(f'[KICK] Stopping polling for {channel_slug}')
+    
+    with kick_poller_lock:
+        if channel_slug in kick_pollers:
+            kick_pollers[channel_slug]['active'] = False
+            print(f'[KICK] ✓ Polling will stop for {channel_slug}')
+        else:
+            print(f'[KICK] No active poller for {channel_slug}')
