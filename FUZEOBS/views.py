@@ -2050,11 +2050,12 @@ def fuzeobs_youtube_webhook(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def fuzeobs_kick_webhook(request):
-    """Handle Kick webhook events with usernames"""
+    """Handle Kick webhook events"""
     try:
         event_type = request.headers.get('Kick-Event-Type', '')
         data = json.loads(request.body)
         
+        # Follow event
         if event_type == 'channel.followed':
             follower_username = data.get('follower', {}).get('username', 'Someone')
             broadcaster_id = data.get('broadcaster', {}).get('user_id')
@@ -2066,6 +2067,7 @@ def fuzeobs_kick_webhook(request):
             except PlatformConnection.DoesNotExist:
                 print(f'[KICK] No connection for broadcaster {broadcaster_id}')
         
+        # New subscription event
         elif event_type == 'channel.subscription.new':
             subscriber_username = data.get('subscriber', {}).get('username', 'Someone')
             broadcaster_id = data.get('broadcaster', {}).get('user_id')
@@ -2074,6 +2076,24 @@ def fuzeobs_kick_webhook(request):
                 conn = PlatformConnection.objects.get(platform='kick', platform_user_id=str(broadcaster_id))
                 send_alert(conn.user_id, 'subscribe', 'kick', {'username': subscriber_username})
                 print(f'[KICK] Webhook sub: {subscriber_username}')
+            except PlatformConnection.DoesNotExist:
+                print(f'[KICK] No connection for broadcaster {broadcaster_id}')
+        
+        # Gift subscription event
+        elif event_type == 'channel.subscription.gifts':
+            gifter = data.get('gifter', {})
+            gifter_username = gifter.get('username') if not gifter.get('is_anonymous') else 'Anonymous'
+            giftees = data.get('giftees', [])
+            gift_count = len(giftees)
+            broadcaster_id = data.get('broadcaster', {}).get('user_id')
+            
+            try:
+                conn = PlatformConnection.objects.get(platform='kick', platform_user_id=str(broadcaster_id))
+                send_alert(conn.user_id, 'gift_sub', 'kick', {
+                    'username': gifter_username,
+                    'amount': gift_count
+                })
+                print(f'[KICK] Webhook gift sub: {gifter_username} gifted {gift_count}')
             except PlatformConnection.DoesNotExist:
                 print(f'[KICK] No connection for broadcaster {broadcaster_id}')
         
