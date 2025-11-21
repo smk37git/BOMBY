@@ -1587,11 +1587,6 @@ def fuzeobs_platform_callback(request, platform):
             subscribe_youtube_channel(platform_user_id, user.id)
         except Exception as e:
             print(f'Error subscribing to YouTube events: {e}')
-    elif platform == 'kick':
-        try:
-            start_kick_listener(user.id, username)
-        except Exception as e:
-            print(f'Error starting Kick listener: {e}')
     
     cache.delete(f'oauth_state_{state}')
     
@@ -2055,7 +2050,7 @@ def fuzeobs_youtube_webhook(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def fuzeobs_kick_webhook(request):
-    """Handle Kick webhook events"""
+    """Handle Kick webhook events with usernames"""
     try:
         event_type = request.headers.get('Kick-Event-Type', '')
         data = json.loads(request.body)
