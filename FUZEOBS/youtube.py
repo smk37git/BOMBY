@@ -1,6 +1,6 @@
 import requests
 from django.conf import settings
-from .twitch_eventsub import send_alert
+from .twitch import send_alert
 from .models import PlatformConnection
 
 def poll_super_chats(access_token, user_id):

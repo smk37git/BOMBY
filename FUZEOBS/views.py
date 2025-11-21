@@ -25,7 +25,8 @@ from .widget_generator import generate_widget_html
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import random
-from .twitch_eventsub import send_alert
+from .twitch import send_alert
+from .kick import start_kick_listener, stop_kick_listener
 import requests
 import base64
 import secrets
@@ -1489,7 +1490,7 @@ def fuzeobs_connect_platform(request):
         
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
-
+    
 @csrf_exempt
 @require_http_methods(["POST"])
 @require_tier('free')
@@ -1501,6 +1502,13 @@ def fuzeobs_disconnect_platform(request):
         data = json.loads(request.body)
         platform = data['platform']
         
+        # Stop Kick listener if disconnecting Kick
+        if platform == 'kick':
+            try:
+                conn = PlatformConnection.objects.get(user=user, platform=platform)
+                stop_kick_listener(conn.platform_username)
+            except: pass
+        
         PlatformConnection.objects.filter(user=user, platform=platform).delete()
         
         return JsonResponse({'success': True})
@@ -1511,7 +1519,7 @@ def fuzeobs_disconnect_platform(request):
 @csrf_exempt
 def fuzeobs_platform_callback(request, platform):
     """OAuth callback handler"""
-    from .twitch_eventsub import subscribe_twitch_events
+    from .twitch import subscribe_twitch_events
     
     code = request.GET.get('code')
     state = request.GET.get('state')
@@ -1574,17 +1582,16 @@ def fuzeobs_platform_callback(request, platform):
         except Exception as e:
             print(f'Error subscribing to Twitch events: {e}')
     elif platform == 'youtube' and platform_user_id:
-        from .youtube_pubsub import subscribe_youtube_channel
+        from .youtube import subscribe_youtube_channel
         try:
             subscribe_youtube_channel(platform_user_id, user.id)
         except Exception as e:
             print(f'Error subscribing to YouTube events: {e}')
-    elif platform == 'kick' and platform_user_id:
-        # Kick uses webhook subscriptions via API
+    elif platform == 'kick':
         try:
-            subscribe_kick_events(user.id, platform_user_id, access_token)
+            start_kick_listener(user.id, username)
         except Exception as e:
-            print(f'Error subscribing to Kick events: {e}')
+            print(f'Error starting Kick listener: {e}')
     
     cache.delete(f'oauth_state_{state}')
     
@@ -2034,7 +2041,7 @@ def fuzeobs_youtube_webhook(request):
         return JsonResponse({'error': 'Invalid verification'}, status=400)
     
     if request.method == 'POST':
-        from .youtube_pubsub import handle_youtube_notification
+        from .youtube import handle_youtube_notification
         user_id = request.GET.get('user_id')
         if not user_id:
             return JsonResponse({'error': 'Missing user_id'}, status=400)
@@ -2043,76 +2050,6 @@ def fuzeobs_youtube_webhook(request):
         return JsonResponse({'status': 'ok'})
     
     return JsonResponse({'error': 'Invalid method'}, status=405)
-
-# =========== KICk ALERTS ===========
-def subscribe_kick_events(user_id, channel_id, access_token):
-    """Subscribe to Kick webhook events"""
-    headers = {
-        'Authorization': f'Bearer {access_token}',
-        'Content-Type': 'application/json'
-    }
-    
-    # Correct payload format for Kick API
-    payload = {
-        'events': [
-            {'name': 'channel.followed', 'version': 1},
-            {'name': 'channel.subscribed', 'version': 1},
-            {'name': 'kicks.gifted', 'version': 1}
-        ],
-        'method': 'webhook',
-        'broadcaster_user_id': int(user_id)
-    }
-    
-    try:
-        resp = requests.post(
-            'https://api.kick.com/public/v1/events/subscriptions',
-            headers=headers,
-            json=payload,
-            timeout=10
-        )
-        print(f'[KICK] Subscribe: {resp.status_code}')
-        if resp.status_code not in [200, 201]:
-            print(f'[KICK ERROR] {resp.text}')
-        else:
-            print(f'[KICK] Subscribed successfully')
-    except Exception as e:
-        print(f'[KICK ERROR] {e}')
-
-@csrf_exempt
-def fuzeobs_kick_webhook(request):
-    """Receive Kick webhook notifications"""
-    if request.method != 'POST':
-        return JsonResponse({'error': 'POST only'}, status=405)
-    
-    try:
-        data = json.loads(request.body)
-        user_id = request.GET.get('user_id')
-        
-        if not user_id:
-            return JsonResponse({'error': 'Missing user_id'}, status=400)
-        
-        event_type = data.get('event_type', '')
-        event_data = data.get('data', {})
-        
-        # Map Kick events to our event types
-        event_map = {
-            'channel.followed': ('follow', {'username': event_data.get('user', {}).get('username', 'Someone')}),
-            'channel.subscribed': ('subscribe', {'username': event_data.get('user', {}).get('username', 'Someone')}),
-            'kicks.gifted': ('gift_sub', {
-                'username': event_data.get('gifter', {}).get('username', 'Anonymous'),
-                'amount': event_data.get('quantity', 1)
-            })
-        }
-        
-        if event_type in event_map:
-            mapped_event, mapped_data = event_map[event_type]
-            send_alert(int(user_id), mapped_event, 'kick', mapped_data)
-        
-        return JsonResponse({'status': 'ok'})
-        
-    except Exception as e:
-        print(f'[KICK WEBHOOK ERROR] {e}')
-        return JsonResponse({'error': str(e)}, status=500)
 
 # =========== POLLING ENDPOINTS (for Cloud Scheduler) ===========
 @csrf_exempt
@@ -2124,7 +2061,7 @@ def fuzeobs_youtube_poll(request):
     if received != expected:
         return JsonResponse({'error': 'Unauthorized'}, status=403)
     
-    from .youtube_pubsub import poll_super_chats
+    from .youtube import poll_super_chats
     
     connections = PlatformConnection.objects.filter(platform='youtube')
     checked = live = 0
@@ -2135,49 +2072,3 @@ def fuzeobs_youtube_poll(request):
         checked += 1
     
     return JsonResponse({'status': 'ok', 'checked': checked, 'live': live})
-
-
-@csrf_exempt
-def fuzeobs_kick_poll(request):
-    """Kick polling endpoint - called by Cloud Scheduler"""
-    received = request.headers.get('X-Cloudscheduler', '').split(',')[0]
-    expected = os.environ.get('SCHEDULER_SECRET')
-    
-    if received != expected:
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
-    
-    connections = PlatformConnection.objects.filter(platform='kick')
-    checked = alerts = 0
-    
-    for conn in connections:
-        try:
-            resp = requests.get(f'https://kick.com/api/v2/channels/{conn.platform_username}', timeout=5)
-            if resp.status_code == 200:
-                data = resp.json()
-                
-                current_followers = data.get('followers_count', 0)
-                last_followers = conn.metadata.get('last_follower_count', 0)
-                
-                if last_followers > 0 and current_followers > last_followers:
-                    diff = current_followers - last_followers
-                    for _ in range(min(diff, 5)):
-                        send_alert(conn.user.id, 'follow', 'kick', {'username': 'Someone'})
-                        alerts += 1
-                
-                current_subs = data.get('subscribers_count', 0)
-                last_subs = conn.metadata.get('last_sub_count', 0)
-                
-                if last_subs > 0 and current_subs > last_subs:
-                    diff = current_subs - last_subs
-                    for _ in range(min(diff, 5)):
-                        send_alert(conn.user.id, 'subscribe', 'kick', {'username': 'Someone'})
-                        alerts += 1
-                
-                conn.metadata['last_follower_count'] = current_followers
-                conn.metadata['last_sub_count'] = current_subs
-                conn.save()
-                checked += 1
-        except Exception as e:
-            print(f'[KICK POLL ERROR] {e}')
-    
-    return JsonResponse({'status': 'ok', 'checked': checked, 'alerts': alerts})
