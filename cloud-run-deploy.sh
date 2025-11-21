@@ -147,8 +147,3 @@ KICK_CLIENT_SECRET=kick-client-secret:latest" \
 echo ""
 echo "Deployment complete!"
 echo ""
-echo "Next steps:"
-echo "1. Verify deployment: gcloud run services describe $SERVICE_NAME --region $REGION"
-echo "2. Test Cloud Scheduler jobs:"
-echo "   gcloud scheduler jobs run kick-poll-job --location=$REGION"
-echo "   gcloud scheduler jobs run youtube-poll-job --location=$REGION"

@@ -2118,8 +2118,16 @@ def fuzeobs_kick_webhook(request):
 @csrf_exempt
 def fuzeobs_youtube_poll(request):
     """YouTube super chat polling - called by Cloud Scheduler"""
-    if request.headers.get('X-Cloudscheduler') != os.environ.get('SCHEDULER_SECRET'):
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    received = request.headers.get('X-Cloudscheduler', 'MISSING')
+    expected = os.environ.get('SCHEDULER_SECRET', 'NOT_SET')
+    
+    print(f"[YOUTUBE POLL DEBUG] Received: '{received}' (len={len(received)})")
+    print(f"[YOUTUBE POLL DEBUG] Expected: '{expected}' (len={len(expected)})")
+    print(f"[YOUTUBE POLL DEBUG] Match: {received == expected}")
+    print(f"[YOUTUBE POLL DEBUG] All headers: {dict(request.headers)}")
+    
+    if received != expected:
+        return JsonResponse({'error': 'Unauthorized', 'debug': f'received_len={len(received)}, expected_len={len(expected)}'}, status=403)
     
     from .youtube_pubsub import poll_super_chats
     
@@ -2133,11 +2141,21 @@ def fuzeobs_youtube_poll(request):
     
     return JsonResponse({'status': 'ok', 'checked': checked, 'live': live})
 
+
+# Replace fuzeobs_kick_poll (around line 2137)
 @csrf_exempt
 def fuzeobs_kick_poll(request):
     """Kick polling endpoint - called by Cloud Scheduler"""
-    if request.headers.get('X-Cloudscheduler') != os.environ.get('SCHEDULER_SECRET'):
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
+    received = request.headers.get('X-Cloudscheduler', 'MISSING')
+    expected = os.environ.get('SCHEDULER_SECRET', 'NOT_SET')
+    
+    print(f"[KICK POLL DEBUG] Received: '{received}' (len={len(received)})")
+    print(f"[KICK POLL DEBUG] Expected: '{expected}' (len={len(expected)})")
+    print(f"[KICK POLL DEBUG] Match: {received == expected}")
+    print(f"[KICK POLL DEBUG] All headers: {dict(request.headers)}")
+    
+    if received != expected:
+        return JsonResponse({'error': 'Unauthorized', 'debug': f'received_len={len(received)}, expected_len={len(expected)}'}, status=403)
     
     connections = PlatformConnection.objects.filter(platform='kick')
     checked = alerts = 0
