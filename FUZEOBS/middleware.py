@@ -6,8 +6,13 @@ class CorsOptionsMiddleware:
 
     def __call__(self, request):
         if request.path.startswith('/fuzeobs/'):
-            # Handle OPTIONS preflight
+            # Exempt CSRF for authenticated API requests
+            if request.headers.get('Authorization', '').startswith('Bearer '):
+                setattr(request, '_dont_enforce_csrf_checks', True)
+            
+            # OPTIONS always exempt
             if request.method == "OPTIONS":
+                setattr(request, '_dont_enforce_csrf_checks', True)
                 response = HttpResponse()
                 response['Access-Control-Allow-Origin'] = '*'
                 response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
@@ -17,7 +22,6 @@ class CorsOptionsMiddleware:
         
         response = self.get_response(request)
         
-        # Add CORS to actual responses
         if request.path.startswith('/fuzeobs/'):
             response['Access-Control-Allow-Origin'] = '*'
         
