@@ -2057,6 +2057,24 @@ def fuzeobs_youtube_webhook(request):
     
     return JsonResponse({'error': 'Invalid method'}, status=405)
 
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_youtube_start_listener(request, user_id):
+    """Start YouTube listener if user is live"""
+    try:
+        conn = PlatformConnection.objects.get(user_id=user_id, platform='youtube')
+        from .youtube import start_youtube_listener
+        started = start_youtube_listener(user_id, conn.access_token)
+        
+        response = JsonResponse({'started': started})
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+    except PlatformConnection.DoesNotExist:
+        return JsonResponse({'started': False})
+    except Exception as e:
+        print(f'[YOUTUBE] Error starting listener: {e}')
+        return JsonResponse({'started': False})
+
 # =========== KICK ALERTS ===========
 @csrf_exempt
 @require_http_methods(["POST"])

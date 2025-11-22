@@ -114,6 +114,27 @@ body {{
 <script>
 const userId = '{user_id}';
 const platform = '{platform}';
+
+// Start YouTube listener if platform is YouTube
+if (platform === 'youtube') {{
+    fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`)
+        .then(r => r.json())
+        .then(data => {{
+            if (data.started) {{
+                console.log('[YOUTUBE] Listener started');
+            }} else {{
+                console.log('[YOUTUBE] Not live or already running');
+            }}
+        }})
+        .catch(err => console.log('[YOUTUBE] Start failed:', err));
+    
+    // Re-check every 5 minutes in case stream starts later
+    setInterval(() => {{
+        fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`)
+            .catch(() => {{}});
+    }}, 300000);
+}}
+
 const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
 
 const defaultConfig = {{
@@ -145,13 +166,11 @@ fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/${{platform}}?
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
     
-    // Handle refresh message
     if (data.type === 'refresh') {{
         window.location.reload();
         return;
     }}
     
-    // Clear existing alerts if flag set
     if (data.clear_existing) {{
         document.getElementById('container').innerHTML = '';
     }}
@@ -164,7 +183,6 @@ ws.onmessage = (e) => {{
     const alert = document.createElement('div');
     alert.className = 'alert';
     
-    // Apply layout - default to image_above
     const layout = config.layout || 'image_above';
     
     if (layout === 'image_above') {{
@@ -186,11 +204,9 @@ ws.onmessage = (e) => {{
         alert.style.display = 'inline-block';
     }}
     
-    // Apply alert animation
     const animation = config.alert_animation || 'fade';
     alert.style.animation = `${{animation}}In 0.5s ease-out forwards`;
     
-    // Add image if configured
     if (config.image_url) {{
         const imgContainer = document.createElement('div');
         if (layout === 'text_over_image') {{
@@ -206,7 +222,6 @@ ws.onmessage = (e) => {{
         alert.appendChild(imgContainer);
     }}
     
-    // Add text
     const text = document.createElement('div');
     text.className = 'alert-text';
     text.style.fontSize = (config.font_size || 32) + 'px';
@@ -218,20 +233,19 @@ ws.onmessage = (e) => {{
         text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
     }}
     
-    // Apply message template
     const eventData = data.event_data || {{}};
     let message = config.message_template || '{{name}} just followed!';
     message = message.replace(/{{name}}/g, eventData.username || "Someone");
     message = message.replace(/{{amount}}/g, eventData.amount || '');
     message = message.replace(/{{viewers}}/g, eventData.viewers || '');
+    message = message.replace(/{{months}}/g, eventData.months || '');
+    message = message.replace(/{{count}}/g, eventData.count || '');
     text.textContent = message;
     
-    // Apply text animation
     if (config.text_animation && config.text_animation !== 'none') {{
         text.style.animation = `${{config.text_animation}} 1s ease-in-out infinite`;
     }}
     
-    // Position and append text
     if (layout === 'text_over_image' && config.image_url) {{
         const textWrapper = document.createElement('div');
         textWrapper.style.position = 'absolute';
@@ -249,7 +263,6 @@ ws.onmessage = (e) => {{
         alert.appendChild(text);
     }}
     
-    // Play sound if configured
     if (config.sound_url) {{
         const audio = document.getElementById('alertSound');
         audio.src = config.sound_url;
@@ -259,7 +272,6 @@ ws.onmessage = (e) => {{
     
     document.getElementById('container').appendChild(alert);
     
-    // Remove after duration
     const duration = (config.duration || 5) * 1000;
     setTimeout(() => {{
         alert.style.animation = 'fadeOut 0.5s ease-out forwards';
@@ -403,7 +415,12 @@ function getEventIcon(type) {{
         'subscribe': '⭐',
         'bits': '💎',
         'donation': '💰',
-        'raid': '🔥'
+        'raid': '🔥',
+        'superchat': '💵',
+        'supersticker': '🎨',
+        'member': '🌟',
+        'milestone': '🏆',
+        'gift': '🎁'
     }};
     return icons[type] || '🎉';
 }}

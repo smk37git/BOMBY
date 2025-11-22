@@ -10,18 +10,46 @@ yt_pollers = {}
 yt_poller_lock = threading.Lock()
 
 def start_youtube_listener(user_id, access_token):
-    """Start polling YouTube live chat"""
-    print(f'[YOUTUBE] Starting polling for user {user_id}')
+    """Start polling YouTube - only if currently live"""
+    print(f'[YOUTUBE] Checking if user {user_id} is live...')
     
+    # Check if already polling
     with yt_poller_lock:
         if user_id in yt_pollers:
             print(f'[YOUTUBE] Already polling for user {user_id}')
-            return
+            return True
+    
+    # Check if user is live
+    try:
+        resp = requests.get(
+            'https://www.googleapis.com/youtube/v3/liveBroadcasts',
+            params={'part': 'snippet', 'broadcastStatus': 'active', 'mine': 'true'},
+            headers={'Authorization': f'Bearer {access_token}'},
+            timeout=5
+        )
+        
+        if resp.status_code != 200 or not resp.json().get('items'):
+            print(f'[YOUTUBE] User {user_id} not live, skipping')
+            return False
+        
+        live_chat_id = resp.json()['items'][0]['snippet'].get('liveChatId')
+        if not live_chat_id:
+            print(f'[YOUTUBE] No live chat available')
+            return False
+        
+        print(f'[YOUTUBE] User {user_id} is live! Starting listener')
+    except Exception as e:
+        print(f'[YOUTUBE] Error checking live status: {e}')
+        return False
+    
+    # Mark as active
+    with yt_poller_lock:
         yt_pollers[user_id] = {'active': True}
     
     def poll_loop():
         error_count = 0
         max_errors = 5
+        poll_interval = 5
         
         while True:
             with yt_poller_lock:
@@ -41,22 +69,14 @@ def start_youtube_listener(user_id, access_token):
                     timeout=5
                 )
                 
-                if resp.status_code != 200:
-                    print(f'[YOUTUBE] No active broadcast (status {resp.status_code})')
-                    time.sleep(10)
-                    continue
+                if resp.status_code != 200 or not resp.json().get('items'):
+                    print(f'[YOUTUBE] Stream ended, stopping listener')
+                    break
                 
-                data = resp.json()
-                if not data.get('items'):
-                    print(f'[YOUTUBE] No active livestream')
-                    time.sleep(10)
-                    continue
-                
-                live_chat_id = data['items'][0]['snippet'].get('liveChatId')
+                live_chat_id = resp.json()['items'][0]['snippet'].get('liveChatId')
                 if not live_chat_id:
-                    print(f'[YOUTUBE] No live chat ID')
-                    time.sleep(10)
-                    continue
+                    print(f'[YOUTUBE] No live chat, stopping')
+                    break
                 
                 # Poll for new subscribers (every 5th poll to save quota)
                 if not hasattr(poll_loop, 'poll_count'):
@@ -132,7 +152,7 @@ def start_youtube_listener(user_id, access_token):
                                 'username': author,
                                 'amount': details['amountDisplayString']
                             })
-                            print(f'[YOUTUBE] Super Sticker: {author} - {details["amountDisplayString"]}')
+                            print(f'[YOUTUBE] Super Sticker: {author}')
                         
                         # New Member
                         elif 'newSponsorDetails' in snippet:
@@ -157,11 +177,11 @@ def start_youtube_listener(user_id, access_token):
                             })
                             print(f'[YOUTUBE] Gift: {author}')
                     
-                    # Save next page token and polling interval
+                    # Save next page token
                     conn.metadata['yt_page_token'] = chat_data.get('nextPageToken')
                     conn.save()
                     
-                    # Use API-suggested polling interval (converted from ms to seconds)
+                    # Use API-suggested polling interval
                     poll_interval = chat_data.get('pollingIntervalMillis', 5000) / 1000
                     error_count = 0
                     
@@ -185,9 +205,15 @@ def start_youtube_listener(user_id, access_token):
                 break
             
             time.sleep(poll_interval)
+        
+        # Cleanup on exit
+        with yt_poller_lock:
+            yt_pollers.pop(user_id, None)
+        print(f'[YOUTUBE] Listener exited for user {user_id}')
     
     thread = threading.Thread(target=poll_loop, daemon=True, name=f'youtube-{user_id}')
     thread.start()
+    return True
 
 def stop_youtube_listener(user_id):
     """Stop YouTube polling"""
