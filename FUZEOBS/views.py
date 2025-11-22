@@ -26,6 +26,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 import random
 from .twitch import send_alert
+from .youtube import start_youtube_listener, stop_youtube_listener
 from .kick import start_kick_listener, stop_kick_listener
 import requests
 import base64
@@ -1508,6 +1509,13 @@ def fuzeobs_disconnect_platform(request):
                 conn = PlatformConnection.objects.get(user=user, platform=platform)
                 stop_kick_listener(conn.platform_username)
             except: pass
+
+        # Stop YouTube listener if disconnecting YouTube
+        elif platform == 'youtube':
+            try:
+                stop_youtube_listener(user.id)
+            except:
+                pass
         
         PlatformConnection.objects.filter(user=user, platform=platform).delete()
         
@@ -1581,12 +1589,12 @@ def fuzeobs_platform_callback(request, platform):
             subscribe_twitch_events(user.id, platform_user_id, access_token)
         except Exception as e:
             print(f'Error subscribing to Twitch events: {e}')
-    elif platform == 'youtube' and platform_user_id:
-        from .youtube import subscribe_youtube_channel
+    elif platform == 'youtube':
         try:
-            subscribe_youtube_channel(platform_user_id, user.id)
+            start_youtube_listener(user.id, access_token)
+            print(f'[YOUTUBE] Started listener for user {user.id}')
         except Exception as e:
-            print(f'Error subscribing to YouTube events: {e}')
+            print(f'[YOUTUBE] Error starting listener: {e}')
     
     cache.delete(f'oauth_state_{state}')
     
@@ -1791,8 +1799,11 @@ def fuzeobs_get_widget_events(request, widget_id):
                 },
                 'youtube': {
                     'subscribe': '{name} just subscribed!',
-                    'member': '{name} became a member!',
                     'superchat': '{name} sent {amount} in Super Chat!',
+                    'supersticker': '{name} sent a Super Sticker!',
+                    'member': '{name} became a member!',
+                    'milestone': '{name} hit {months} month milestone!',
+                    'gift': '{name} gifted memberships!',
                 },
                 'kick': {
                     'follow': '{name} just followed!',
@@ -2102,25 +2113,3 @@ def fuzeobs_kick_webhook(request):
     except Exception as e:
         print(f'[KICK] Webhook error: {e}')
         return JsonResponse({'error': str(e)}, status=500)
-
-# =========== POLLING ENDPOINTS (for Cloud Scheduler) ===========
-@csrf_exempt
-def fuzeobs_youtube_poll(request):
-    """YouTube super chat polling - called by Cloud Scheduler"""
-    received = request.headers.get('X-Cloudscheduler', '').split(',')[0]
-    expected = os.environ.get('SCHEDULER_SECRET')
-    
-    if received != expected:
-        return JsonResponse({'error': 'Unauthorized'}, status=403)
-    
-    from .youtube import poll_super_chats
-    
-    connections = PlatformConnection.objects.filter(platform='youtube')
-    checked = live = 0
-    
-    for conn in connections:
-        if poll_super_chats(conn.access_token, conn.user.id):
-            live += 1
-        checked += 1
-    
-    return JsonResponse({'status': 'ok', 'checked': checked, 'live': live})
