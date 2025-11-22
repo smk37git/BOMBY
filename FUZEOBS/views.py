@@ -2077,23 +2077,33 @@ def fuzeobs_twitch_webhook(request):
 # =========== YOUTUBE ALERTS ===========
 @csrf_exempt
 def fuzeobs_youtube_webhook(request):
-    """Receive YouTube PubSubHubbub notifications"""
+    """Handle YouTube PubSubHubbub notifications"""
     if request.method == 'GET':
-        challenge = request.GET.get('hub.challenge')
-        if challenge:
-            return HttpResponse(challenge, content_type='text/plain')
-        return JsonResponse({'error': 'Invalid verification'}, status=400)
+        # Verification challenge
+        return HttpResponse(request.GET.get('hub.challenge', ''), content_type='text/plain')
     
-    if request.method == 'POST':
-        from .youtube import handle_youtube_notification
-        user_id = request.GET.get('user_id')
-        if not user_id:
-            return JsonResponse({'error': 'Missing user_id'}, status=400)
-        body = request.body.decode('utf-8')
-        handle_youtube_notification(body, int(user_id))
-        return JsonResponse({'status': 'ok'})
+    # Parse XML notification
+    import xml.etree.ElementTree as ET
+    try:
+        root = ET.fromstring(request.body)
+        ns = {'atom': 'http://www.w3.org/2005/Atom', 'yt': 'http://www.youtube.com/xml/schemas/2015'}
+        entry = root.find('atom:entry', ns)
+        
+        if entry:
+            video_id = entry.find('yt:videoId', ns).text
+            channel_id = entry.find('yt:channelId', ns).text
+            
+            # Find user by channel_id
+            conn = PlatformConnection.objects.get(platform='youtube', platform_user_id=channel_id)
+            
+            # Send alert
+            from .twitch import send_alert
+            send_alert(conn.user_id, 'live', 'youtube', {'video_id': video_id})
+            
+    except Exception as e:
+        print(f'[YOUTUBE WEBHOOK] Error: {e}')
     
-    return JsonResponse({'error': 'Invalid method'}, status=405)
+    return HttpResponse(status=200)
 
 @csrf_exempt
 @require_http_methods(["GET"])
