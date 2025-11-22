@@ -1423,6 +1423,13 @@ PLATFORM_OAUTH_CONFIG = {
         'client_id': os.environ.get('FACEBOOK_CLIENT_ID', ''),
         'client_secret': os.environ.get('FACEBOOK_CLIENT_SECRET', ''),
         'scopes': ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts', 'read_insights']
+    },
+    'tiktok': {
+        'auth_url': 'https://www.tiktok.com/v2/auth/authorize',
+        'token_url': 'https://open.tiktokapis.com/v2/oauth/token',
+        'client_id': os.environ.get('TIKTOK_CLIENT_ID', ''),
+        'client_secret': os.environ.get('TIKTOK_CLIENT_SECRET', ''),
+        'scopes': ['user.info.basic']
     }
 }
 
@@ -1451,27 +1458,15 @@ def fuzeobs_get_platforms(request):
         } for p in platforms]
     })
 
-@csrf_exempt
-@require_http_methods(["POST"])
-@require_tier('free')
 def fuzeobs_connect_platform(request):
     user = request.fuzeobs_user
     try:
         data = json.loads(request.body)
         platform = data['platform']
         
-        if platform == 'tiktok':
-            username = data.get('username', '').strip().replace('@', '')
-            if not username:
-                return JsonResponse({'error': 'Username required'}, status=400)
-            PlatformConnection.objects.update_or_create(
-                user=user, platform='tiktok',
-                defaults={'platform_username': username, 'access_token': 'no-auth-needed', 'platform_user_id': username}
-            )
-            return JsonResponse({'success': True})
-        
         if platform not in PLATFORM_OAUTH_CONFIG:
             return JsonResponse({'error': 'Invalid platform'}, status=400)
+        
         config = PLATFORM_OAUTH_CONFIG[platform]
         state = secrets.token_urlsafe(32)
         
@@ -1482,8 +1477,12 @@ def fuzeobs_connect_platform(request):
             cache.set(f'oauth_state_{state}', {'user_id': user.id, 'platform': platform}, timeout=600)
         
         redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
-        scopes = ' '.join(config['scopes'])
-        auth_url = f"{config['auth_url']}?client_id={config['client_id']}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}&state={state}"
+        scopes = ' '.join(config['scopes']) if platform != 'tiktok' else ','.join(config['scopes'])
+        
+        if platform == 'tiktok':
+            auth_url = f"{config['auth_url']}?client_key={config['client_id']}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}&state={state}"
+        else:
+            auth_url = f"{config['auth_url']}?client_id={config['client_id']}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}&state={state}"
         
         if platform == 'youtube':
             auth_url += '&access_type=offline&prompt=consent'
@@ -1663,8 +1662,6 @@ def get_platform_username(platform, access_token):
                 data = response.json()
                 print(f'[KICK] Parsed JSON: {data}')
                 
-                
-                # Response: {"data": [{"user_id": ..., "name": ...}], "message": "OK"}
                 if data.get('data') and len(data['data']) > 0:
                     user = data['data'][0]
                     username = user.get('name', 'Kick User')
@@ -1696,6 +1693,12 @@ def get_platform_username(platform, access_token):
                 page = data['data'][0]
                 return page['name'], page['id']
         return 'Facebook User', ''
+    
+    if platform == 'tiktok':
+        resp = requests.get('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name',
+            headers={'Authorization': f'Bearer {access_token}'})
+        data = resp.json()['data']['user']
+        return data['display_name'], data['open_id']
     
     return 'Unknown', ''
 
