@@ -135,6 +135,26 @@ if (platform === 'youtube') {{
     }}, 300000);
 }}
 
+// Start Facebook listener if platform is Facebook
+if (platform === 'facebook') {{
+    fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`)
+        .then(r => r.json())
+        .then(data => {{
+            if (data.started) {{
+                console.log('[FACEBOOK] Listener started');
+            }} else {{
+                console.log('[FACEBOOK] Not active or already running');
+            }}
+        }})
+        .catch(err => console.log('[FACEBOOK] Start failed:', err));
+    
+    // Re-check every 5 minutes
+    setInterval(() => {{
+        fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`)
+            .catch(() => {{}});
+    }}, 300000);
+}}
+
 const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
 
 const defaultConfig = {{

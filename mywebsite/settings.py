@@ -351,9 +351,14 @@ TWITCH_CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')
 TWITCH_CLIENT_SECRET = os.environ.get('TWITCH_CLIENT_SECRET')
 TWITCH_WEBHOOK_SECRET = os.environ.get('TWITCH_WEBHOOK_SECRET')
 
-# Cloud Scheduler
-SCHEDULER_SECRET = os.environ.get('SCHEDULER_SECRET')
-
 # YouTube Keys
 YOUTUBE_CLIENT_ID = os.environ.get('YOUTUBE_CLIENT_ID')
 YOUTUBE_CLIENT_SECRET = os.environ.get('YOUTUBE_CLIENT_SECRET')
+
+# Kick Secrets
+KICK_CLIENT_ID = os.environ.get('KICK_CLIENT_ID')
+KICK_CLIENT_SECRET = os.environ.get('KICK_CLIENT_SECRET')
+
+# Facebook Keys
+FACEBOOK_CLIENT_ID = os.environ.get('FACEBOOK_CLIENT_ID')
+FACEBOOK_CLIENT_SECRET = os.environ.get('FACEBOOK_CLIENT_SECRET')

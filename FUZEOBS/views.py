@@ -1414,6 +1414,13 @@ PLATFORM_OAUTH_CONFIG = {
         'client_id': os.environ.get('KICK_CLIENT_ID', ''),
         'client_secret': os.environ.get('KICK_CLIENT_SECRET', ''),
         'scopes': ['user:read', 'channel:read', 'events:subscribe']
+    },
+    'facebook': {
+        'auth_url': 'https://www.facebook.com/v18.0/dialog/oauth',
+        'token_url': 'https://graph.facebook.com/v18.0/oauth/access_token',
+        'client_id': os.environ.get('FACEBOOK_CLIENT_ID', ''),
+        'client_secret': os.environ.get('FACEBOOK_CLIENT_SECRET', ''),
+        'scopes': ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts', 'read_insights']
     }
 }
 
@@ -1517,6 +1524,15 @@ def fuzeobs_disconnect_platform(request):
             except:
                 pass
         
+        # Stop Facebook listener if disconnecting Facebook
+        elif platform == 'facebook':
+            try:
+                conn = PlatformConnection.objects.get(user=user, platform=platform)
+                from .facebook import stop_facebook_listener
+                stop_facebook_listener(conn.platform_user_id)
+            except:
+                pass
+        
         PlatformConnection.objects.filter(user=user, platform=platform).delete()
         
         return JsonResponse({'success': True})
@@ -1595,6 +1611,13 @@ def fuzeobs_platform_callback(request, platform):
             print(f'[YOUTUBE] Started listener for user {user.id}')
         except Exception as e:
             print(f'[YOUTUBE] Error starting listener: {e}')
+    elif platform == 'facebook':
+        try:
+            from .facebook import start_facebook_listener
+            start_facebook_listener(user.id, platform_user_id, access_token)
+            print(f'[FACEBOOK] Started listener for user {user.id}')
+        except Exception as e:
+            print(f'[FACEBOOK] Error starting listener: {e}')
     
     cache.delete(f'oauth_state_{state}')
     
@@ -1661,6 +1684,18 @@ def get_platform_username(platform, access_token):
             import traceback
             traceback.print_exc()
             return 'Kick User', ''
+    
+    elif platform == 'facebook':
+        response = requests.get(
+            'https://graph.facebook.com/v18.0/me/accounts',
+            params={'access_token': access_token}
+        )
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('data'):
+                page = data['data'][0]
+                return page['name'], page['id']
+        return 'Facebook User', ''
     
     return 'Unknown', ''
 
@@ -2073,6 +2108,24 @@ def fuzeobs_youtube_start_listener(request, user_id):
         return JsonResponse({'started': False})
     except Exception as e:
         print(f'[YOUTUBE] Error starting listener: {e}')
+        return JsonResponse({'started': False})
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_facebook_start_listener(request, user_id):
+    """Start Facebook listener"""
+    try:
+        conn = PlatformConnection.objects.get(user_id=user_id, platform='facebook')
+        from .facebook import start_facebook_listener
+        started = start_facebook_listener(user_id, conn.platform_user_id, conn.access_token)
+        
+        response = JsonResponse({'started': started})
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+    except PlatformConnection.DoesNotExist:
+        return JsonResponse({'started': False})
+    except Exception as e:
+        print(f'[FACEBOOK] Error starting listener: {e}')
         return JsonResponse({'started': False})
 
 # =========== KICK ALERTS ===========
