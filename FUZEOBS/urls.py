@@ -34,6 +34,7 @@ urlpatterns = [
     path('youtube/start/<int:user_id>', views.fuzeobs_youtube_start_listener, name='youtube_start_listener'),
     path('facebook/start/<int:user_id>', views.fuzeobs_facebook_start_listener, name='facebook_start_listener'),
     path('kick-webhook', views.fuzeobs_kick_webhook, name='kick_webhook'),
+    path('tiktok/start/<int:user_id>', views.fuzeobs_tiktok_start_listener, name='tiktok_start_listener'),
 
     # Widget Serving (clean URL)
     path('w/<str:token>', views.fuzeobs_serve_widget, name='serve_widget'),

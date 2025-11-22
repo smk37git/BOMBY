@@ -28,6 +28,8 @@ import random
 from .twitch import send_alert
 from .youtube import start_youtube_listener, stop_youtube_listener
 from .kick import start_kick_listener, stop_kick_listener
+from .facebook import start_facebook_listener, stop_facebook_listener
+from .tiktok import start_tiktok_listener, stop_tiktok_listener
 import requests
 import base64
 import secrets
@@ -1453,36 +1455,34 @@ def fuzeobs_get_platforms(request):
 @require_http_methods(["POST"])
 @require_tier('free')
 def fuzeobs_connect_platform(request):
-    """Initiate OAuth flow for platform"""
     user = request.fuzeobs_user
-    
     try:
         data = json.loads(request.body)
         platform = data['platform']
         
+        if platform == 'tiktok':
+            username = data.get('username', '').strip().replace('@', '')
+            if not username:
+                return JsonResponse({'error': 'Username required'}, status=400)
+            PlatformConnection.objects.update_or_create(
+                user=user, platform='tiktok',
+                defaults={'platform_username': username, 'access_token': 'no-auth-needed', 'platform_user_id': username}
+            )
+            return JsonResponse({'success': True})
+        
         if platform not in PLATFORM_OAUTH_CONFIG:
             return JsonResponse({'error': 'Invalid platform'}, status=400)
-        
         config = PLATFORM_OAUTH_CONFIG[platform]
-        
-        # Generate state token for CSRF protection
         state = secrets.token_urlsafe(32)
         
-        # Kick requires PKCE (OAuth 2.1)
         if platform == 'kick':
             code_verifier, code_challenge = generate_pkce_pair()
-            cache.set(f'oauth_state_{state}', {
-                'user_id': user.id, 
-                'platform': platform,
-                'code_verifier': code_verifier
-            }, timeout=600)
+            cache.set(f'oauth_state_{state}', {'user_id': user.id, 'platform': platform, 'code_verifier': code_verifier}, timeout=600)
         else:
             cache.set(f'oauth_state_{state}', {'user_id': user.id, 'platform': platform}, timeout=600)
         
-        # Build OAuth URL
         redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
         scopes = ' '.join(config['scopes'])
-        
         auth_url = f"{config['auth_url']}?client_id={config['client_id']}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}&state={state}"
         
         if platform == 'youtube':
@@ -1490,12 +1490,7 @@ def fuzeobs_connect_platform(request):
         elif platform == 'kick':
             auth_url += f'&code_challenge={code_challenge}&code_challenge_method=S256'
 
-        return JsonResponse({
-            'success': True,
-            'auth_url': auth_url,
-            'state': state
-        })
-        
+        return JsonResponse({'success': True, 'auth_url': auth_url, 'state': state})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
     
@@ -1528,8 +1523,14 @@ def fuzeobs_disconnect_platform(request):
         elif platform == 'facebook':
             try:
                 conn = PlatformConnection.objects.get(user=user, platform=platform)
-                from .facebook import stop_facebook_listener
                 stop_facebook_listener(conn.platform_user_id)
+            except:
+                pass
+
+        # Stop TikTok listener if disconnecting TikTok
+        elif platform == 'tiktok':
+            try:
+                stop_tiktok_listener(user.id)
             except:
                 pass
         
@@ -1613,7 +1614,6 @@ def fuzeobs_platform_callback(request, platform):
             print(f'[YOUTUBE] Error starting listener: {e}')
     elif platform == 'facebook':
         try:
-            from .facebook import start_facebook_listener
             start_facebook_listener(user.id, platform_user_id, access_token)
             print(f'[FACEBOOK] Started listener for user {user.id}')
         except Exception as e:
@@ -2109,14 +2109,14 @@ def fuzeobs_youtube_start_listener(request, user_id):
     except Exception as e:
         print(f'[YOUTUBE] Error starting listener: {e}')
         return JsonResponse({'started': False})
-
+    
+# =========== FACEBOOK ALERTS ===========
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_facebook_start_listener(request, user_id):
     """Start Facebook listener"""
     try:
         conn = PlatformConnection.objects.get(user_id=user_id, platform='facebook')
-        from .facebook import start_facebook_listener
         started = start_facebook_listener(user_id, conn.platform_user_id, conn.access_token)
         
         response = JsonResponse({'started': started})
@@ -2183,4 +2183,18 @@ def fuzeobs_kick_webhook(request):
     
     except Exception as e:
         print(f'[KICK] Webhook error: {e}')
+        return JsonResponse({'error': str(e)}, status=500)
+
+# =========== TIKTOK ALERTS ===========
+@csrf_exempt
+def fuzeobs_tiktok_start_listener(request, user_id):
+    """Start TikTok listener - needs username only"""
+    try:
+        conn = PlatformConnection.objects.get(user_id=user_id, platform='tiktok')
+        tiktok_username = conn.platform_username  # Store @username when connecting
+        started = start_tiktok_listener(user_id, tiktok_username)
+        return JsonResponse({'started': started})
+    except PlatformConnection.DoesNotExist:
+        return JsonResponse({'error': 'Not connected'}, status=404)
+    except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

@@ -138,6 +138,7 @@ class WidgetConfig(models.Model):
         ('youtube', 'YouTube'),
         ('kick', 'Kick'),
         ('facebook', 'Facebook'),
+        ('tiktok', 'TikTok'),
     ]
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -185,6 +186,7 @@ class PlatformConnection(models.Model):
         ('youtube', 'YouTube'),
         ('kick', 'Kick'),
         ('facebook', 'Facebook'),
+        ('tiktok', 'TikTok'),
     ]
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

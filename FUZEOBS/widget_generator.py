@@ -155,6 +155,25 @@ if (platform === 'facebook') {{
     }}, 300000);
 }}
 
+if (platform === 'tiktok') {{
+    fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`)
+        .then(r => r.json())
+        .then(data => {{
+            if (data.started) {{
+                console.log('[TIKTOK] Listener started');
+            }} else {{
+                console.log('[TIKTOK] Not live or already running');
+            }}
+        }})
+        .catch(err => console.log('[TIKTOK] Start failed:', err));
+    
+    // Re-check every 5 minutes
+    setInterval(() => {{
+        fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`)
+            .catch(() => {{}});
+    }}, 300000);
+}}
+
 const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
 
 const defaultConfig = {{
