@@ -1458,6 +1458,9 @@ def fuzeobs_get_platforms(request):
         } for p in platforms]
     })
 
+@csrf_exempt
+@require_http_methods(["POST"])
+@require_tier('free')
 def fuzeobs_connect_platform(request):
     user = request.fuzeobs_user
     try:
