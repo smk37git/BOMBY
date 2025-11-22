@@ -417,10 +417,7 @@ function getEventIcon(type) {{
         'donation': '💰',
         'raid': '🔥',
         'superchat': '💵',
-        'supersticker': '🎨',
         'member': '🌟',
-        'milestone': '🏆',
-        'gift': '🎁'
     }};
     return icons[type] || '🎉';
 }}

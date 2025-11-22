@@ -145,37 +145,12 @@ def start_youtube_listener(user_id, access_token):
                             })
                             print(f'[YOUTUBE] Super Chat: {author} - {details["amountDisplayString"]}')
                         
-                        # Super Sticker
-                        elif 'superStickerDetails' in snippet:
-                            details = snippet['superStickerDetails']
-                            send_alert(user_id, 'supersticker', 'youtube', {
-                                'username': author,
-                                'amount': details['amountDisplayString']
-                            })
-                            print(f'[YOUTUBE] Super Sticker: {author}')
-                        
                         # New Member
                         elif 'newSponsorDetails' in snippet:
                             send_alert(user_id, 'member', 'youtube', {
                                 'username': author
                             })
                             print(f'[YOUTUBE] New Member: {author}')
-                        
-                        # Member Milestone
-                        elif 'memberMilestoneChatDetails' in snippet:
-                            details = snippet['memberMilestoneChatDetails']
-                            send_alert(user_id, 'milestone', 'youtube', {
-                                'username': author,
-                                'months': details.get('memberMonth', 0)
-                            })
-                            print(f'[YOUTUBE] Milestone: {author} - {details.get("memberMonth")}mo')
-                        
-                        # Member Gift
-                        elif 'membershipGiftingDetails' in snippet:
-                            send_alert(user_id, 'gift', 'youtube', {
-                                'username': author
-                            })
-                            print(f'[YOUTUBE] Gift: {author}')
                     
                     # Save next page token
                     conn.metadata['yt_page_token'] = chat_data.get('nextPageToken')
