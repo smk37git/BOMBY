@@ -28,51 +28,73 @@ async def twitch_irc_connect(channel_name, user_id, oauth_token):
                         continue
                     
                     if 'PRIVMSG' in message:
+                        print(f"[IRC] Raw message: {message[:200]}")  # Debug log
+                        
                         parts = message.split('PRIVMSG', 1)
-                        if len(parts) == 2:
-                            tags = parts[0]
-                            content = parts[1].split(':', 1)
+                        if len(parts) != 2:
+                            continue
                             
-                            if len(content) == 2:
-                                msg_text = content[1].strip()
-                                username = ""
-                                badges = []
-                                color = "#FFFFFF"
-                                
-                                for tag in tags.split(';'):
-                                    if tag.startswith('display-name='):
-                                        username = tag.split('=', 1)[1]
-                                    elif tag.startswith('badges='):
-                                        badge_str = tag.split('=', 1)[1]
-                                        if badge_str:
-                                            badges = [b.split('/')[0] for b in badge_str.split(',')]
-                                    elif tag.startswith('color='):
-                                        c = tag.split('=', 1)[1]
-                                        if c:
-                                            color = c
-                                
-                                await channel_layer.group_send(
-                                    f'chat_{user_id}',
-                                    {
-                                        'type': 'chat_message',
-                                        'data': {
-                                            'username': username,
-                                            'message': msg_text,
-                                            'badges': badges,
-                                            'color': color,
-                                            'platform': 'twitch'
-                                        }
-                                    }
-                                )
+                        tags = parts[0]
+                        content = parts[1].split(':', 1)
+                        
+                        if len(content) != 2:
+                            continue
+                        
+                        msg_text = content[1].strip()
+                        username = ""
+                        badges = []
+                        color = "#FFFFFF"
+                        
+                        # Parse tags
+                        for tag in tags.split(';'):
+                            if tag.startswith('display-name='):
+                                username = tag.split('=', 1)[1]
+                            elif tag.startswith('badges='):
+                                badge_str = tag.split('=', 1)[1]
+                                if badge_str:
+                                    badges = [b.split('/')[0] for b in badge_str.split(',')]
+                            elif tag.startswith('color='):
+                                c = tag.split('=', 1)[1]
+                                if c:
+                                    color = c
+                        
+                        # Fallback: extract username from prefix if display-name missing
+                        if not username:
+                            # Format: :username!username@username.tmi.twitch.tv
+                            prefix_match = tags.split(' ')[0]
+                            if prefix_match.startswith(':') and '!' in prefix_match:
+                                username = prefix_match.split('!')[0][1:]
+                        
+                        if not username:
+                            username = "Anonymous"
+                        
+                        print(f"[IRC] Sending to chat: {username}: {msg_text}")
+                        
+                        await channel_layer.group_send(
+                            f'chat_{user_id}',
+                            {
+                                'type': 'chat_message',
+                                'data': {
+                                    'username': username,
+                                    'message': msg_text,
+                                    'badges': badges,
+                                    'color': color,
+                                    'platform': 'twitch'
+                                }
+                            }
+                        )
                 
                 except websockets.exceptions.ConnectionClosed:
                     print(f"[IRC] Connection closed")
                     break
                 except Exception as e:
                     print(f"[IRC] Error: {e}")
-                    break
+                    import traceback
+                    traceback.print_exc()
     except Exception as e:
         print(f"[IRC] Connection error: {e}")
+        import traceback
+        traceback.print_exc()
 
 def start_twitch_chat(channel_name, user_id, oauth_token):
     """Start IRC in background thread"""

@@ -11,9 +11,13 @@ async def kick_chat_connect(channel_slug, user_id):
     
     # Get chatroom ID from Kick API
     try:
-        resp = requests.get(f'https://kick.com/api/v2/channels/{channel_slug}', timeout=5)
+        resp = requests.get(
+            f'https://kick.com/api/v2/channels/{channel_slug}', 
+            timeout=5,
+            headers={'User-Agent': 'FuzeOBS/1.0'}
+        )
         if resp.status_code != 200:
-            print(f'[KICK CHAT] Channel {channel_slug} not found')
+            print(f'[KICK CHAT] Channel {channel_slug} not found (status {resp.status_code})')
             return
         
         data = resp.json()
