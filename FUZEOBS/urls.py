@@ -36,6 +36,9 @@ urlpatterns = [
     path('kick-webhook', views.fuzeobs_kick_webhook, name='kick_webhook'),
     path('tiktok/start/<int:user_id>', views.fuzeobs_tiktok_start_listener, name='tiktok_start_listener'),
 
+    # PLATFORM CHATS
+    path('twitch-chat/start/<int:user_id>', views.fuzeobs_twitch_chat_start, name='twitch_chat_start'),
+
     # Widget Serving (clean URL)
     path('w/<str:token>', views.fuzeobs_serve_widget, name='serve_widget'),
 

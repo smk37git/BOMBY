@@ -33,6 +33,7 @@ from .tiktok import start_tiktok_listener, stop_tiktok_listener
 import requests
 import base64
 import secrets
+from .twitch_chat import start_twitch_chat
 
 # Website Imports
 from django.shortcuts import render
@@ -2189,3 +2190,18 @@ def fuzeobs_tiktok_start_listener(request, user_id):
         return JsonResponse({'error': 'Not connected'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+# =========== TWITCH CHAT ===========  
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_twitch_chat_start(request, user_id):
+    """Start Twitch chat IRC using user's OAuth token"""
+    try:
+        user = User.objects.get(id=user_id)
+        conn = PlatformConnection.objects.get(user=user, platform='twitch')
+        
+        started = start_twitch_chat(conn.platform_username, user_id, conn.access_token)
+        
+        return JsonResponse({'started': started})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)

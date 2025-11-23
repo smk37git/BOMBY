@@ -326,11 +326,26 @@ ws.onerror = (error) => {{
 </html>"""
 
 def generate_chat_box_html(user_id, config):
-    """Generate chat box HTML"""
-    height = config.get('height', 400)
-    bg_color = config.get('bg_color', 'rgba(0,0,0,0.5)')
-    text_color = config.get('text_color', '#FFFFFF')
-    username_color = config.get('username_color', '#00FF00')
+    """Generate chat box HTML with full config support"""
+    import json
+    
+    platforms = config.get('platforms', ['twitch'])
+    show_platform_icon = config.get('show_platform_icon', False)
+    hide_bots = config.get('hide_bots', False)
+    hide_commands = config.get('hide_commands', False)
+    muted_users = config.get('muted_users', [])
+    
+    chat_notification_enabled = config.get('chat_notification_enabled', False)
+    notification_sound = config.get('notification_sound', '')
+    notification_volume = config.get('notification_volume', 50)
+    notification_threshold = config.get('notification_threshold', 30)
+    
+    font_color = config.get('font_color', '#FAFAFA')
+    font_size = config.get('font_size', 22)
+    chat_delay = config.get('chat_delay', 0)
+    hide_after = config.get('hide_after', 0)
+    always_show = config.get('always_show', True)
+    custom_css = config.get('custom_css', '')
     
     return f"""<!DOCTYPE html>
 <html>
@@ -344,54 +359,128 @@ body {{
     font-family: 'Arial', sans-serif;
 }}
 .chat-container {{
-    max-height: {height}px;
+    height: 100vh;
     overflow-y: auto;
     padding: 10px;
 }}
-.chat-container::-webkit-scrollbar {{
-    width: 8px;
-}}
-.chat-container::-webkit-scrollbar-track {{
-    background: rgba(0,0,0,0.3);
-}}
-.chat-container::-webkit-scrollbar-thumb {{
-    background: rgba(255,255,255,0.3);
-    border-radius: 4px;
-}}
+.chat-container::-webkit-scrollbar {{ width: 8px; }}
+.chat-container::-webkit-scrollbar-track {{ background: rgba(0,0,0,0.3); }}
+.chat-container::-webkit-scrollbar-thumb {{ background: rgba(255,255,255,0.3); border-radius: 4px; }}
 .message {{
-    padding: 8px;
-    margin: 4px 0;
-    background: {bg_color};
+    padding: 8px 10px;
+    margin: 6px 0;
+    background: rgba(0,0,0,0.5);
     border-radius: 4px;
-    color: {text_color};
+    color: {font_color};
+    font-size: {font_size}px;
     word-wrap: break-word;
+    line-height: 1.4;
+    animation: slideIn 0.3s ease-out;
 }}
-.username {{
-    color: {username_color};
-    font-weight: bold;
-    margin-right: 5px;
+@keyframes slideIn {{
+    from {{ transform: translateX(-20px); opacity: 0; }}
+    to {{ transform: translateX(0); opacity: 1; }}
 }}
+.badge {{
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    margin-right: 4px;
+}}
+.platform-icon {{
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    vertical-align: middle;
+}}
+.username {{ font-weight: bold; margin-right: 5px; }}
+.message-text {{ word-break: break-word; }}
+{custom_css}
 </style>
 </head>
 <body>
 <div class="chat-container" id="chat"></div>
+<audio id="notificationSound"></audio>
 <script>
-const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-chat/{user_id}');
+const config = {{
+    hide_bots: {str(hide_bots).lower()},
+    hide_commands: {str(hide_commands).lower()},
+    muted_users: {json.dumps(muted_users)},
+    show_platform_icon: {str(show_platform_icon).lower()},
+    notification_enabled: {str(chat_notification_enabled).lower()},
+    notification_sound: '{notification_sound}',
+    notification_volume: {notification_volume},
+    notification_threshold: {notification_threshold},
+    chat_delay: {chat_delay},
+    hide_after: {hide_after},
+    always_show: {str(always_show).lower()}
+}};
+
+const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-chat/{user_id}/');
+let lastActivity = Date.now();
+
+const BOT_NAMES = ['nightbot', 'streamelements', 'streamlabs', 'moobot', 'fossabot'];
+const PLATFORM_ICONS = {{ 'twitch': '🟣', 'youtube': '🔴', 'kick': '🟢' }};
+const BADGE_ICONS = {{
+    'broadcaster': '📡', 'moderator': '🛡️', 'subscriber': '⭐',
+    'vip': '💎', 'partner': '✅', 'turbo': '⚡', 'prime': '👑'
+}};
 
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
+    
+    if (config.hide_bots && BOT_NAMES.includes(data.username.toLowerCase())) return;
+    if (config.hide_commands && data.message.startsWith('!')) return;
+    if (config.muted_users.includes(data.username.toLowerCase())) return;
+    
+    setTimeout(() => displayMessage(data), config.chat_delay * 1000);
+}};
+
+function displayMessage(data) {{
     const msg = document.createElement('div');
     msg.className = 'message';
-    msg.innerHTML = `<span class="username">${{data.username}}:</span>${{data.message}}`;
+    
+    let html = '';
+    
+    if (config.show_platform_icon && data.platform) {{
+        html += `<span class="platform-icon">${{PLATFORM_ICONS[data.platform] || ''}}</span>`;
+    }}
+    
+    if (data.badges) {{
+        data.badges.forEach(badge => {{
+            if (BADGE_ICONS[badge]) html += `<span class="badge">${{BADGE_ICONS[badge]}}</span>`;
+        }});
+    }}
+    
+    html += `<span class="username" style="color: ${{data.color || '{font_color}'}}">${{data.username}}:</span>`;
+    html += `<span class="message-text">${{data.message}}</span>`;
+    
+    msg.innerHTML = html;
     
     const chat = document.getElementById('chat');
     chat.appendChild(msg);
     chat.scrollTop = chat.scrollHeight;
     
-    while (chat.children.length > 50) {{
-        chat.removeChild(chat.firstChild);
+    const timeSinceActivity = (Date.now() - lastActivity) / 1000;
+    if (config.notification_enabled && timeSinceActivity >= config.notification_threshold && config.notification_sound) {{
+        const audio = document.getElementById('notificationSound');
+        audio.src = config.notification_sound;
+        audio.volume = config.notification_volume / 100;
+        audio.play().catch(() => {{}});
     }}
-}};
+    
+    lastActivity = Date.now();
+    
+    if (!config.always_show && config.hide_after > 0) {{
+        setTimeout(() => {{
+            msg.style.opacity = '0';
+            setTimeout(() => msg.remove(), 300);
+        }}, config.hide_after * 1000);
+    }}
+    
+    while (chat.children.length > 100) chat.removeChild(chat.firstChild);
+}}
 </script>
 </body>
 </html>"""
