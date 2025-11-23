@@ -8,6 +8,14 @@ async def twitch_irc_connect(channel_name, user_id, oauth_token):
     """Connect to Twitch IRC using user's OAuth token"""
     uri = "wss://irc-ws.chat.twitch.tv:443"
     
+    # Normalize
+    channel_name = channel_name.lower().lstrip('#')
+    if oauth_token.startswith('oauth:'):
+        oauth_token = oauth_token[6:]
+    
+    print(f"[IRC] Connecting to #{channel_name} (user {user_id})")
+    print(f"[IRC] Token length: {len(oauth_token)}")
+    
     try:
         async with websockets.connect(uri) as websocket:
             await websocket.send(f"PASS oauth:{oauth_token}")
@@ -15,21 +23,35 @@ async def twitch_irc_connect(channel_name, user_id, oauth_token):
             await websocket.send(f"JOIN #{channel_name}")
             await websocket.send("CAP REQ :twitch.tv/tags twitch.tv/commands")
             
-            print(f"[IRC] Connected to #{channel_name}")
+            print(f"[IRC] Auth sent, waiting for server response...")
             
             channel_layer = get_channel_layer()
+            join_confirmed = False
             
             while True:
                 try:
                     message = await websocket.recv()
                     
+                    # Log non-ping messages
+                    if not message.startswith('PING'):
+                        print(f"[IRC] << {message[:150]}")
+                    
                     if message.startswith('PING'):
                         await websocket.send('PONG :tmi.twitch.tv')
                         continue
                     
+                    # Check for successful join
+                    if ':tmi.twitch.tv 366' in message or 'End of /NAMES list' in message:
+                        if not join_confirmed:
+                            print(f"[IRC] ✓ Successfully joined #{channel_name}")
+                            join_confirmed = True
+                    
+                    # Check for auth failure
+                    if 'Login authentication failed' in message or 'Login unsuccessful' in message:
+                        print(f"[IRC] ✗ Authentication failed - invalid/expired token")
+                        break
+                    
                     if 'PRIVMSG' in message:
-                        print(f"[IRC] Raw message: {message[:200]}")  # Debug log
-                        
                         parts = message.split('PRIVMSG', 1)
                         if len(parts) != 2:
                             continue
@@ -58,9 +80,8 @@ async def twitch_irc_connect(channel_name, user_id, oauth_token):
                                 if c:
                                     color = c
                         
-                        # Fallback: extract username from prefix if display-name missing
+                        # Fallback username
                         if not username:
-                            # Format: :username!username@username.tmi.twitch.tv
                             prefix_match = tags.split(' ')[0]
                             if prefix_match.startswith(':') and '!' in prefix_match:
                                 username = prefix_match.split('!')[0][1:]
@@ -68,7 +89,7 @@ async def twitch_irc_connect(channel_name, user_id, oauth_token):
                         if not username:
                             username = "Anonymous"
                         
-                        print(f"[IRC] Sending to chat: {username}: {msg_text}")
+                        print(f"[IRC] Forwarding: {username}: {msg_text}")
                         
                         await channel_layer.group_send(
                             f'chat_{user_id}',

@@ -53,8 +53,15 @@ async def kick_chat_connect(channel_slug, user_id):
                     msg = await ws.recv()
                     data = json.loads(msg)
                     
+                    # Handle Pusher ping/pong
+                    if data.get('event') == 'pusher:ping':
+                        await ws.send(json.dumps({'event': 'pusher:pong', 'data': {}}))
+                        print(f'[KICK CHAT] Pong sent')
+                        continue
+                    
                     # Handle chat messages
                     if data.get('event') == 'App\\Events\\ChatMessageEvent':
+                        print(f'[KICK CHAT] Message received')
                         message_data = json.loads(data.get('data', '{}'))
                         sender = message_data.get('sender', {})
                         
@@ -70,6 +77,8 @@ async def kick_chat_connect(channel_slug, user_id):
                         if message_data.get('sender', {}).get('identity', {}).get('badges'):
                             badge_list = message_data['sender']['identity']['badges']
                             badges = [b['type'] for b in badge_list if 'type' in b]
+                        
+                        print(f'[KICK CHAT] Sending to chat: {username}: {content}')
                         
                         # Send to WebSocket
                         await channel_layer.group_send(
@@ -91,7 +100,8 @@ async def kick_chat_connect(channel_slug, user_id):
                     break
                 except Exception as e:
                     print(f'[KICK CHAT] Error: {e}')
-                    break
+                    import traceback
+                    traceback.print_exc()
                     
     except Exception as e:
         print(f'[KICK CHAT] Connection error: {e}')
