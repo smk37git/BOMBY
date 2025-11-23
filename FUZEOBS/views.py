@@ -1408,7 +1408,10 @@ PLATFORM_OAUTH_CONFIG = {
         'token_url': 'https://oauth2.googleapis.com/token',
         'client_id': os.environ.get('YOUTUBE_CLIENT_ID', ''),
         'client_secret': os.environ.get('YOUTUBE_CLIENT_SECRET', ''),
-        'scopes': ['https://www.googleapis.com/auth/youtube.readonly', 'https://www.googleapis.com/auth/youtube.force-ssl']
+        'scopes': [
+            'https://www.googleapis.com/auth/youtube.readonly',
+            'https://www.googleapis.com/auth/youtube.force-ssl'
+        ]
     },
     'kick': {
         'auth_url': 'https://id.kick.com/oauth/authorize',
@@ -2078,36 +2081,6 @@ def fuzeobs_twitch_webhook(request):
     return JsonResponse({'status': 'ok'})
 
 # =========== YOUTUBE ALERTS ===========
-@csrf_exempt
-def fuzeobs_youtube_webhook(request):
-    """Handle YouTube PubSubHubbub notifications"""
-    if request.method == 'GET':
-        # Verification challenge
-        return HttpResponse(request.GET.get('hub.challenge', ''), content_type='text/plain')
-    
-    # Parse XML notification
-    import xml.etree.ElementTree as ET
-    try:
-        root = ET.fromstring(request.body)
-        ns = {'atom': 'http://www.w3.org/2005/Atom', 'yt': 'http://www.youtube.com/xml/schemas/2015'}
-        entry = root.find('atom:entry', ns)
-        
-        if entry:
-            video_id = entry.find('yt:videoId', ns).text
-            channel_id = entry.find('yt:channelId', ns).text
-            
-            # Find user by channel_id
-            conn = PlatformConnection.objects.get(platform='youtube', platform_user_id=channel_id)
-            
-            # Send alert
-            from .twitch import send_alert
-            send_alert(conn.user_id, 'live', 'youtube', {'video_id': video_id})
-            
-    except Exception as e:
-        print(f'[YOUTUBE WEBHOOK] Error: {e}')
-    
-    return HttpResponse(status=200)
-
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_youtube_start_listener(request, user_id):

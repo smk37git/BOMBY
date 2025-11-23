@@ -31,7 +31,6 @@ urlpatterns = [
 
     # PLATFORM ALERTS
     path('twitch-webhook', views.fuzeobs_twitch_webhook, name='twitch_webhook'),
-    path('youtube-webhook', views.fuzeobs_youtube_webhook, name='youtube_webhook'),
     path('youtube/start/<int:user_id>', views.fuzeobs_youtube_start_listener, name='youtube_start_listener'),
     path('facebook/start/<int:user_id>', views.fuzeobs_facebook_start_listener, name='facebook_start_listener'),
     path('kick-webhook', views.fuzeobs_kick_webhook, name='kick_webhook'),
