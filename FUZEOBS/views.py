@@ -1494,6 +1494,8 @@ def fuzeobs_connect_platform(request):
             auth_url += '&access_type=offline&prompt=consent'
         elif platform == 'kick':
             auth_url += f'&code_challenge={code_challenge}&code_challenge_method=S256'
+        elif platform == 'twitch':
+            auth_url += '&force_verify=true'  
 
         return JsonResponse({'success': True, 'auth_url': auth_url, 'state': state})
     except Exception as e:
