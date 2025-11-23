@@ -34,6 +34,7 @@ import requests
 import base64
 import secrets
 from .twitch_chat import start_twitch_chat
+from .kick_chat import start_kick_chat
 
 # Website Imports
 from django.shortcuts import render
@@ -2191,7 +2192,7 @@ def fuzeobs_tiktok_start_listener(request, user_id):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
     
-# =========== TWITCH CHAT ===========  
+# =========== CHATBOX ===========  
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_twitch_chat_start(request, user_id):
@@ -2202,6 +2203,17 @@ def fuzeobs_twitch_chat_start(request, user_id):
         
         started = start_twitch_chat(conn.platform_username, user_id, conn.access_token)
         
+        return JsonResponse({'started': started})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    
+@csrf_exempt
+def fuzeobs_kick_chat_start(request, user_id):
+    """Start Kick chat listener"""
+    try:
+        user = User.objects.get(id=user_id)
+        conn = PlatformConnection.objects.get(user=user, platform='kick')
+        started = start_kick_chat(conn.platform_username, user_id)
         return JsonResponse({'started': started})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)

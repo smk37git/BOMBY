@@ -38,6 +38,7 @@ urlpatterns = [
 
     # PLATFORM CHATS
     path('twitch-chat/start/<int:user_id>', views.fuzeobs_twitch_chat_start, name='twitch_chat_start'),
+    path('kick-chat/start/<int:user_id>', views.fuzeobs_kick_chat_start, name='kick_chat_start'),
 
     # Widget Serving (clean URL)
     path('w/<str:token>', views.fuzeobs_serve_widget, name='serve_widget'),

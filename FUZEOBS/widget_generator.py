@@ -1,3 +1,5 @@
+import json
+
 def generate_widget_html(widget):
     """Generate HTML for widget object"""
     user_id = widget.user.id
@@ -326,25 +328,20 @@ ws.onerror = (error) => {{
 </html>"""
 
 def generate_chat_box_html(user_id, config):
-    """Generate chat box HTML with full config support"""
-    import json
-    
-    platforms = config.get('platforms', ['twitch'])
-    show_platform_icon = config.get('show_platform_icon', False)
-    hide_bots = config.get('hide_bots', False)
+    """Generate chat box HTML"""
+    font_size = config.get('font_size', 14)
+    font_color = config.get('font_color', '#FFFFFF')
+    hide_bots = config.get('hide_bots', True)
     hide_commands = config.get('hide_commands', False)
     muted_users = config.get('muted_users', [])
-    
+    show_platform_icon = config.get('show_platform_icon', True)
     chat_notification_enabled = config.get('chat_notification_enabled', False)
     notification_sound = config.get('notification_sound', '')
     notification_volume = config.get('notification_volume', 50)
-    notification_threshold = config.get('notification_threshold', 30)
-    
-    font_color = config.get('font_color', '#FAFAFA')
-    font_size = config.get('font_size', 22)
+    notification_threshold = config.get('notification_threshold', 0)
     chat_delay = config.get('chat_delay', 0)
-    hide_after = config.get('hide_after', 0)
-    always_show = config.get('always_show', True)
+    hide_after = config.get('hide_after', 30)
+    always_show = config.get('always_show', False)
     custom_css = config.get('custom_css', '')
     
     return f"""<!DOCTYPE html>
@@ -403,6 +400,7 @@ body {{
 <div class="chat-container" id="chat"></div>
 <audio id="notificationSound"></audio>
 <script>
+const userId = '{user_id}';
 const config = {{
     hide_bots: {str(hide_bots).lower()},
     hide_commands: {str(hide_commands).lower()},
@@ -417,7 +415,19 @@ const config = {{
     always_show: {str(always_show).lower()}
 }};
 
-const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-chat/{user_id}/');
+// Start Twitch chat
+fetch(`https://bomby.us/fuzeobs/twitch-chat/start/${{userId}}`)
+    .then(r => r.json())
+    .then(data => {{ if (data.started) console.log('[TWITCH] Chat started'); }})
+    .catch(err => console.log('[TWITCH] Not connected'));
+
+// Start Kick chat
+fetch(`https://bomby.us/fuzeobs/kick-chat/start/${{userId}}`)
+    .then(r => r.json())
+    .then(data => {{ if (data.started) console.log('[KICK] Chat started'); }})
+    .catch(err => console.log('[KICK] Not connected'));
+
+const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-chat/' + userId + '/');
 let lastActivity = Date.now();
 
 const BOT_NAMES = ['nightbot', 'streamelements', 'streamlabs', 'moobot', 'fossabot'];
