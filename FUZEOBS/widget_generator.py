@@ -377,7 +377,7 @@ def generate_chat_box_html(user_id, config):
                 padding: 8px 12px;
                 margin-bottom: 4px;
                 border-radius: 8px;
-                border-left: 4px solid #9146FF;
+                border-left: 4px solid var(--user-color, #9146FF);
             }}
         ''',
         'old_school': f'''
@@ -434,8 +434,8 @@ body {{
     display: inline-block;
     width: {badge_size}px;
     height: {badge_size}px;
-    vertical-align: middle;
-    margin-right: 4px;
+    vertical-align: text-bottom;
+    margin-right: 6px;
     object-fit: contain;
 }}
 .username {{
@@ -518,6 +518,11 @@ ws.onmessage = (e) => {{
 function displayMessage(data) {{
     const msg = document.createElement('div');
     msg.className = 'message';
+
+    // Set dynamic border color for chunky style
+    if (data.color) {{
+        msg.style.setProperty('--user-color', data.color);
+    }}
     
     let html = '';
     
