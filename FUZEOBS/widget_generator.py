@@ -343,6 +343,11 @@ def generate_chat_box_html(user_id, config):
     hide_after = config.get('hide_after', 30)
     always_show = config.get('always_show', False)
     custom_css = config.get('custom_css', '')
+    show_twitch = config.get('show_twitch', True)
+    show_youtube = config.get('show_youtube', True)
+    show_kick = config.get('show_kick', True)
+    show_facebook = config.get('show_facebook', True)
+    show_tiktok = config.get('show_tiktok', True)
     
     return f"""<!DOCTYPE html>
 <html>
@@ -406,6 +411,11 @@ const config = {{
     hide_commands: {str(hide_commands).lower()},
     muted_users: {json.dumps(muted_users)},
     show_platform_icon: {str(show_platform_icon).lower()},
+    show_twitch: {str(show_twitch).lower()},
+    show_youtube: {str(show_youtube).lower()},
+    show_kick: {str(show_kick).lower()},
+    show_facebook: {str(show_facebook).lower()},
+    show_tiktok: {str(show_tiktok).lower()},
     notification_enabled: {str(chat_notification_enabled).lower()},
     notification_sound: '{notification_sound}',
     notification_volume: {notification_volume},
@@ -436,9 +446,12 @@ const BADGE_ICONS = {{
     'broadcaster': '📡', 'moderator': '🛡️', 'subscriber': '⭐',
     'vip': '💎', 'partner': '✅', 'turbo': '⚡', 'prime': '👑'
 }};
-
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
+    
+    // Platform filter
+    const platformKey = 'show_' + data.platform;
+    if (config[platformKey] === false) return;
     
     if (config.hide_bots && BOT_NAMES.includes(data.username.toLowerCase())) return;
     if (config.hide_commands && data.message.startsWith('!')) return;
