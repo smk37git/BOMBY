@@ -367,38 +367,45 @@ def generate_chat_box_html(user_id, config):
         'boxed': '''
             .message {
                 background: rgba(0,0,0,0.6);
-                padding: 8px 12px;
+                padding: 6px 12px;
                 margin: 4px 0;
                 border-radius: 4px;
+                display: flex;
+                align-items: center;
             }
         ''',
         'chunky': '''
             .message {
                 background: rgba(0,0,0,0.85);
-                padding: 10px 14px;
+                padding: 8px 14px;
                 margin: 6px 0;
                 border-radius: 8px;
                 border-left: 4px solid #9146FF;
+                display: flex;
+                align-items: center;
             }
         ''',
         'old_school': '''
             .message {
-                background: linear-gradient(180deg, rgba(60,60,60,0.9) 0%, rgba(40,40,40,0.9) 100%);
+                background: linear-gradient(180deg, rgba(80,80,80,0.9) 0%, rgba(50,50,50,0.9) 100%);
                 padding: 6px 10px;
                 margin: 3px 0;
-                border: 1px solid rgba(255,255,255,0.2);
+                border: 1px solid rgba(255,255,255,0.3);
                 border-radius: 0;
+                display: flex;
+                align-items: center;
+                font-family: 'Courier New', monospace;
             }
         ''',
         'twitch': '''
             .message {
-                background: rgba(24,24,27,0.9);
-                padding: 8px 12px;
+                background: linear-gradient(90deg, rgba(145,70,255,0.3) 0%, rgba(24,24,27,0.9) 100%);
+                padding: 6px 12px;
                 margin: 4px 0;
                 border-radius: 4px;
-            }
-            .message:hover {
-                background: rgba(38,38,44,0.95);
+                border-left: 3px solid #9146FF;
+                display: flex;
+                align-items: center;
             }
         '''
     }
@@ -490,7 +497,7 @@ let lastActivity = Date.now();
 const BOT_NAMES = ['nightbot', 'streamelements', 'streamlabs', 'moobot', 'fossabot'];
 
 const PLATFORM_ICONS = {{
-    'twitch': 'https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/2',
+    'twitch': 'https://www.iconninja.com/files/830/856/929/logo-brand-social-network-twitch-icon.png',
     'youtube': 'https://www.gstatic.com/images/icons/material/product/2x/youtube_64dp.png',
     'kick': 'https://cdn.streamlabs.com/static/kick/image/logo.png',
     'facebook': 'https://cdn.streamlabs.com/static/facebook/image/FB29.png',
