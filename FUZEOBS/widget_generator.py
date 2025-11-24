@@ -328,7 +328,7 @@ ws.onerror = (error) => {{
 </html>"""
 
 def generate_chat_box_html(user_id, config):
-    """Generate chat box HTML with style support"""
+    """Generate chat box HTML - matches preview exactly"""
     font_size = config.get('font_size', 24)
     font_color = config.get('font_color', '#FFFFFF')
     style = config.get('style', 'clean')
@@ -350,64 +350,51 @@ def generate_chat_box_html(user_id, config):
     show_facebook = config.get('show_facebook', True)
     show_tiktok = config.get('show_tiktok', True)
     
-    # Badge/icon size scales with font
-    badge_size = max(18, int(font_size * 0.9))
-    icon_size = max(16, int(font_size * 0.8))
+    # Badge/icon size scales with font (matches preview: Math.max(16, Math.floor(font_size * 0.85)))
+    badge_size = max(16, int(font_size * 0.85))
     
-    # Style-specific CSS
+    # Style-specific CSS - matches preview exactly
     style_css = {
-        'clean': '''
-            .message {
+        'clean': f'''
+            .message {{
                 background: transparent;
                 padding: 4px 0;
-                margin: 2px 0;
+                margin-bottom: 4px;
                 text-shadow: 1px 1px 2px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8);
-            }
+            }}
         ''',
-        'boxed': '''
-            .message {
+        'boxed': f'''
+            .message {{
                 background: rgba(0,0,0,0.6);
-                padding: 6px 12px;
-                margin: 4px 0;
+                padding: 8px 12px;
+                margin-bottom: 4px;
                 border-radius: 4px;
-                display: flex;
-                align-items: center;
-            }
+            }}
         ''',
-        'chunky': '''
-            .message {
+        'chunky': f'''
+            .message {{
                 background: rgba(0,0,0,0.85);
-                padding: 8px 14px;
-                margin: 6px 0;
+                padding: 8px 12px;
+                margin-bottom: 4px;
                 border-radius: 8px;
                 border-left: 4px solid #9146FF;
-                display: flex;
-                align-items: center;
-            }
+            }}
         ''',
-        'old_school': '''
-            .message {
-                background: rgba(40,40,40,0.85);
-                padding: 5px 10px;
-                margin: 2px 0;
-                border-bottom: 1px solid rgba(255,255,255,0.15);
-                border-radius: 0;
-                display: flex;
-                align-items: center;
-            }
+        'old_school': f'''
+            .message {{
+                background: linear-gradient(180deg, rgba(60,60,60,0.9) 0%, rgba(40,40,40,0.9) 100%);
+                padding: 4px 8px;
+                margin-bottom: 4px;
+                border: 1px solid rgba(255,255,255,0.2);
+            }}
         ''',
-        'twitch': '''
-            .message {
-                background: rgba(24,24,27,0.85);
-                padding: 6px 12px;
-                margin: 2px 0;
-                border-radius: 0;
-                display: flex;
-                align-items: center;
-            }
-            .message:nth-child(odd) {
-                background: rgba(38,38,44,0.85);
-            }
+        'twitch': f'''
+            .message {{
+                background: rgba(24,24,27,0.9);
+                padding: 8px 12px;
+                margin-bottom: 4px;
+                border-radius: 4px;
+            }}
         '''
     }
     
@@ -425,19 +412,17 @@ body {{
     font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
 }}
 .chat-container {{
-    height: 100vh;
-    overflow-y: auto;
-    padding: 10px 40px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px;
+    overflow: hidden;
 }}
-.chat-container::-webkit-scrollbar {{ width: 0; display: none; }}
 .message {{
-    color: {font_color};
     font-size: {font_size}px;
-    word-wrap: break-word;
     line-height: 1.4;
+    color: {font_color};
     animation: slideIn 0.3s ease-out;
 }}
 {current_style}
@@ -445,7 +430,7 @@ body {{
     from {{ transform: translateX(-20px); opacity: 0; }}
     to {{ transform: translateX(0); opacity: 1; }}
 }}
-.badge {{
+.badge, .platform-icon {{
     display: inline-block;
     width: {badge_size}px;
     height: {badge_size}px;
@@ -453,15 +438,10 @@ body {{
     margin-right: 4px;
     object-fit: contain;
 }}
-.platform-icon {{
-    width: {icon_size}px;
-    height: {icon_size}px;
-    margin-right: 6px;
-    vertical-align: middle;
-    object-fit: contain;
+.username {{
+    font-weight: bold;
+    margin-right: 4px;
 }}
-.username {{ font-weight: bold; margin-right: 6px; }}
-.message-text {{ word-break: break-word; }}
 {custom_css}
 </style>
 </head>
@@ -502,7 +482,7 @@ const PLATFORM_ICONS = {{
     'youtube': 'https://www.gstatic.com/images/icons/material/product/2x/youtube_64dp.png',
     'kick': 'https://cdn.streamlabs.com/static/kick/image/logo.png',
     'facebook': 'https://cdn.streamlabs.com/static/facebook/image/FB29.png',
-    'tiktok': 'https://cdn.streamlabs.com/static/facebook/image/FB29.png'
+    'tiktok': 'https://sf16-website-login.neutral.ttwstatic.com/obj/tiktok_web_login_static/tiktok/webapp/main/webapp-desktop/8152caf0c8e8bc67ae0d.png'
 }};
 
 const BADGE_URLS = {{
@@ -554,13 +534,17 @@ function displayMessage(data) {{
     }}
     
     html += `<span class="username" style="color: ${{data.color || '{font_color}'}}">${{data.username}}:</span>`;
-    html += `<span class="message-text">${{data.message}}</span>`;
+    html += `<span>${{data.message}}</span>`;
     
     msg.innerHTML = html;
     
     const chat = document.getElementById('chat');
     chat.appendChild(msg);
-    chat.scrollTop = chat.scrollHeight;
+    
+    // Keep only last 50 messages
+    while (chat.children.length > 50) {{
+        chat.removeChild(chat.firstChild);
+    }}
     
     const timeSinceActivity = (Date.now() - lastActivity) / 1000;
     if (config.notification_enabled && timeSinceActivity >= config.notification_threshold && config.notification_sound) {{
@@ -574,12 +558,11 @@ function displayMessage(data) {{
     
     if (!config.always_show && config.hide_after > 0) {{
         setTimeout(() => {{
+            msg.style.transition = 'opacity 0.3s';
             msg.style.opacity = '0';
             setTimeout(() => msg.remove(), 300);
         }}, config.hide_after * 1000);
     }}
-    
-    while (chat.children.length > 100) chat.removeChild(chat.firstChild);
 }}
 </script>
 </body>
