@@ -11,6 +11,8 @@ urlpatterns = [
     path('admin-panel/', views.admin_panel, name='admin_panel'),
     path('admin-verify/', views.admin_code_verify, name='admin_code_verify'),
     path('coming-soon/', views.coming_soon, name='coming_soon'),
+    path('terms/', views.terms, name='terms'),
+    path('privacy/', views.privacy, name='privacy'),
 
     # Announcement URLs
     path('announcements/', views.manage_announcements, name='manage_announcements'),

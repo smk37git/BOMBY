@@ -1,0 +1,199 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block title %}Terms of Service | BOMBY{% endblock %}
+{% block description %}Terms of Service for BOMBY - Read our terms and conditions for using our streaming setup services and website.{% endblock %}
+{% block og_title %}Terms of Service - BOMBY{% endblock %}
+{% block og_description %}Terms of Service for BOMBY streaming setup services and website.{% endblock %}
+{% block og_url %}https://bomby.us/terms/{% endblock %}
+
+{% block extra_css %}
+<style>
+.legal-section {
+    padding: 0 0 50px 0;
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    width: 100%;
+    margin-top: -60px;
+}
+
+.legal-header h1 {
+    text-align: center;
+    font-size: 2.8rem;
+    padding: 15px 30px;
+    margin: 45px auto 25px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    width: fit-content;
+    color: white;
+    position: relative;
+    z-index: 4;
+}
+
+.legal-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 25px;
+    background-color: #0a0a0a;
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    z-index: 4;
+}
+
+.legal-container h2 {
+    color: #9e33e6;
+    font-size: 1.5rem;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legal-container h2:first-of-type {
+    margin-top: 0;
+}
+
+.legal-container p, .legal-container li {
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.7;
+    margin-bottom: 15px;
+}
+
+.legal-container ul {
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+.legal-container li {
+    margin-bottom: 8px;
+}
+
+.legal-container a {
+    color: #9e33e6;
+    text-decoration: none;
+}
+
+.legal-container a:hover {
+    text-decoration: underline;
+}
+
+.last-updated {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+}
+
+@media (max-width: 768px) {
+    .legal-section {
+        padding: 20px 15px 40px;
+        margin: -25px auto;
+    }
+    
+    .legal-header h1 {
+        font-size: 2.2em;
+        padding: 15px 25px;
+        margin: 15px auto 25px;
+        max-width: 90%;
+    }
+    
+    .legal-container {
+        padding: 20px;
+    }
+    
+    .legal-container h2 {
+        font-size: 1.3rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<main>
+    <section class="legal-section">
+        <div class="legal-header">
+            <h1>Terms of Service</h1>
+        </div>
+
+        <div class="legal-container">
+            <p class="last-updated">Last Updated: November 24, 2025</p>
+
+            <h2>1. Acceptance of Terms</h2>
+            <p>By accessing and using BOMBY (bomby.us), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our website or services.</p>
+
+            <h2>2. Description of Services</h2>
+            <p>BOMBY provides the following services:</p>
+            <ul>
+                <li>Stream setup and configuration services (Basic, Standard, and Premium packages)</li>
+                <li>OBS configuration and optimization</li>
+                <li>Custom overlays and graphics for streaming</li>
+                <li>Website development services</li>
+                <li>Technical support and troubleshooting</li>
+                <li>Promotional wall for registered users to showcase their channels</li>
+            </ul>
+
+            <h2>3. User Accounts</h2>
+            <p>To access certain features, you must create an account. You agree to:</p>
+            <ul>
+                <li>Provide accurate and complete information during registration</li>
+                <li>Maintain the security of your account credentials</li>
+                <li>Notify us immediately of any unauthorized access</li>
+                <li>Be responsible for all activities under your account</li>
+            </ul>
+            <p>You may also register using Google OAuth. By doing so, you authorize us to access basic profile information from your Google account.</p>
+
+            <h2>4. Payments and Refunds</h2>
+            <p>Payments are processed through PayPal. By making a purchase, you agree to PayPal's terms of service. All prices are displayed in USD.</p>
+            <p>Refund requests are handled on a case-by-case basis. If you are unsatisfied with a service, please contact us within 7 days of purchase. Digital services that have been fully delivered are generally non-refundable.</p>
+
+            <h2>5. User Content</h2>
+            <p>By submitting content to BOMBY (including profile information, bio, and social links), you grant us a non-exclusive license to display this content on our platform. You are responsible for ensuring you have the right to share any content you post.</p>
+            <p>You agree not to post content that:</p>
+            <ul>
+                <li>Is unlawful, harmful, or offensive</li>
+                <li>Infringes on intellectual property rights</li>
+                <li>Contains malware or harmful code</li>
+                <li>Violates the privacy of others</li>
+            </ul>
+
+            <h2>6. Promotional Wall</h2>
+            <p>The promotional wall allows users to showcase their streaming channels. We reserve the right to remove any profiles that violate these terms or contain inappropriate content.</p>
+
+            <h2>7. Intellectual Property</h2>
+            <p>All content on BOMBY, including but not limited to logos, designs, text, and graphics, is owned by BOMBY unless otherwise stated. You may not reproduce, distribute, or create derivative works without permission.</p>
+            <p>Custom work created for clients (overlays, configurations, etc.) becomes the property of the client upon full payment.</p>
+
+            <h2>8. Limitation of Liability</h2>
+            <p>BOMBY is provided "as is" without warranties of any kind. We are not liable for any indirect, incidental, or consequential damages arising from your use of our services.</p>
+
+            <h2>9. Third-Party Services</h2>
+            <p>Our website integrates with third-party services including:</p>
+            <ul>
+                <li>Google (OAuth authentication, Analytics)</li>
+                <li>PayPal (payment processing)</li>
+                <li>Meta/Facebook (analytics pixel)</li>
+            </ul>
+            <p>Your use of these services is subject to their respective terms and privacy policies.</p>
+
+            <h2>10. Termination</h2>
+            <p>We reserve the right to terminate or suspend your account at any time for violations of these terms. You may also delete your account by contacting us.</p>
+
+            <h2>11. Changes to Terms</h2>
+            <p>We may update these terms at any time. Continued use of BOMBY after changes constitutes acceptance of the new terms.</p>
+
+            <h2>12. Contact Information</h2>
+            <p>For questions about these Terms of Service, please contact us at:</p>
+            <ul>
+                <li>Email: sebetvbusiness@gmail.com</li>
+                <li>Contact Page: <a href="{% url 'MAIN:contact' %}">bomby.us/contact</a></li>
+            </ul>
+        </div>
+    </section>
+</main>
+{% endblock %}

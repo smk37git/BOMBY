@@ -234,3 +234,11 @@ def generate_discount_code(request):
         'success': True,
         'code': code
     })
+
+# Terms & Conditions
+def terms(request):
+    return render(request, 'MAIN/terms.html')
+
+# Privacy Policy
+def privacy(request):
+    return render(request, 'MAIN/privacy.html')

@@ -1,0 +1,250 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block title %}Privacy Policy | BOMBY{% endblock %}
+{% block description %}Privacy Policy for BOMBY - Learn how we collect, use, and protect your personal information.{% endblock %}
+{% block og_title %}Privacy Policy - BOMBY{% endblock %}
+{% block og_description %}Privacy Policy for BOMBY - How we handle your data and protect your privacy.{% endblock %}
+{% block og_url %}https://bomby.us/privacy/{% endblock %}
+
+{% block extra_css %}
+<style>
+.legal-section {
+    padding: 0 0 50px 0;
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    width: 100%;
+    margin-top: -60px;
+}
+
+.legal-header h1 {
+    text-align: center;
+    font-size: 2.8rem;
+    padding: 15px 30px;
+    margin: 45px auto 25px;
+    background-color: #0a0a0a;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 15px;
+    width: fit-content;
+    color: white;
+    position: relative;
+    z-index: 4;
+}
+
+.legal-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 25px;
+    background-color: #0a0a0a;
+    border-radius: 15px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    position: relative;
+    z-index: 4;
+}
+
+.legal-container h2 {
+    color: #9e33e6;
+    font-size: 1.5rem;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legal-container h2:first-of-type {
+    margin-top: 0;
+}
+
+.legal-container p, .legal-container li {
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.7;
+    margin-bottom: 15px;
+}
+
+.legal-container ul {
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+.legal-container li {
+    margin-bottom: 8px;
+}
+
+.legal-container a {
+    color: #9e33e6;
+    text-decoration: none;
+}
+
+.legal-container a:hover {
+    text-decoration: underline;
+}
+
+.last-updated {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    margin-bottom: 25px;
+}
+
+@media (max-width: 768px) {
+    .legal-section {
+        padding: 20px 15px 40px;
+        margin: -25px auto;
+    }
+    
+    .legal-header h1 {
+        font-size: 2.2em;
+        padding: 15px 25px;
+        margin: 15px auto 25px;
+        max-width: 90%;
+    }
+    
+    .legal-container {
+        padding: 20px;
+    }
+    
+    .legal-container h2 {
+        font-size: 1.3rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<main>
+    <section class="legal-section">
+        <div class="legal-header">
+            <h1>Privacy Policy</h1>
+        </div>
+
+        <div class="legal-container">
+            <p class="last-updated">Last Updated: November 24, 2025</p>
+
+            <h2>1. Introduction</h2>
+            <p>BOMBY ("we," "our," or "us") operates bomby.us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or use our services.</p>
+
+            <h2>2. Information We Collect</h2>
+            <p><strong>Information you provide directly:</strong></p>
+            <ul>
+                <li>Account information: username, email address, password</li>
+                <li>Profile information: bio, profile picture</li>
+                <li>Social media links: YouTube, Twitch, GitHub, Twitter/X, Kick, Instagram</li>
+                <li>Contact form submissions: name, email, subject, message</li>
+                <li>Order and payment information (processed through PayPal)</li>
+            </ul>
+            
+            <p><strong>Information collected automatically:</strong></p>
+            <ul>
+                <li>Device information and browser type</li>
+                <li>IP address and location data</li>
+                <li>Pages visited and interactions on our site</li>
+                <li>Cookies and similar tracking technologies</li>
+            </ul>
+
+            <p><strong>Information from third parties:</strong></p>
+            <ul>
+                <li>Google OAuth: basic profile information (name, email, profile picture) when you sign in with Google</li>
+            </ul>
+
+            <h2>3. How We Use Your Information</h2>
+            <p>We use your information to:</p>
+            <ul>
+                <li>Create and manage your account</li>
+                <li>Provide our streaming setup and web development services</li>
+                <li>Process payments and fulfill orders</li>
+                <li>Display your profile on the promotional wall</li>
+                <li>Communicate with you about orders and services</li>
+                <li>Respond to contact form inquiries</li>
+                <li>Send service-related notifications</li>
+                <li>Improve our website and services</li>
+                <li>Analyze site usage and performance</li>
+            </ul>
+
+            <h2>4. Third-Party Services</h2>
+            <p>We use the following third-party services that may collect information:</p>
+            
+            <p><strong>Google Services:</strong></p>
+            <ul>
+                <li>Google OAuth for account authentication</li>
+                <li>Google Analytics (gtag.js) for website analytics</li>
+                <li>Google Ads conversion tracking</li>
+            </ul>
+            
+            <p><strong>PayPal:</strong></p>
+            <ul>
+                <li>Payment processing for purchases</li>
+                <li>PayPal handles all payment card data; we do not store credit card information</li>
+            </ul>
+            
+            <p><strong>Meta (Facebook):</strong></p>
+            <ul>
+                <li>Facebook Pixel for analytics and advertising</li>
+            </ul>
+            
+            <p>Each of these services has its own privacy policy governing the use of your data.</p>
+
+            <h2>5. Cookies and Tracking</h2>
+            <p>We use cookies and similar technologies to:</p>
+            <ul>
+                <li>Keep you signed in to your account</li>
+                <li>Remember your preferences</li>
+                <li>Analyze website traffic and usage</li>
+                <li>Support advertising and analytics</li>
+            </ul>
+            <p>You can control cookies through your browser settings. Disabling cookies may affect site functionality.</p>
+
+            <h2>6. Data Sharing</h2>
+            <p>We do not sell your personal information. We may share data with:</p>
+            <ul>
+                <li>Service providers who assist in operating our website</li>
+                <li>Payment processors (PayPal) to complete transactions</li>
+                <li>Analytics providers to improve our services</li>
+                <li>Law enforcement when required by law</li>
+            </ul>
+
+            <h2>7. Data Security</h2>
+            <p>We implement security measures to protect your information, including:</p>
+            <ul>
+                <li>Encrypted data transmission (HTTPS)</li>
+                <li>Secure password hashing</li>
+                <li>Regular security updates</li>
+            </ul>
+            <p>However, no method of transmission over the internet is 100% secure.</p>
+
+            <h2>8. Your Rights</h2>
+            <p>You have the right to:</p>
+            <ul>
+                <li>Access your personal data</li>
+                <li>Correct inaccurate information</li>
+                <li>Request deletion of your account and data</li>
+                <li>Opt out of marketing communications</li>
+                <li>Export your data</li>
+            </ul>
+            <p>To exercise these rights, contact us at sebetvbusiness@gmail.com.</p>
+
+            <h2>9. Data Retention</h2>
+            <p>We retain your information for as long as your account is active or as needed to provide services. Order records may be kept for accounting and legal purposes.</p>
+
+            <h2>10. Children's Privacy</h2>
+            <p>Our services are not intended for children under 13. We do not knowingly collect information from children under 13. If you believe a child has provided us information, please contact us.</p>
+
+            <h2>11. International Users</h2>
+            <p>BOMBY is operated from the United States. If you access our site from outside the US, your information may be transferred to and processed in the United States.</p>
+
+            <h2>12. Changes to This Policy</h2>
+            <p>We may update this Privacy Policy periodically. We will notify users of significant changes by posting a notice on our website.</p>
+
+            <h2>13. Contact Us</h2>
+            <p>For questions about this Privacy Policy or your data:</p>
+            <ul>
+                <li>Email: sebetvbusiness@gmail.com</li>
+                <li>Contact Page: <a href="{% url 'MAIN:contact' %}">bomby.us/contact</a></li>
+            </ul>
+        </div>
+    </section>
+</main>
+{% endblock %}
