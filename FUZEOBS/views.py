@@ -1403,7 +1403,7 @@ PLATFORM_OAUTH_CONFIG = {
         'token_url': 'https://id.twitch.tv/oauth2/token',
         'client_id': os.environ.get('TWITCH_CLIENT_ID', ''),
         'client_secret': os.environ.get('TWITCH_CLIENT_SECRET', ''),
-        'scopes': ['channel:read:subscriptions', 'bits:read', 'channel:read:redemptions', 'moderator:read:followers']
+        'scopes': ['channel:read:subscriptions', 'bits:read', 'channel:read:redemptions', 'moderator:read:followers', 'chat:read']
     },
     'youtube': {
         'auth_url': 'https://accounts.google.com/o/oauth2/v2/auth',
@@ -2215,5 +2215,8 @@ def fuzeobs_kick_chat_start(request, user_id):
         conn = PlatformConnection.objects.get(user=user, platform='kick')
         started = start_kick_chat(conn.platform_username, user_id)
         return JsonResponse({'started': started})
+    except PlatformConnection.DoesNotExist:
+        return JsonResponse({'started': False, 'error': 'Not connected'})
     except Exception as e:
+        print(f'[KICK CHAT] Error: {e}')
         return JsonResponse({'error': str(e)}, status=400)
