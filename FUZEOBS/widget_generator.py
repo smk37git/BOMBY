@@ -329,7 +329,7 @@ ws.onerror = (error) => {{
 
 def generate_chat_box_html(user_id, config):
     """Generate chat box HTML"""
-    font_size = config.get('font_size', 14)
+    font_size = config.get('font_size', 24)
     font_color = config.get('font_color', '#FFFFFF')
     hide_bots = config.get('hide_bots', True)
     hide_commands = config.get('hide_commands', False)
@@ -425,31 +425,37 @@ const config = {{
     always_show: {str(always_show).lower()}
 }};
 
-// Start Twitch chat
-fetch(`https://bomby.us/fuzeobs/twitch-chat/start/${{userId}}`)
-    .then(r => r.json())
-    .then(data => {{ if (data.started) console.log('[TWITCH] Chat started'); }})
-    .catch(err => console.log('[TWITCH] Not connected'));
-
-// Start Kick chat
-fetch(`https://bomby.us/fuzeobs/kick-chat/start/${{userId}}`)
-    .then(r => r.json())
-    .then(data => {{ if (data.started) console.log('[KICK] Chat started'); }})
-    .catch(err => console.log('[KICK] Not connected'));
+fetch(`https://bomby.us/fuzeobs/twitch-chat/start/${{userId}}`).catch(() => {{}});
+fetch(`https://bomby.us/fuzeobs/kick-chat/start/${{userId}}`).catch(() => {{}});
 
 const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-chat/' + userId + '/');
 let lastActivity = Date.now();
 
 const BOT_NAMES = ['nightbot', 'streamelements', 'streamlabs', 'moobot', 'fossabot'];
-const PLATFORM_ICONS = {{ 'twitch': '🟣', 'youtube': '🔴', 'kick': '🟢' }};
-const BADGE_ICONS = {{
-    'broadcaster': '📡', 'moderator': '🛡️', 'subscriber': '⭐',
-    'vip': '💎', 'partner': '✅', 'turbo': '⚡', 'prime': '👑'
+
+const PLATFORM_ICONS = {{
+    'twitch': 'https://www.iconninja.com/files/830/856/929/logo-brand-social-network-twitch-icon.png',
+    'youtube': 'https://www.gstatic.com/images/icons/material/product/2x/youtube_64dp.png',
+    'kick': 'https://cdn.streamlabs.com/static/kick/image/logo.png',
+    'facebook': 'https://cdn.streamlabs.com/static/facebook/image/FB29.png',
+    'tiktok': 'https://cdn.streamlabs.com/static/facebook/image/FB29.png'
 }};
+
+const BADGE_URLS = {{
+    'broadcaster': 'https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1',
+    'moderator': 'https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1',
+    'subscriber': 'https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/1',
+    'vip': 'https://static-cdn.jtvnw.net/badges/v1/b817aba4-fad8-49e2-b88a-7cc744571f1/1',
+    'prime': 'https://static-cdn.jtvnw.net/badges/v1/bbbe0db0-a598-423e-86d0-f9fb98ca1933/1',
+    'turbo': 'https://static-cdn.jtvnw.net/badges/v1/bd444ec6-8f34-4bf9-91f4-af1e3428d80f/1',
+    'bits': 'https://static-cdn.jtvnw.net/badges/v1/09d93036-e7ce-431c-9a9e-7044297133f2/1',
+    'sub_gifter': 'https://static-cdn.jtvnw.net/badges/v1/a5ef6c17-2e5b-4d8f-9b80-2779fd722414/1',
+    'partner': 'https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/1'
+}};
+
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
     
-    // Platform filter
     const platformKey = 'show_' + data.platform;
     if (config[platformKey] === false) return;
     
@@ -466,13 +472,15 @@ function displayMessage(data) {{
     
     let html = '';
     
-    if (config.show_platform_icon && data.platform) {{
-        html += `<span class="platform-icon">${{PLATFORM_ICONS[data.platform] || ''}}</span>`;
+    if (config.show_platform_icon && data.platform && PLATFORM_ICONS[data.platform]) {{
+        html += `<img src="${{PLATFORM_ICONS[data.platform]}}" class="platform-icon" />`;
     }}
     
     if (data.badges) {{
         data.badges.forEach(badge => {{
-            if (BADGE_ICONS[badge]) html += `<span class="badge">${{BADGE_ICONS[badge]}}</span>`;
+            if (BADGE_URLS[badge]) {{
+                html += `<img src="${{BADGE_URLS[badge]}}" class="badge" />`;
+            }}
         }});
     }}
     
