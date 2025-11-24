@@ -1305,6 +1305,19 @@ def fuzeobs_save_widget(request):
             if 'config' in data:
                 widget.config = data['config']
             widget.save()
+            
+            # Send refresh to widget in OBS
+            channel_layer = get_channel_layer()
+            if widget_type == 'chat_box':
+                async_to_sync(channel_layer.group_send)(
+                    f'chat_{user.id}',
+                    {'type': 'chat_message', 'data': {'type': 'refresh'}}
+                )
+            elif widget_type == 'alert_box':
+                async_to_sync(channel_layer.group_send)(
+                    f'alerts_{user.id}_{platform}',
+                    {'type': 'alert_event', 'data': {'type': 'refresh'}}
+                )
         else:
             # Auto-create default event configs for alert_box
             if widget_type == 'alert_box':

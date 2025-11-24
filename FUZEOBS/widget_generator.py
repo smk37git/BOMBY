@@ -387,25 +387,26 @@ def generate_chat_box_html(user_id, config):
         ''',
         'old_school': '''
             .message {
-                background: linear-gradient(180deg, rgba(80,80,80,0.9) 0%, rgba(50,50,50,0.9) 100%);
-                padding: 6px 10px;
-                margin: 3px 0;
-                border: 1px solid rgba(255,255,255,0.3);
+                background: rgba(40,40,40,0.85);
+                padding: 5px 10px;
+                margin: 2px 0;
+                border-bottom: 1px solid rgba(255,255,255,0.15);
                 border-radius: 0;
                 display: flex;
                 align-items: center;
-                font-family: 'Courier New', monospace;
             }
         ''',
         'twitch': '''
             .message {
-                background: linear-gradient(90deg, rgba(145,70,255,0.3) 0%, rgba(24,24,27,0.9) 100%);
+                background: rgba(24,24,27,0.85);
                 padding: 6px 12px;
-                margin: 4px 0;
-                border-radius: 4px;
-                border-left: 3px solid #9146FF;
+                margin: 2px 0;
+                border-radius: 0;
                 display: flex;
                 align-items: center;
+            }
+            .message:nth-child(odd) {
+                background: rgba(38,38,44,0.85);
             }
         '''
     }
@@ -426,7 +427,7 @@ body {{
 .chat-container {{
     height: 100vh;
     overflow-y: auto;
-    padding: 10px;
+    padding: 10px 40px;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -518,6 +519,11 @@ const BADGE_URLS = {{
 
 ws.onmessage = (e) => {{
     const data = JSON.parse(e.data);
+    
+    if (data.type === 'refresh') {{
+        window.location.reload();
+        return;
+    }}
     
     const platformKey = 'show_' + data.platform;
     if (config[platformKey] === false) return;
