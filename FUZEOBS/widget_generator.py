@@ -328,9 +328,10 @@ ws.onerror = (error) => {{
 </html>"""
 
 def generate_chat_box_html(user_id, config):
-    """Generate chat box HTML"""
+    """Generate chat box HTML with style support"""
     font_size = config.get('font_size', 24)
     font_color = config.get('font_color', '#FFFFFF')
+    style = config.get('style', 'clean')
     hide_bots = config.get('hide_bots', True)
     hide_commands = config.get('hide_commands', False)
     muted_users = config.get('muted_users', [])
@@ -349,6 +350,61 @@ def generate_chat_box_html(user_id, config):
     show_facebook = config.get('show_facebook', True)
     show_tiktok = config.get('show_tiktok', True)
     
+    # Badge/icon size scales with font
+    badge_size = max(18, int(font_size * 0.9))
+    icon_size = max(16, int(font_size * 0.8))
+    
+    # Style-specific CSS
+    style_css = {
+        'clean': '''
+            .message {
+                background: transparent;
+                padding: 4px 0;
+                margin: 2px 0;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.8), -1px -1px 2px rgba(0,0,0,0.8);
+            }
+        ''',
+        'boxed': '''
+            .message {
+                background: rgba(0,0,0,0.6);
+                padding: 8px 12px;
+                margin: 4px 0;
+                border-radius: 4px;
+            }
+        ''',
+        'chunky': '''
+            .message {
+                background: rgba(0,0,0,0.85);
+                padding: 10px 14px;
+                margin: 6px 0;
+                border-radius: 8px;
+                border-left: 4px solid #9146FF;
+            }
+        ''',
+        'old_school': '''
+            .message {
+                background: linear-gradient(180deg, rgba(60,60,60,0.9) 0%, rgba(40,40,40,0.9) 100%);
+                padding: 6px 10px;
+                margin: 3px 0;
+                border: 1px solid rgba(255,255,255,0.2);
+                border-radius: 0;
+            }
+        ''',
+        'twitch': '''
+            .message {
+                background: rgba(24,24,27,0.9);
+                padding: 8px 12px;
+                margin: 4px 0;
+                border-radius: 4px;
+            }
+            .message:hover {
+                background: rgba(38,38,44,0.95);
+            }
+        '''
+    }
+    
+    current_style = style_css.get(style, style_css['clean'])
+    
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -358,45 +414,45 @@ body {{
     background: transparent;
     margin: 0;
     overflow: hidden;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
 }}
 .chat-container {{
     height: 100vh;
     overflow-y: auto;
     padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
 }}
-.chat-container::-webkit-scrollbar {{ width: 8px; }}
-.chat-container::-webkit-scrollbar-track {{ background: rgba(0,0,0,0.3); }}
-.chat-container::-webkit-scrollbar-thumb {{ background: rgba(255,255,255,0.3); border-radius: 4px; }}
+.chat-container::-webkit-scrollbar {{ width: 0; display: none; }}
 .message {{
-    padding: 8px 10px;
-    margin: 6px 0;
-    background: rgba(0,0,0,0.5);
-    border-radius: 4px;
     color: {font_color};
     font-size: {font_size}px;
     word-wrap: break-word;
     line-height: 1.4;
     animation: slideIn 0.3s ease-out;
 }}
+{current_style}
 @keyframes slideIn {{
     from {{ transform: translateX(-20px); opacity: 0; }}
     to {{ transform: translateX(0); opacity: 1; }}
 }}
 .badge {{
     display: inline-block;
-    width: 18px;
-    height: 18px;
+    width: {badge_size}px;
+    height: {badge_size}px;
     vertical-align: middle;
     margin-right: 4px;
+    object-fit: contain;
 }}
 .platform-icon {{
-    width: 16px;
-    height: 16px;
-    margin-right: 4px;
+    width: {icon_size}px;
+    height: {icon_size}px;
+    margin-right: 6px;
     vertical-align: middle;
+    object-fit: contain;
 }}
-.username {{ font-weight: bold; margin-right: 5px; }}
+.username {{ font-weight: bold; margin-right: 6px; }}
 .message-text {{ word-break: break-word; }}
 {custom_css}
 </style>
@@ -434,7 +490,7 @@ let lastActivity = Date.now();
 const BOT_NAMES = ['nightbot', 'streamelements', 'streamlabs', 'moobot', 'fossabot'];
 
 const PLATFORM_ICONS = {{
-    'twitch': 'https://www.iconninja.com/files/830/856/929/logo-brand-social-network-twitch-icon.png',
+    'twitch': 'https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/2',
     'youtube': 'https://www.gstatic.com/images/icons/material/product/2x/youtube_64dp.png',
     'kick': 'https://cdn.streamlabs.com/static/kick/image/logo.png',
     'facebook': 'https://cdn.streamlabs.com/static/facebook/image/FB29.png',
@@ -442,15 +498,15 @@ const PLATFORM_ICONS = {{
 }};
 
 const BADGE_URLS = {{
-    'broadcaster': 'https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/1',
-    'moderator': 'https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/1',
-    'subscriber': 'https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/1',
-    'vip': 'https://static-cdn.jtvnw.net/badges/v1/b817aba4-fad8-49e2-b88a-7cc744571f1/1',
-    'prime': 'https://static-cdn.jtvnw.net/badges/v1/bbbe0db0-a598-423e-86d0-f9fb98ca1933/1',
-    'turbo': 'https://static-cdn.jtvnw.net/badges/v1/bd444ec6-8f34-4bf9-91f4-af1e3428d80f/1',
-    'bits': 'https://static-cdn.jtvnw.net/badges/v1/09d93036-e7ce-431c-9a9e-7044297133f2/1',
-    'sub_gifter': 'https://static-cdn.jtvnw.net/badges/v1/a5ef6c17-2e5b-4d8f-9b80-2779fd722414/1',
-    'partner': 'https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/1'
+    'broadcaster': 'https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/2',
+    'moderator': 'https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/2',
+    'subscriber': 'https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/2',
+    'vip': 'https://static-cdn.jtvnw.net/badges/v1/b817aba4-fad8-49e2-b88a-7cc744571f1e/2',
+    'prime': 'https://static-cdn.jtvnw.net/badges/v1/bbbe0db0-a598-423e-86d0-f9fb98ca1933/2',
+    'turbo': 'https://static-cdn.jtvnw.net/badges/v1/bd444ec6-8f34-4bf9-91f4-af1e3428d80f/2',
+    'bits': 'https://static-cdn.jtvnw.net/badges/v1/73b5c3fb-24f9-4a82-a852-2f475b59411c/2',
+    'sub_gifter': 'https://static-cdn.jtvnw.net/badges/v1/a5ef6c17-2e5b-4d8f-9b80-2779fd722414/2',
+    'partner': 'https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/2'
 }};
 
 ws.onmessage = (e) => {{
