@@ -32,7 +32,6 @@ from .facebook import start_facebook_listener, stop_facebook_listener
 from .tiktok import start_tiktok_listener, stop_tiktok_listener
 import requests
 import base64
-import secrets
 from .twitch_chat import start_twitch_chat
 from .kick_chat import start_kick_chat
 
@@ -2214,6 +2213,22 @@ def fuzeobs_twitch_chat_start(request, user_id):
         user = User.objects.get(id=user_id)
         conn = PlatformConnection.objects.get(user=user, platform='twitch')
         
+        # Refresh token if expired
+        if conn.expires_at and conn.expires_at < timezone.now():
+            # Twitch token refresh
+            resp = requests.post('https://id.twitch.tv/oauth2/token', data={
+                'client_id': settings.TWITCH_CLIENT_ID,
+                'client_secret': settings.TWITCH_CLIENT_SECRET,
+                'grant_type': 'refresh_token',
+                'refresh_token': conn.refresh_token
+            })
+            if resp.status_code == 200:
+                data = resp.json()
+                conn.access_token = data['access_token']
+                conn.refresh_token = data.get('refresh_token', conn.refresh_token)
+                conn.expires_at = timezone.now() + timedelta(seconds=data['expires_in'])
+                conn.save()
+
         started = start_twitch_chat(conn.platform_username, user_id, conn.access_token)
         
         return JsonResponse({'started': started})
