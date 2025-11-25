@@ -335,6 +335,7 @@ def generate_chat_box_html(user_id, config):
     hide_bots = config.get('hide_bots', True)
     hide_commands = config.get('hide_commands', False)
     muted_users = config.get('muted_users', [])
+    bad_words = config.get('bad_words', [])
     show_platform_icon = config.get('show_platform_icon', True)
     chat_notification_enabled = config.get('chat_notification_enabled', False)
     notification_sound = config.get('notification_sound', '')
@@ -456,6 +457,7 @@ const userId = '{user_id}';
 const config = {{
     hide_bots: {str(hide_bots).lower()},
     hide_commands: {str(hide_commands).lower()},
+    bad_words: {json.dumps(bad_words)},
     muted_users: {json.dumps(muted_users)},
     show_platform_icon: {str(show_platform_icon).lower()},
     show_twitch: {str(show_twitch).lower()},
