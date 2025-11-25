@@ -669,19 +669,19 @@ def generate_event_list_html(user_id, config, connected_platforms):
     
     style_css = {
         'clean': f'''
-            .event {{ padding: 0.8em 1em; margin-bottom: 0.5em; background: transparent; }}
+            .event {{ padding: 12px 16px; margin-bottom: 8px; background: transparent; }}
         ''',
         'boxed': f'''
-            .event {{ padding: 0.8em 1em; margin-bottom: 0.5em; background: rgba(0,0,0,0.7); border-radius: 0.5em; }}
+            .event {{ padding: 12px 16px; margin-bottom: 8px; background: rgba(0,0,0,0.7); border-radius: 8px; }}
         ''',
         'compact': f'''
-            .event {{ padding: 0.4em 0.6em; margin-bottom: 0.3em; background: transparent; }}
+            .event {{ padding: 6px 10px; margin-bottom: 4px; background: transparent; }}
         ''',
         'fuze': f'''
-            .event {{ padding: 0.8em 1em; margin-bottom: 0.5em; background: linear-gradient(90deg, {theme_color}40, transparent); border-left: 0.2em solid {theme_color}; }}
+            .event {{ padding: 12px 16px; margin-bottom: 8px; background: linear-gradient(90deg, {theme_color}40, transparent); border-left: 4px solid {theme_color}; }}
         ''',
         'bomby': f'''
-            .event {{ padding: 0.8em 1em; margin-bottom: 0.5em; background: rgba(0,0,0,0.8); border: 0.15em solid {theme_color}; border-radius: 0.5em; }}
+            .event {{ padding: 12px 16px; margin-bottom: 8px; background: rgba(0,0,0,0.8); border: 2px solid {theme_color}; border-radius: 8px; }}
         '''
     }
     
@@ -717,6 +717,7 @@ def generate_event_list_html(user_id, config, connected_platforms):
 <head>
 <meta charset="UTF-8">
 <style>
+* {{ box-sizing: border-box; }}
 body {{
     background: transparent;
     margin: 0;
@@ -726,24 +727,26 @@ body {{
 }}
 #events-container {{
     position: absolute;
-    top: 3%;
-    left: 3%;
-    width: 94%;
+    top: 20px;
+    left: 20px;
+    right: 20px;
     {transform}
 }}
 .event {{
     color: {text_color};
-    font-size: clamp(16px, {font_size / 8}vw, {font_size * 2}px);
+    font-size: {font_size}px;
     display: flex;
     align-items: center;
-    animation: eventIn {animation_speed}ms ease-out;
+    opacity: 1;
+    transform: translateX(0) scale(1);
+    animation: eventIn {animation_speed}ms ease-out forwards;
 }}
 {style_css.get(style, style_css['clean'])}
 {animation_css.get(animation, animation_css['slide'])}
 .event.removing {{ animation: eventOut {fade_time}ms ease-out forwards; }}
 .event-icon {{
-    font-size: clamp(18px, {(font_size + 4) / 8}vw, {(font_size + 4) * 2}px);
-    margin-right: 0.5em;
+    font-size: {font_size + 4}px;
+    margin-right: 10px;
     flex-shrink: 0;
 }}
 .event-text {{
@@ -751,11 +754,12 @@ body {{
     word-break: break-word;
 }}
 .platform-badge {{
-    width: clamp(16px, {font_size / 8}vw, {font_size * 2}px);
-    height: clamp(16px, {font_size / 8}vw, {font_size * 2}px);
-    margin-right: 0.5em;
+    width: {font_size + 4}px;
+    height: {font_size + 4}px;
+    margin-right: 8px;
     border-radius: 50%;
     object-fit: contain;
+    flex-shrink: 0;
 }}
 </style>
 </head>
@@ -811,18 +815,37 @@ const EVENT_NAMES = {{
 
 const connectedPlatforms = {json.dumps(connected_platforms)};
 const connections = [];
-if (config.show_twitch && connectedPlatforms.includes('twitch')) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/twitch/'));
-if (config.show_youtube && connectedPlatforms.includes('youtube')) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/youtube/'));
-if (config.show_kick && connectedPlatforms.includes('kick')) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/kick/'));
-if (config.show_facebook && connectedPlatforms.includes('facebook')) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/facebook/'));
-if (config.show_tiktok && connectedPlatforms.includes('tiktok')) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/tiktok/'));
 
-connections.forEach(ws => {{
-    ws.onmessage = (e) => {{
-        const data = JSON.parse(e.data);
-        addEvent(data);
-    }};
-}});
+function connectWS() {{
+    if (config.show_twitch && connectedPlatforms.includes('twitch')) {{
+        const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/twitch/');
+        ws.onmessage = (e) => addEvent(JSON.parse(e.data));
+        connections.push(ws);
+    }}
+    if (config.show_youtube && connectedPlatforms.includes('youtube')) {{
+        const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/youtube/');
+        ws.onmessage = (e) => addEvent(JSON.parse(e.data));
+        connections.push(ws);
+    }}
+    if (config.show_kick && connectedPlatforms.includes('kick')) {{
+        const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/kick/');
+        ws.onmessage = (e) => addEvent(JSON.parse(e.data));
+        connections.push(ws);
+    }}
+    if (config.show_facebook && connectedPlatforms.includes('facebook')) {{
+        const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/facebook/');
+        ws.onmessage = (e) => addEvent(JSON.parse(e.data));
+        connections.push(ws);
+    }}
+    if (config.show_tiktok && connectedPlatforms.includes('tiktok')) {{
+        const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/tiktok/');
+        ws.onmessage = (e) => addEvent(JSON.parse(e.data));
+        connections.push(ws);
+    }}
+}}
+
+// Connect immediately
+connectWS();
 
 function addEvent(data) {{
     const {{ event_type, platform, event_data }} = data;
@@ -854,8 +877,8 @@ function addEvent(data) {{
     
     eventEl.innerHTML = `
         ${{platformIcon}}
-        <div class="event-icon">${{icon}}</div>
-        <div class="event-text">${{text}}</div>
+        <span class="event-icon">${{icon}}</span>
+        <span class="event-text">${{text}}</span>
     `;
     
     container.insertBefore(eventEl, container.firstChild);
