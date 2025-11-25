@@ -7,12 +7,18 @@ def generate_widget_html(widget):
     platform = widget.platform
     config = widget.config
     
+    # Get user's connected platforms
+    from .models import PlatformConnection
+    connected_platforms = list(
+        PlatformConnection.objects.filter(user_id=user_id).values_list('platform', flat=True)
+    )
+    
     if widget_type == 'alert_box':
         return generate_alert_box_html(user_id, platform, config)
     elif widget_type == 'chat_box':
         return generate_chat_box_html(user_id, config)
     elif widget_type == 'event_list':
-        return generate_event_list_html(user_id, config)
+        return generate_event_list_html(user_id, config, connected_platforms)
     elif widget_type == 'goal_bar':
         return generate_goal_bar_html(user_id, config)
     else:
@@ -619,7 +625,7 @@ function displayMessage(data) {{
 </body>
 </html>"""
 
-def generate_event_list_html(user_id, config):
+def generate_event_list_html(user_id, config, connected_platforms):
     """Generate event list HTML with StreamlabsOBS-style event list"""
     style = config.get('style', 'clean')
     theme_color = config.get('theme_color', '#9146FF')
@@ -800,12 +806,13 @@ const EVENT_NAMES = {{
     'gift_sub': 'gifted a sub',
 }};
 
+const connectedPlatforms = {json.dumps(connected_platforms)};
 const connections = [];
-if (config.show_twitch) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/twitch/'));
-if (config.show_youtube) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/youtube/'));
-if (config.show_kick) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/kick/'));
-if (config.show_facebook) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/facebook/'));
-if (config.show_tiktok) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/tiktok/'));
+if (config.show_twitch && connectedPlatforms.includes('twitch')) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/twitch/'));
+if (config.show_youtube && connectedPlatforms.includes('youtube')) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/youtube/'));
+if (config.show_kick && connectedPlatforms.includes('kick')) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/kick/'));
+if (config.show_facebook && connectedPlatforms.includes('facebook')) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/facebook/'));
+if (config.show_tiktok && connectedPlatforms.includes('tiktok')) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/tiktok/'));
 
 connections.forEach(ws => {{
     ws.onmessage = (e) => {{
