@@ -2,6 +2,7 @@ import asyncio
 import websockets
 import json
 import requests
+import re
 from channels.layers import get_channel_layer
 
 active_kick_chats = {}
@@ -91,6 +92,16 @@ async def kick_chat_connect(channel_slug, user_id, access_token):
                             badge_list = message_data['sender']['identity']['badges']
                             badges = [b['type'] for b in badge_list if 'type' in b]
                         
+                        # Extract Kick emotes from content [emote:ID:name]
+                        emote_data = []
+                        for match in re.finditer(r'\[emote:(\d+):([^\]]+)\]', content):
+                            emote_data.append({
+                                'id': match.group(1),
+                                'name': match.group(2),
+                                'start': match.start(),
+                                'end': match.end()
+                            })
+                        
                         print(f'[KICK CHAT] Sending to chat: {username}: {content}')
                         
                         # Send to WebSocket
@@ -103,7 +114,8 @@ async def kick_chat_connect(channel_slug, user_id, access_token):
                                     'message': content,
                                     'badges': badges,
                                     'color': color,
-                                    'platform': 'kick'
+                                    'platform': 'kick',
+                                    'emotes': emote_data
                                 }
                             }
                         )

@@ -66,6 +66,7 @@ async def twitch_irc_connect(channel_name, user_id, oauth_token):
                         username = ""
                         badges = []
                         color = "#FFFFFF"
+                        emotes_tag = ""
                         
                         # Parse tags
                         for tag in tags.split(';'):
@@ -79,6 +80,25 @@ async def twitch_irc_connect(channel_name, user_id, oauth_token):
                                 c = tag.split('=', 1)[1]
                                 if c:
                                     color = c
+                            elif tag.startswith('emotes='):
+                                emotes_tag = tag.split('=', 1)[1]
+                        
+                        # Parse Twitch emotes
+                        emote_data = []
+                        if emotes_tag:
+                            # Format: emoteID:start-end,start-end/emoteID:start-end
+                            for emote_group in emotes_tag.split('/'):
+                                if ':' not in emote_group:
+                                    continue
+                                emote_id, positions = emote_group.split(':', 1)
+                                for pos in positions.split(','):
+                                    if '-' in pos:
+                                        start, end = pos.split('-')
+                                        emote_data.append({
+                                            'id': emote_id,
+                                            'start': int(start),
+                                            'end': int(end) + 1
+                                        })
                         
                         # Fallback username
                         if not username:
@@ -100,7 +120,8 @@ async def twitch_irc_connect(channel_name, user_id, oauth_token):
                                     'message': msg_text,
                                     'badges': badges,
                                     'color': color,
-                                    'platform': 'twitch'
+                                    'platform': 'twitch',
+                                    'emotes': emote_data
                                 }
                             }
                         )

@@ -445,6 +445,14 @@ body {{
 .username {{
     font-weight: bold;
     margin-right: 6px;
+    display: inline-block;
+    white-space: nowrap;
+}}
+.emote {{
+    display: inline-block;
+    height: 1.5em;
+    vertical-align: middle;
+    margin: 0 2px;
 }}
 {custom_css}
 </style>
@@ -528,6 +536,31 @@ ws.onmessage = (e) => {{
     setTimeout(() => displayMessage(data), config.chat_delay * 1000);
 }};
 
+function renderMessageWithEmotes(message, emotes, platform) {{
+    if (!emotes || emotes.length === 0) return message;
+    
+    // Sort emotes by position (reverse order for replacement)
+    emotes.sort((a, b) => b.start - a.start);
+    
+    let result = message;
+    for (let emote of emotes) {{
+        let emoteHtml = '';
+        
+        if (platform === 'twitch') {{
+            // Twitch emotes
+            emoteHtml = `<img src="https://static-cdn.jtvnw.net/emoticons/v2/${{emote.id}}/default/dark/1.0" class="emote" alt="emote" />`;
+            result = result.substring(0, emote.start) + emoteHtml + result.substring(emote.end);
+        }} else if (platform === 'kick') {{
+            // Kick emotes [emote:ID:name]
+            emoteHtml = `<img src="https://files.kick.com/emotes/${{emote.id}}/fullsize" class="emote" alt="${{emote.name}}" />`;
+            result = result.substring(0, emote.start) + emoteHtml + result.substring(emote.end);
+        }}
+        // YouTube, Facebook, TikTok will go here when implemented
+    }}
+    
+    return result;
+}}
+
 function displayMessage(data) {{
     const msg = document.createElement('div');
     msg.className = 'message';
@@ -552,7 +585,7 @@ function displayMessage(data) {{
     }}
     
     html += `<span class="username" style="color: ${{data.color || '{font_color}'}}">${{data.username}}:</span>`;
-    html += `<span>${{data.message}}</span>`;
+    html += `<span>${{renderMessageWithEmotes(data.message, data.emotes, data.platform)}}</span>`;
     
     msg.innerHTML = html;
     
