@@ -1317,6 +1317,13 @@ def fuzeobs_save_widget(request):
                     f'alerts_{user.id}_{platform}',
                     {'type': 'alert_event', 'data': {'type': 'refresh'}}
                 )
+            elif widget_type == 'event_list':
+                # Send refresh to all platform websockets for this user
+                for plat in ['twitch', 'youtube', 'kick', 'facebook', 'tiktok']:
+                    async_to_sync(channel_layer.group_send)(
+                        f'alerts_{user.id}_{plat}',
+                        {'type': 'alert_event', 'data': {'type': 'refresh'}}
+                    )
         else:
             # Auto-create default event configs for alert_box
             if widget_type == 'alert_box':

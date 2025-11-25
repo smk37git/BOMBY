@@ -742,9 +742,14 @@ html, body {{
 {animation_css.get(animation, animation_css['slide'])}
 .event.removing {{ animation: eventOut {fade_time}ms ease-out forwards; }}
 .event-icon {{
-    font-size: {font_size + 2}px;
+    width: {font_size}px;
+    height: {font_size}px;
     margin-right: 8px;
     flex-shrink: 0;
+}}
+.event-icon svg {{
+    width: 100%;
+    height: 100%;
 }}
 .event-text {{
     flex: 1;
@@ -753,10 +758,9 @@ html, body {{
     text-overflow: ellipsis;
 }}
 .platform-badge {{
-    width: {font_size + 2}px;
-    height: {font_size + 2}px;
+    width: {font_size + 4}px;
+    height: {font_size + 4}px;
     margin-right: 6px;
-    border-radius: 50%;
     object-fit: contain;
     flex-shrink: 0;
 }}
@@ -781,23 +785,31 @@ const config = {{
 }};
 
 const PLATFORM_ICONS = {{
-    'twitch': 'https://www.iconninja.com/files/830/856/929/logo-brand-social-network-twitch-icon.png',
-    'youtube': 'https://www.gstatic.com/images/icons/material/product/2x/youtube_64dp.png',
-    'kick': 'https://cdn.streamlabs.com/static/kick/image/logo.png',
-    'facebook': 'https://cdn.streamlabs.com/static/facebook/image/FB29.png',
-    'tiktok': 'https://sf16-website-login.neutral.ttwstatic.com/obj/tiktok_web_login_static/tiktok/webapp/main/webapp-desktop/8152caf0c8e8bc67ae0d.png'
+    'twitch': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/twitch.svg',
+    'youtube': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/youtube.svg',
+    'kick': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/kick.svg',
+    'facebook': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/facebook.svg',
+    'tiktok': 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/tiktok.svg'
+}};
+
+const PLATFORM_COLORS = {{
+    'twitch': '#9146FF',
+    'youtube': '#FF0000',
+    'kick': '#53FC18',
+    'facebook': '#1877F2',
+    'tiktok': '#000000'
 }};
 
 const EVENT_ICONS = {{
-    'follow': '❤️',
-    'subscribe': '⭐',
-    'bits': '💎',
-    'raid': '🔥',
-    'superchat': '💵',
-    'member': '🌟',
-    'stars': '⭐',
-    'gift': '🎁',
-    'gift_sub': '🎁',
+    'follow': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>',
+    'subscribe': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>',
+    'bits': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>',
+    'raid': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+    'superchat': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"/></svg>',
+    'member': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>',
+    'stars': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>',
+    'gift': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/></svg>',
+    'gift_sub': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/></svg>',
 }};
 
 const EVENT_NAMES = {{
@@ -818,32 +830,40 @@ const connections = [];
 function connectWS() {{
     if (config.show_twitch && connectedPlatforms.includes('twitch')) {{
         const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/twitch/');
-        ws.onmessage = (e) => addEvent(JSON.parse(e.data));
+        ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
         connections.push(ws);
     }}
     if (config.show_youtube && connectedPlatforms.includes('youtube')) {{
         const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/youtube/');
-        ws.onmessage = (e) => addEvent(JSON.parse(e.data));
+        ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
         connections.push(ws);
     }}
     if (config.show_kick && connectedPlatforms.includes('kick')) {{
         const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/kick/');
-        ws.onmessage = (e) => addEvent(JSON.parse(e.data));
+        ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
         connections.push(ws);
     }}
     if (config.show_facebook && connectedPlatforms.includes('facebook')) {{
         const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/facebook/');
-        ws.onmessage = (e) => addEvent(JSON.parse(e.data));
+        ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
         connections.push(ws);
     }}
     if (config.show_tiktok && connectedPlatforms.includes('tiktok')) {{
         const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/tiktok/');
-        ws.onmessage = (e) => addEvent(JSON.parse(e.data));
+        ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
         connections.push(ws);
     }}
 }}
 
 connectWS();
+
+function handleMessage(data) {{
+    if (data.type === 'refresh') {{
+        window.location.reload();
+        return;
+    }}
+    addEvent(data);
+}}
 
 function addEvent(data) {{
     const {{ event_type, platform, event_data }} = data;
@@ -861,9 +881,10 @@ function addEvent(data) {{
     const eventEl = document.createElement('div');
     eventEl.className = 'event';
     
-    const icon = EVENT_ICONS[event_type] || '🎉';
+    const icon = EVENT_ICONS[event_type] || EVENT_ICONS['follow'];
     const action = EVENT_NAMES[event_type] || event_type;
     const username = event_data.username || 'Someone';
+    const platformColor = PLATFORM_COLORS[platform] || '#FFFFFF';
     
     let text = `${{username}} ${{action}}`;
     if (event_type === 'bits') text = `${{username}} cheered ${{event_data.amount}} bits`;
@@ -871,11 +892,9 @@ function addEvent(data) {{
     if (event_type === 'superchat') text = `${{username}} super chatted ${{event_data.amount}}`;
     if (event_type === 'stars') text = `${{username}} sent ${{event_data.amount}} stars`;
     
-    const platformIcon = PLATFORM_ICONS[platform] ? `<img src="${{PLATFORM_ICONS[platform]}}" class="platform-badge" alt="${{platform}}">` : '';
-    
     eventEl.innerHTML = `
-        ${{platformIcon}}
-        <span class="event-icon">${{icon}}</span>
+        <img src="${{PLATFORM_ICONS[platform]}}" class="platform-badge" style="filter: invert(1);" alt="${{platform}}">
+        <span class="event-icon" style="color: ${{platformColor}}">${{icon}}</span>
         <span class="event-text">${{text}}</span>
     `;
     
