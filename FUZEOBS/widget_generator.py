@@ -515,6 +515,14 @@ ws.onmessage = (e) => {{
     if (config.hide_commands && data.message.startsWith('!')) return;
     if (config.muted_users.includes(data.username.toLowerCase())) return;
     
+    // Filter bad words
+    if (config.bad_words.length > 0) {{
+        const lowerMessage = data.message.toLowerCase();
+        for (let word of config.bad_words) {{
+            if (lowerMessage.includes(word.toLowerCase())) return;
+        }}
+    }}
+    
     setTimeout(() => displayMessage(data), config.chat_delay * 1000);
 }};
 
