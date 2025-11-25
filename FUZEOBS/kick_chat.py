@@ -33,8 +33,8 @@ async def kick_chat_connect(channel_slug, user_id, access_token):
         print(f'[KICK CHAT] API error: {e}')
         return
     
-    # Connect to Pusher WebSocket
-    uri = "wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=8.4.0-rc2&flash=false"
+    # Connect to Pusher WebSocket (public channel - no auth needed)
+    uri = "wss://ws-us2.pusher.com/app/32cbd69e4b950bf97679?protocol=7&client=js&version=8.4.0-rc2&flash=false"
     
     try:
         async with websockets.connect(uri) as ws:
@@ -44,7 +44,7 @@ async def kick_chat_connect(channel_slug, user_id, access_token):
             if data.get('event') == 'pusher:connection_established':
                 print(f'[KICK CHAT] Connected to Pusher')
             
-            # Subscribe to chatroom (public channel - no auth needed)
+            # Subscribe to chatroom
             subscribe_msg = {
                 "event": "pusher:subscribe",
                 "data": {
@@ -52,7 +52,7 @@ async def kick_chat_connect(channel_slug, user_id, access_token):
                 }
             }
             await ws.send(json.dumps(subscribe_msg))
-            print(f'[KICK CHAT] Subscribed to {channel_slug} (room {chatroom_id})')
+            print(f'[KICK CHAT] Connected to {channel_slug} (room {chatroom_id})')
             
             channel_layer = get_channel_layer()
             
@@ -64,6 +64,7 @@ async def kick_chat_connect(channel_slug, user_id, access_token):
                     # Handle Pusher ping/pong
                     if data.get('event') == 'pusher:ping':
                         await ws.send(json.dumps({'event': 'pusher:pong', 'data': {}}))
+                        print(f'[KICK CHAT] Pong sent')
                         continue
                     
                     # Check for subscription success
@@ -73,6 +74,7 @@ async def kick_chat_connect(channel_slug, user_id, access_token):
                     
                     # Handle chat messages
                     if data.get('event') == 'App\\Events\\ChatMessageEvent':
+                        print(f'[KICK CHAT] Message received')
                         message_data = json.loads(data.get('data', '{}'))
                         sender = message_data.get('sender', {})
                         
@@ -89,7 +91,7 @@ async def kick_chat_connect(channel_slug, user_id, access_token):
                             badge_list = message_data['sender']['identity']['badges']
                             badges = [b['type'] for b in badge_list if 'type' in b]
                         
-                        print(f'[KICK CHAT] {username}: {content}')
+                        print(f'[KICK CHAT] Sending to chat: {username}: {content}')
                         
                         # Send to WebSocket
                         await channel_layer.group_send(
