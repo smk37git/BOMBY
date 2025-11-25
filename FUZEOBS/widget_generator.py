@@ -750,6 +750,7 @@ html, body {{
     flex-direction: {flex_direction};
     align-items: center;
     animation: eventIn {animation_speed}ms ease-out forwards;
+    width: 100%;
 }}
 {style_css.get(style, style_css['clean'])}
 {animation_css.get(animation, animation_css['slide'])}
