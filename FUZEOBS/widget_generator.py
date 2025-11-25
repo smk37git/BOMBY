@@ -443,7 +443,7 @@ body {{
 }}
 .username {{
     font-weight: bold;
-    margin-right: 4px;
+    margin-right: 6px;
 }}
 {custom_css}
 </style>
