@@ -721,11 +721,15 @@ def generate_event_list_html(user_id, config, connected_platforms):
 body {{
     background: transparent;
     margin: 0;
-    padding: 10px;
+    padding: 0;
     font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     overflow: hidden;
 }}
 #events-container {{
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    width: calc(100% - 100px);
     {transform}
 }}
 .event {{
