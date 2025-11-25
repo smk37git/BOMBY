@@ -6,15 +6,18 @@ from channels.layers import get_channel_layer
 
 active_kick_chats = {}
 
-async def kick_chat_connect(channel_slug, user_id):
-    """Connect to Kick chat via Pusher WebSocket"""
+async def kick_chat_connect(channel_slug, user_id, access_token):
+    """Connect to Kick chat via Pusher WebSocket with OAuth"""
     
     # Get chatroom ID from Kick API
     try:
         resp = requests.get(
             f'https://kick.com/api/v2/channels/{channel_slug}', 
             timeout=5,
-            headers={'User-Agent': 'FuzeOBS/1.0'}
+            headers={
+                'User-Agent': 'FuzeOBS/1.0',
+                'Authorization': f'Bearer {access_token}'
+            }
         )
         if resp.status_code != 200:
             print(f'[KICK CHAT] Channel {channel_slug} not found (status {resp.status_code})')
@@ -30,17 +33,54 @@ async def kick_chat_connect(channel_slug, user_id):
         print(f'[KICK CHAT] API error: {e}')
         return
     
+    # Get Pusher auth from Kick
+    socket_id = None
+    pusher_auth = None
+    
     # Connect to Pusher WebSocket
     uri = "wss://ws-us2.pusher.com/app/eb1d5f283081a78b932c?protocol=7&client=js&version=8.4.0-rc2&flash=false"
     
     try:
         async with websockets.connect(uri) as ws:
-            # Subscribe to chatroom
+            # Wait for connection established to get socket_id
+            msg = await ws.recv()
+            data = json.loads(msg)
+            if data.get('event') == 'pusher:connection_established':
+                connection_data = json.loads(data['data'])
+                socket_id = connection_data['socket_id']
+                print(f'[KICK CHAT] Got socket_id: {socket_id}')
+            
+            # Get auth signature from Kick
+            try:
+                auth_resp = requests.post(
+                    'https://kick.com/broadcasting/auth',
+                    json={
+                        'socket_id': socket_id,
+                        'channel_name': f'chatrooms.{chatroom_id}.v2'
+                    },
+                    headers={
+                        'Authorization': f'Bearer {access_token}',
+                        'Content-Type': 'application/json'
+                    },
+                    timeout=5
+                )
+                if auth_resp.status_code == 200:
+                    auth_data = auth_resp.json()
+                    pusher_auth = auth_data.get('auth')
+                    print(f'[KICK CHAT] Got Pusher auth')
+                else:
+                    print(f'[KICK CHAT] Auth failed: {auth_resp.status_code} - {auth_resp.text}')
+                    return
+            except Exception as e:
+                print(f'[KICK CHAT] Auth request error: {e}')
+                return
+            
+            # Subscribe to chatroom with auth
             subscribe_msg = {
                 "event": "pusher:subscribe",
                 "data": {
                     "channel": f"chatrooms.{chatroom_id}.v2",
-                    "auth": ""
+                    "auth": pusher_auth
                 }
             }
             await ws.send(json.dumps(subscribe_msg))
@@ -57,6 +97,11 @@ async def kick_chat_connect(channel_slug, user_id):
                     if data.get('event') == 'pusher:ping':
                         await ws.send(json.dumps({'event': 'pusher:pong', 'data': {}}))
                         print(f'[KICK CHAT] Pong sent')
+                        continue
+                    
+                    # Check for subscription success
+                    if data.get('event') == 'pusher_internal:subscription_succeeded':
+                        print(f'[KICK CHAT] ✓ Subscription successful!')
                         continue
                     
                     # Handle chat messages
@@ -106,7 +151,7 @@ async def kick_chat_connect(channel_slug, user_id):
     except Exception as e:
         print(f'[KICK CHAT] Connection error: {e}')
 
-def start_kick_chat(channel_slug, user_id):
+def start_kick_chat(channel_slug, user_id, access_token):
     """Start Kick chat in background thread"""
     if user_id in active_kick_chats:
         return False
@@ -115,7 +160,7 @@ def start_kick_chat(channel_slug, user_id):
     
     def run():
         asyncio.set_event_loop(loop)
-        loop.run_until_complete(kick_chat_connect(channel_slug, user_id))
+        loop.run_until_complete(kick_chat_connect(channel_slug, user_id, access_token))
     
     import threading
     thread = threading.Thread(target=run, daemon=True)

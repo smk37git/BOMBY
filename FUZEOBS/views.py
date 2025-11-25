@@ -2226,7 +2226,7 @@ def fuzeobs_kick_chat_start(request, user_id):
     try:
         user = User.objects.get(id=user_id)
         conn = PlatformConnection.objects.get(user=user, platform='kick')
-        started = start_kick_chat(conn.platform_username, user_id)
+        started = start_kick_chat(conn.platform_username, user_id, conn.access_token)
         return JsonResponse({'started': started})
     except PlatformConnection.DoesNotExist:
         return JsonResponse({'started': False, 'error': 'Not connected'})
