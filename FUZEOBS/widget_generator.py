@@ -668,39 +668,39 @@ def generate_event_list_html(user_id, config, connected_platforms):
     }
     
     style_css = {
-        'clean': f'''
-            .event {{ padding: 12px 16px; margin-bottom: 8px; background: transparent; }}
+        'clean': '''
+            .event { padding: 8px 12px; margin-bottom: 6px; background: transparent; }
         ''',
-        'boxed': f'''
-            .event {{ padding: 12px 16px; margin-bottom: 8px; background: rgba(0,0,0,0.7); border-radius: 8px; }}
+        'boxed': '''
+            .event { padding: 10px 14px; margin-bottom: 8px; background: rgba(0,0,0,0.7); border-radius: 6px; }
         ''',
-        'compact': f'''
-            .event {{ padding: 6px 10px; margin-bottom: 4px; background: transparent; }}
+        'compact': '''
+            .event { padding: 4px 8px; margin-bottom: 4px; background: transparent; }
         ''',
         'fuze': f'''
-            .event {{ padding: 12px 16px; margin-bottom: 8px; background: linear-gradient(90deg, {theme_color}40, transparent); border-left: 4px solid {theme_color}; }}
+            .event {{ padding: 10px 14px; margin-bottom: 8px; background: linear-gradient(90deg, {theme_color}40, transparent); border-left: 3px solid {theme_color}; }}
         ''',
         'bomby': f'''
-            .event {{ padding: 12px 16px; margin-bottom: 8px; background: rgba(0,0,0,0.8); border: 2px solid {theme_color}; border-radius: 8px; }}
+            .event {{ padding: 10px 14px; margin-bottom: 8px; background: rgba(0,0,0,0.8); border: 2px solid {theme_color}; border-radius: 6px; }}
         '''
     }
     
     animation_css = {
-        'slide': f'''
-            @keyframes eventIn {{ from {{ transform: translateX(-100%); opacity: 0; }} to {{ transform: translateX(0); opacity: 1; }} }}
-            @keyframes eventOut {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
+        'slide': '''
+            @keyframes eventIn { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+            @keyframes eventOut { from { opacity: 1; } to { opacity: 0; } }
         ''',
-        'fade': f'''
-            @keyframes eventIn {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
-            @keyframes eventOut {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
+        'fade': '''
+            @keyframes eventIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes eventOut { from { opacity: 1; } to { opacity: 0; } }
         ''',
-        'bounce': f'''
-            @keyframes eventIn {{ 0% {{ transform: scale(0); opacity: 0; }} 50% {{ transform: scale(1.1); }} 100% {{ transform: scale(1); opacity: 1; }} }}
-            @keyframes eventOut {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
+        'bounce': '''
+            @keyframes eventIn { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+            @keyframes eventOut { from { opacity: 1; } to { opacity: 0; } }
         ''',
-        'zoom': f'''
-            @keyframes eventIn {{ from {{ transform: scale(0); opacity: 0; }} to {{ transform: scale(1); opacity: 1; }} }}
-            @keyframes eventOut {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
+        'zoom': '''
+            @keyframes eventIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+            @keyframes eventOut { from { opacity: 1; } to { opacity: 0; } }
         '''
     }
     
@@ -718,18 +718,17 @@ def generate_event_list_html(user_id, config, connected_platforms):
 <meta charset="UTF-8">
 <style>
 * {{ box-sizing: border-box; }}
-body {{
+html, body {{
     background: transparent;
     margin: 0;
     padding: 0;
+    width: 100%;
+    height: 100%;
     font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
     overflow: hidden;
 }}
 #events-container {{
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    right: 20px;
+    padding: 10px;
     {transform}
 }}
 .event {{
@@ -737,26 +736,26 @@ body {{
     font-size: {font_size}px;
     display: flex;
     align-items: center;
-    opacity: 1;
-    transform: translateX(0) scale(1);
     animation: eventIn {animation_speed}ms ease-out forwards;
 }}
 {style_css.get(style, style_css['clean'])}
 {animation_css.get(animation, animation_css['slide'])}
 .event.removing {{ animation: eventOut {fade_time}ms ease-out forwards; }}
 .event-icon {{
-    font-size: {font_size + 4}px;
-    margin-right: 10px;
+    font-size: {font_size + 2}px;
+    margin-right: 8px;
     flex-shrink: 0;
 }}
 .event-text {{
     flex: 1;
-    word-break: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }}
 .platform-badge {{
-    width: {font_size + 4}px;
-    height: {font_size + 4}px;
-    margin-right: 8px;
+    width: {font_size + 2}px;
+    height: {font_size + 2}px;
+    margin-right: 6px;
     border-radius: 50%;
     object-fit: contain;
     flex-shrink: 0;
@@ -844,7 +843,6 @@ function connectWS() {{
     }}
 }}
 
-// Connect immediately
 connectWS();
 
 function addEvent(data) {{
