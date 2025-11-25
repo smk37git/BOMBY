@@ -415,7 +415,7 @@ body {{
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 50%;
+    width: 75%;
     padding: 8px;
     overflow: hidden;
 }}
@@ -436,7 +436,7 @@ body {{
     height: {badge_size}px;
     vertical-align: middle;
     margin-right: 6px;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
     object-fit: contain;
 }}
 .username {{
