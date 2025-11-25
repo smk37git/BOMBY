@@ -620,7 +620,93 @@ function displayMessage(data) {{
 </html>"""
 
 def generate_event_list_html(user_id, config):
-    """Generate event list HTML"""
+    """Generate event list HTML with StreamlabsOBS-style event list"""
+    style = config.get('style', 'clean')
+    theme_color = config.get('theme_color', '#9146FF')
+    text_color = config.get('text_color', '#FFFFFF')
+    font_size = config.get('font_size', 18)
+    max_events = config.get('max_events', 5)
+    animation = config.get('animation', 'slide')
+    animation_speed = config.get('animation_speed', 500)
+    fade_time = config.get('fade_time', 300)
+    flip_x = config.get('flip_x', False)
+    flip_y = config.get('flip_y', False)
+    keep_history = config.get('keep_history', False)
+    
+    # Platform and event filters
+    show_twitch = config.get('show_twitch', True)
+    show_youtube = config.get('show_youtube', True)
+    show_kick = config.get('show_kick', True)
+    show_facebook = config.get('show_facebook', True)
+    show_tiktok = config.get('show_tiktok', True)
+    
+    event_filters = {
+        'twitch_follow': config.get('twitch_follow', True),
+        'twitch_subscribe': config.get('twitch_subscribe', True),
+        'twitch_resub': config.get('twitch_resub', True),
+        'twitch_gift_sub': config.get('twitch_gift_sub', True),
+        'twitch_bits': config.get('twitch_bits', True),
+        'twitch_raid': config.get('twitch_raid', True),
+        'youtube_member': config.get('youtube_member', True),
+        'youtube_superchat': config.get('youtube_superchat', True),
+        'facebook_follow': config.get('facebook_follow', True),
+        'facebook_stars': config.get('facebook_stars', True),
+        'kick_follow': config.get('kick_follow', True),
+        'kick_subscribe': config.get('kick_subscribe', True),
+        'kick_gift_sub': config.get('kick_gift_sub', True),
+        'tiktok_follow': config.get('tiktok_follow', True),
+        'tiktok_gift': config.get('tiktok_gift', True),
+    }
+    
+    min_bits = config.get('min_bits', 1)
+    min_stars = config.get('min_stars', 1)
+    min_raiders = config.get('min_raiders', 1)
+    
+    style_css = {
+        'clean': f'''
+            .event {{ background: transparent; padding: 8px 12px; margin: 4px 0; border-left: 3px solid {theme_color}; }}
+        ''',
+        'boxed': f'''
+            .event {{ background: rgba(0,0,0,0.7); padding: 10px 15px; margin: 5px 0; border-radius: 5px; border: 1px solid {theme_color}; }}
+        ''',
+        'compact': f'''
+            .event {{ background: rgba(0,0,0,0.5); padding: 6px 10px; margin: 2px 0; border-radius: 3px; }}
+        ''',
+        'fuze': f'''
+            .event {{ background: linear-gradient(135deg, rgba(145,70,255,0.2) 0%, rgba(0,0,0,0.8) 100%); padding: 12px 16px; margin: 6px 0; border-radius: 8px; border-left: 4px solid {theme_color}; box-shadow: 0 2px 8px rgba(145,70,255,0.3); }}
+        ''',
+        'bomby': f'''
+            .event {{ background: rgba(0,0,0,0.9); padding: 10px 14px; margin: 4px 0; border-radius: 6px; border: 2px solid {theme_color}; box-shadow: 0 0 15px {theme_color}40; }}
+        '''
+    }
+    
+    animation_css = {
+        'slide': f'''
+            @keyframes eventIn {{ from {{ transform: translateX(-100%); opacity: 0; }} to {{ transform: translateX(0); opacity: 1; }} }}
+            @keyframes eventOut {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
+        ''',
+        'fade': f'''
+            @keyframes eventIn {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+            @keyframes eventOut {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
+        ''',
+        'bounce': f'''
+            @keyframes eventIn {{ 0% {{ transform: scale(0); opacity: 0; }} 50% {{ transform: scale(1.1); }} 100% {{ transform: scale(1); opacity: 1; }} }}
+            @keyframes eventOut {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
+        ''',
+        'zoom': f'''
+            @keyframes eventIn {{ from {{ transform: scale(0); opacity: 0; }} to {{ transform: scale(1); opacity: 1; }} }}
+            @keyframes eventOut {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
+        '''
+    }
+    
+    transform = ''
+    if flip_x and flip_y:
+        transform = 'transform: scale(-1, -1);'
+    elif flip_x:
+        transform = 'transform: scaleX(-1);'
+    elif flip_y:
+        transform = 'transform: scaleY(-1);'
+    
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -630,58 +716,147 @@ body {{
     background: transparent;
     margin: 0;
     padding: 10px;
-    font-family: 'Arial', sans-serif;
-    color: white;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    overflow: hidden;
+}}
+#events-container {{
+    {transform}
 }}
 .event {{
-    background: rgba(0,0,0,0.7);
-    padding: 10px;
-    margin: 5px 0;
-    border-radius: 5px;
+    color: {text_color};
+    font-size: {font_size}px;
     display: flex;
     align-items: center;
-    animation: slideInLeft 0.3s ease-out;
+    animation: eventIn {animation_speed}ms ease-out;
 }}
-@keyframes slideInLeft {{
-    from {{ transform: translateX(-100%); opacity: 0; }}
-    to {{ transform: translateX(0); opacity: 1; }}
+{style_css.get(style, style_css['clean'])}
+{animation_css.get(animation, animation_css['slide'])}
+.event.removing {{ animation: eventOut {fade_time}ms ease-out forwards; }}
+.event-icon {{
+    font-size: {font_size + 4}px;
+    margin-right: 10px;
+    flex-shrink: 0;
 }}
-.event-icon {{ font-size: 24px; margin-right: 10px; }}
-.event-text {{ flex: 1; }}
+.event-text {{
+    flex: 1;
+    word-break: break-word;
+}}
+.platform-badge {{
+    width: {font_size}px;
+    height: {font_size}px;
+    margin-right: 8px;
+    border-radius: 50%;
+    object-fit: contain;
+}}
 </style>
 </head>
 <body>
-<div id="events"></div>
+<div id="events-container"></div>
 <script>
-const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-events/{user_id}');
-ws.onmessage = (e) => {{
-    const data = JSON.parse(e.data);
-    const event = document.createElement('div');
-    event.className = 'event';
-    event.innerHTML = `
-        <div class="event-icon">${{getEventIcon(data.type)}}</div>
-        <div class="event-text">${{data.username}} ${{data.action}}</div>
-    `;
-    
-    const container = document.getElementById('events');
-    container.insertBefore(event, container.firstChild);
-    
-    while (container.children.length > 10) {{
-        container.removeChild(container.lastChild);
-    }}
+const config = {{
+    max_events: {max_events},
+    keep_history: {str(keep_history).lower()},
+    show_twitch: {str(show_twitch).lower()},
+    show_youtube: {str(show_youtube).lower()},
+    show_kick: {str(show_kick).lower()},
+    show_facebook: {str(show_facebook).lower()},
+    show_tiktok: {str(show_tiktok).lower()},
+    event_filters: {json.dumps(event_filters)},
+    min_bits: {min_bits},
+    min_stars: {min_stars},
+    min_raiders: {min_raiders},
+    fade_time: {fade_time}
 }};
 
-function getEventIcon(type) {{
-    const icons = {{
-        'follow': '❤️',
-        'subscribe': '⭐',
-        'bits': '💎',
-        'donation': '💰',
-        'raid': '🔥',
-        'superchat': '💵',
-        'member': '🌟',
+const PLATFORM_ICONS = {{
+    'twitch': 'https://www.iconninja.com/files/830/856/929/logo-brand-social-network-twitch-icon.png',
+    'youtube': 'https://www.gstatic.com/images/icons/material/product/2x/youtube_64dp.png',
+    'kick': 'https://cdn.streamlabs.com/static/kick/image/logo.png',
+    'facebook': 'https://cdn.streamlabs.com/static/facebook/image/FB29.png',
+    'tiktok': 'https://sf16-website-login.neutral.ttwstatic.com/obj/tiktok_web_login_static/tiktok/webapp/main/webapp-desktop/8152caf0c8e8bc67ae0d.png'
+}};
+
+const EVENT_ICONS = {{
+    'follow': '❤️',
+    'subscribe': '⭐',
+    'bits': '💎',
+    'raid': '🔥',
+    'superchat': '💵',
+    'member': '🌟',
+    'stars': '⭐',
+    'gift': '🎁',
+    'gift_sub': '🎁',
+}};
+
+const EVENT_NAMES = {{
+    'follow': 'followed',
+    'subscribe': 'subscribed',
+    'bits': 'cheered',
+    'raid': 'raided',
+    'superchat': 'super chatted',
+    'member': 'became a member',
+    'stars': 'sent stars',
+    'gift': 'sent a gift',
+    'gift_sub': 'gifted a sub',
+}};
+
+const connections = [];
+if (config.show_twitch) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/twitch/'));
+if (config.show_youtube) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/youtube/'));
+if (config.show_kick) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/kick/'));
+if (config.show_facebook) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/facebook/'));
+if (config.show_tiktok) connections.push(new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/tiktok/'));
+
+connections.forEach(ws => {{
+    ws.onmessage = (e) => {{
+        const data = JSON.parse(e.data);
+        addEvent(data);
     }};
-    return icons[type] || '🎉';
+}});
+
+function addEvent(data) {{
+    const {{ event_type, platform, event_data }} = data;
+    
+    if (!config[`show_${{platform}}`]) return;
+    
+    const filterKey = `${{platform}}_${{event_type}}`;
+    if (config.event_filters[filterKey] === false) return;
+    
+    if (event_type === 'bits' && event_data.amount < config.min_bits) return;
+    if (event_type === 'stars' && event_data.amount < config.min_stars) return;
+    if (event_type === 'raid' && event_data.viewers < config.min_raiders) return;
+    
+    const container = document.getElementById('events-container');
+    const eventEl = document.createElement('div');
+    eventEl.className = 'event';
+    
+    const icon = EVENT_ICONS[event_type] || '🎉';
+    const action = EVENT_NAMES[event_type] || event_type;
+    const username = event_data.username || 'Someone';
+    
+    let text = `${{username}} ${{action}}`;
+    if (event_type === 'bits') text = `${{username}} cheered ${{event_data.amount}} bits`;
+    if (event_type === 'raid') text = `${{username}} raided with ${{event_data.viewers}} viewers`;
+    if (event_type === 'superchat') text = `${{username}} super chatted ${{event_data.amount}}`;
+    if (event_type === 'stars') text = `${{username}} sent ${{event_data.amount}} stars`;
+    
+    const platformIcon = PLATFORM_ICONS[platform] ? `<img src="${{PLATFORM_ICONS[platform]}}" class="platform-badge" alt="${{platform}}">` : '';
+    
+    eventEl.innerHTML = `
+        ${{platformIcon}}
+        <div class="event-icon">${{icon}}</div>
+        <div class="event-text">${{text}}</div>
+    `;
+    
+    container.insertBefore(eventEl, container.firstChild);
+    
+    if (!config.keep_history) {{
+        while (container.children.length > config.max_events) {{
+            const last = container.lastChild;
+            last.classList.add('removing');
+            setTimeout(() => last.remove(), config.fade_time);
+        }}
+    }}
 }}
 </script>
 </body>
