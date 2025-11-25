@@ -672,6 +672,12 @@ def generate_event_list_html(user_id, config, connected_platforms):
     align_bottom = 'bottom: 0;' if flip_y else 'top: 0;'
     flex_direction = 'row-reverse' if flip_x else 'row'
     margin_dir = 'margin-top' if flip_y else 'margin-bottom'
+    icon_margin = 'margin-left: 8px;' if flip_x else 'margin-right: 8px;'
+    badge_margin = 'margin-left: 6px;' if flip_x else 'margin-right: 6px;'
+    
+    # Fuze style direction based on flip
+    grad_dir = '270deg' if flip_x else '90deg'
+    border_side = 'border-right' if flip_x else 'border-left'
     
     # Fuze style uses platform color via CSS class
     style_css = {
@@ -685,12 +691,12 @@ def generate_event_list_html(user_id, config, connected_platforms):
             .event {{ padding: 4px 8px; {margin_dir}: 4px; background: transparent; }}
         ''',
         'fuze': f'''
-            .event {{ padding: 10px 14px; {margin_dir}: 8px; border-left: 3px solid var(--platform-color); }}
-            .event.twitch {{ background: linear-gradient(90deg, rgba(145,70,255,0.4), transparent); --platform-color: #9146FF; }}
-            .event.youtube {{ background: linear-gradient(90deg, rgba(255,0,0,0.4), transparent); --platform-color: #FF0000; }}
-            .event.kick {{ background: linear-gradient(90deg, rgba(83,252,24,0.4), transparent); --platform-color: #53FC18; }}
-            .event.facebook {{ background: linear-gradient(90deg, rgba(24,119,242,0.4), transparent); --platform-color: #1877F2; }}
-            .event.tiktok {{ background: linear-gradient(90deg, rgba(254,40,88,0.4), transparent); --platform-color: #FE2858; }}
+            .event {{ padding: 10px 14px; {margin_dir}: 8px; {border_side}: 3px solid var(--platform-color); }}
+            .event.twitch {{ background: linear-gradient({grad_dir}, rgba(145,70,255,0.5) 0%, rgba(145,70,255,0.2) 60%, transparent 100%); --platform-color: #9146FF; }}
+            .event.youtube {{ background: linear-gradient({grad_dir}, rgba(255,0,0,0.5) 0%, rgba(255,0,0,0.2) 60%, transparent 100%); --platform-color: #FF0000; }}
+            .event.kick {{ background: linear-gradient({grad_dir}, rgba(83,252,24,0.5) 0%, rgba(83,252,24,0.2) 60%, transparent 100%); --platform-color: #53FC18; }}
+            .event.facebook {{ background: linear-gradient({grad_dir}, rgba(24,119,242,0.5) 0%, rgba(24,119,242,0.2) 60%, transparent 100%); --platform-color: #1877F2; }}
+            .event.tiktok {{ background: linear-gradient({grad_dir}, rgba(254,40,88,0.5) 0%, rgba(254,40,88,0.2) 60%, transparent 100%); --platform-color: #FE2858; }}
         ''',
         'bomby': f'''
             .event {{ padding: 10px 14px; {margin_dir}: 8px; background: rgba(0,0,0,0.8); border: 2px solid {theme_color}; border-radius: 6px; }}
@@ -751,7 +757,7 @@ html, body {{
 .event-icon {{
     width: {font_size}px;
     height: {font_size}px;
-    margin-right: 8px;
+    {icon_margin}
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -770,7 +776,7 @@ html, body {{
 .platform-badge {{
     width: {font_size + 4}px;
     height: {font_size + 4}px;
-    margin-right: 6px;
+    {badge_margin}
     flex-shrink: 0;
     display: flex;
     align-items: center;
