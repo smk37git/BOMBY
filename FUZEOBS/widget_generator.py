@@ -667,27 +667,33 @@ def generate_event_list_html(user_id, config, connected_platforms):
         'tiktok_gift': config.get('tiktok_gift', True),
     }
     
+    # Flip changes alignment, not mirroring
+    align_right = 'right: 0;' if flip_x else 'left: 0;'
+    align_bottom = 'bottom: 0;' if flip_y else 'top: 0;'
+    flex_direction = 'row-reverse' if flip_x else 'row'
+    margin_dir = 'margin-top' if flip_y else 'margin-bottom'
+    
     # Fuze style uses platform color via CSS class
     style_css = {
-        'clean': '''
-            .event { padding: 8px 12px; margin-bottom: 6px; background: transparent; }
+        'clean': f'''
+            .event {{ padding: 8px 12px; {margin_dir}: 6px; background: transparent; }}
         ''',
-        'boxed': '''
-            .event { padding: 10px 14px; margin-bottom: 8px; background: rgba(0,0,0,0.7); border-radius: 6px; }
+        'boxed': f'''
+            .event {{ padding: 10px 14px; {margin_dir}: 8px; background: rgba(0,0,0,0.7); border-radius: 6px; }}
         ''',
-        'compact': '''
-            .event { padding: 4px 8px; margin-bottom: 4px; background: transparent; }
+        'compact': f'''
+            .event {{ padding: 4px 8px; {margin_dir}: 4px; background: transparent; }}
         ''',
-        'fuze': '''
-            .event { padding: 10px 14px; margin-bottom: 8px; border-left: 3px solid var(--platform-color); }
-            .event.twitch { background: linear-gradient(90deg, rgba(145,70,255,0.4), transparent); --platform-color: #9146FF; }
-            .event.youtube { background: linear-gradient(90deg, rgba(255,0,0,0.4), transparent); --platform-color: #FF0000; }
-            .event.kick { background: linear-gradient(90deg, rgba(83,252,24,0.4), transparent); --platform-color: #53FC18; }
-            .event.facebook { background: linear-gradient(90deg, rgba(24,119,242,0.4), transparent); --platform-color: #1877F2; }
-            .event.tiktok { background: linear-gradient(90deg, rgba(254,40,88,0.4), transparent); --platform-color: #FE2858; }
+        'fuze': f'''
+            .event {{ padding: 10px 14px; {margin_dir}: 8px; border-left: 3px solid var(--platform-color); }}
+            .event.twitch {{ background: linear-gradient(90deg, rgba(145,70,255,0.4), transparent); --platform-color: #9146FF; }}
+            .event.youtube {{ background: linear-gradient(90deg, rgba(255,0,0,0.4), transparent); --platform-color: #FF0000; }}
+            .event.kick {{ background: linear-gradient(90deg, rgba(83,252,24,0.4), transparent); --platform-color: #53FC18; }}
+            .event.facebook {{ background: linear-gradient(90deg, rgba(24,119,242,0.4), transparent); --platform-color: #1877F2; }}
+            .event.tiktok {{ background: linear-gradient(90deg, rgba(254,40,88,0.4), transparent); --platform-color: #FE2858; }}
         ''',
         'bomby': f'''
-            .event {{ padding: 10px 14px; margin-bottom: 8px; background: rgba(0,0,0,0.8); border: 2px solid {theme_color}; border-radius: 6px; }}
+            .event {{ padding: 10px 14px; {margin_dir}: 8px; background: rgba(0,0,0,0.8); border: 2px solid {theme_color}; border-radius: 6px; }}
         '''
     }
     
@@ -710,14 +716,6 @@ def generate_event_list_html(user_id, config, connected_platforms):
         '''
     }
     
-    transform = ''
-    if flip_x and flip_y:
-        transform = 'transform: scale(-1, -1);'
-    elif flip_x:
-        transform = 'transform: scaleX(-1);'
-    elif flip_y:
-        transform = 'transform: scaleY(-1);'
-    
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -735,12 +733,15 @@ html, body {{
 }}
 #events-container {{
     padding: 10px;
-    {transform}
+    position: absolute;
+    {align_right}
+    {align_bottom}
 }}
 .event {{
     color: {text_color};
     font-size: {font_size}px;
     display: flex;
+    flex-direction: {flex_direction};
     align-items: center;
     animation: eventIn {animation_speed}ms ease-out forwards;
 }}
@@ -796,13 +797,14 @@ const config = {{
     min_bits: {min_bits},
     min_stars: {min_stars},
     min_raiders: {min_raiders},
-    fade_time: {fade_time}
+    fade_time: {fade_time},
+    flip_y: {str(flip_y).lower()}
 }};
 
 const PLATFORM_ICONS = {{
     'twitch': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>',
     'youtube': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
-    'kick': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M37 .036h164.448v113.621h54.71v-56.82h54.731V.036h164.448v170.777h-54.73v56.82h-54.711v56.8h54.71v56.82h54.73V512.03H310.89v-56.82h-54.73v-56.8h-54.711v113.62H37V.036z"/></svg>',
+    'kick': '<svg viewBox="0 0 512 512" fill="currentColor"><path d="M37 .036h164.448v113.621h54.71v-56.82h54.731V.036h164.448v170.777h-54.73v56.82h-54.711v56.8h54.71v56.82h54.73V512.03H310.89v-56.82h-54.73v-56.8h-54.711v113.62H37V.036z"/></svg>',
     'facebook': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>',
     'tiktok': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>'
 }};
@@ -914,13 +916,18 @@ function addEvent(data) {{
         <span class="event-text">${{text}}</span>
     `;
     
-    container.insertBefore(eventEl, container.firstChild);
+    // For flip_y, add to bottom; otherwise add to top
+    if (config.flip_y) {{
+        container.appendChild(eventEl);
+    }} else {{
+        container.insertBefore(eventEl, container.firstChild);
+    }}
     
     if (!config.keep_history) {{
         while (container.children.length > config.max_events) {{
-            const last = container.lastChild;
-            last.classList.add('removing');
-            setTimeout(() => last.remove(), config.fade_time);
+            const toRemove = config.flip_y ? container.firstChild : container.lastChild;
+            toRemove.classList.add('removing');
+            setTimeout(() => toRemove.remove(), config.fade_time);
         }}
     }}
 }}
