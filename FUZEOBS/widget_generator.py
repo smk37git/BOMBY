@@ -415,7 +415,7 @@ body {{
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 75%;
+    max-width: 75%;
     padding: 8px;
     overflow: hidden;
 }}
@@ -424,6 +424,8 @@ body {{
     line-height: 1.4;
     color: {font_color};
     animation: slideIn 0.3s ease-out;
+    word-break: break-word;
+    overflow-wrap: break-word;
 }}
 {current_style}
 @keyframes slideIn {{
