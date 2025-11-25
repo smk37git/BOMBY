@@ -626,25 +626,28 @@ function displayMessage(data) {{
 </html>"""
 
 def generate_event_list_html(user_id, config, connected_platforms):
-    """Generate event list HTML with StreamlabsOBS-style event list"""
+    """Generate event list HTML"""
     style = config.get('style', 'clean')
     theme_color = config.get('theme_color', '#9146FF')
     text_color = config.get('text_color', '#FFFFFF')
     font_size = config.get('font_size', 18)
-    max_events = config.get('max_events', 5)
     animation = config.get('animation', 'slide')
     animation_speed = config.get('animation_speed', 500)
     fade_time = config.get('fade_time', 300)
+    max_events = config.get('max_events', 5)
+    keep_history = config.get('keep_history', False)
     flip_x = config.get('flip_x', False)
     flip_y = config.get('flip_y', False)
-    keep_history = config.get('keep_history', False)
     
-    # Platform and event filters
     show_twitch = config.get('show_twitch', True)
     show_youtube = config.get('show_youtube', True)
     show_kick = config.get('show_kick', True)
     show_facebook = config.get('show_facebook', True)
     show_tiktok = config.get('show_tiktok', True)
+    
+    min_bits = config.get('min_bits', 1)
+    min_stars = config.get('min_stars', 1)
+    min_raiders = config.get('min_raiders', 1)
     
     event_filters = {
         'twitch_follow': config.get('twitch_follow', True),
@@ -664,25 +667,21 @@ def generate_event_list_html(user_id, config, connected_platforms):
         'tiktok_gift': config.get('tiktok_gift', True),
     }
     
-    min_bits = config.get('min_bits', 1)
-    min_stars = config.get('min_stars', 1)
-    min_raiders = config.get('min_raiders', 1)
-    
     style_css = {
         'clean': f'''
-            .event {{ background: transparent; padding: 8px 12px; margin: 4px 0; border-left: 3px solid {theme_color}; }}
+            .event {{ padding: 0.8em 1em; margin-bottom: 0.5em; background: transparent; }}
         ''',
         'boxed': f'''
-            .event {{ background: rgba(0,0,0,0.7); padding: 10px 15px; margin: 5px 0; border-radius: 5px; border: 1px solid {theme_color}; }}
+            .event {{ padding: 0.8em 1em; margin-bottom: 0.5em; background: rgba(0,0,0,0.7); border-radius: 0.5em; }}
         ''',
         'compact': f'''
-            .event {{ background: rgba(0,0,0,0.5); padding: 6px 10px; margin: 2px 0; border-radius: 3px; }}
+            .event {{ padding: 0.4em 0.6em; margin-bottom: 0.3em; background: transparent; }}
         ''',
         'fuze': f'''
-            .event {{ background: linear-gradient(135deg, rgba(145,70,255,0.2) 0%, rgba(0,0,0,0.8) 100%); padding: 12px 16px; margin: 6px 0; border-radius: 8px; border-left: 4px solid {theme_color}; box-shadow: 0 2px 8px rgba(145,70,255,0.3); }}
+            .event {{ padding: 0.8em 1em; margin-bottom: 0.5em; background: linear-gradient(90deg, {theme_color}40, transparent); border-left: 0.2em solid {theme_color}; }}
         ''',
         'bomby': f'''
-            .event {{ background: rgba(0,0,0,0.9); padding: 10px 14px; margin: 4px 0; border-radius: 6px; border: 2px solid {theme_color}; box-shadow: 0 0 15px {theme_color}40; }}
+            .event {{ padding: 0.8em 1em; margin-bottom: 0.5em; background: rgba(0,0,0,0.8); border: 0.15em solid {theme_color}; border-radius: 0.5em; }}
         '''
     }
     
@@ -727,14 +726,14 @@ body {{
 }}
 #events-container {{
     position: absolute;
-    top: 50px;
-    left: 50px;
-    width: calc(100% - 100px);
+    top: 3%;
+    left: 3%;
+    width: 94%;
     {transform}
 }}
 .event {{
     color: {text_color};
-    font-size: {font_size}px;
+    font-size: clamp(16px, {font_size / 8}vw, {font_size * 2}px);
     display: flex;
     align-items: center;
     animation: eventIn {animation_speed}ms ease-out;
@@ -743,8 +742,8 @@ body {{
 {animation_css.get(animation, animation_css['slide'])}
 .event.removing {{ animation: eventOut {fade_time}ms ease-out forwards; }}
 .event-icon {{
-    font-size: {font_size + 4}px;
-    margin-right: 10px;
+    font-size: clamp(18px, {(font_size + 4) / 8}vw, {(font_size + 4) * 2}px);
+    margin-right: 0.5em;
     flex-shrink: 0;
 }}
 .event-text {{
@@ -752,9 +751,9 @@ body {{
     word-break: break-word;
 }}
 .platform-badge {{
-    width: {font_size}px;
-    height: {font_size}px;
-    margin-right: 8px;
+    width: clamp(16px, {font_size / 8}vw, {font_size * 2}px);
+    height: clamp(16px, {font_size / 8}vw, {font_size * 2}px);
+    margin-right: 0.5em;
     border-radius: 50%;
     object-fit: contain;
 }}
