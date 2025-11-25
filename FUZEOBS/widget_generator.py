@@ -740,6 +740,7 @@ html, body {{
 #events-container {{
     padding: 10px;
     position: absolute;
+    width: 100%;
     {align_right}
     {align_bottom}
 }}
