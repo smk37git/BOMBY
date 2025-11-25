@@ -882,9 +882,7 @@ function connectWS() {{
 
 connectWS();
 
-function handleMessage(rawData) {{
-    // Handle both patterns: {{type: 'refresh'}} or {{data: {{type: 'refresh'}}}}
-    const data = rawData.data || rawData;
+function handleMessage(data) {{
     if (data.type === 'refresh') {{
         window.location.reload();
         return;
