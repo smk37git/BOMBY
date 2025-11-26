@@ -131,6 +131,7 @@ class WidgetConfig(models.Model):
         ('chat_box', 'Chat Box'),
         ('event_list', 'Event List'),
         ('goal_bar', 'Goal Bar'),
+        ('labels', 'Labels'),
     ]
     
     PLATFORMS = [
@@ -145,7 +146,7 @@ class WidgetConfig(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     widget_type = models.CharField(max_length=20, choices=WIDGET_TYPES)
     platform = models.CharField(max_length=20, choices=PLATFORMS)
-    goal_type = models.CharField(max_length=20, blank=True, default='')
+    goal_type = models.CharField(max_length=50, blank=True, default='')
     name = models.CharField(max_length=100)
     config = models.JSONField(default=dict)
     token = models.CharField(max_length=128, unique=True, blank=True)

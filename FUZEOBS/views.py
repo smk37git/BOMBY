@@ -1287,7 +1287,7 @@ def fuzeobs_save_widget(request):
         widget_type = data['widget_type']
         goal_type = data.get('goal_type', '')
         
-        # For goal_bar, include goal_type in uniqueness lookup
+        # For goal_bar and labels, include goal_type in uniqueness lookup
         if widget_type == 'goal_bar':
             widget, created = WidgetConfig.objects.get_or_create(
                 user=user,
@@ -1296,6 +1296,17 @@ def fuzeobs_save_widget(request):
                 goal_type=goal_type,
                 defaults={
                     'name': data.get('name', f'Goal Bar - {goal_type.title()}'),
+                    'config': data.get('config', {})
+                }
+            )
+        elif widget_type == 'labels':
+            widget, created = WidgetConfig.objects.get_or_create(
+                user=user,
+                widget_type=widget_type,
+                platform=platform,
+                goal_type=goal_type,
+                defaults={
+                    'name': data.get('name', f'Label - {goal_type.replace("_", " ").title()}'),
                     'config': data.get('config', {})
                 }
             )
@@ -1342,6 +1353,12 @@ def fuzeobs_save_widget(request):
                 async_to_sync(channel_layer.group_send)(
                     f'goals_{user.id}',
                     {'type': 'goal_update', 'data': {'type': 'refresh'}}
+                )
+            elif widget_type == 'labels':
+                # Send refresh to labels websocket
+                async_to_sync(channel_layer.group_send)(
+                    f'labels_{user.id}',
+                    {'type': 'label_update', 'data': {'type': 'refresh'}}
                 )
         else:
             # Auto-create default event configs for alert_box

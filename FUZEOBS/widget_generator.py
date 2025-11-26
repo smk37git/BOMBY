@@ -1291,3 +1291,288 @@ connectGoalWebSockets();
 </script>
 </body>
 </html>"""
+
+def generate_labels_html(user_id, config, connected_platforms):
+    """Generate labels widget HTML - add this function to widget_generator.py"""
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&family=Open+Sans:wght@400;700&family=Oswald:wght@400;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+body {{
+    background: transparent;
+    margin: 0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}}
+#label-container {{
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}}
+.label-text {{
+    transition: all 0.3s ease;
+}}
+.platform-icon {{
+    width: 24px;
+    height: 24px;
+    margin-right: 6px;
+}}
+@keyframes fadeIn {{
+    from {{ opacity: 0; }}
+    to {{ opacity: 1; }}
+}}
+@keyframes slideIn {{
+    from {{ transform: translateX(-20px); opacity: 0; }}
+    to {{ transform: translateX(0); opacity: 1; }}
+}}
+@keyframes bounceIn {{
+    0% {{ transform: scale(0); opacity: 0; }}
+    50% {{ transform: scale(1.1); }}
+    100% {{ transform: scale(1); opacity: 1; }}
+}}
+@keyframes pulse {{
+    0%, 100% {{ transform: scale(1); }}
+    50% {{ transform: scale(1.05); }}
+}}
+.anim-fade {{ animation: fadeIn 0.5s ease; }}
+.anim-slide {{ animation: slideIn 0.5s ease; }}
+.anim-bounce {{ animation: bounceIn 0.5s ease; }}
+.anim-pulse {{ animation: pulse 1s ease infinite; }}
+</style>
+</head>
+<body>
+<div id="label-container"></div>
+<script>
+const userId = '{user_id}';
+const config = {json.dumps(config)};
+const connectedPlatforms = {json.dumps(connected_platforms)};
+
+const urlParams = new URLSearchParams(window.location.search);
+const labelType = urlParams.get('label_type') || 'latest_follower';
+
+const container = document.getElementById('label-container');
+
+let sessionData = {{
+    latest_follower: {{ name: '', platform: '' }},
+    latest_subscriber: {{ name: '', platform: '' }},
+    latest_donation: {{ name: '', amount: '' }},
+    latest_cheerer: {{ name: '', amount: 0 }},
+    latest_raider: {{ name: '', viewers: 0 }},
+    latest_gifter: {{ name: '', amount: 0 }},
+    latest_member: {{ name: '' }},
+    latest_superchat: {{ name: '', amount: '' }},
+    latest_stars: {{ name: '', amount: 0 }},
+    latest_sharer: {{ name: '' }},
+    top_donation_session: {{ name: '', amount: 0 }},
+    top_cheerer_session: {{ name: '', amount: 0 }},
+    top_gifter_session: {{ name: '', amount: 0 }},
+    top_superchat_session: {{ name: '', amount: 0 }},
+    top_stars_session: {{ name: '', amount: 0 }},
+    session_followers: 0,
+    session_subscribers: 0,
+    session_members: 0,
+    total_donations_session: 0,
+}};
+
+const PLATFORM_ICONS = {{
+    twitch: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%239146FF"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>',
+    youtube: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FF0000"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
+    kick: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2353FC18"><rect width="24" height="24" rx="4"/><text x="12" y="17" text-anchor="middle" font-size="12" font-weight="bold" fill="black">K</text></svg>',
+    facebook: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231877F2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>',
+    tiktok: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FE2858"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>',
+}};
+
+const LABEL_PLATFORMS = {{
+    'latest_donation': ['all'],
+    'top_donation_session': ['all'],
+    'top_donation_alltime': ['all'],
+    'total_donations_session': ['all'],
+    'latest_follower': ['twitch', 'youtube', 'kick', 'facebook', 'tiktok'],
+    'latest_subscriber': ['twitch', 'youtube', 'kick'],
+    'latest_cheerer': ['twitch'],
+    'latest_raider': ['twitch'],
+    'latest_gifter': ['twitch', 'kick', 'tiktok'],
+    'latest_member': ['youtube'],
+    'latest_superchat': ['youtube'],
+    'latest_stars': ['facebook'],
+    'latest_sharer': ['tiktok'],
+    'top_cheerer_session': ['twitch'],
+    'top_gifter_session': ['twitch', 'kick'],
+    'top_superchat_session': ['youtube'],
+    'top_stars_session': ['facebook'],
+    'session_followers': ['twitch', 'youtube', 'kick', 'facebook', 'tiktok'],
+    'session_subscribers': ['twitch', 'youtube', 'kick'],
+    'session_members': ['youtube'],
+}};
+
+function getStyleString() {{
+    let style = `font-family: '${{config.font_family || 'Arial'}}', sans-serif;`;
+    style += `font-size: ${{config.font_size || 32}}px;`;
+    style += `color: ${{config.text_color || '#FFFFFF'}};`;
+    if (config.text_style === 'bold') style += 'font-weight: bold;';
+    if (config.text_style === 'italic') style += 'font-style: italic;';
+    if (config.text_style === 'uppercase') style += 'text-transform: uppercase;';
+    if (config.text_shadow) {{
+        style += `text-shadow: 2px 2px 4px ${{config.shadow_color || '#000000'}};`;
+    }}
+    if (config.background_enabled) {{
+        const bgColor = config.background_color || '#000000';
+        const opacity = (config.background_opacity || 50) / 100;
+        const r = parseInt(bgColor.slice(1,3), 16);
+        const g = parseInt(bgColor.slice(3,5), 16);
+        const b = parseInt(bgColor.slice(5,7), 16);
+        style += `background: rgba(${{r}},${{g}},${{b}},${{opacity}});`;
+        style += `padding: ${{config.background_padding || 10}}px;`;
+        style += `border-radius: ${{config.background_radius || 5}}px;`;
+    }}
+    return style;
+}}
+
+function getLabelValue() {{
+    const prefix = config.prefix_text || '';
+    const suffix = config.suffix_text || '';
+    let value = '';
+    switch(labelType) {{
+        case 'latest_follower': value = sessionData.latest_follower.name || '---'; break;
+        case 'latest_subscriber': value = sessionData.latest_subscriber.name || '---'; break;
+        case 'latest_donation': value = sessionData.latest_donation.name ? `${{sessionData.latest_donation.name}} (${{sessionData.latest_donation.amount}})` : '---'; break;
+        case 'latest_cheerer': value = sessionData.latest_cheerer.name ? `${{sessionData.latest_cheerer.name}} (${{sessionData.latest_cheerer.amount}} bits)` : '---'; break;
+        case 'latest_raider': value = sessionData.latest_raider.name ? `${{sessionData.latest_raider.name}} (${{sessionData.latest_raider.viewers}} viewers)` : '---'; break;
+        case 'latest_gifter': value = sessionData.latest_gifter.name ? `${{sessionData.latest_gifter.name}} (${{sessionData.latest_gifter.amount}} subs)` : '---'; break;
+        case 'latest_member': value = sessionData.latest_member.name || '---'; break;
+        case 'latest_superchat': value = sessionData.latest_superchat.name ? `${{sessionData.latest_superchat.name}} (${{sessionData.latest_superchat.amount}})` : '---'; break;
+        case 'latest_stars': value = sessionData.latest_stars.name ? `${{sessionData.latest_stars.name}} (${{sessionData.latest_stars.amount}} stars)` : '---'; break;
+        case 'latest_sharer': value = sessionData.latest_sharer.name || '---'; break;
+        case 'top_donation_session': value = sessionData.top_donation_session.name ? `${{sessionData.top_donation_session.name}} ($${{sessionData.top_donation_session.amount}})` : '---'; break;
+        case 'top_cheerer_session': value = sessionData.top_cheerer_session.name ? `${{sessionData.top_cheerer_session.name}} (${{sessionData.top_cheerer_session.amount}} bits)` : '---'; break;
+        case 'top_gifter_session': value = sessionData.top_gifter_session.name ? `${{sessionData.top_gifter_session.name}} (${{sessionData.top_gifter_session.amount}} subs)` : '---'; break;
+        case 'top_superchat_session': value = sessionData.top_superchat_session.name ? `${{sessionData.top_superchat_session.name}} (${{sessionData.top_superchat_session.amount}})` : '---'; break;
+        case 'top_stars_session': value = sessionData.top_stars_session.name ? `${{sessionData.top_stars_session.name}} (${{sessionData.top_stars_session.amount}} stars)` : '---'; break;
+        case 'session_followers': value = sessionData.session_followers.toString(); break;
+        case 'session_subscribers': value = sessionData.session_subscribers.toString(); break;
+        case 'session_members': value = sessionData.session_members.toString(); break;
+        case 'total_donations_session': value = `$${{sessionData.total_donations_session.toFixed(2)}}`; break;
+        default: value = '---';
+    }}
+    return `${{prefix}}${{value}}${{suffix}}`;
+}}
+
+function render(animate = false) {{
+    const animClass = animate && config.animation && config.animation !== 'none' ? `anim-${{config.animation}}` : '';
+    let iconHtml = '';
+    if (config.show_platform_icon && sessionData.latest_follower.platform) {{
+        const platform = sessionData.latest_follower.platform;
+        if (PLATFORM_ICONS[platform]) {{
+            iconHtml = `<img class="platform-icon" src="${{PLATFORM_ICONS[platform]}}" alt="${{platform}}" />`;
+        }}
+    }}
+    container.innerHTML = `${{iconHtml}}<span class="label-text ${{animClass}}" style="${{getStyleString()}}">${{getLabelValue()}}</span>`;
+}}
+
+function handleEvent(data) {{
+    if (data.type === 'refresh') {{ window.location.reload(); return; }}
+    const eventType = data.event_type;
+    const eventData = data.event_data || {{}};
+    const platform = data.platform;
+    switch(eventType) {{
+        case 'follow':
+            sessionData.latest_follower = {{ name: eventData.username, platform }};
+            sessionData.session_followers++;
+            break;
+        case 'subscribe':
+        case 'member':
+            sessionData.latest_subscriber = {{ name: eventData.username, platform }};
+            sessionData.session_subscribers++;
+            if (eventType === 'member') {{
+                sessionData.latest_member = {{ name: eventData.username }};
+                sessionData.session_members++;
+            }}
+            break;
+        case 'bits':
+            const bits = eventData.amount || 0;
+            sessionData.latest_cheerer = {{ name: eventData.username, amount: bits }};
+            if (bits > sessionData.top_cheerer_session.amount) {{
+                sessionData.top_cheerer_session = {{ name: eventData.username, amount: bits }};
+            }}
+            break;
+        case 'raid':
+            sessionData.latest_raider = {{ name: eventData.username, viewers: eventData.viewers || 0 }};
+            break;
+        case 'gift_sub':
+        case 'gift':
+            const giftAmount = eventData.amount || eventData.count || 1;
+            sessionData.latest_gifter = {{ name: eventData.username, amount: giftAmount }};
+            if (giftAmount > sessionData.top_gifter_session.amount) {{
+                sessionData.top_gifter_session = {{ name: eventData.username, amount: giftAmount }};
+            }}
+            break;
+        case 'superchat':
+            sessionData.latest_superchat = {{ name: eventData.username, amount: eventData.amount }};
+            const scAmount = parseFloat((eventData.amount || '0').replace(/[^0-9.]/g, '')) || 0;
+            if (scAmount > sessionData.top_superchat_session.amount) {{
+                sessionData.top_superchat_session = {{ name: eventData.username, amount: scAmount }};
+            }}
+            break;
+        case 'stars':
+            const stars = eventData.amount || 0;
+            sessionData.latest_stars = {{ name: eventData.username, amount: stars }};
+            if (stars > sessionData.top_stars_session.amount) {{
+                sessionData.top_stars_session = {{ name: eventData.username, amount: stars }};
+            }}
+            break;
+        case 'share':
+            sessionData.latest_sharer = {{ name: eventData.username }};
+            break;
+        case 'donation':
+        case 'tip':
+            const donationAmount = parseFloat(eventData.amount) || 0;
+            sessionData.latest_donation = {{ name: eventData.username, amount: `$${{donationAmount.toFixed(2)}}` }};
+            sessionData.total_donations_session += donationAmount;
+            if (donationAmount > sessionData.top_donation_session.amount) {{
+                sessionData.top_donation_session = {{ name: eventData.username, amount: donationAmount }};
+            }}
+            break;
+    }}
+    render(true);
+}}
+
+function connectWebSockets() {{
+    const platforms = LABEL_PLATFORMS[labelType] || [];
+    platforms.forEach(platform => {{
+        if (platform === 'all') {{
+            const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-labels/${{userId}}/`);
+            ws.onmessage = (e) => handleEvent(JSON.parse(e.data));
+            return;
+        }}
+        if (connectedPlatforms.includes(platform)) {{
+            const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
+            ws.onmessage = (e) => handleEvent(JSON.parse(e.data));
+        }}
+    }});
+}}
+
+function startPlatformListeners() {{
+    const platforms = LABEL_PLATFORMS[labelType] || [];
+    if (platforms.includes('youtube') && connectedPlatforms.includes('youtube')) {{
+        fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
+    }}
+    if (platforms.includes('facebook') && connectedPlatforms.includes('facebook')) {{
+        fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}});
+    }}
+    if (platforms.includes('tiktok') && connectedPlatforms.includes('tiktok')) {{
+        fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}});
+    }}
+}}
+
+render();
+startPlatformListeners();
+connectWebSockets();
+</script>
+</body>
+</html>"""
