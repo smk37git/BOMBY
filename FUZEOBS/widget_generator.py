@@ -947,10 +947,13 @@ function addEvent(data) {{
     }}
     
     if (!config.keep_history) {{
-        while (container.children.length > config.max_events) {{
-            const toRemove = config.flip_y ? container.firstChild : container.lastChild;
-            toRemove.classList.add('removing');
-            setTimeout(() => toRemove.remove(), config.fade_time);
+        const activeEvents = Array.from(container.children).filter(el => !el.classList.contains('removing'));
+        while (activeEvents.length > config.max_events) {{
+            const toRemove = config.flip_y ? activeEvents.shift() : activeEvents.pop();
+            if (toRemove) {{
+                toRemove.classList.add('removing');
+                setTimeout(() => toRemove.remove(), config.fade_time);
+            }}
         }}
     }}
 }}
