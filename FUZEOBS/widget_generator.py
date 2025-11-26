@@ -948,12 +948,15 @@ function addEvent(data) {{
     
     if (!config.keep_history) {{
         const activeEvents = Array.from(container.children).filter(el => !el.classList.contains('removing'));
-        while (activeEvents.length > config.max_events) {{
-            const toRemove = config.flip_y ? activeEvents.shift() : activeEvents.pop();
-            if (toRemove) {{
-                toRemove.classList.add('removing');
-                setTimeout(() => toRemove.remove(), config.fade_time);
-            }}
+        const excess = activeEvents.length - config.max_events;
+        if (excess > 0) {{
+            const toRemoveList = config.flip_y 
+                ? activeEvents.slice(0, excess)
+                : activeEvents.slice(-excess);
+            toRemoveList.forEach(el => {{
+                el.classList.add('removing');
+                setTimeout(() => el.remove(), config.fade_time);
+            }});
         }}
     }}
 }}
