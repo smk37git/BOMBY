@@ -20,7 +20,7 @@ def generate_widget_html(widget):
     elif widget_type == 'event_list':
         return generate_event_list_html(user_id, config, connected_platforms)
     elif widget_type == 'goal_bar':
-        return generate_goal_bar_html(user_id, config)
+        return generate_goal_bar_html(user_id, config, connected_platforms)
     else:
         raise ValueError(f"Unknown widget type: {widget_type}")
 
@@ -964,67 +964,253 @@ function addEvent(data) {{
 </body>
 </html>"""
 
-def generate_goal_bar_html(user_id, config):
-    """Generate goal bar HTML"""
+def generate_goal_bar_html(user_id, config, connected_platforms):
+    """Generate goal bar HTML with multiple styles"""
     return f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <style>
+* {{ box-sizing: border-box; margin: 0; padding: 0; }}
 body {{
     background: transparent;
-    margin: 0;
-    padding: 20px;
-    font-family: 'Arial', sans-serif;
+    font-family: Arial, sans-serif;
 }}
 .goal-container {{
-    background: rgba(0,0,0,0.8);
-    padding: 15px;
-    border-radius: 10px;
+    padding: 10px;
+}}
+.goal-container.condensed {{
+    padding: 5px;
 }}
 .goal-title {{
-    color: white;
-    font-size: 18px;
-    margin-bottom: 10px;
     text-align: center;
+    margin-bottom: 8px;
+    font-weight: bold;
 }}
-.progress-bar {{
-    background: rgba(255,255,255,0.2);
-    height: 30px;
-    border-radius: 15px;
+.goal-container.condensed .goal-title {{
+    margin-bottom: 4px;
+    font-size: 0.9em;
+}}
+.progress-wrapper {{
+    position: relative;
+    width: 100%;
     overflow: hidden;
 }}
+.progress-bar {{
+    width: 100%;
+    position: relative;
+}}
 .progress-fill {{
-    background: linear-gradient(90deg, #00ff00, #00cc00);
     height: 100%;
     transition: width 0.5s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: white;
+}}
+.progress-text {{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     font-weight: bold;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    white-space: nowrap;
+}}
+
+/* Style: Standard */
+.style-standard .progress-bar {{ border-radius: 0; }}
+.style-standard .progress-fill {{ border-radius: 0; }}
+
+/* Style: Rounded */
+.style-rounded .progress-bar {{ border-radius: 999px; }}
+.style-rounded .progress-fill {{ border-radius: 999px; }}
+
+/* Style: Flat */
+.style-flat .progress-bar {{ border-radius: 0; border: 2px solid rgba(255,255,255,0.3); }}
+.style-flat .progress-fill {{ border-radius: 0; }}
+
+/* Style: Gradient */
+.style-gradient .progress-fill {{
+    background: linear-gradient(90deg, var(--bar-color), var(--bar-color-light)) !important;
+}}
+
+/* Style: Neon */
+.style-neon .progress-bar {{
+    border-radius: 4px;
+    box-shadow: 0 0 10px var(--bar-color), inset 0 0 5px rgba(0,0,0,0.5);
+}}
+.style-neon .progress-fill {{
+    border-radius: 4px;
+    box-shadow: 0 0 15px var(--bar-color);
+}}
+
+/* Style: Minimal */
+.style-minimal .goal-title {{ display: none; }}
+.style-minimal .progress-bar {{ border-radius: 2px; }}
+.style-minimal .progress-fill {{ border-radius: 2px; }}
+
+@keyframes pulse {{
+    0%, 100% {{ opacity: 1; }}
+    50% {{ opacity: 0.8; }}
+}}
+.goal-complete .progress-fill {{
+    animation: pulse 1s infinite;
 }}
 </style>
 </head>
 <body>
-<div class="goal-container">
-    <div class="goal-title" id="title">Loading...</div>
-    <div class="progress-bar">
-        <div class="progress-fill" id="progress" style="width: 0%">
-            <span id="progressText">0%</span>
-        </div>
-    </div>
-</div>
+<div id="goal-container" class="goal-container"></div>
 <script>
-const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-goals/{user_id}');
-ws.onmessage = (e) => {{
-    const data = JSON.parse(e.data);
-    document.getElementById('title').textContent = data.title;
-    const percentage = (data.current / data.goal) * 100;
-    document.getElementById('progress').style.width = percentage + '%';
-    document.getElementById('progressText').textContent = 
-        `${{data.current}} / ${{data.goal}} (${{Math.round(percentage)}}%)`;
+const userId = '{user_id}';
+const config = {json.dumps(config)};
+const connectedPlatforms = {json.dumps(connected_platforms)};
+
+const urlParams = new URLSearchParams(window.location.search);
+const goalType = urlParams.get('goal_type') || 'follower';
+
+const container = document.getElementById('goal-container');
+
+let currentAmount = config.starting_amount || 0;
+const goalAmount = config.goal_amount || 100;
+
+function getBarColorLight(color) {{
+    const hex = color.replace('#', '');
+    const r = Math.min(255, parseInt(hex.substr(0,2), 16) + 50);
+    const g = Math.min(255, parseInt(hex.substr(2,2), 16) + 50);
+    const b = Math.min(255, parseInt(hex.substr(4,2), 16) + 50);
+    return `rgb(${{r}},${{g}},${{b}})`;
+}}
+
+function render() {{
+    const percentage = Math.min(100, (currentAmount / goalAmount) * 100);
+    const style = config.style || 'standard';
+    const layout = config.layout || 'standard';
+    const barColor = config.bar_color || '#00FF00';
+    const barBgColor = config.bar_bg_color || '#333333';
+    const barThickness = config.bar_thickness || 30;
+    const textColor = config.text_color || '#FFFFFF';
+    const barTextColor = config.bar_text_color || '#FFFFFF';
+    const fontFamily = config.font_family || 'Arial';
+    const title = config.title || 'Goal';
+    const showPercentage = config.show_percentage !== false;
+    const showNumbers = config.show_numbers !== false;
+    const isComplete = currentAmount >= goalAmount;
+    
+    container.className = `goal-container style-${{style}} ${{layout === 'condensed' ? 'condensed' : ''}} ${{isComplete ? 'goal-complete' : ''}}`;
+    container.style.setProperty('--bar-color', barColor);
+    container.style.setProperty('--bar-color-light', getBarColorLight(barColor));
+    
+    let progressText = '';
+    if (showNumbers && showPercentage) {{
+        progressText = `${{currentAmount}} / ${{goalAmount}} (${{Math.round(percentage)}}%)`;
+    }} else if (showNumbers) {{
+        progressText = `${{currentAmount}} / ${{goalAmount}}`;
+    }} else if (showPercentage) {{
+        progressText = `${{Math.round(percentage)}}%`;
+    }}
+    
+    container.innerHTML = `
+        <div class="goal-title" style="color: ${{textColor}}; font-family: ${{fontFamily}}">${{title}}</div>
+        <div class="progress-wrapper">
+            <div class="progress-bar" style="background: ${{barBgColor}}; height: ${{barThickness}}px">
+                <div class="progress-fill" style="width: ${{percentage}}%; background: ${{barColor}}"></div>
+                <div class="progress-text" style="color: ${{barTextColor}}; font-family: ${{fontFamily}}">${{progressText}}</div>
+            </div>
+        </div>
+    `;
+}}
+
+const GOAL_EVENT_MAP = {{
+    'tip': ['tip', 'donation'],
+    'follower': ['follow'],
+    'subscriber': ['subscribe', 'resub', 'gift_sub'],
+    'bit': ['bits'],
+    'superchat': ['superchat'],
+    'member': ['member'],
+    'stars': ['stars']
 }};
+
+const GOAL_PLATFORMS = {{
+    'tip': ['all'],
+    'follower': ['twitch', 'youtube', 'kick', 'facebook', 'tiktok'],
+    'subscriber': ['twitch', 'youtube', 'kick'],
+    'bit': ['twitch'],
+    'superchat': ['youtube'],
+    'member': ['youtube'],
+    'stars': ['facebook']
+}};
+
+function connectGoalWebSockets() {{
+    const platforms = GOAL_PLATFORMS[goalType] || [];
+    
+    platforms.forEach(platform => {{
+        if (platform === 'all' || connectedPlatforms.includes(platform)) {{
+            if (goalType === 'tip') {{
+                const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-goals/${{userId}}/`);
+                ws.onmessage = handleGoalMessage;
+                return;
+            }}
+            
+            const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
+            ws.onmessage = (e) => {{
+                const data = JSON.parse(e.data);
+                handleAlertForGoal(data);
+            }};
+        }}
+    }});
+}}
+
+function handleGoalMessage(e) {{
+    const data = JSON.parse(e.data);
+    if (data.type === 'goal_update') {{
+        currentAmount = data.current || currentAmount;
+        render();
+    }}
+}}
+
+function handleAlertForGoal(data) {{
+    if (data.type === 'refresh') {{
+        window.location.reload();
+        return;
+    }}
+    
+    const eventTypes = GOAL_EVENT_MAP[goalType] || [];
+    if (!eventTypes.includes(data.event_type)) return;
+    
+    let increment = 1;
+    
+    if (data.event_type === 'bits') {{
+        increment = data.event_data?.amount || 1;
+    }} else if (data.event_type === 'superchat') {{
+        const amountStr = data.event_data?.amount || '0';
+        increment = parseFloat(amountStr.replace(/[^0-9.]/g, '')) || 1;
+    }} else if (data.event_type === 'stars') {{
+        increment = data.event_data?.amount || 1;
+    }} else if (data.event_type === 'gift_sub') {{
+        increment = data.event_data?.amount || data.event_data?.count || 1;
+    }}
+    
+    currentAmount += increment;
+    render();
+}}
+
+function startPlatformListeners() {{
+    const platforms = GOAL_PLATFORMS[goalType] || [];
+    
+    if (platforms.includes('youtube') && connectedPlatforms.includes('youtube')) {{
+        fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
+    }}
+    if (platforms.includes('facebook') && connectedPlatforms.includes('facebook')) {{
+        fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}});
+    }}
+    if (platforms.includes('tiktok') && connectedPlatforms.includes('tiktok')) {{
+        fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}});
+    }}
+}}
+
+render();
+startPlatformListeners();
+connectGoalWebSockets();
 </script>
 </body>
 </html>"""
