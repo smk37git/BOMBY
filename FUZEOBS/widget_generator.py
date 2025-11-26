@@ -1017,44 +1017,119 @@ body {{
     white-space: nowrap;
 }}
 
-/* Style: Standard */
-.style-standard .progress-bar {{ border-radius: 0; }}
-.style-standard .progress-fill {{ border-radius: 0; }}
+/* Style: Standard - Clean flat design */
+.style-standard .progress-bar {{ border-radius: 4px; }}
+.style-standard .progress-fill {{ border-radius: 4px; }}
 
-/* Style: Rounded */
-.style-rounded .progress-bar {{ border-radius: 999px; }}
-.style-rounded .progress-fill {{ border-radius: 999px; }}
-
-/* Style: Flat */
-.style-flat .progress-bar {{ border-radius: 0; border: 2px solid rgba(255,255,255,0.3); }}
-.style-flat .progress-fill {{ border-radius: 0; }}
-
-/* Style: Gradient */
-.style-gradient .progress-fill {{
-    background: linear-gradient(90deg, var(--bar-color), var(--bar-color-light)) !important;
+/* Style: Neon - Cyberpunk glow */
+.style-neon .goal-container {{ filter: drop-shadow(0 0 10px var(--bar-color)); }}
+.style-neon .goal-title {{ 
+    text-shadow: 0 0 10px var(--bar-color), 0 0 20px var(--bar-color), 0 0 30px var(--bar-color);
+    letter-spacing: 2px;
 }}
-
-/* Style: Neon */
 .style-neon .progress-bar {{
     border-radius: 4px;
-    box-shadow: 0 0 10px var(--bar-color), inset 0 0 5px rgba(0,0,0,0.5);
+    border: 2px solid var(--bar-color);
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.8), 0 0 10px var(--bar-color);
 }}
 .style-neon .progress-fill {{
-    border-radius: 4px;
-    box-shadow: 0 0 15px var(--bar-color);
+    border-radius: 2px;
+    box-shadow: 0 0 20px var(--bar-color), 0 0 40px var(--bar-color), inset 0 0 10px rgba(255,255,255,0.3);
+    animation: neon-pulse 2s ease-in-out infinite;
+}}
+.style-neon .bar-text {{
+    text-shadow: 0 0 10px var(--bar-color);
+}}
+@keyframes neon-pulse {{
+    0%, 100% {{ filter: brightness(1); }}
+    50% {{ filter: brightness(1.3); }}
 }}
 
-/* Style: Minimal */
-.style-minimal .goal-title {{ display: none; }}
-.style-minimal .progress-bar {{ border-radius: 2px; }}
-.style-minimal .progress-fill {{ border-radius: 2px; }}
+/* Style: Glass - Frosted glassmorphism */
+.style-glass .goal-title {{
+    background: rgba(255,255,255,0.1);
+    padding: 6px 16px;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+    display: inline-block;
+}}
+.style-glass .progress-bar {{
+    border-radius: 12px;
+    background: rgba(255,255,255,0.1) !important;
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.05);
+}}
+.style-glass .progress-fill {{
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--bar-color), var(--bar-color-light)) !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    opacity: 0.9;
+}}
+
+/* Style: Retro - 8-bit pixel gaming */
+.style-retro * {{ image-rendering: pixelated; }}
+.style-retro .goal-title {{
+    font-family: 'Courier New', monospace !important;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 3px 3px 0 #000;
+}}
+.style-retro .progress-bar {{
+    border-radius: 0;
+    border: 4px solid #000;
+    box-shadow: 4px 4px 0 #000;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--bar-bg-color) 0px,
+        var(--bar-bg-color) 10px,
+        rgba(0,0,0,0.3) 10px,
+        rgba(0,0,0,0.3) 12px
+    ) !important;
+}}
+.style-retro .progress-fill {{
+    border-radius: 0;
+    background: repeating-linear-gradient(
+        90deg,
+        var(--bar-color) 0px,
+        var(--bar-color) 10px,
+        var(--bar-color-light) 10px,
+        var(--bar-color-light) 12px
+    ) !important;
+}}
+.style-retro .bar-text {{
+    font-family: 'Courier New', monospace !important;
+    text-shadow: 2px 2px 0 #000;
+}}
+
+/* Style: Gradient - Animated flowing gradient */
+.style-gradient .progress-bar {{
+    border-radius: 999px;
+    overflow: hidden;
+}}
+.style-gradient .progress-fill {{
+    border-radius: 999px;
+    background: linear-gradient(90deg, 
+        var(--bar-color), 
+        var(--bar-color-light), 
+        var(--bar-color), 
+        var(--bar-color-light)
+    ) !important;
+    background-size: 300% 100%;
+    animation: gradient-flow 3s ease infinite;
+}}
+@keyframes gradient-flow {{
+    0% {{ background-position: 0% 50%; }}
+    50% {{ background-position: 100% 50%; }}
+    100% {{ background-position: 0% 50%; }}
+}}
 
 @keyframes pulse {{
-    0%, 100% {{ opacity: 1; }}
-    50% {{ opacity: 0.8; }}
+    0%, 100% {{ opacity: 1; transform: scale(1); }}
+    50% {{ opacity: 0.9; transform: scale(1.02); }}
 }}
 .goal-complete .progress-fill {{
-    animation: pulse 1s infinite;
+    animation: pulse 1.5s infinite;
 }}
 </style>
 </head>
