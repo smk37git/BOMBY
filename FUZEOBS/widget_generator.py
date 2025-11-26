@@ -21,6 +21,8 @@ def generate_widget_html(widget):
         return generate_event_list_html(user_id, config, connected_platforms)
     elif widget_type == 'goal_bar':
         return generate_goal_bar_html(user_id, config, connected_platforms)
+    elif widget_type == 'labels':
+        return generate_labels_html(user_id, config, connected_platforms)
     else:
         raise ValueError(f"Unknown widget type: {widget_type}")
 
