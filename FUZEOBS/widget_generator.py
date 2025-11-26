@@ -649,6 +649,25 @@ def generate_event_list_html(user_id, config, connected_platforms):
     min_stars = config.get('min_stars', 1)
     min_raiders = config.get('min_raiders', 1)
     
+    # Message templates
+    message_templates = {
+        'twitch_follow': config.get('twitch_follow_msg', '{name} just followed!'),
+        'twitch_subscribe': config.get('twitch_sub_msg', '{name} subscribed!'),
+        'twitch_resub': config.get('twitch_resub_msg', '{name} resubbed for {months} months!'),
+        'twitch_gift_sub': config.get('twitch_gift_msg', '{name} gifted {count} subs!'),
+        'twitch_bits': config.get('twitch_bits_msg', '{name} cheered {amount} bits!'),
+        'twitch_raid': config.get('twitch_raid_msg', '{name} raided with {viewers} viewers!'),
+        'youtube_member': config.get('youtube_member_msg', '{name} became a member!'),
+        'youtube_superchat': config.get('youtube_superchat_msg', '{name} sent {amount}!'),
+        'facebook_follow': config.get('facebook_follow_msg', '{name} just followed!'),
+        'facebook_stars': config.get('facebook_stars_msg', '{name} sent {amount} stars!'),
+        'kick_follow': config.get('kick_follow_msg', '{name} just followed!'),
+        'kick_subscribe': config.get('kick_sub_msg', '{name} subscribed!'),
+        'kick_gift_sub': config.get('kick_gift_msg', '{name} gifted {count} subs!'),
+        'tiktok_follow': config.get('tiktok_follow_msg', '{name} just followed!'),
+        'tiktok_gift': config.get('tiktok_gift_msg', '{name} sent {gift}!'),
+    }
+    
     event_filters = {
         'twitch_follow': config.get('twitch_follow', True),
         'twitch_subscribe': config.get('twitch_subscribe', True),
@@ -806,7 +825,8 @@ const config = {{
     min_stars: {min_stars},
     min_raiders: {min_raiders},
     fade_time: {fade_time},
-    flip_y: {str(flip_y).lower()}
+    flip_y: {str(flip_y).lower()},
+    message_templates: {json.dumps(message_templates)}
 }};
 
 const PLATFORM_ICONS = {{
@@ -835,18 +855,6 @@ const EVENT_ICONS = {{
     'stars': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>',
     'gift': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/></svg>',
     'gift_sub': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z"/></svg>',
-}};
-
-const EVENT_NAMES = {{
-    'follow': 'followed',
-    'subscribe': 'subscribed',
-    'bits': 'cheered',
-    'raid': 'raided',
-    'superchat': 'super chatted',
-    'member': 'became a member',
-    'stars': 'sent stars',
-    'gift': 'sent a gift',
-    'gift_sub': 'gifted a sub',
 }};
 
 const connectedPlatforms = {json.dumps(connected_platforms)};
@@ -907,16 +915,22 @@ function addEvent(data) {{
     eventEl.className = `event ${{platform}}`;
     
     const icon = EVENT_ICONS[event_type] || EVENT_ICONS['follow'];
-    const action = EVENT_NAMES[event_type] || event_type;
     const username = event_data.username || 'Someone';
     const platformColor = PLATFORM_COLORS[platform] || '#FFFFFF';
     const platformIcon = PLATFORM_ICONS[platform] || '';
     
-    let text = `${{username}} ${{action}}`;
-    if (event_type === 'bits') text = `${{username}} cheered ${{event_data.amount}} bits`;
-    if (event_type === 'raid') text = `${{username}} raided with ${{event_data.viewers}} viewers`;
-    if (event_type === 'superchat') text = `${{username}} super chatted ${{event_data.amount}}`;
-    if (event_type === 'stars') text = `${{username}} sent ${{event_data.amount}} stars`;
+    // Get message template and replace variables
+    const templateKey = `${{platform}}_${{event_type}}`;
+    let template = config.message_templates[templateKey] || `${{username}} ${{event_type}}`;
+    
+    let text = template
+        .replace(/\\{{name\\}}/g, username)
+        .replace(/\\{{amount\\}}/g, event_data.amount || '')
+        .replace(/\\{{count\\}}/g, event_data.count || event_data.amount || '')
+        .replace(/\\{{months\\}}/g, event_data.months || '')
+        .replace(/\\{{tier\\}}/g, event_data.tier || '')
+        .replace(/\\{{viewers\\}}/g, event_data.viewers || '')
+        .replace(/\\{{gift\\}}/g, event_data.gift || '');
     
     eventEl.innerHTML = `
         <span class="platform-badge" style="color: ${{platformColor}}">${{platformIcon}}</span>
@@ -924,7 +938,6 @@ function addEvent(data) {{
         <span class="event-text">${{text}}</span>
     `;
     
-    // For flip_y, add to bottom; otherwise add to top
     if (config.flip_y) {{
         container.appendChild(eventEl);
     }} else {{
