@@ -1046,14 +1046,6 @@ body {{
 }}
 
 /* Style: Glass - Frosted glassmorphism */
-.style-glass .goal-title {{
-    background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
-    padding: 6px 16px;
-    border-radius: 8px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.2);
-    display: inline-block;
-}}
 .style-glass .progress-bar {{
     border-radius: 12px;
     background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)) !important;
@@ -1061,6 +1053,7 @@ body {{
     border: 1px solid rgba(255,255,255,0.25);
     box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
     padding: 3px;
+    overflow: hidden;
 }}
 .style-glass .progress-fill {{
     border-radius: 9px;
@@ -1070,7 +1063,7 @@ body {{
         var(--bar-color) 70%,
         rgba(0,0,0,0.2) 100%
     ) !important;
-    box-shadow: 0 2px 10px var(--bar-color), inset 0 1px 0 rgba(255,255,255,0.4);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
 }}
 .style-glass .progress-text {{
     text-shadow: 0 1px 3px rgba(0,0,0,0.5);
@@ -1194,7 +1187,7 @@ function render() {{
     }}
     
     container.innerHTML = `
-        <div class="goal-title" style="color: ${{textColor}}; font-family: ${{fontFamily}}">${{title}}</div>
+        ${{title ? `<div class="goal-title" style="color: ${{textColor}}; font-family: ${{fontFamily}}">${{title}}</div>` : ''}}
         <div class="progress-wrapper">
             <div class="progress-bar" style="background: ${{barBgColor}}; height: ${{barThickness}}px">
                 <div class="progress-fill" style="width: ${{percentage}}%; background: ${{barColor}}"></div>
