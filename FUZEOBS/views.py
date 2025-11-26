@@ -1285,17 +1285,30 @@ def fuzeobs_save_widget(request):
         data = json.loads(request.body)
         platform = data.get('platform', 'twitch')
         widget_type = data['widget_type']
+        goal_type = data.get('goal_type', '')
         
-        # Get or create widget for this type+platform combo
-        widget, created = WidgetConfig.objects.get_or_create(
-            user=user,
-            widget_type=widget_type,
-            platform=platform,
-            defaults={
-                'name': data.get('name', f'{widget_type.replace("_", " ").title()} - {platform.title()}'),
-                'config': data.get('config', {})
-            }
-        )
+        # For goal_bar, include goal_type in uniqueness lookup
+        if widget_type == 'goal_bar':
+            widget, created = WidgetConfig.objects.get_or_create(
+                user=user,
+                widget_type=widget_type,
+                platform=platform,
+                goal_type=goal_type,
+                defaults={
+                    'name': data.get('name', f'Goal Bar - {goal_type.title()}'),
+                    'config': data.get('config', {})
+                }
+            )
+        else:
+            widget, created = WidgetConfig.objects.get_or_create(
+                user=user,
+                widget_type=widget_type,
+                platform=platform,
+                defaults={
+                    'name': data.get('name', f'{widget_type.replace("_", " ").title()} - {platform.title()}'),
+                    'config': data.get('config', {})
+                }
+            )
         
         # Update if not created
         if not created:
@@ -1324,6 +1337,12 @@ def fuzeobs_save_widget(request):
                         f'alerts_{user.id}_{plat}',
                         {'type': 'alert_event', 'data': {'type': 'refresh'}}
                     )
+            elif widget_type == 'goal_bar':
+                # Send refresh to goals websocket
+                async_to_sync(channel_layer.group_send)(
+                    f'goals_{user.id}',
+                    {'type': 'goal_update', 'data': {'type': 'refresh'}}
+                )
         else:
             # Auto-create default event configs for alert_box
             if widget_type == 'alert_box':
@@ -1373,7 +1392,7 @@ def fuzeobs_save_widget(request):
             user=user,
             activity_type='widget_create' if created else 'widget_update',
             source='app',
-            details={'widget_type': widget.widget_type, 'platform': platform, 'widget_id': widget.id}
+            details={'widget_type': widget.widget_type, 'platform': platform, 'widget_id': widget.id, 'goal_type': goal_type}
         )
         
         widget_url = f'https://bomby.us/fuzeobs/w/{widget.token}'
@@ -1386,6 +1405,7 @@ def fuzeobs_save_widget(request):
                 'id': widget.id,
                 'type': widget.widget_type,
                 'platform': widget.platform,
+                'goal_type': widget.goal_type,
                 'name': widget.name,
                 'config': widget.config,
                 'url': widget_url
