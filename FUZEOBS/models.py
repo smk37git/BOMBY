@@ -145,7 +145,7 @@ class WidgetConfig(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     widget_type = models.CharField(max_length=20, choices=WIDGET_TYPES)
     platform = models.CharField(max_length=20, choices=PLATFORMS)
-    goal_type = models.CharField(max_length=20, blank=True, default='')  # For goal_bar uniqueness
+    goal_type = models.CharField(max_length=20, blank=True, default='')
     name = models.CharField(max_length=100)
     config = models.JSONField(default=dict)
     token = models.CharField(max_length=128, unique=True, blank=True)
