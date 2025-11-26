@@ -430,7 +430,7 @@ body {{
     font-size: {font_size}px;
     line-height: 1.4;
     color: {font_color};
-    animation: slideIn 0.3s ease-out;
+    animation: slideIn 0.5s ease-out;
     word-break: break-word;
     overflow-wrap: break-word;
 }}
