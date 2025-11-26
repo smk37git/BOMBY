@@ -1047,24 +1047,33 @@ body {{
 
 /* Style: Glass - Frosted glassmorphism */
 .style-glass .goal-title {{
-    background: rgba(255,255,255,0.1);
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
     padding: 6px 16px;
     border-radius: 8px;
     backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
     display: inline-block;
 }}
 .style-glass .progress-bar {{
     border-radius: 12px;
-    background: rgba(255,255,255,0.1) !important;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)) !important;
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.2);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 0 20px rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.25);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.2);
+    padding: 3px;
 }}
 .style-glass .progress-fill {{
-    border-radius: 10px;
-    background: linear-gradient(135deg, var(--bar-color), var(--bar-color-light)) !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    opacity: 0.9;
+    border-radius: 9px;
+    background: linear-gradient(180deg, 
+        rgba(255,255,255,0.3) 0%, 
+        var(--bar-color) 30%, 
+        var(--bar-color) 70%,
+        rgba(0,0,0,0.2) 100%
+    ) !important;
+    box-shadow: 0 2px 10px var(--bar-color), inset 0 1px 0 rgba(255,255,255,0.4);
+}}
+.style-glass .progress-text {{
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }}
 
 /* Style: Retro - 8-bit pixel gaming */
@@ -1077,7 +1086,7 @@ body {{
 }}
 .style-retro .progress-bar {{
     border-radius: 0;
-    border: 4px solid #000;
+    border: 4px solid #fff;
     box-shadow: 4px 4px 0 #000;
     background: repeating-linear-gradient(
         90deg,
