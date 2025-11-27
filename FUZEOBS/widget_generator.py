@@ -1696,7 +1696,10 @@ const userId = {user_id};
 const config = {config_json};
 const connectedPlatforms = {platforms_json};
 
-// Platform viewer counts
+console.log('[VIEWER] Widget loaded, user:', userId);
+console.log('[VIEWER] Config:', config);
+console.log('[VIEWER] Platforms:', connectedPlatforms);
+
 const viewers = {{
     twitch: 0,
     youtube: 0,
@@ -1704,12 +1707,11 @@ const viewers = {{
     facebook: 0
 }};
 
-// Polling intervals (platform-specific)
 const POLL_INTERVALS = {{
-    twitch: 30000,   // 30s - Twitch rate limits
-    youtube: 60000,  // 60s - YouTube quota
-    kick: 15000,     // 15s - Kick is lenient
-    facebook: 30000  // 30s - Facebook
+    twitch: 30000,
+    youtube: 60000,
+    kick: 15000,
+    facebook: 30000
 }};
 
 function applyStyles() {{
@@ -1725,7 +1727,6 @@ function applyStyles() {{
     container.style.padding = (config.padding || 20) + 'px';
     container.style.borderRadius = (config.border_radius || 8) + 'px';
     
-    // Handle transparent background
     if (config.transparent_background) {{
         container.style.backgroundColor = 'transparent';
     }} else {{
@@ -1736,7 +1737,6 @@ function applyStyles() {{
         container.style.textShadow = `2px 2px 4px ${{config.shadow_color || '#000000'}}`;
     }}
     
-    // Eye icon
     if (config.show_icon !== false) {{
         const iconSize = config.icon_size || 32;
         const iconColor = config.icon_color || '#FFFFFF';
@@ -1764,7 +1764,6 @@ function updateDisplay() {{
     
     if (total !== oldValue) {{
         countEl.textContent = total.toLocaleString();
-        
         if (config.animate_changes !== false) {{
             countEl.classList.add('bump');
             setTimeout(() => countEl.classList.remove('bump'), 200);
@@ -1772,10 +1771,8 @@ function updateDisplay() {{
     }}
 }}
 
-// Platform-specific polling functions
 async function pollTwitch() {{
     if (!config.show_twitch || !connectedPlatforms.includes('twitch')) return;
-    
     try {{
         const resp = await fetch(`https://bomby.us/fuzeobs/viewers/twitch/${{userId}}`);
         if (resp.ok) {{
@@ -1790,7 +1787,6 @@ async function pollTwitch() {{
 
 async function pollYouTube() {{
     if (!config.show_youtube || !connectedPlatforms.includes('youtube')) return;
-    
     try {{
         const resp = await fetch(`https://bomby.us/fuzeobs/viewers/youtube/${{userId}}`);
         if (resp.ok) {{
@@ -1805,7 +1801,6 @@ async function pollYouTube() {{
 
 async function pollKick() {{
     if (!config.show_kick || !connectedPlatforms.includes('kick')) return;
-    
     try {{
         const resp = await fetch(`https://bomby.us/fuzeobs/viewers/kick/${{userId}}`);
         if (resp.ok) {{
@@ -1820,7 +1815,6 @@ async function pollKick() {{
 
 async function pollFacebook() {{
     if (!config.show_facebook || !connectedPlatforms.includes('facebook')) return;
-    
     try {{
         const resp = await fetch(`https://bomby.us/fuzeobs/viewers/facebook/${{userId}}`);
         if (resp.ok) {{
@@ -1833,13 +1827,19 @@ async function pollFacebook() {{
     }}
 }}
 
-// WebSocket for real-time updates and refresh
 function connectWS() {{
+    console.log('[VIEWER] Connecting WebSocket...');
     const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-viewers/${{userId}}/`);
     
+    ws.onopen = () => {{
+        console.log('[VIEWER] WebSocket connected');
+    }};
+    
     ws.onmessage = (e) => {{
+        console.log('[VIEWER] WebSocket message:', e.data);
         const data = JSON.parse(e.data);
         if (data.type === 'refresh') {{
+            console.log('[VIEWER] Refresh received, reloading...');
             window.location.reload();
             return;
         }}
@@ -1849,16 +1849,23 @@ function connectWS() {{
         }}
     }};
     
-    ws.onclose = () => setTimeout(connectWS, 3000);
-    ws.onerror = () => ws.close();
+    ws.onclose = () => {{
+        console.log('[VIEWER] WebSocket closed, reconnecting in 3s...');
+        setTimeout(connectWS, 3000);
+    }};
+    
+    ws.onerror = (e) => {{
+        console.log('[VIEWER] WebSocket error:', e);
+        ws.close();
+    }};
 }}
 
 // Initialize
+console.log('[VIEWER] Initializing...');
 applyStyles();
 updateDisplay();
 connectWS();
 
-// Start polling for each enabled platform
 if (config.show_twitch !== false && connectedPlatforms.includes('twitch')) {{
     pollTwitch();
     setInterval(pollTwitch, POLL_INTERVALS.twitch);
@@ -1875,6 +1882,8 @@ if (config.show_facebook !== false && connectedPlatforms.includes('facebook')) {
     pollFacebook();
     setInterval(pollFacebook, POLL_INTERVALS.facebook);
 }}
+
+console.log('[VIEWER] Initialization complete');
 </script>
 </body>
 </html>"""
