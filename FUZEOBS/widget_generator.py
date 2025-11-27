@@ -1696,10 +1696,6 @@ const userId = {user_id};
 const config = {config_json};
 const connectedPlatforms = {platforms_json};
 
-console.log('[VIEWER] Widget loaded, user:', userId);
-console.log('[VIEWER] Config:', config);
-console.log('[VIEWER] Platforms:', connectedPlatforms);
-
 const viewers = {{
     twitch: 0,
     youtube: 0,
@@ -1780,9 +1776,7 @@ async function pollTwitch() {{
             viewers.twitch = data.viewers || 0;
             updateDisplay();
         }}
-    }} catch (e) {{
-        console.log('[VIEWER] Twitch poll error:', e);
-    }}
+    }} catch (e) {{}}
 }}
 
 async function pollYouTube() {{
@@ -1794,9 +1788,7 @@ async function pollYouTube() {{
             viewers.youtube = data.viewers || 0;
             updateDisplay();
         }}
-    }} catch (e) {{
-        console.log('[VIEWER] YouTube poll error:', e);
-    }}
+    }} catch (e) {{}}
 }}
 
 async function pollKick() {{
@@ -1808,9 +1800,7 @@ async function pollKick() {{
             viewers.kick = data.viewers || 0;
             updateDisplay();
         }}
-    }} catch (e) {{
-        console.log('[VIEWER] Kick poll error:', e);
-    }}
+    }} catch (e) {{}}
 }}
 
 async function pollFacebook() {{
@@ -1822,24 +1812,15 @@ async function pollFacebook() {{
             viewers.facebook = data.viewers || 0;
             updateDisplay();
         }}
-    }} catch (e) {{
-        console.log('[VIEWER] Facebook poll error:', e);
-    }}
+    }} catch (e) {{}}
 }}
 
 function connectWS() {{
-    console.log('[VIEWER] Connecting WebSocket...');
     const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-viewers/${{userId}}/`);
     
-    ws.onopen = () => {{
-        console.log('[VIEWER] WebSocket connected');
-    }};
-    
     ws.onmessage = (e) => {{
-        console.log('[VIEWER] WebSocket message:', e.data);
         const data = JSON.parse(e.data);
         if (data.type === 'refresh') {{
-            console.log('[VIEWER] Refresh received, reloading...');
             window.location.reload();
             return;
         }}
@@ -1849,19 +1830,10 @@ function connectWS() {{
         }}
     }};
     
-    ws.onclose = () => {{
-        console.log('[VIEWER] WebSocket closed, reconnecting in 3s...');
-        setTimeout(connectWS, 3000);
-    }};
-    
-    ws.onerror = (e) => {{
-        console.log('[VIEWER] WebSocket error:', e);
-        ws.close();
-    }};
+    ws.onclose = () => setTimeout(connectWS, 3000);
+    ws.onerror = () => ws.close();
 }}
 
-// Initialize
-console.log('[VIEWER] Initializing...');
 applyStyles();
 updateDisplay();
 connectWS();
@@ -1882,8 +1854,6 @@ if (config.show_facebook !== false && connectedPlatforms.includes('facebook')) {
     pollFacebook();
     setInterval(pollFacebook, POLL_INTERVALS.facebook);
 }}
-
-console.log('[VIEWER] Initialization complete');
 </script>
 </body>
 </html>"""
