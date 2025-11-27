@@ -184,7 +184,14 @@ if (platform === 'tiktok') {{
     }}, 300000);
 }}
 
-const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
+let ws;
+function connectWS() {{
+    ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
+    ws.onmessage = handleMessage;
+    ws.onclose = () => setTimeout(connectWS, 3000);
+    ws.onerror = () => ws.close();
+}}
+connectWS();
 
 const defaultConfig = {{
     enabled: true,
@@ -212,7 +219,7 @@ fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/${{platform}}?
         configsLoaded = true;
     }});
 
-ws.onmessage = (e) => {{
+function handleMessage(e) {{
     const data = JSON.parse(e.data);
     
     if (data.type === 'refresh') {{
@@ -326,10 +333,6 @@ ws.onmessage = (e) => {{
         alert.style.animation = 'fadeOut 0.5s ease-out forwards';
         setTimeout(() => alert.remove(), 500);
     }}, duration);
-}};
-
-ws.onerror = (error) => {{
-    console.error('WebSocket error:', error);
 }};
 </script>
 </body>
@@ -493,7 +496,15 @@ const config = {{
 fetch(`https://bomby.us/fuzeobs/twitch-chat/start/${{userId}}`).catch(() => {{}});
 fetch(`https://bomby.us/fuzeobs/kick-chat/start/${{userId}}`).catch(() => {{}});
 
-const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-chat/' + userId + '/');
+let ws;
+function connectWS() {{
+    ws = new WebSocket('wss://bomby.us/ws/fuzeobs-chat/' + userId + '/');
+    ws.onmessage = handleMessage;
+    ws.onclose = () => setTimeout(connectWS, 3000);
+    ws.onerror = () => ws.close();
+}}
+connectWS();
+
 let lastActivity = Date.now();
 
 const BOT_NAMES = ['nightbot', 'streamelements', 'streamlabs', 'moobot', 'fossabot'];
@@ -518,7 +529,7 @@ const BADGE_URLS = {{
     'partner': 'https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/2'
 }};
 
-ws.onmessage = (e) => {{
+function handleMessage(e) {{
     const data = JSON.parse(e.data);
     
     if (data.type === 'refresh') {{
@@ -864,31 +875,34 @@ const EVENT_ICONS = {{
 const connectedPlatforms = {json.dumps(connected_platforms)};
 const connections = [];
 
+function createWS(url) {{
+    const ws = new WebSocket(url);
+    ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
+    ws.onclose = () => setTimeout(() => {{
+        const idx = connections.indexOf(ws);
+        if (idx > -1) connections.splice(idx, 1);
+        const newWs = createWS(url);
+        connections.push(newWs);
+    }}, 3000);
+    ws.onerror = () => ws.close();
+    return ws;
+}}
+
 function connectWS() {{
     if (config.show_twitch && connectedPlatforms.includes('twitch')) {{
-        const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/twitch/');
-        ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
-        connections.push(ws);
+        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/twitch/'));
     }}
     if (config.show_youtube && connectedPlatforms.includes('youtube')) {{
-        const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/youtube/');
-        ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
-        connections.push(ws);
+        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/youtube/'));
     }}
     if (config.show_kick && connectedPlatforms.includes('kick')) {{
-        const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/kick/');
-        ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
-        connections.push(ws);
+        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/kick/'));
     }}
     if (config.show_facebook && connectedPlatforms.includes('facebook')) {{
-        const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/facebook/');
-        ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
-        connections.push(ws);
+        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/facebook/'));
     }}
     if (config.show_tiktok && connectedPlatforms.includes('tiktok')) {{
-        const ws = new WebSocket('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/tiktok/');
-        ws.onmessage = (e) => handleMessage(JSON.parse(e.data));
-        connections.push(ws);
+        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/tiktok/'));
     }}
 }}
 
@@ -1228,29 +1242,30 @@ function connectWebSocket(url, handler) {{
 }}
 
 function connectGoalWebSockets() {{
-    const platforms = GOAL_PLATFORMS[goalType] || [];
+    // Always connect to goals channel for refresh signals
+    connectWebSocket(`wss://bomby.us/ws/fuzeobs-goals/${{userId}}/`, (e) => {{
+        const data = JSON.parse(e.data);
+        if (data.type === 'refresh') {{
+            window.location.reload();
+            return;
+        }}
+        if (data.type === 'goal_update') {{
+            currentAmount = data.current || currentAmount;
+            render();
+        }}
+    }});
     
+    // Connect to platform alerts for events
+    const platforms = GOAL_PLATFORMS[goalType] || [];
     platforms.forEach(platform => {{
-        if (platform === 'all' || connectedPlatforms.includes(platform)) {{
-            if (goalType === 'tip') {{
-                connectWebSocket(`wss://bomby.us/ws/fuzeobs-goals/${{userId}}/`, handleGoalMessage);
-                return;
-            }}
-            
+        if (platform === 'all') return; // Already handled above
+        if (connectedPlatforms.includes(platform)) {{
             connectWebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`, (e) => {{
                 const data = JSON.parse(e.data);
                 handleAlertForGoal(data);
             }});
         }}
     }});
-}}
-
-function handleGoalMessage(e) {{
-    const data = JSON.parse(e.data);
-    if (data.type === 'goal_update') {{
-        currentAmount = data.current || currentAmount;
-        render();
-    }}
 }}
 
 function handleAlertForGoal(data) {{
@@ -1575,16 +1590,18 @@ function connectWebSocket(url) {{
 }}
 
 function connectWebSockets() {{
+    // Always connect to labels channel for refresh signals
+    connectWebSocket(`wss://bomby.us/ws/fuzeobs-labels/${{userId}}/`);
+    
+    // Connect to platform alerts for events (unless already using 'all')
     const platforms = LABEL_PLATFORMS[labelType] || [];
-    platforms.forEach(platform => {{
-        if (platform === 'all') {{
-            connectWebSocket(`wss://bomby.us/ws/fuzeobs-labels/${{userId}}/`);
-            return;
-        }}
-        if (connectedPlatforms.includes(platform)) {{
-            connectWebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
-        }}
-    }});
+    if (!platforms.includes('all')) {{
+        platforms.forEach(platform => {{
+            if (connectedPlatforms.includes(platform)) {{
+                connectWebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
+            }}
+        }});
+    }}
 }}
 
 function startPlatformListeners() {{
