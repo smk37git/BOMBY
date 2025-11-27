@@ -1219,22 +1219,28 @@ const GOAL_PLATFORMS = {{
     'stars': ['facebook']
 }};
 
+function connectWebSocket(url, handler) {{
+    const ws = new WebSocket(url);
+    ws.onmessage = handler;
+    ws.onclose = () => setTimeout(() => connectWebSocket(url, handler), 3000);
+    ws.onerror = () => ws.close();
+    return ws;
+}}
+
 function connectGoalWebSockets() {{
     const platforms = GOAL_PLATFORMS[goalType] || [];
     
     platforms.forEach(platform => {{
         if (platform === 'all' || connectedPlatforms.includes(platform)) {{
             if (goalType === 'tip') {{
-                const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-goals/${{userId}}/`);
-                ws.onmessage = handleGoalMessage;
+                connectWebSocket(`wss://bomby.us/ws/fuzeobs-goals/${{userId}}/`, handleGoalMessage);
                 return;
             }}
             
-            const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
-            ws.onmessage = (e) => {{
+            connectWebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`, (e) => {{
                 const data = JSON.parse(e.data);
                 handleAlertForGoal(data);
-            }};
+            }});
         }}
     }});
 }}
@@ -1295,7 +1301,7 @@ connectGoalWebSockets();
 </html>"""
 
 def generate_labels_html(user_id, config, connected_platforms):
-    """Generate labels widget HTML - add this function to widget_generator.py"""
+    """Generate labels widget HTML with WebSocket reconnection and data persistence"""
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -1484,6 +1490,14 @@ function render(animate = false) {{
     container.innerHTML = `${{iconHtml}}<span class="label-text ${{animClass}}" style="${{getStyleString()}}">${{getLabelValue()}}</span>`;
 }}
 
+function saveData() {{
+    fetch(`https://bomby.us/fuzeobs/labels/save/${{userId}}`, {{
+        method: 'POST',
+        headers: {{'Content-Type': 'application/json'}},
+        body: JSON.stringify({{label_type: labelType, data: sessionData}})
+    }}).catch(() => {{}});
+}}
+
 function handleEvent(data) {{
     if (data.type === 'refresh') {{ window.location.reload(); return; }}
     const eventType = data.event_type;
@@ -1549,19 +1563,26 @@ function handleEvent(data) {{
             break;
     }}
     render(true);
+    saveData();
+}}
+
+function connectWebSocket(url) {{
+    const ws = new WebSocket(url);
+    ws.onmessage = (e) => handleEvent(JSON.parse(e.data));
+    ws.onclose = () => setTimeout(() => connectWebSocket(url), 3000);
+    ws.onerror = () => ws.close();
+    return ws;
 }}
 
 function connectWebSockets() {{
     const platforms = LABEL_PLATFORMS[labelType] || [];
     platforms.forEach(platform => {{
         if (platform === 'all') {{
-            const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-labels/${{userId}}/`);
-            ws.onmessage = (e) => handleEvent(JSON.parse(e.data));
+            connectWebSocket(`wss://bomby.us/ws/fuzeobs-labels/${{userId}}/`);
             return;
         }}
         if (connectedPlatforms.includes(platform)) {{
-            const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
-            ws.onmessage = (e) => handleEvent(JSON.parse(e.data));
+            connectWebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
         }}
     }});
 }}
@@ -1579,7 +1600,17 @@ function startPlatformListeners() {{
     }}
 }}
 
-render();
+// Load persisted data on startup
+fetch(`https://bomby.us/fuzeobs/labels/data/${{userId}}`)
+    .then(r => r.json())
+    .then(res => {{
+        if (res.data && res.data[labelType]) {{
+            Object.assign(sessionData, res.data[labelType]);
+        }}
+        render();
+    }})
+    .catch(() => render());
+
 startPlatformListeners();
 connectWebSockets();
 </script>

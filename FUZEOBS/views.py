@@ -14,7 +14,7 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
-from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent
+from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData
 from google.cloud import storage
 import hmac
 import hashlib
@@ -2292,3 +2292,40 @@ def fuzeobs_kick_chat_start(request, user_id):
     except Exception as e:
         print(f'[KICK CHAT] Error: {e}')
         return JsonResponse({'error': str(e)}, status=400)
+    
+# =========== LABELS ===========    
+@csrf_exempt
+def fuzeobs_get_label_data(request, user_id):
+    """Get persisted label session data for widget reload"""
+    from .models import LabelSessionData
+    
+    data = {}
+    for item in LabelSessionData.objects.filter(user_id=user_id):
+        data[item.label_type] = item.data
+    return JsonResponse({'data': data})
+
+
+@csrf_exempt
+def fuzeobs_save_label_data(request, user_id):
+    """Save label data when events occur - called from widget JS"""
+    from .models import LabelSessionData
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    try:
+        body = json.loads(request.body)
+        label_type = body.get('label_type')
+        data = body.get('data', {})
+        
+        if not label_type:
+            return JsonResponse({'error': 'label_type required'}, status=400)
+        
+        LabelSessionData.objects.update_or_create(
+            user_id=user_id,
+            label_type=label_type,
+            defaults={'data': data}
+        )
+        return JsonResponse({'saved': True})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

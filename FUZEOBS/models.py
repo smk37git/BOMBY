@@ -216,3 +216,16 @@ class WidgetEvent(models.Model):
     
     class Meta:
         unique_together = ['widget', 'event_type', 'platform']
+
+class LabelSessionData(models.Model):
+    """Persists label widget data across OBS restarts"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    label_type = models.CharField(max_length=50)
+    data = models.JSONField(default=dict)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['user', 'label_type']
+        indexes = [
+            models.Index(fields=['user', 'label_type']),
+        ]

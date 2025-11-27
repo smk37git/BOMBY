@@ -68,6 +68,10 @@ urlpatterns = [
     path('test-alert', views.fuzeobs_test_alert, name='test_alert'),
     path('widgets/events/config/<int:user_id>/<str:platform>', views.fuzeobs_get_widget_event_configs, name='get_widget_event_configs'),
 
+    # Labels Data Persistence
+    path('labels/data/<int:user_id>', views.fuzeobs_get_label_data, name='get_label_data'),
+    path('labels/save/<int:user_id>', views.fuzeobs_save_label_data, name='save_label_data'),
+
     # Website URLS
     path('', views.fuzeobs_view, name="fuzeobs"),
     path('download/windows', views.fuzeobs_download_windows, name='download_windows'),
