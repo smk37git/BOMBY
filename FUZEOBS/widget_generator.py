@@ -1724,7 +1724,13 @@ function applyStyles() {{
     container.style.gap = (config.spacing || 10) + 'px';
     container.style.padding = (config.padding || 20) + 'px';
     container.style.borderRadius = (config.border_radius || 8) + 'px';
-    container.style.backgroundColor = config.background_color || '#5CA05C';
+    
+    // Handle transparent background
+    if (config.transparent_background) {{
+        container.style.backgroundColor = 'transparent';
+    }} else {{
+        container.style.backgroundColor = config.background_color || '#5CA05C';
+    }}
     
     if (config.text_shadow) {{
         container.style.textShadow = `2px 2px 4px ${{config.shadow_color || '#000000'}}`;
@@ -1827,7 +1833,7 @@ async function pollFacebook() {{
     }}
 }}
 
-// WebSocket for real-time updates (optional enhancement)
+// WebSocket for real-time updates and refresh
 function connectWS() {{
     const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-viewers/${{userId}}/`);
     

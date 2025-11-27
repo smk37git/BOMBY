@@ -1360,6 +1360,12 @@ def fuzeobs_save_widget(request):
                     f'labels_{user.id}',
                     {'type': 'label_update', 'data': {'type': 'refresh'}}
                 )
+            elif widget_type == 'viewer_count':
+                # Send refresh to viewers websocket
+                async_to_sync(channel_layer.group_send)(
+                    f'viewers_{user.id}',
+                    {'type': 'viewer_update', 'data': {'type': 'refresh'}}
+                )
         else:
             # Auto-create default event configs for alert_box
             if widget_type == 'alert_box':
