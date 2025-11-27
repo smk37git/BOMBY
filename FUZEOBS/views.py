@@ -2329,3 +2329,152 @@ def fuzeobs_save_label_data(request, user_id):
         return JsonResponse({'saved': True})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+# =========== VIEWER COUNT ===========
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_get_twitch_viewers(request, user_id):
+    """Get Twitch viewer count for user's stream"""
+    try:
+        conn = PlatformConnection.objects.get(user_id=user_id, platform='twitch')
+        
+        # Get app access token
+        from .twitch import get_app_access_token
+        app_token = get_app_access_token()
+        
+        # Get stream info
+        resp = requests.get(
+            'https://api.twitch.tv/helix/streams',
+            params={'user_login': conn.platform_username},
+            headers={
+                'Authorization': f'Bearer {app_token}',
+                'Client-Id': settings.TWITCH_CLIENT_ID
+            },
+            timeout=5
+        )
+        
+        if resp.status_code == 200:
+            data = resp.json()
+            streams = data.get('data', [])
+            if streams:
+                viewers = streams[0].get('viewer_count', 0)
+                return JsonResponse({'viewers': viewers})
+        
+        return JsonResponse({'viewers': 0})
+    except PlatformConnection.DoesNotExist:
+        return JsonResponse({'viewers': 0})
+    except Exception as e:
+        print(f'[VIEWER] Twitch error: {e}')
+        return JsonResponse({'viewers': 0})
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_get_youtube_viewers(request, user_id):
+    """Get YouTube viewer count for user's live stream"""
+    try:
+        conn = PlatformConnection.objects.get(user_id=user_id, platform='youtube')
+        
+        # Check for active broadcast
+        resp = requests.get(
+            'https://www.googleapis.com/youtube/v3/liveBroadcasts',
+            params={
+                'part': 'snippet,status',
+                'broadcastType': 'all',
+                'mine': 'true',
+                'maxResults': 5
+            },
+            headers={'Authorization': f'Bearer {conn.access_token}'},
+            timeout=10
+        )
+        
+        if resp.status_code == 200:
+            broadcasts = resp.json().get('items', [])
+            for broadcast in broadcasts:
+                if broadcast.get('status', {}).get('lifeCycleStatus') == 'live':
+                    video_id = broadcast['id']
+                    
+                    # Get concurrent viewers
+                    video_resp = requests.get(
+                        'https://www.googleapis.com/youtube/v3/videos',
+                        params={
+                            'part': 'liveStreamingDetails',
+                            'id': video_id
+                        },
+                        headers={'Authorization': f'Bearer {conn.access_token}'},
+                        timeout=10
+                    )
+                    
+                    if video_resp.status_code == 200:
+                        videos = video_resp.json().get('items', [])
+                        if videos:
+                            viewers = videos[0].get('liveStreamingDetails', {}).get('concurrentViewers', 0)
+                            return JsonResponse({'viewers': int(viewers)})
+        
+        return JsonResponse({'viewers': 0})
+    except PlatformConnection.DoesNotExist:
+        return JsonResponse({'viewers': 0})
+    except Exception as e:
+        print(f'[VIEWER] YouTube error: {e}')
+        return JsonResponse({'viewers': 0})
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_get_kick_viewers(request, user_id):
+    """Get Kick viewer count for user's stream"""
+    try:
+        conn = PlatformConnection.objects.get(user_id=user_id, platform='kick')
+        
+        resp = requests.get(
+            f'https://kick.com/api/v2/channels/{conn.platform_username}',
+            headers={'User-Agent': 'FuzeOBS/1.0'},
+            timeout=5
+        )
+        
+        if resp.status_code == 200:
+            data = resp.json()
+            livestream = data.get('livestream')
+            if livestream:
+                viewers = livestream.get('viewer_count', 0)
+                return JsonResponse({'viewers': viewers})
+        
+        return JsonResponse({'viewers': 0})
+    except PlatformConnection.DoesNotExist:
+        return JsonResponse({'viewers': 0})
+    except Exception as e:
+        print(f'[VIEWER] Kick error: {e}')
+        return JsonResponse({'viewers': 0})
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_get_facebook_viewers(request, user_id):
+    """Get Facebook viewer count for user's live stream"""
+    try:
+        conn = PlatformConnection.objects.get(user_id=user_id, platform='facebook')
+        
+        # Get live videos
+        resp = requests.get(
+            f'https://graph.facebook.com/v18.0/{conn.platform_user_id}/live_videos',
+            params={
+                'access_token': conn.access_token,
+                'fields': 'id,status,live_views',
+                'limit': 1
+            },
+            timeout=5
+        )
+        
+        if resp.status_code == 200:
+            videos = resp.json().get('data', [])
+            for video in videos:
+                if video.get('status') == 'LIVE':
+                    viewers = video.get('live_views', 0)
+                    return JsonResponse({'viewers': viewers})
+        
+        return JsonResponse({'viewers': 0})
+    except PlatformConnection.DoesNotExist:
+        return JsonResponse({'viewers': 0})
+    except Exception as e:
+        print(f'[VIEWER] Facebook error: {e}')
+        return JsonResponse({'viewers': 0})

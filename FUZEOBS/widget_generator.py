@@ -23,6 +23,8 @@ def generate_widget_html(widget):
         return generate_goal_bar_html(user_id, config, connected_platforms)
     elif widget_type == 'labels':
         return generate_labels_html(user_id, config, connected_platforms)
+    elif widget_type == 'viewer_count':
+        return generate_viewer_count_html(user_id, config, connected_platforms)
     else:
         raise ValueError(f"Unknown widget type: {widget_type}")
 
@@ -1630,6 +1632,243 @@ fetch(`https://bomby.us/fuzeobs/labels/data/${{userId}}`)
 
 startPlatformListeners();
 connectWebSockets();
+</script>
+</body>
+</html>"""
+
+def generate_viewer_count_html(user_id, config, connected_platforms):
+    """Generate viewer count widget HTML"""
+    import json
+    
+    config_json = json.dumps(config)
+    platforms_json = json.dumps(connected_platforms)
+    
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+* {{ margin: 0; padding: 0; box-sizing: border-box; }}
+body {{
+    background: transparent;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}}
+#viewer-container {{
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease;
+}}
+#viewer-count {{
+    transition: transform 0.2s ease;
+}}
+#viewer-count.bump {{
+    transform: scale(1.1);
+}}
+.eye-icon {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}}
+.eye-icon svg {{
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}}
+</style>
+</head>
+<body>
+<div id="viewer-container">
+    <div class="eye-icon" id="eye-icon"></div>
+    <span id="viewer-count">0</span>
+</div>
+
+<script>
+const userId = {user_id};
+const config = {config_json};
+const connectedPlatforms = {platforms_json};
+
+// Platform viewer counts
+const viewers = {{
+    twitch: 0,
+    youtube: 0,
+    kick: 0,
+    facebook: 0
+}};
+
+// Polling intervals (platform-specific)
+const POLL_INTERVALS = {{
+    twitch: 30000,   // 30s - Twitch rate limits
+    youtube: 60000,  // 60s - YouTube quota
+    kick: 15000,     // 15s - Kick is lenient
+    facebook: 30000  // 30s - Facebook
+}};
+
+function applyStyles() {{
+    const container = document.getElementById('viewer-container');
+    const count = document.getElementById('viewer-count');
+    const icon = document.getElementById('eye-icon');
+    
+    container.style.fontFamily = config.font_family || 'Open Sans';
+    container.style.fontSize = (config.font_size || 36) + 'px';
+    container.style.fontWeight = config.font_weight || '800';
+    container.style.color = config.font_color || '#FFFFFF';
+    container.style.gap = (config.spacing || 10) + 'px';
+    container.style.padding = (config.padding || 20) + 'px';
+    container.style.borderRadius = (config.border_radius || 8) + 'px';
+    container.style.backgroundColor = config.background_color || '#5CA05C';
+    
+    if (config.text_shadow) {{
+        container.style.textShadow = `2px 2px 4px ${{config.shadow_color || '#000000'}}`;
+    }}
+    
+    // Eye icon
+    if (config.show_icon !== false) {{
+        const iconSize = config.icon_size || 32;
+        const iconColor = config.icon_color || '#FFFFFF';
+        icon.innerHTML = `
+            <svg width="${{iconSize}}" height="${{iconSize}}" viewBox="0 0 24 24" style="color: ${{iconColor}}">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        `;
+        icon.style.display = 'flex';
+    }} else {{
+        icon.style.display = 'none';
+    }}
+}}
+
+function updateDisplay() {{
+    let total = 0;
+    if (config.show_twitch !== false && connectedPlatforms.includes('twitch')) total += viewers.twitch;
+    if (config.show_youtube !== false && connectedPlatforms.includes('youtube')) total += viewers.youtube;
+    if (config.show_kick !== false && connectedPlatforms.includes('kick')) total += viewers.kick;
+    if (config.show_facebook !== false && connectedPlatforms.includes('facebook')) total += viewers.facebook;
+    
+    const countEl = document.getElementById('viewer-count');
+    const oldValue = parseInt(countEl.textContent.replace(/,/g, '')) || 0;
+    
+    if (total !== oldValue) {{
+        countEl.textContent = total.toLocaleString();
+        
+        if (config.animate_changes !== false) {{
+            countEl.classList.add('bump');
+            setTimeout(() => countEl.classList.remove('bump'), 200);
+        }}
+    }}
+}}
+
+// Platform-specific polling functions
+async function pollTwitch() {{
+    if (!config.show_twitch || !connectedPlatforms.includes('twitch')) return;
+    
+    try {{
+        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/twitch/${{userId}}`);
+        if (resp.ok) {{
+            const data = await resp.json();
+            viewers.twitch = data.viewers || 0;
+            updateDisplay();
+        }}
+    }} catch (e) {{
+        console.log('[VIEWER] Twitch poll error:', e);
+    }}
+}}
+
+async function pollYouTube() {{
+    if (!config.show_youtube || !connectedPlatforms.includes('youtube')) return;
+    
+    try {{
+        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/youtube/${{userId}}`);
+        if (resp.ok) {{
+            const data = await resp.json();
+            viewers.youtube = data.viewers || 0;
+            updateDisplay();
+        }}
+    }} catch (e) {{
+        console.log('[VIEWER] YouTube poll error:', e);
+    }}
+}}
+
+async function pollKick() {{
+    if (!config.show_kick || !connectedPlatforms.includes('kick')) return;
+    
+    try {{
+        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/kick/${{userId}}`);
+        if (resp.ok) {{
+            const data = await resp.json();
+            viewers.kick = data.viewers || 0;
+            updateDisplay();
+        }}
+    }} catch (e) {{
+        console.log('[VIEWER] Kick poll error:', e);
+    }}
+}}
+
+async function pollFacebook() {{
+    if (!config.show_facebook || !connectedPlatforms.includes('facebook')) return;
+    
+    try {{
+        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/facebook/${{userId}}`);
+        if (resp.ok) {{
+            const data = await resp.json();
+            viewers.facebook = data.viewers || 0;
+            updateDisplay();
+        }}
+    }} catch (e) {{
+        console.log('[VIEWER] Facebook poll error:', e);
+    }}
+}}
+
+// WebSocket for real-time updates (optional enhancement)
+function connectWS() {{
+    const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-viewers/${{userId}}/`);
+    
+    ws.onmessage = (e) => {{
+        const data = JSON.parse(e.data);
+        if (data.type === 'refresh') {{
+            window.location.reload();
+            return;
+        }}
+        if (data.platform && typeof data.viewers === 'number') {{
+            viewers[data.platform] = data.viewers;
+            updateDisplay();
+        }}
+    }};
+    
+    ws.onclose = () => setTimeout(connectWS, 3000);
+    ws.onerror = () => ws.close();
+}}
+
+// Initialize
+applyStyles();
+updateDisplay();
+connectWS();
+
+// Start polling for each enabled platform
+if (config.show_twitch !== false && connectedPlatforms.includes('twitch')) {{
+    pollTwitch();
+    setInterval(pollTwitch, POLL_INTERVALS.twitch);
+}}
+if (config.show_youtube !== false && connectedPlatforms.includes('youtube')) {{
+    pollYouTube();
+    setInterval(pollYouTube, POLL_INTERVALS.youtube);
+}}
+if (config.show_kick !== false && connectedPlatforms.includes('kick')) {{
+    pollKick();
+    setInterval(pollKick, POLL_INTERVALS.kick);
+}}
+if (config.show_facebook !== false && connectedPlatforms.includes('facebook')) {{
+    pollFacebook();
+    setInterval(pollFacebook, POLL_INTERVALS.facebook);
+}}
 </script>
 </body>
 </html>"""

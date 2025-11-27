@@ -6,4 +6,5 @@ websocket_urlpatterns = [
     path('ws/fuzeobs-chat/<int:user_id>/', consumers.ChatConsumer.as_asgi()),
     path('ws/fuzeobs-goals/<int:user_id>/', consumers.GoalConsumer.as_asgi()),
     path('ws/fuzeobs-labels/<int:user_id>/', consumers.LabelsConsumer.as_asgi()),
+    path('ws/fuzeobs-viewers/<int:user_id>/', consumers.ViewerCountConsumer.as_asgi()),
 ]

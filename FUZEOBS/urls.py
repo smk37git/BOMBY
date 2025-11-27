@@ -72,6 +72,12 @@ urlpatterns = [
     path('labels/data/<int:user_id>', views.fuzeobs_get_label_data, name='get_label_data'),
     path('labels/save/<int:user_id>', views.fuzeobs_save_label_data, name='save_label_data'),
 
+    # Viewer Counts Widget
+    path('viewers/twitch/<int:user_id>', views.fuzeobs_get_twitch_viewers),
+    path('viewers/youtube/<int:user_id>', views.fuzeobs_get_youtube_viewers),
+    path('viewers/kick/<int:user_id>', views.fuzeobs_get_kick_viewers),
+    path('viewers/facebook/<int:user_id>', views.fuzeobs_get_facebook_viewers),
+
     # Website URLS
     path('', views.fuzeobs_view, name="fuzeobs"),
     path('download/windows', views.fuzeobs_download_windows, name='download_windows'),
