@@ -513,24 +513,59 @@ let lastActivity = Date.now();
 
 const BOT_NAMES = ['nightbot', 'streamelements', 'streamlabs', 'moobot', 'fossabot'];
 
-const PLATFORM_ICONS = {{
-    'twitch': 'https://www.iconninja.com/files/830/856/929/logo-brand-social-network-twitch-icon.png',
-    'youtube': 'https://www.gstatic.com/images/icons/material/product/2x/youtube_64dp.png',
-    'kick': 'https://cdn.streamlabs.com/static/kick/image/logo.png',
-    'facebook': 'https://cdn.streamlabs.com/static/facebook/image/FB29.png',
-    'tiktok': 'https://sf16-website-login.neutral.ttwstatic.com/obj/tiktok_web_login_static/tiktok/webapp/main/webapp-desktop/8152caf0c8e8bc67ae0d.png'
-}};
+PLATFORM_ICONS = {
+    'twitch': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-platform.png',
+    'youtube': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/youtube-platform.png',
+    'kick': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-platform.png',
+    'facebook': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/facebook-platform.png',
+    'tiktok': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/tiktok-platform.png',
+}
 
 const BADGE_URLS = {{
-    'broadcaster': 'https://static-cdn.jtvnw.net/badges/v1/5527c58c-fb7d-422d-b71b-f309dcb85cc1/2',
-    'moderator': 'https://static-cdn.jtvnw.net/badges/v1/3267646d-33f0-4b17-b3df-f923a41db1d0/2',
-    'subscriber': 'https://static-cdn.jtvnw.net/badges/v1/5d9f2208-5dd8-11e7-8513-2ff4adfae661/2',
-    'vip': 'https://static-cdn.jtvnw.net/badges/v1/b817aba4-fad8-49e2-b88a-7cc744571f1e/2',
-    'prime': 'https://static-cdn.jtvnw.net/badges/v1/bbbe0db0-a598-423e-86d0-f9fb98ca1933/2',
-    'turbo': 'https://static-cdn.jtvnw.net/badges/v1/bd444ec6-8f34-4bf9-91f4-af1e3428d80f/2',
-    'bits': 'https://static-cdn.jtvnw.net/badges/v1/73b5c3fb-24f9-4a82-a852-2f475b59411c/2',
-    'sub_gifter': 'https://static-cdn.jtvnw.net/badges/v1/a5ef6c17-2e5b-4d8f-9b80-2779fd722414/2',
-    'partner': 'https://static-cdn.jtvnw.net/badges/v1/d12a2e27-16f6-41d0-ab77-b780518f00a3/2'
+    twitch: {{
+        'broadcaster': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-broadcaster.png',
+        'moderator': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-moderator.png',
+        'subscriber': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-subscriber.png',
+        'vip': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-vip.png',
+        'prime': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-prime.png',
+        'turbo': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-turbo.png',
+        'bits': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-bits.png',
+        'sub_gifter': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-sub-gifter.png',
+        'partner': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-partner.png',
+        'ambassador': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-ambassador.png',
+        'artist': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-artist.png',
+        'staff': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-staff.png',
+    }},
+    youtube: {{
+        'moderator': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/youtube-moderator.png',
+        'member': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/youtube-member.png',
+        'coin': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/youtube-coin.png',
+        'verified': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/youtube-verified.png',
+        'owner': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/youtube-owner.png',
+    }},
+    kick: {{
+        'broadcaster': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-broadcaster.png',
+        'moderator': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-moderator.png',
+        'vip': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-vip.png',
+        'og': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-og.png',
+        'founder': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-founder.png',
+        'subscriber': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-subscriber.png',
+        'sub_gifter': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-sub-gifter.png',
+        'staff': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-staff.png',
+        'verified': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-verified.png',
+    }},
+    facebook: {{
+        'moderator': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/facebook-moderator.png',
+        'subscriber': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/facebook-subscriber.png',
+        'top_fan': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/facebook-top-fan.png',
+        'verified': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/facebook-verified.png',
+    }},
+    tiktok: {{
+        'moderator': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/tiktok-moderator.png',
+        'subscriber': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/tiktok-subscriber.png',
+        'gifter': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/tiktok-gifter.png',
+        'top_gifter': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/tiktok-top-gifter.png',
+    }},
 }};
 
 function handleMessage(e) {{
@@ -599,10 +634,11 @@ function displayMessage(data) {{
         html += `<img src="${{PLATFORM_ICONS[data.platform]}}" class="platform-icon" />`;
     }}
     
-    if (data.badges) {{
+    if (data.badges && data.platform) {{
+        const platformBadges = BADGE_URLS[data.platform] || {{}};
         data.badges.forEach(badge => {{
-            if (BADGE_URLS[badge]) {{
-                html += `<img src="${{BADGE_URLS[badge]}}" class="badge" />`;
+            if (platformBadges[badge]) {{
+                html += `<img src="${{platformBadges[badge]}}" class="badge" />`;
             }}
         }});
     }}
@@ -1411,13 +1447,13 @@ let sessionData = {{
     total_donations_session: 0,
 }};
 
-const PLATFORM_ICONS = {{
-    'twitch': 'https://www.iconninja.com/files/830/856/929/logo-brand-social-network-twitch-icon.png',
-    'youtube': 'https://www.gstatic.com/images/icons/material/product/2x/youtube_64dp.png',
-    'kick': 'https://cdn.streamlabs.com/static/kick/image/logo.png',
-    'facebook': 'https://cdn.streamlabs.com/static/facebook/image/FB29.png',
-    'tiktok': 'https://sf16-website-login.neutral.ttwstatic.com/obj/tiktok_web_login_static/tiktok/webapp/main/webapp-desktop/8152caf0c8e8bc67ae0d.png'
-}};
+PLATFORM_ICONS = {
+    'twitch': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-platform.png',
+    'youtube': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/youtube-platform.png',
+    'kick': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-platform.png',
+    'facebook': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/facebook-platform.png',
+    'tiktok': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/tiktok-platform.png',
+}
 
 const LABEL_PLATFORMS = {{
     'latest_donation': ['all'],
