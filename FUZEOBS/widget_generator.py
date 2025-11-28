@@ -1996,6 +1996,12 @@ function startVisibilityCycle() {{
         container.classList.remove('hidden');
         isVisible = true;
         
+        // Re-trigger animation by removing and re-adding class
+        const animClass = 'anim-' + (config.animation || 'fade');
+        image.classList.remove(animClass);
+        void image.offsetWidth; // Force reflow
+        image.classList.add(animClass);
+        
         if (showMs > 0) {{
             setTimeout(() => {{
                 container.classList.add('hidden');
