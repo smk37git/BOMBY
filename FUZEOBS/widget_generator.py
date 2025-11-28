@@ -513,13 +513,13 @@ let lastActivity = Date.now();
 
 const BOT_NAMES = ['nightbot', 'streamelements', 'streamlabs', 'moobot', 'fossabot'];
 
-PLATFORM_ICONS = {
+PLATFORM_ICONS = {{
     'twitch': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-platform.png',
     'youtube': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/youtube-platform.png',
     'kick': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-platform.png',
     'facebook': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/facebook-platform.png',
     'tiktok': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/tiktok-platform.png',
-}
+}}
 
 const BADGE_URLS = {{
     twitch: {{
@@ -1447,13 +1447,13 @@ let sessionData = {{
     total_donations_session: 0,
 }};
 
-PLATFORM_ICONS = {
+PLATFORM_ICONS = {{
     'twitch': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/twitch-platform.png',
     'youtube': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/youtube-platform.png',
     'kick': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/kick-platform.png',
     'facebook': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/facebook-platform.png',
     'tiktok': 'https://storage.googleapis.com/fuzeobs-public/widget-icons/tiktok-platform.png',
-}
+}}
 
 const LABEL_PLATFORMS = {{
     'latest_donation': ['all'],
