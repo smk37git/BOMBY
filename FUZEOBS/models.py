@@ -133,6 +133,7 @@ class WidgetConfig(models.Model):
         ('goal_bar', 'Goal Bar'),
         ('labels', 'Labels'),
         ('viewer_count', 'Viewer Count'),
+        ('sponsor_banner', 'Sponsor Banner'),
     ]
     
     PLATFORMS = [

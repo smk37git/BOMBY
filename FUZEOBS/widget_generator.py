@@ -25,6 +25,8 @@ def generate_widget_html(widget):
         return generate_labels_html(user_id, config, connected_platforms)
     elif widget_type == 'viewer_count':
         return generate_viewer_count_html(user_id, config, connected_platforms)
+    elif widget_type == 'sponsor_banner':
+        return generate_sponsor_banner_html(user_id, config)
     else:
         raise ValueError(f"Unknown widget type: {widget_type}")
 
@@ -1854,6 +1856,158 @@ if (config.show_facebook !== false && connectedPlatforms.includes('facebook')) {
     pollFacebook();
     setInterval(pollFacebook, POLL_INTERVALS.facebook);
 }}
+</script>
+</body>
+</html>"""
+
+def generate_sponsor_banner_html(user_id, config):
+    """Generate sponsor banner widget HTML"""
+    import json
+    config_json = json.dumps(config)
+    
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* {{ margin: 0; padding: 0; box-sizing: border-box; }}
+body {{
+    background: transparent;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}}
+#banner-container {{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.5s ease;
+}}
+#banner-container.hidden {{
+    opacity: 0;
+    pointer-events: none;
+}}
+.banner-image {{
+    object-fit: contain;
+}}
+
+@keyframes fadeIn {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+@keyframes bounce {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-10px); }} }}
+@keyframes pulse {{ 0%, 100% {{ transform: scale(1); }} 50% {{ transform: scale(1.05); }} }}
+@keyframes rotate {{ from {{ transform: rotate(0deg); }} to {{ transform: rotate(360deg); }} }}
+@keyframes slideIn {{ from {{ transform: translateX(-100%); opacity: 0; }} to {{ transform: translateX(0); opacity: 1; }} }}
+@keyframes zoomIn {{ from {{ transform: scale(0); opacity: 0; }} to {{ transform: scale(1); opacity: 1; }} }}
+
+.anim-fade {{ animation: fadeIn 0.5s ease forwards; }}
+.anim-bounce {{ animation: bounce 1s ease infinite; }}
+.anim-pulse {{ animation: pulse 2s ease infinite; }}
+.anim-rotate {{ animation: rotate 3s linear infinite; }}
+.anim-slide {{ animation: slideIn 0.5s ease forwards; }}
+.anim-zoom {{ animation: zoomIn 0.5s ease forwards; }}
+</style>
+</head>
+<body>
+<div id="banner-container">
+    <img id="banner-image" class="banner-image" />
+</div>
+
+<script>
+const userId = {user_id};
+const config = {config_json};
+
+const container = document.getElementById('banner-container');
+const image = document.getElementById('banner-image');
+
+let currentImageIndex = 0;
+let images = [];
+let isVisible = true;
+
+function init() {{
+    image.style.width = (config.banner_width || 300) + 'px';
+    image.style.height = (config.banner_height || 100) + 'px';
+    
+    if (config.background_transparent) {{
+        container.style.backgroundColor = 'transparent';
+    }} else {{
+        container.style.backgroundColor = config.background_color || '#000000';
+    }}
+    
+    images = [];
+    if (config.image_1) images.push(config.image_1);
+    if (config.placement === 'double' && config.image_2) images.push(config.image_2);
+    
+    if (images.length === 0) {{
+        container.classList.add('hidden');
+        return;
+    }}
+    
+    showImage(0);
+    startVisibilityCycle();
+    
+    if (config.placement === 'double' && images.length > 1) {{
+        startImageCycle();
+    }}
+}}
+
+function showImage(index) {{
+    currentImageIndex = index;
+    image.src = images[index];
+    image.className = 'banner-image anim-' + (config.animation || 'fade');
+}}
+
+function startImageCycle() {{
+    const duration = (config.image_duration || 5) * 1000;
+    setInterval(() => {{
+        if (!isVisible) return;
+        currentImageIndex = (currentImageIndex + 1) % images.length;
+        showImage(currentImageIndex);
+    }}, duration);
+}}
+
+function startVisibilityCycle() {{
+    const hideMins = config.hide_duration_mins || 0;
+    const hideSecs = config.hide_duration_secs || 0;
+    const showMins = config.show_duration_mins || 0;
+    const showSecs = config.show_duration_secs || 0;
+    
+    const hideMs = (hideMins * 60 + hideSecs) * 1000;
+    const showMs = (showMins * 60 + showSecs) * 1000;
+    
+    if (hideMs === 0 && showMs === 0) {{
+        container.classList.remove('hidden');
+        isVisible = true;
+        return;
+    }}
+    
+    function cycle() {{
+        container.classList.remove('hidden');
+        isVisible = true;
+        
+        if (showMs > 0) {{
+            setTimeout(() => {{
+                container.classList.add('hidden');
+                isVisible = false;
+                if (hideMs > 0) setTimeout(cycle, hideMs);
+            }}, showMs);
+        }}
+    }}
+    cycle();
+}}
+
+function connectWS() {{
+    const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-sponsor/${{userId}}/`);
+    ws.onmessage = (e) => {{
+        const data = JSON.parse(e.data);
+        if (data.type === 'refresh') window.location.reload();
+    }};
+    ws.onclose = () => setTimeout(connectWS, 3000);
+    ws.onerror = () => ws.close();
+}}
+
+connectWS();
+init();
 </script>
 </body>
 </html>"""

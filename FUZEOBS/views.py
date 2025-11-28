@@ -1366,6 +1366,12 @@ def fuzeobs_save_widget(request):
                     f'viewers_{user.id}',
                     {'type': 'viewer_update', 'data': {'type': 'refresh'}}
                 )
+            elif widget_type == 'sponsor_banner':
+                # Send refresh to sponsor banner websocket
+                async_to_sync(channel_layer.group_send)(
+                    f'sponsor_{user.id}',
+                    {'type': 'sponsor_update', 'data': {'type': 'refresh'}}
+                )
         else:
             # Auto-create default event configs for alert_box
             if widget_type == 'alert_box':
