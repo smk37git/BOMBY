@@ -1958,12 +1958,23 @@ function showImage(index) {{
 }}
 
 function startImageCycle() {{
-    const duration = (config.image_duration || 5) * 1000;
-    setInterval(() => {{
-        if (!isVisible) return;
+    let durations = [
+        (config.image_1_duration || 5) * 1000,
+        (config.image_2_duration || 5) * 1000
+    ];
+    
+    function cycleImage() {{
+        if (!isVisible) {{
+            setTimeout(cycleImage, 500);
+            return;
+        }}
+        let currentDuration = durations[currentImageIndex];
         currentImageIndex = (currentImageIndex + 1) % images.length;
         showImage(currentImageIndex);
-    }}, duration);
+        setTimeout(cycleImage, currentDuration);
+    }}
+    
+    setTimeout(cycleImage, durations[0]);
 }}
 
 function startVisibilityCycle() {{
