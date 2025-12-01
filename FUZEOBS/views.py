@@ -84,9 +84,9 @@ def cleanup_old_sessions():
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
-        'version': '0.9.10',
+        'version': '0.9.11',
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'Massive Tools-Tab update; multiple widgets added; platform connections added',
+        'changelog': 'Updater improvements',
         'mandatory': False
     })
 
