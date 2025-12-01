@@ -2490,3 +2490,25 @@ def fuzeobs_get_facebook_viewers(request, user_id):
     except Exception as e:
         print(f'[VIEWER] Facebook error: {e}')
         return JsonResponse({'viewers': 0})
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@require_tier('free')
+def fuzeobs_cleanup_media(request):
+    """Remove media library entries where GCS file no longer exists"""
+    user = request.fuzeobs_user
+    media_items = MediaLibrary.objects.filter(user=user)
+    
+    deleted_count = 0
+    for media in media_items:
+        try:
+            response = requests.head(media.file_url, timeout=5)
+            if response.status_code == 404:
+                media.delete()
+                deleted_count += 1
+        except:
+            # If request fails, assume broken and delete
+            media.delete()
+            deleted_count += 1
+    
+    return JsonResponse({'success': True, 'deleted': deleted_count})
