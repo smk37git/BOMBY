@@ -155,6 +155,7 @@ class WidgetConfig(models.Model):
     gcs_url = models.URLField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    enabled = models.BooleanField(default=False)
     
     def save(self, *args, **kwargs):
         if not self.token:

@@ -1271,7 +1271,8 @@ def fuzeobs_get_widgets(request):
             'config': w.config,
             'url': f'https://bomby.us/fuzeobs/w/{w.token}',
             'created_at': w.created_at.isoformat(),
-            'updated_at': w.updated_at.isoformat()
+            'updated_at': w.updated_at.isoformat(),
+            'enabled': w.enabled
         } for w in widgets]
     })
 
@@ -1449,9 +1450,11 @@ def fuzeobs_save_widget(request):
                 'goal_type': widget.goal_type,
                 'name': widget.name,
                 'config': widget.config,
-                'url': widget_url
+                'url': widget_url,
+                'enabled': widget.enabled
             }
         })
+    
     except Exception as e:
         import traceback
         traceback.print_exc()
@@ -1474,6 +1477,27 @@ def fuzeobs_delete_widget(request, widget_id):
         import traceback
         traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=500)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@require_tier('free')
+def fuzeobs_toggle_widget(request):
+    """Toggle widget enabled/disabled state"""
+    user = request.fuzeobs_user
+    try:
+        data = json.loads(request.body)
+        widget_id = data.get('widget_id')
+        enabled = data.get('enabled', True)
+        
+        widget = WidgetConfig.objects.get(id=widget_id, user=user)
+        widget.enabled = enabled
+        widget.save()
+        
+        return JsonResponse({'success': True, 'enabled': widget.enabled})
+    except WidgetConfig.DoesNotExist:
+        return JsonResponse({'error': 'Widget not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
 
 # ===== PLATFORM CONNECTIONS =====
 
