@@ -109,6 +109,19 @@ async def twitch_irc_connect(channel_name, user_id, oauth_token):
                         if not username:
                             username = "Anonymous"
                         
+                        # Check if chat widget is enabled
+                        from .models import WidgetConfig
+                        has_enabled = await asyncio.to_thread(
+                            lambda: WidgetConfig.objects.filter(
+                                user_id=user_id,
+                                widget_type='chat_box',
+                                enabled=True
+                            ).exists()
+                        )
+                        
+                        if not has_enabled:
+                            continue
+                        
                         print(f"[IRC] Forwarding: {username}: {msg_text}")
                         
                         await channel_layer.group_send(

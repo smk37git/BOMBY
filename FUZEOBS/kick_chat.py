@@ -102,6 +102,19 @@ async def kick_chat_connect(channel_slug, user_id, access_token):
                                 'end': match.end()
                             })
                         
+                        # Check if chat widget is enabled
+                        from .models import WidgetConfig
+                        has_enabled = await asyncio.to_thread(
+                            lambda: WidgetConfig.objects.filter(
+                                user_id=user_id,
+                                widget_type='chat_box',
+                                enabled=True
+                            ).exists()
+                        )
+                        
+                        if not has_enabled:
+                            continue
+                        
                         print(f'[KICK CHAT] Sending to chat: {username}: {content}')
                         
                         # Send to WebSocket
