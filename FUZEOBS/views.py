@@ -2494,18 +2494,8 @@ def fuzeobs_get_facebook_viewers(request, user_id):
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_cleanup_media(request):
-    """Remove media library entries where GCS file no longer exists"""
-    media_items = MediaLibrary.objects.all()  # Clean all users
-    
-    deleted_count = 0
-    for media in media_items:
-        try:
-            response = requests.head(media.file_url, timeout=5)
-            if response.status_code == 404:
-                media.delete()
-                deleted_count += 1
-        except:
-            media.delete()
-            deleted_count += 1
-    
-    return JsonResponse({'success': True, 'deleted': deleted_count})
+    deleted, _ = MediaLibrary.objects.filter(file_url__in=[
+        'https://storage.googleapis.com/fuzeobs-public/media/2/fced1eeb-283c-4f46-8517-cf20d0c236ad.png',
+        'https://storage.googleapis.com/fuzeobs-public/media/2/8addaf70-6765-4ea3-bb38-52b63994403f.png'
+    ]).delete()
+    return JsonResponse({'deleted': deleted})
