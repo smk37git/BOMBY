@@ -1499,25 +1499,6 @@ def fuzeobs_toggle_widget(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
-@csrf_exempt
-@require_http_methods(["POST"])
-@require_tier('free')
-def fuzeobs_reset_widget(request, widget_id):
-    """Reset widget config to defaults"""
-    user = request.fuzeobs_user
-    try:
-        widget = WidgetConfig.objects.get(id=widget_id, user=user)
-        widget.config = {}
-        widget.save()
-        
-        # Also reset associated events for alert_box
-        if widget.widget_type == 'alert_box':
-            WidgetEvent.objects.filter(widget=widget).delete()
-        
-        return JsonResponse({'success': True})
-    except WidgetConfig.DoesNotExist:
-        return JsonResponse({'error': 'Widget not found'}, status=404)
-
 # ===== PLATFORM CONNECTIONS =====
 
 PLATFORM_OAUTH_CONFIG = {
