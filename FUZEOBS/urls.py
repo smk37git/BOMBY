@@ -86,6 +86,4 @@ urlpatterns = [
     path('analytics/all-users', views.fuzeobs_all_users_view, name='all_users'),
     path('analytics/user/<int:user_id>/', views.fuzeobs_user_detail, name='user_detail'),
     path('analytics/user/<int:user_id>/chat/<int:chat_index>/', views.fuzeobs_chat_detail, name='chat_detail'),
-
-    path('media/cleanup', views.fuzeobs_cleanup_media, name='cleanup_media'),
 ]

@@ -2490,12 +2490,3 @@ def fuzeobs_get_facebook_viewers(request, user_id):
     except Exception as e:
         print(f'[VIEWER] Facebook error: {e}')
         return JsonResponse({'viewers': 0})
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def fuzeobs_cleanup_media(request):
-    deleted, _ = MediaLibrary.objects.filter(file_url__in=[
-        'https://storage.googleapis.com/fuzeobs-public/media/2/fced1eeb-283c-4f46-8517-cf20d0c236ad.png',
-        'https://storage.googleapis.com/fuzeobs-public/media/2/8addaf70-6765-4ea3-bb38-52b63994403f.png'
-    ]).delete()
-    return JsonResponse({'deleted': deleted})
