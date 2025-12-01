@@ -1024,7 +1024,6 @@ def fuzeobs_download_mac(request):
     )
     return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe')
 
-@staff_member_required
 def fuzeobs_user_detail(request, user_id):
     view_user = get_object_or_404(User, id=user_id)
     days = int(request.GET.get('days', 30))
@@ -1052,6 +1051,16 @@ def fuzeobs_user_detail(request, user_id):
     # Activity
     activity = UserActivity.objects.filter(user=view_user, timestamp__gte=cutoff).order_by('-timestamp')
     
+    # Widgets
+    widgets = WidgetConfig.objects.filter(user=view_user)
+    
+    # Media library storage
+    media_stats = MediaLibrary.objects.filter(user=view_user).aggregate(
+        total_files=Count('id'),
+        total_size=Sum('file_size')
+    )
+    media_size_mb = round((media_stats['total_size'] or 0) / (1024 * 1024), 2)
+    
     context = {
         'view_user': view_user,
         'ai_usage': ai_usage,
@@ -1059,7 +1068,10 @@ def fuzeobs_user_detail(request, user_id):
         'success_rate': success_rate,
         'user_chats': user_chats,
         'activity': activity,
-        'days': days
+        'days': days,
+        'widgets': widgets,
+        'media_files': media_stats['total_files'] or 0,
+        'media_size_mb': media_size_mb,
     }
     
     return render(request, 'FUZEOBS/user_detail.html', context)
