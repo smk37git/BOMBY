@@ -218,6 +218,21 @@ fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/${{platform}}?
     .then(data => {{
         Object.assign(eventConfigs, data.configs);
         configsLoaded = true;
+        
+        // Inject custom CSS
+        let allCustomCss = '';
+        for (const key in data.configs) {{
+            const cfg = data.configs[key];
+            if (cfg.custom_css_enabled && cfg.custom_css) {{
+                allCustomCss += `/* ${{key}} */\\n${{cfg.custom_css}}\\n`;
+            }}
+        }}
+        if (allCustomCss) {{
+            const styleEl = document.createElement('style');
+            styleEl.id = 'custom-css';
+            styleEl.textContent = allCustomCss;
+            document.head.appendChild(styleEl);
+        }}
     }})
     .catch(err => {{
         configsLoaded = true;
