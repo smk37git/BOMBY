@@ -2492,7 +2492,7 @@ def fuzeobs_get_facebook_viewers(request, user_id):
         return JsonResponse({'viewers': 0})
 
 @csrf_exempt
-@require_http_methods(["POST"])
+@require_http_methods(["GET"])
 @require_tier('free')
 def fuzeobs_cleanup_media(request):
     """Remove media library entries where GCS file no longer exists"""
