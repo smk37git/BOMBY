@@ -1052,7 +1052,7 @@ def fuzeobs_user_detail(request, user_id):
     activity = UserActivity.objects.filter(user=view_user, timestamp__gte=cutoff).order_by('-timestamp')
     
     # Widgets
-    widgets = WidgetConfig.objects.filter(user=view_user)
+    widgets = WidgetConfig.objects.filter(user=view_user, enabled=True)
     
     # Media library storage
     media_stats = MediaLibrary.objects.filter(user=view_user).aggregate(

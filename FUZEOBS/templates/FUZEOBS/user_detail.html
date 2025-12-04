@@ -25,13 +25,15 @@
     .expand-btn:hover {
         background: rgba(168, 85, 247, 0.3);
     }
-    .expand-btn.active {
-        background: rgba(168, 85, 247, 0.4);
+    .expand-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
     .hidden-row { display: none; }
     .hidden-row.show { display: table-row; }
-    .hidden-items { display: none; }
-    .hidden-items.show { display: block; }
+    .chat-item { display: none; }
+    .chat-item.show { display: block; }
+    .chat-item:first-child { display: block; }
     .view-chat-link {
         color: #a855f7;
         text-decoration: none;
@@ -59,6 +61,35 @@
     }
     .widget-type { background: rgba(168, 85, 247, 0.3); padding: 4px 8px; border-radius: 4px; font-size: 12px; }
     .platform-badge { background: rgba(59, 130, 246, 0.3); padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    
+    /* Scrollable container for large sections */
+    .scrollable-section {
+        max-height: 400px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(168, 85, 247, 0.5) transparent;
+    }
+    .scrollable-section::-webkit-scrollbar {
+        width: 8px;
+    }
+    .scrollable-section::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .scrollable-section::-webkit-scrollbar-thumb {
+        background: rgba(168, 85, 247, 0.5);
+        border-radius: 4px;
+    }
+    
+    .section-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 12px;
+    }
+    .item-count {
+        color: rgba(255,255,255,0.5);
+        font-size: 13px;
+    }
 </style>
 {% endblock %}
 
@@ -142,34 +173,39 @@
         <div class="section-header">
             <h3>Recent AI Requests</h3>
         </div>
-        <table class="product-table">
-            <thead>
-                <tr>
-                    <th>Time</th>
-                    <th>Type</th>
-                    <th>Tokens</th>
-                    <th>Cost</th>
-                    <th>Response Time</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="ai-requests-tbody">
-                {% for usage in ai_usage %}
-                <tr {% if forloop.counter > 5 %}class="hidden-row"{% endif %}>
-                    <td>{{ usage.timestamp|date:"m/d H:i" }}</td>
-                    <td>{{ usage.request_type }}</td>
-                    <td>{{ usage.tokens_used }}</td>
-                    <td>${{ usage.estimated_cost|floatformat:6 }}</td>
-                    <td>{{ usage.response_time|floatformat:2 }}s</td>
-                    <td>{% if usage.success %}<span style="color: #33ffa0;">✓</span>{% else %}<span style="color: #ff3f3f;">✗</span>{% endif %}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="scrollable-section" id="ai-requests-scroll">
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Tokens</th>
+                        <th>Cost</th>
+                        <th>Response Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="ai-requests-tbody">
+                    {% for usage in ai_usage %}
+                    <tr {% if forloop.counter > 5 %}class="hidden-row" data-group="ai-requests"{% endif %}>
+                        <td>{{ usage.timestamp|date:"m/d H:i" }}</td>
+                        <td>{{ usage.request_type }}</td>
+                        <td>{{ usage.tokens_used }}</td>
+                        <td>${{ usage.estimated_cost|floatformat:6 }}</td>
+                        <td>{{ usage.response_time|floatformat:2 }}s</td>
+                        <td>{% if usage.success %}<span style="color: #33ffa0;">✓</span>{% else %}<span style="color: #ff3f3f;">✗</span>{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% if ai_usage|length > 5 %}
-        <button class="expand-btn" onclick="toggleTable('ai-requests-tbody', this, '{{ ai_usage|length }}')">
-            Show All ({{ ai_usage|length }})
-        </button>
+        <div class="section-controls">
+            <button class="expand-btn" data-group="ai-requests" data-total="{{ ai_usage|length }}" data-shown="5" onclick="showMore(this, 5)">
+                Show 5 More
+            </button>
+            <span class="item-count" id="ai-requests-count">Showing 5 of {{ ai_usage|length }}</span>
+        </div>
         {% endif %}
     </div>
 
@@ -177,26 +213,31 @@
         <div class="section-header">
             <h3>Saved Chats</h3>
         </div>
-        {% for chat in user_chats %}
-        <div style="margin-bottom: 20px; padding: 15px; background: rgba(30,30,30,0.5); border-radius: 8px;" {% if forloop.counter > 1 %}class="hidden-items"{% endif %}>
-            <h4 style="margin-top: 0;">{{ chat.title }}</h4>
-            <small style="color: rgba(255,255,255,0.5);">{{ chat.created_at|date:"m/d/Y H:i" }}</small>
-            <div class="chat-preview">
-                {% for msg in chat.messages %}
-                <div class="message-item">
-                    <span class="message-role">{{ msg.role|title }}:</span> {{ msg.content|truncatewords:30 }}
+        <div class="scrollable-section" id="chats-scroll">
+            {% for chat in user_chats %}
+            <div class="chat-item {% if forloop.counter == 1 %}show{% endif %}" data-group="chats" style="margin-bottom: 20px; padding: 15px; background: rgba(30,30,30,0.5); border-radius: 8px;">
+                <h4 style="margin-top: 0;">{{ chat.title }}</h4>
+                <small style="color: rgba(255,255,255,0.5);">{{ chat.created_at|date:"m/d/Y H:i" }}</small>
+                <div class="chat-preview">
+                    {% for msg in chat.messages %}
+                    <div class="message-item">
+                        <span class="message-role">{{ msg.role|title }}:</span> {{ msg.content|truncatewords:30 }}
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
+                <a href="{% url 'FUZEOBS:chat_detail' view_user.id forloop.counter0 %}" class="view-chat-link">View Full Conversation →</a>
             </div>
-            <a href="{% url 'FUZEOBS:chat_detail' view_user.id forloop.counter0 %}" class="view-chat-link">View Full Conversation →</a>
+            {% empty %}
+            <p style="color: rgba(255,255,255,0.5); padding: 20px;">No saved chats</p>
+            {% endfor %}
         </div>
-        {% empty %}
-        <p style="color: rgba(255,255,255,0.5); padding: 20px;">No saved chats</p>
-        {% endfor %}
         {% if user_chats|length > 1 %}
-        <button class="expand-btn" onclick="toggleItems(this)">
-            Show All Chats ({{ user_chats|length }})
-        </button>
+        <div class="section-controls">
+            <button class="expand-btn" data-group="chats" data-total="{{ user_chats|length }}" data-shown="1" onclick="showMoreItems(this, 3)">
+                Show 3 More
+            </button>
+            <span class="item-count" id="chats-count">Showing 1 of {{ user_chats|length }}</span>
+        </div>
         {% endif %}
     </div>
 
@@ -204,51 +245,90 @@
         <div class="section-header">
             <h3>Recent Activity</h3>
         </div>
-        <table class="product-table">
-            <thead>
-                <tr>
-                    <th>Time</th>
-                    <th>Activity</th>
-                    <th>Source</th>
-                </tr>
-            </thead>
-            <tbody id="activity-tbody">
-                {% for act in activity %}
-                <tr {% if forloop.counter > 5 %}class="hidden-row"{% endif %}>
-                    <td>{{ act.timestamp|date:"m/d H:i" }}</td>
-                    <td>{{ act.activity_type }}</td>
-                    <td>{{ act.source }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="scrollable-section" id="activity-scroll">
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Activity</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody id="activity-tbody">
+                    {% for act in activity %}
+                    <tr {% if forloop.counter > 5 %}class="hidden-row" data-group="activity"{% endif %}>
+                        <td>{{ act.timestamp|date:"m/d H:i" }}</td>
+                        <td>{{ act.activity_type }}</td>
+                        <td>{{ act.source }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
         {% if activity|length > 5 %}
-        <button class="expand-btn" onclick="toggleTable('activity-tbody', this, '{{ activity|length }}')">
-            Show All ({{ activity|length }})
-        </button>
+        <div class="section-controls">
+            <button class="expand-btn" data-group="activity" data-total="{{ activity|length }}" data-shown="5" onclick="showMore(this, 5)">
+                Show 5 More
+            </button>
+            <span class="item-count" id="activity-count">Showing 5 of {{ activity|length }}</span>
+        </div>
         {% endif %}
     </div>
 </div>
 
 <script>
-function toggleTable(tbodyId, btn, total) {
-    const tbody = document.getElementById(tbodyId);
-    const hiddenRows = tbody.querySelectorAll('.hidden-row');
-    const isExpanded = btn.classList.contains('active');
+function showMore(btn, increment) {
+    const group = btn.dataset.group;
+    const total = parseInt(btn.dataset.total);
+    let shown = parseInt(btn.dataset.shown);
     
-    hiddenRows.forEach(row => row.classList.toggle('show'));
-    btn.classList.toggle('active');
-    btn.textContent = isExpanded ? `Show All (${total})` : 'Show Less';
+    const hiddenRows = document.querySelectorAll(`tr.hidden-row[data-group="${group}"]:not(.show)`);
+    const toShow = Math.min(increment, hiddenRows.length);
+    
+    for (let i = 0; i < toShow; i++) {
+        hiddenRows[i].classList.add('show');
+    }
+    
+    shown += toShow;
+    btn.dataset.shown = shown;
+    
+    const remaining = total - shown;
+    const countEl = document.getElementById(`${group}-count`);
+    countEl.textContent = `Showing ${shown} of ${total}`;
+    
+    if (remaining <= 0) {
+        btn.disabled = true;
+        btn.textContent = 'All Shown';
+    } else {
+        btn.textContent = `Show ${Math.min(increment, remaining)} More`;
+    }
 }
 
-function toggleItems(btn) {
-    const container = btn.parentElement;
-    const hiddenItems = container.querySelectorAll('.hidden-items');
-    const isExpanded = btn.classList.contains('active');
+function showMoreItems(btn, increment) {
+    const group = btn.dataset.group;
+    const total = parseInt(btn.dataset.total);
+    let shown = parseInt(btn.dataset.shown);
     
-    hiddenItems.forEach(item => item.classList.toggle('show'));
-    btn.classList.toggle('active');
-    btn.textContent = isExpanded ? `Show All Chats (${hiddenItems.length + 1})` : 'Show Less';
+    const hiddenItems = document.querySelectorAll(`.chat-item[data-group="${group}"]:not(.show)`);
+    const toShow = Math.min(increment, hiddenItems.length);
+    
+    for (let i = 0; i < toShow; i++) {
+        hiddenItems[i].classList.add('show');
+    }
+    
+    shown += toShow;
+    btn.dataset.shown = shown;
+    
+    const remaining = total - shown;
+    const countEl = document.getElementById(`${group}-count`);
+    countEl.textContent = `Showing ${shown} of ${total}`;
+    
+    if (remaining <= 0) {
+        btn.disabled = true;
+        btn.textContent = 'All Shown';
+    } else {
+        btn.textContent = `Show ${Math.min(increment, remaining)} More`;
+    }
 }
 </script>
 {% endblock %}
