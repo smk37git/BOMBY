@@ -1372,6 +1372,7 @@ connectGoalWebSockets();
 
 def generate_labels_html(user_id, config, connected_platforms):
     """Generate labels widget HTML with WebSocket reconnection and data persistence"""
+    custom_css = config.get('custom_css', '')
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -1426,6 +1427,7 @@ body {{
 .anim-slide {{ animation: slideIn 0.5s ease; }}
 .anim-bounce {{ animation: bounceIn 0.5s ease; }}
 .anim-pulse {{ animation: pulse 1s ease infinite; }}
+{custom_css}
 </style>
 </head>
 <body>
