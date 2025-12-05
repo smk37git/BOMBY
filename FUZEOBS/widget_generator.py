@@ -706,6 +706,7 @@ def generate_event_list_html(user_id, config, connected_platforms):
     keep_history = config.get('keep_history', False)
     flip_x = config.get('flip_x', False)
     flip_y = config.get('flip_y', False)
+    custom_css = config.get('custom_css', '') if config.get('custom_css_enabled', False) else ''
     
     show_twitch = config.get('show_twitch', True)
     show_youtube = config.get('show_youtube', True)
@@ -877,6 +878,7 @@ html, body {{
     width: 100%;
     height: 100%;
 }}
+{custom_css}
 </style>
 </head>
 <body>
