@@ -1701,6 +1701,7 @@ def generate_viewer_count_html(user_id, config, connected_platforms):
     
     config_json = json.dumps(config)
     platforms_json = json.dumps(connected_platforms)
+    custom_css = config.get('custom_css', '') if config.get('custom_css_enabled', False) else ''
     
     return f"""<!DOCTYPE html>
 <html>
@@ -1742,6 +1743,7 @@ body {{
     stroke-linecap: round;
     stroke-linejoin: round;
 }}
+{custom_css}
 </style>
 </head>
 <body>

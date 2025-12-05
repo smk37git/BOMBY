@@ -1309,7 +1309,8 @@ def fuzeobs_save_widget(request):
                 goal_type=goal_type,
                 defaults={
                     'name': data.get('name', f'Goal Bar - {goal_type.title()}'),
-                    'config': data.get('config', {})
+                    'config': data.get('config', {}),
+                    'enabled': True
                 }
             )
         elif widget_type == 'labels':
@@ -1320,7 +1321,8 @@ def fuzeobs_save_widget(request):
                 goal_type=goal_type,
                 defaults={
                     'name': data.get('name', f'Label - {goal_type.replace("_", " ").title()}'),
-                    'config': data.get('config', {})
+                    'config': data.get('config', {}),
+                    'enabled': True
                 }
             )
         else:
@@ -1330,7 +1332,8 @@ def fuzeobs_save_widget(request):
                 platform=platform,
                 defaults={
                     'name': data.get('name', f'{widget_type.replace("_", " ").title()} - {platform.title()}'),
-                    'config': data.get('config', {})
+                    'config': data.get('config', {}),
+                    'enabled': True
                 }
             )
         
