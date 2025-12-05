@@ -1940,10 +1940,10 @@ body {{
     min-height: 100vh;
 }}
 #banner-container {{
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: inline-block;
+    overflow: hidden;
     transition: opacity 0.5s ease;
+    background: transparent;
 }}
 #banner-container.hidden {{
     opacity: 0;
@@ -1951,6 +1951,7 @@ body {{
 }}
 .banner-image {{
     object-fit: contain;
+    display: block;
 }}
 
 @keyframes fadeIn {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
