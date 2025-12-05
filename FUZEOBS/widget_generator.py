@@ -1784,7 +1784,7 @@ function applyStyles() {{
     container.style.padding = (config.padding || 20) + 'px';
     container.style.borderRadius = (config.border_radius || 8) + 'px';
     
-    if (config.transparent_background) {{
+    if (config.transparent_background !== false) {{
         container.style.backgroundColor = 'transparent';
     }} else {{
         container.style.backgroundColor = config.background_color || '#5CA05C';
