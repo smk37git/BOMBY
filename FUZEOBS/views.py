@@ -1480,8 +1480,8 @@ def fuzeobs_save_widget(request):
 @csrf_exempt
 @require_http_methods(["DELETE"])
 @require_tier('free')
-def fuzeobs_delete_widget(request, widget_id):
-    """Delete widget - cascades to events via model FK"""
+def fuzeobs_delete_widget(request, widget_type):
+    """Delete ALL widgets of a type for user - cascades to events via model FK"""
     auth_header = request.headers.get('Authorization', '')
     if auth_header.startswith('Bearer '):
         token = auth_header.replace('Bearer ', '')
@@ -1493,18 +1493,14 @@ def fuzeobs_delete_widget(request, widget_id):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
     
     try:
-        widget = WidgetConfig.objects.get(id=widget_id, user=user)
-        # WidgetEvent has on_delete=CASCADE, so events are auto-deleted
-        widget.delete()
-        return JsonResponse({'success': True})
+        # Delete ALL widgets of this type for user
+        deleted_count, _ = WidgetConfig.objects.filter(user=user, widget_type=widget_type).delete()
+        return JsonResponse({'success': True, 'deleted': deleted_count})
         
-    except WidgetConfig.DoesNotExist:
-        return JsonResponse({'error': 'Widget not found'}, status=404)
     except Exception as e:
         import traceback
         traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=500)
-
 @csrf_exempt
 @require_http_methods(["POST"])
 @require_tier('free')

@@ -46,7 +46,7 @@ urlpatterns = [
     # Widget CRUD
     path('widgets', views.fuzeobs_get_widgets, name='get_widgets'),
     path('widgets/save', views.fuzeobs_save_widget, name='save_widget'),
-    path('widgets/<int:widget_id>/delete', views.fuzeobs_delete_widget, name='delete_widget'),
+    path('widgets/<str:widget_type>/delete', views.fuzeobs_delete_widget, name='fuzeobs_delete_widget'),
     path('widgets/toggle', views.fuzeobs_toggle_widget, name='toggle_widget'),
 
     # Platform Management
