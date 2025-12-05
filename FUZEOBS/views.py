@@ -1339,7 +1339,7 @@ def fuzeobs_save_widget(request):
                 defaults={
                     'name': data.get('name', f'{widget_type.replace("_", " ").title()} - {goal_type.replace("_", " ").title()}'),
                     'config': data.get('config', {}),
-                    'enabled': True
+                    'enabled': False
                 }
             )
         else:
@@ -1352,7 +1352,7 @@ def fuzeobs_save_widget(request):
                 defaults={
                     'name': data.get('name', f'{widget_type.replace("_", " ").title()} - {platform.title()}'),
                     'config': data.get('config', {}),
-                    'enabled': True
+                    'enabled': False
                 }
             )
         
