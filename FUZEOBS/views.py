@@ -1258,15 +1258,26 @@ def fuzeobs_all_users_view(request):
 @require_http_methods(["GET"])
 @require_tier('free')
 def fuzeobs_get_widgets(request):
-    user = request.fuzeobs_user
-    platform = request.GET.get('platform', 'twitch')
-    widgets = WidgetConfig.objects.filter(user=user, platform=platform).order_by('-updated_at')
+    """Get all widgets for user - fetch ALL platforms, not filtered"""
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        token = auth_header.replace('Bearer ', '')
+        user = get_user_from_token(token)
+    else:
+        user = None
+    
+    if not user:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    # Don't filter by platform - return ALL widgets
+    widgets = WidgetConfig.objects.filter(user=user).order_by('-updated_at')
     
     return JsonResponse({
         'widgets': [{
             'id': w.id,
             'type': w.widget_type,
             'platform': w.platform,
+            'goal_type': w.goal_type,
             'name': w.name,
             'config': w.config,
             'url': f'https://bomby.us/fuzeobs/w/{w.token}',
@@ -1293,43 +1304,51 @@ def fuzeobs_serve_widget(request, token):
 @require_http_methods(["POST"])
 @require_tier('free')
 def fuzeobs_save_widget(request):
-    user = request.fuzeobs_user
+    """Save widget - handles auth inline"""
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        token = auth_header.replace('Bearer ', '')
+        user = get_user_from_token(token)
+    else:
+        user = None
+    
+    if not user:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
     try:
         data = json.loads(request.body)
-        platform = data.get('platform', 'twitch')
         widget_type = data['widget_type']
         goal_type = data.get('goal_type', '')
         
-        # For goal_bar and labels, include goal_type in uniqueness lookup
-        if widget_type == 'goal_bar':
+        # For goal_bar and labels: use 'all' platform, goal_type determines what it tracks
+        # For viewer_count, chat_box, sponsor_banner: always 'all' platform
+        # For alert_box, event_list: use specified platform
+        if widget_type in ('goal_bar', 'labels', 'viewer_count', 'chat_box', 'sponsor_banner'):
+            platform = 'all'
+        else:
+            platform = data.get('platform', 'all')
+        
+        # Lookup and create logic
+        if widget_type in ('goal_bar', 'labels'):
+            # Include goal_type in lookup
             widget, created = WidgetConfig.objects.get_or_create(
                 user=user,
                 widget_type=widget_type,
                 platform=platform,
                 goal_type=goal_type,
                 defaults={
-                    'name': data.get('name', f'Goal Bar - {goal_type.title()}'),
-                    'config': data.get('config', {}),
-                    'enabled': True
-                }
-            )
-        elif widget_type == 'labels':
-            widget, created = WidgetConfig.objects.get_or_create(
-                user=user,
-                widget_type=widget_type,
-                platform=platform,
-                goal_type=goal_type,
-                defaults={
-                    'name': data.get('name', f'Label - {goal_type.replace("_", " ").title()}'),
+                    'name': data.get('name', f'{widget_type.replace("_", " ").title()} - {goal_type.replace("_", " ").title()}'),
                     'config': data.get('config', {}),
                     'enabled': True
                 }
             )
         else:
+            # For other widgets: just widget_type + platform (goal_type is always empty)
             widget, created = WidgetConfig.objects.get_or_create(
                 user=user,
                 widget_type=widget_type,
                 platform=platform,
+                goal_type='',
                 defaults={
                     'name': data.get('name', f'{widget_type.replace("_", " ").title()} - {platform.title()}'),
                     'config': data.get('config', {}),
@@ -1358,32 +1377,27 @@ def fuzeobs_save_widget(request):
                     {'type': 'alert_event', 'data': {'type': 'refresh'}}
                 )
             elif widget_type == 'event_list':
-                # Send refresh to all platform websockets for this user
                 for plat in ['twitch', 'youtube', 'kick', 'facebook', 'tiktok']:
                     async_to_sync(channel_layer.group_send)(
                         f'alerts_{user.id}_{plat}',
                         {'type': 'alert_event', 'data': {'type': 'refresh'}}
                     )
             elif widget_type == 'goal_bar':
-                # Send refresh to goals websocket
                 async_to_sync(channel_layer.group_send)(
                     f'goals_{user.id}',
                     {'type': 'goal_update', 'data': {'type': 'refresh'}}
                 )
             elif widget_type == 'labels':
-                # Send refresh to labels websocket
                 async_to_sync(channel_layer.group_send)(
                     f'labels_{user.id}',
                     {'type': 'label_update', 'data': {'type': 'refresh'}}
                 )
             elif widget_type == 'viewer_count':
-                # Send refresh to viewers websocket
                 async_to_sync(channel_layer.group_send)(
                     f'viewers_{user.id}',
                     {'type': 'viewer_update', 'data': {'type': 'refresh'}}
                 )
             elif widget_type == 'sponsor_banner':
-                # Send refresh to sponsor banner websocket
                 async_to_sync(channel_layer.group_send)(
                     f'sponsor_{user.id}',
                     {'type': 'sponsor_update', 'data': {'type': 'refresh'}}
@@ -1467,10 +1481,20 @@ def fuzeobs_save_widget(request):
 @require_http_methods(["DELETE"])
 @require_tier('free')
 def fuzeobs_delete_widget(request, widget_id):
-    user = request.fuzeobs_user
+    """Delete widget - cascades to events via model FK"""
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        token = auth_header.replace('Bearer ', '')
+        user = get_user_from_token(token)
+    else:
+        user = None
+    
+    if not user:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
     
     try:
         widget = WidgetConfig.objects.get(id=widget_id, user=user)
+        # WidgetEvent has on_delete=CASCADE, so events are auto-deleted
         widget.delete()
         return JsonResponse({'success': True})
         
@@ -1486,7 +1510,16 @@ def fuzeobs_delete_widget(request, widget_id):
 @require_tier('free')
 def fuzeobs_toggle_widget(request):
     """Toggle widget enabled/disabled state"""
-    user = request.fuzeobs_user
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        token = auth_header.replace('Bearer ', '')
+        user = get_user_from_token(token)
+    else:
+        user = None
+    
+    if not user:
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
     try:
         data = json.loads(request.body)
         widget_id = data.get('widget_id')
@@ -1500,7 +1533,7 @@ def fuzeobs_toggle_widget(request):
     except WidgetConfig.DoesNotExist:
         return JsonResponse({'error': 'Widget not found'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse({'error': str(e)}, status=500)
 
 # ===== PLATFORM CONNECTIONS =====
 
