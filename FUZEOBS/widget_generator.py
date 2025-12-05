@@ -1987,8 +1987,8 @@ let images = [];
 let isVisible = true;
 
 function init() {{
-    const bannerWidth = config.banner_width || 300;
-    const bannerHeight = config.banner_height || 100;
+    const bannerWidth = config.banner_width || 400;
+    const bannerHeight = config.banner_height || 200;
     
     container.style.width = bannerWidth + 'px';
     container.style.height = bannerHeight + 'px';
