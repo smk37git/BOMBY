@@ -1923,6 +1923,7 @@ def generate_sponsor_banner_html(user_id, config):
     """Generate sponsor banner widget HTML"""
     import json
     config_json = json.dumps(config)
+    custom_css = config.get('custom_css', '') if config.get('custom_css_enabled', False) else ''
     
     return f"""<!DOCTYPE html>
 <html>
@@ -1965,6 +1966,7 @@ body {{
 .anim-rotate {{ animation: rotate 3s linear infinite; }}
 .anim-slide {{ animation: slideIn 0.5s ease forwards; }}
 .anim-zoom {{ animation: zoomIn 0.5s ease forwards; }}
+{custom_css}
 </style>
 </head>
 <body>
