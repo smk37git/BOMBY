@@ -1039,6 +1039,7 @@ function addEvent(data) {{
 
 def generate_goal_bar_html(user_id, config, connected_platforms):
     """Generate goal bar HTML with multiple styles"""
+    custom_css = config.get('custom_css', '') if config.get('custom_css_enabled', False) else ''
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -1206,6 +1207,7 @@ body {{
 .goal-complete .progress-fill {{
     animation: pulse 1.5s infinite;
 }}
+{custom_css}
 </style>
 </head>
 <body>
