@@ -86,7 +86,7 @@ def fuzeobs_check_update(request):
     return JsonResponse({
         'version': '0.9.12',
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'Testing New Updater',
+        'changelog': 'Custom CSS For Widgets Added',
         'mandatory': False
     })
 
