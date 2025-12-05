@@ -84,9 +84,9 @@ def cleanup_old_sessions():
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
-        'version': '0.9.12',
+        'version': '0.9.13',
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'Custom CSS For Widgets Added',
+        'changelog': 'Widgets Creation/Deletion Fixed',
         'mandatory': False
     })
 
