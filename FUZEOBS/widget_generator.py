@@ -1950,7 +1950,7 @@ body {{
     pointer-events: none;
 }}
 .banner-image {{
-    object-fit: contain;
+    object-fit: cover;
     display: block;
 }}
 
@@ -1987,10 +1987,15 @@ let images = [];
 let isVisible = true;
 
 function init() {{
-    image.style.width = (config.banner_width || 300) + 'px';
-    image.style.height = (config.banner_height || 100) + 'px';
+    const bannerWidth = config.banner_width || 300;
+    const bannerHeight = config.banner_height || 100;
     
-    if (config.background_transparent) {{
+    container.style.width = bannerWidth + 'px';
+    container.style.height = bannerHeight + 'px';
+    image.style.width = '100%';
+    image.style.height = '100%';
+    
+    if (config.background_transparent !== false) {{
         container.style.backgroundColor = 'transparent';
     }} else {{
         container.style.backgroundColor = config.background_color || '#000000';
