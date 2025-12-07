@@ -2110,55 +2110,25 @@ def fuzeobs_test_alert(request):
         platform = data.get('platform')
         
         user = request.fuzeobs_user
-        channel_layer = get_channel_layer()
         
-        if platform == 'all':
-            # Get connected platforms and send random event for each
-            connected = PlatformConnection.objects.filter(user=user).values_list('platform', flat=True)
-            platform_events = {
-                'twitch': ['follow', 'subscribe', 'bits', 'raid'],
-                'youtube': ['subscribe', 'member', 'superchat'],
-                'kick': ['follow', 'subscribe', 'gift_sub'],
-                'facebook': ['follow', 'stars'],
-                'tiktok': ['follow', 'gift'],
-            }
-            for p in connected:
-                events = platform_events.get(p, ['follow'])
-                evt = random.choice(events)
-                async_to_sync(channel_layer.group_send)(
-                    f'alerts_{user.id}_all',
-                    {
-                        'type': 'alert_event',
-                        'data': {
-                            'platform': p,
-                            'event_type': evt,
-                            'event_data': {
-                                'username': 'FuzeOBS',
-                                'amount': random.randint(1, 2000),
-                                'viewers': random.randint(1, 2000),
-                            },
-                            'clear_existing': False
-                        }
-                    }
-                )
-        else:
-            # Original single platform logic
-            async_to_sync(channel_layer.group_send)(
-                f'alerts_{user.id}_{platform}',
-                {
-                    'type': 'alert_event',
-                    'data': {
-                        'platform': platform,
-                        'event_type': event_type,
-                        'event_data': {
-                            'username': 'FuzeOBS',
-                            'amount': random.randint(1, 2000),
-                            'viewers': random.randint(1, 2000),
-                        },
-                        'clear_existing': True
-                    }
+        # Send test alert via WebSocket
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'alerts_{user.id}_{platform}',
+            {
+                'type': 'alert_event',
+                'data': {
+                    'platform': platform,
+                    'event_type': event_type,
+                    'event_data': {
+                        'username': 'FuzeOBS',
+                        'amount': random.randint(1, 2000),
+                        'viewers': random.randint(1, 2000),
+                    },
+                    'clear_existing': True
                 }
-            )
+            }
+        )
         
         return JsonResponse({'success': True})
     except Exception as e:
