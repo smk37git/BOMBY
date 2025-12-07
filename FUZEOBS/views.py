@@ -1567,10 +1567,10 @@ PLATFORM_OAUTH_CONFIG = {
     },
     'tiktok': {
         'auth_url': 'https://www.tiktok.com/v2/auth/authorize',
-        'token_url': 'https://open.tiktokapis.com/v2/oauth/token',
-        'client_id': os.environ.get('TIKTOK_CLIENT_ID', ''),
+        'token_url': 'https://open.tiktokapis.com/v2/oauth/token/',
+        'client_id': os.environ.get('TIKTOK_CLIENT_KEY', ''),
         'client_secret': os.environ.get('TIKTOK_CLIENT_SECRET', ''),
-        'scopes': ['user.info.basic']
+        'scopes': ['user.info.profile', 'user.info.stats']
     }
 }
 
@@ -1620,7 +1620,10 @@ def fuzeobs_connect_platform(request):
         else:
             cache.set(f'oauth_state_{state}', {'user_id': user.id, 'platform': platform}, timeout=600)
         
-        redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
+        if platform == 'tiktok':
+            redirect_uri = 'http://localhost:5000/tiktok-callback'
+        else:
+            redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
         scopes = ' '.join(config['scopes']) if platform != 'tiktok' else ','.join(config['scopes'])
         
         if platform == 'tiktok':
@@ -1637,6 +1640,72 @@ def fuzeobs_connect_platform(request):
 
         return JsonResponse({'success': True, 'auth_url': auth_url, 'state': state})
     except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+@require_tier('free')
+def fuzeobs_tiktok_exchange(request):
+    """Exchange TikTok auth code for token (desktop localhost flow)"""
+    user = request.fuzeobs_user
+    try:
+        data = json.loads(request.body)
+        code = data['code']
+        state = data['state']
+        
+        state_data = cache.get(f'oauth_state_{state}')
+        if not state_data or state_data['platform'] != 'tiktok':
+            return JsonResponse({'error': 'Invalid state'}, status=400)
+        
+        config = PLATFORM_OAUTH_CONFIG['tiktok']
+        redirect_uri = 'http://localhost:5000/tiktok-callback'
+        
+        token_data = {
+            'client_key': config['client_id'],
+            'client_secret': config['client_secret'],
+            'code': code,
+            'grant_type': 'authorization_code',
+            'redirect_uri': redirect_uri
+        }
+        
+        token_response = requests.post(config['token_url'], 
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            data=token_data)
+        
+        if token_response.status_code != 200:
+            print(f'[TIKTOK] Token exchange failed: {token_response.text}')
+            return JsonResponse({'error': f'Token exchange failed: {token_response.text}'}, status=400)
+        
+        token_json = token_response.json()
+        access_token = token_json.get('access_token') or token_json.get('data', {}).get('access_token')
+        refresh_token = token_json.get('refresh_token') or token_json.get('data', {}).get('refresh_token', '')
+        expires_in = token_json.get('expires_in') or token_json.get('data', {}).get('expires_in', 86400)
+        
+        username, platform_user_id = get_platform_username('tiktok', access_token)
+        
+        PlatformConnection.objects.update_or_create(
+            user=user,
+            platform='tiktok',
+            defaults={
+                'platform_username': username,
+                'platform_user_id': platform_user_id,
+                'access_token': access_token,
+                'refresh_token': refresh_token,
+                'expires_at': timezone.now() + timedelta(seconds=expires_in)
+            }
+        )
+        
+        try:
+            start_tiktok_listener(user.id, username)
+            print(f'[TIKTOK] Started listener for user {user.id} (@{username})')
+        except Exception as e:
+            print(f'[TIKTOK] Error starting listener: {e}')
+        
+        cache.delete(f'oauth_state_{state}')
+        
+        return JsonResponse({'success': True, 'username': username})
+    except Exception as e:
+        print(f'[TIKTOK] Exchange error: {e}')
         return JsonResponse({'error': str(e)}, status=400)
     
 @csrf_exempt
@@ -1706,14 +1775,23 @@ def fuzeobs_platform_callback(request, platform):
     
     redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
     
-    # Build token request
-    token_data = {
-        'client_id': config['client_id'],
-        'client_secret': config['client_secret'],
-        'code': code,
-        'grant_type': 'authorization_code',
-        'redirect_uri': redirect_uri
-    }
+    # Build token request - TikTok uses client_key instead of client_id
+    if platform == 'tiktok':
+        token_data = {
+            'client_key': config['client_id'],
+            'client_secret': config['client_secret'],
+            'code': code,
+            'grant_type': 'authorization_code',
+            'redirect_uri': redirect_uri
+        }
+    else:
+        token_data = {
+            'client_id': config['client_id'],
+            'client_secret': config['client_secret'],
+            'code': code,
+            'grant_type': 'authorization_code',
+            'redirect_uri': redirect_uri
+        }
     
     # Add code_verifier for Kick (PKCE)
     if platform == 'kick' and 'code_verifier' in state_data:
@@ -1724,12 +1802,20 @@ def fuzeobs_platform_callback(request, platform):
         data=token_data)
     
     if token_response.status_code != 200:
+        print(f'[{platform.upper()}] Token exchange failed: {token_response.text}')
         return HttpResponse(f'Token exchange failed: {token_response.text}', status=400)
     
     token_json = token_response.json()
-    access_token = token_json['access_token']
-    refresh_token = token_json.get('refresh_token', '')
-    expires_in = token_json.get('expires_in', 3600)
+    
+    # TikTok may nest tokens in 'data' object
+    if platform == 'tiktok':
+        access_token = token_json.get('access_token') or token_json.get('data', {}).get('access_token')
+        refresh_token = token_json.get('refresh_token') or token_json.get('data', {}).get('refresh_token', '')
+        expires_in = token_json.get('expires_in') or token_json.get('data', {}).get('expires_in', 86400)
+    else:
+        access_token = token_json['access_token']
+        refresh_token = token_json.get('refresh_token', '')
+        expires_in = token_json.get('expires_in', 3600)
     
     username, platform_user_id = get_platform_username(platform, access_token)
     
@@ -1763,6 +1849,12 @@ def fuzeobs_platform_callback(request, platform):
             print(f'[FACEBOOK] Started listener for user {user.id}')
         except Exception as e:
             print(f'[FACEBOOK] Error starting listener: {e}')
+    elif platform == 'tiktok':
+        try:
+            start_tiktok_listener(user.id, username)
+            print(f'[TIKTOK] Started listener for user {user.id} (@{username})')
+        except Exception as e:
+            print(f'[TIKTOK] Error starting listener: {e}')
     
     cache.delete(f'oauth_state_{state}')
     
@@ -1841,10 +1933,16 @@ def get_platform_username(platform, access_token):
         return 'Facebook User', ''
     
     if platform == 'tiktok':
-        resp = requests.get('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name',
-            headers={'Authorization': f'Bearer {access_token}'})
-        data = resp.json()['data']['user']
-        return data['display_name'], data['open_id']
+        resp = requests.get(
+            'https://open.tiktokapis.com/v2/user/info/',
+            params={'fields': 'open_id,display_name,avatar_url'},
+            headers={'Authorization': f'Bearer {access_token}'}
+        )
+        print(f'[TIKTOK] User info: {resp.status_code} - {resp.text[:500]}')
+        if resp.status_code == 200:
+            data = resp.json().get('data', {}).get('user', {})
+            return data.get('display_name', 'TikTok User'), data.get('open_id', '')
+        return 'TikTok User', ''
     
     return 'Unknown', ''
 
@@ -2558,3 +2656,10 @@ def fuzeobs_get_facebook_viewers(request, user_id):
     except Exception as e:
         print(f'[VIEWER] Facebook error: {e}')
         return JsonResponse({'viewers': 0})
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_get_tiktok_viewers(request, user_id):
+    """TikTok doesn't provide viewer count via API"""
+    return JsonResponse({'viewers': 0})

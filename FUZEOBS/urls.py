@@ -52,6 +52,7 @@ urlpatterns = [
     # Platform Management
     path('platforms', views.fuzeobs_get_platforms, name='get_platforms'),
     path('platforms/connect', views.fuzeobs_connect_platform, name='connect_platform'),
+    path('platforms/tiktok-exchange', views.fuzeobs_tiktok_exchange, name='tiktok_exchange'),
     path('platforms/disconnect', views.fuzeobs_disconnect_platform, name='disconnect_platform'),
     path('callback/<str:platform>', views.fuzeobs_platform_callback, name='platform_callback'),
 
@@ -78,6 +79,7 @@ urlpatterns = [
     path('viewers/youtube/<int:user_id>', views.fuzeobs_get_youtube_viewers),
     path('viewers/kick/<int:user_id>', views.fuzeobs_get_kick_viewers),
     path('viewers/facebook/<int:user_id>', views.fuzeobs_get_facebook_viewers),
+    path('viewers/tiktok/<int:user_id>', views.fuzeobs_get_tiktok_viewers),
 
     # Website URLS
     path('', views.fuzeobs_view, name="fuzeobs"),
