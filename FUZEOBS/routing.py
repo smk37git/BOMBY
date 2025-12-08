@@ -8,4 +8,5 @@ websocket_urlpatterns = [
     path('ws/fuzeobs-labels/<int:user_id>/', consumers.LabelsConsumer.as_asgi()),
     path('ws/fuzeobs-viewers/<int:user_id>/', consumers.ViewerCountConsumer.as_asgi()),
     path('ws/fuzeobs-sponsor/<int:user_id>/', consumers.SponsorBannerConsumer.as_asgi()),
+    path('ws/fuzeobs-donations/<int:user_id>/', consumers.DonationConsumer.as_asgi()),
 ]

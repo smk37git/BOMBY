@@ -232,3 +232,67 @@ class LabelSessionData(models.Model):
         indexes = [
             models.Index(fields=['user', 'label_type']),
         ]
+
+class DonationSettings(models.Model):
+    """Streamer's donation page settings"""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    donation_token = models.CharField(max_length=64, unique=True, blank=True)
+    paypal_email = models.EmailField(blank=True)
+    paypal_merchant_id = models.CharField(max_length=100, blank=True)
+    oauth_state = models.CharField(max_length=64, blank=True)
+    
+    min_amount = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
+    suggested_amounts = models.JSONField(default=list)  # [5, 10, 25, 50]
+    currency = models.CharField(max_length=3, default='USD')
+    
+    page_title = models.CharField(max_length=200, default='Support My Stream!')
+    page_message = models.TextField(blank=True, default='Thanks for supporting the stream!')
+    show_recent_donations = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.donation_token:
+            self.donation_token = secrets.token_urlsafe(32)
+        if not self.suggested_amounts:
+            self.suggested_amounts = [5, 10, 25, 50]
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['donation_token']),
+        ]
+
+
+class Donation(models.Model):
+    """Individual donation records"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+    ]
+    
+    streamer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    paypal_order_id = models.CharField(max_length=100, unique=True)
+    paypal_capture_id = models.CharField(max_length=100, blank=True)
+    
+    donor_name = models.CharField(max_length=100)
+    donor_email = models.EmailField(blank=True)
+    message = models.TextField(blank=True)
+    
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default='USD')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['streamer', 'status']),
+            models.Index(fields=['paypal_order_id']),
+            models.Index(fields=['created_at']),
+        ]

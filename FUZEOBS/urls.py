@@ -1,5 +1,10 @@
 from django.urls import path
 from . import views
+from .donations import (
+    donation_settings, paypal_connect, paypal_callback, 
+    paypal_disconnect, donation_page, create_donation_order, 
+    capture_donation, donation_history
+)
 
 app_name = 'FUZEOBS'
 
@@ -80,6 +85,16 @@ urlpatterns = [
     path('viewers/kick/<int:user_id>', views.fuzeobs_get_kick_viewers),
     path('viewers/facebook/<int:user_id>', views.fuzeobs_get_facebook_viewers),
     path('viewers/tiktok/<int:user_id>', views.fuzeobs_get_tiktok_viewers),
+
+    # Donations
+    path('donations/settings', donation_settings, name='donation_settings'),
+    path('donations/paypal/connect', paypal_connect, name='paypal_connect'),
+    path('donations/paypal/callback', paypal_callback, name='paypal_callback'),
+    path('donations/paypal/disconnect', paypal_disconnect, name='paypal_disconnect'),
+    path('donations/history', donation_history, name='donation_history'),
+    path('donate/<str:token>', donation_page, name='donation_page'),
+    path('donate/<str:token>/create', create_donation_order, name='create_donation_order'),
+    path('donate/<str:token>/capture', capture_donation, name='capture_donation'),
 
     # Website URLS
     path('', views.fuzeobs_view, name="fuzeobs"),
