@@ -1614,7 +1614,7 @@ def fuzeobs_connect_platform(request):
         config = PLATFORM_OAUTH_CONFIG[platform]
         state = secrets.token_urlsafe(32)
         
-        if platform == 'kick':
+        if platform in ('kick', 'tiktok'):
             code_verifier, code_challenge = generate_pkce_pair()
             cache.set(f'oauth_state_{state}', {'user_id': user.id, 'platform': platform, 'code_verifier': code_verifier}, timeout=600)
         else:
@@ -1627,7 +1627,7 @@ def fuzeobs_connect_platform(request):
         scopes = ' '.join(config['scopes']) if platform != 'tiktok' else ','.join(config['scopes'])
         
         if platform == 'tiktok':
-            auth_url = f"{config['auth_url']}?client_key={config['client_id']}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}&state={state}"
+            auth_url = f"{config['auth_url']}?client_key={config['client_id']}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}&state={state}&code_challenge={code_challenge}&code_challenge_method=S256"
         else:
             auth_url = f"{config['auth_url']}?client_id={config['client_id']}&redirect_uri={redirect_uri}&response_type=code&scope={scopes}&state={state}"
         
@@ -1665,7 +1665,8 @@ def fuzeobs_tiktok_exchange(request):
             'client_secret': config['client_secret'],
             'code': code,
             'grant_type': 'authorization_code',
-            'redirect_uri': redirect_uri
+            'redirect_uri': redirect_uri,
+            'code_verifier': state_data['code_verifier']
         }
         
         token_response = requests.post(config['token_url'], 
@@ -1793,8 +1794,8 @@ def fuzeobs_platform_callback(request, platform):
             'redirect_uri': redirect_uri
         }
     
-    # Add code_verifier for Kick (PKCE)
-    if platform == 'kick' and 'code_verifier' in state_data:
+    # Add code_verifier for Kick and TikTok (PKCE)
+    if platform in ('kick', 'tiktok') and 'code_verifier' in state_data:
         token_data['code_verifier'] = state_data['code_verifier']
     
     token_response = requests.post(config['token_url'], 
