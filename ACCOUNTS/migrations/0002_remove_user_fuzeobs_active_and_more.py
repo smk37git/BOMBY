@@ -2,6 +2,28 @@
 
 from django.db import migrations
 
+def remove_field_if_exists(apps, schema_editor):
+    """Safely remove fields only if they exist"""
+    connection = schema_editor.connection
+    with connection.cursor() as cursor:
+        cursor.execute("""
+            SELECT column_name FROM information_schema.columns 
+            WHERE table_name = 'ACCOUNTS_user'
+        """)
+        existing_columns = {row[0] for row in cursor.fetchall()}
+    
+    fields_to_remove = [
+        'fuzeobs_active',
+        'fuzeobs_lifetime', 
+        'fuzeobs_subscription_end',
+        'fuzeobs_subscription_id',
+        'stripe_customer_id',
+    ]
+    
+    for field in fields_to_remove:
+        if field in existing_columns:
+            with connection.cursor() as cursor:
+                cursor.execute(f'ALTER TABLE "ACCOUNTS_user" DROP COLUMN "{field}"')
 
 class Migration(migrations.Migration):
 
@@ -10,24 +32,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='user',
-            name='fuzeobs_active',
-        ),
-        migrations.RemoveField(
-            model_name='user',
-            name='fuzeobs_lifetime',
-        ),
-        migrations.RemoveField(
-            model_name='user',
-            name='fuzeobs_subscription_end',
-        ),
-        migrations.RemoveField(
-            model_name='user',
-            name='fuzeobs_subscription_id',
-        ),
-        migrations.RemoveField(
-            model_name='user',
-            name='stripe_customer_id',
-        ),
+        migrations.RunPython(remove_field_if_exists, migrations.RunPython.noop),
     ]
