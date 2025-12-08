@@ -274,7 +274,7 @@ class Donation(models.Model):
         ('refunded', 'Refunded'),
     ]
     
-    streamer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    streamer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='fuzeobs_donations')
     paypal_order_id = models.CharField(max_length=100, unique=True)
     paypal_capture_id = models.CharField(max_length=100, blank=True)
     
