@@ -315,6 +315,8 @@ function handleMessage(e) {{
     message = message.replace(/{{viewers}}/g, eventData.viewers || '');
     message = message.replace(/{{months}}/g, eventData.months || '');
     message = message.replace(/{{count}}/g, eventData.count || '');
+    message = message.replace(/{{gift}}/g, eventData.gift || '');
+    message = message.replace(/{{message}}/g, eventData.message || '');
     text.textContent = message;
     
     if (config.text_animation && config.text_animation !== 'none') {{
@@ -736,6 +738,8 @@ def generate_event_list_html(user_id, config, connected_platforms):
         'kick_gift_sub': config.get('kick_gift_msg', '{name} gifted {count} subs!'),
         'tiktok_follow': config.get('tiktok_follow_msg', '{name} just followed!'),
         'tiktok_gift': config.get('tiktok_gift_msg', '{name} sent {gift}!'),
+        'tiktok_share': config.get('tiktok_share_msg', '{name} shared!'),
+        'tiktok_like': config.get('tiktok_like_msg', '{name} sent {count} likes!'),
         'donation_donation': config.get('donation_msg', '{name} donated {amount}!'),
     }
     
@@ -756,6 +760,8 @@ def generate_event_list_html(user_id, config, connected_platforms):
         'kick_gift_sub': config.get('kick_gift_sub', True),
         'tiktok_follow': config.get('tiktok_follow', True),
         'tiktok_gift': config.get('tiktok_gift', True),
+        'tiktok_share': config.get('tiktok_share', True),
+        'tiktok_like': config.get('tiktok_like', True),
         'donation_donation': config.get('donation_donation', True),
     }
     
@@ -1289,7 +1295,8 @@ const GOAL_EVENT_MAP = {{
     'bit': ['bits'],
     'superchat': ['superchat'],
     'member': ['member'],
-    'stars': ['stars']
+    'stars': ['stars'],
+    'gift': ['gift']
 }};
 
 const GOAL_PLATFORMS = {{
@@ -1299,7 +1306,8 @@ const GOAL_PLATFORMS = {{
     'bit': ['twitch'],
     'superchat': ['youtube'],
     'member': ['youtube'],
-    'stars': ['facebook']
+    'stars': ['facebook'],
+    'gift': ['tiktok']
 }};
 
 function connectWebSocket(url, handler) {{
@@ -1357,6 +1365,8 @@ function handleAlertForGoal(data) {{
         increment = data.event_data?.amount || 1;
     }} else if (data.event_type === 'gift_sub') {{
         increment = data.event_data?.amount || data.event_data?.count || 1;
+    }} else if (data.event_type === 'gift') {{
+        increment = data.event_data?.count || 1;
     }}
     
     currentAmount += increment;
@@ -1771,14 +1781,16 @@ const viewers = {{
     twitch: 0,
     youtube: 0,
     kick: 0,
-    facebook: 0
+    facebook: 0,
+    tiktok: 0
 }};
 
 const POLL_INTERVALS = {{
     twitch: 30000,
     youtube: 60000,
     kick: 15000,
-    facebook: 30000
+    facebook: 30000,
+    tiktok: 30000
 }};
 
 function applyStyles() {{
@@ -1886,6 +1898,18 @@ async function pollFacebook() {{
     }} catch (e) {{}}
 }}
 
+async function pollTiktok() {{
+    if (!config.show_tiktok || !connectedPlatforms.includes('tiktok')) return;
+    try {{
+        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/tiktok/${{userId}}`);
+        if (resp.ok) {{
+            const data = await resp.json();
+            viewers.tiktok = data.viewers || 0;
+            updateDisplay();
+        }}
+    }} catch (e) {{}}
+}}
+
 function connectWS() {{
     const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-viewers/${{userId}}/`);
     
@@ -1924,6 +1948,10 @@ if (config.show_kick !== false && connectedPlatforms.includes('kick')) {{
 if (config.show_facebook !== false && connectedPlatforms.includes('facebook')) {{
     pollFacebook();
     setInterval(pollFacebook, POLL_INTERVALS.facebook);
+}}
+if (config.show_tiktok !== false && connectedPlatforms.includes('tiktok')) {{
+    pollTiktok();
+    setInterval(pollTiktok, POLL_INTERVALS.tiktok);
 }}
 </script>
 </body>
