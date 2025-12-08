@@ -4,6 +4,17 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/payment.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        #checkout { width: 100%; min-height: 400px; }
+        .checkout-loading { text-align: center; padding: 40px; color: white; }
+        .checkout-loading .spinner { 
+            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%; margin: 0 auto 15px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .checkout-error { color: #ff6b6b; text-align: center; padding: 20px; }
+    </style>
 {% endblock %}
 
 {% block background %}
@@ -12,7 +23,6 @@
 
 {% block content %}
 <div class="product-container">
-    <!-- Back link -->
     <div class="product-navigation">
         <a href="{% url 'STORE:donation_page' %}" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to Donation
@@ -21,7 +31,7 @@
     
     <div class="product-card">
         <h1 class="product-title">Complete Your Donation</h1>
-        <hr class="page-divider"></hr>
+        <hr class="page-divider">
         
         <div class="product-description">
             <h2>Donation Summary</h2>
@@ -34,152 +44,59 @@
                 <div class="price-value">${{ amount }}</div>
             </div>
             
-            <!-- PayPal Loading Indicator -->
-            <div id="paypal-loading" class="paypal-loader">
-                <div class="paypal-loader-spinner"></div>
-                <p class="loading-text">Loading payment options...</p>
-            </div>
-            
-            <!-- PayPal Button Container with custom styling -->
-            <div id="paypal-button-container" style="display:none; width: 80%; max-width: 600px; margin: 0 auto;">
-                <!-- PayPal buttons will render here -->
-            </div>
-            
-            <!-- Alternative payment option as fallback -->
-            <div id="payment-fallback" style="display:none; margin-top:20px;">
-                <p>PayPal payment option is currently unavailable.</p>
-                <a href="{% url 'MAIN:contact' %}" class="purchase-btn">CONTACT SUPPORT</a>
+            <!-- Stripe Checkout Container -->
+            <div id="checkout-container">
+                <div id="checkout-loading" class="checkout-loading">
+                    <div class="spinner"></div>
+                    <p>Loading secure checkout...</p>
+                </div>
+                <div id="checkout"></div>
+                <div id="checkout-error" class="checkout-error" style="display:none;"></div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- PayPal JavaScript SDK -->
-<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD&intent=capture&disable-funding=credit,card&commit=true"></script>
-
+<script src="https://js.stripe.com/v3/"></script>
 <script>
-    // Main initialization function
-    window.addEventListener('load', initializePayment);
+const stripe = Stripe('{{ stripe_publishable_key }}');
 
-    function initializePayment() {
-        if (typeof paypal === 'undefined') {
-            handlePayPalFailure();
-            return;
-        }
-        
-        console.log("PayPal SDK loaded successfully");
-        showPayPalButtons();
-        
-        // Initialize PayPal buttons
-        paypal.Buttons({
-            createOrder: function(data, actions) {
-                return actions.order.create({
-                    purchase_units: [{
-                        amount: {
-                            value: '{{ amount }}'
-                        }
-                    }]
-                });
+async function initCheckout() {
+    try {
+        const response = await fetch('/store/create-checkout-session/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
             },
-            
-            onApprove: function(data, actions) {
-                return actions.order.capture().then(function(orderData) {
-                    window.location.href = "{% url 'STORE:donation_success' %}?paymentId=" + 
-                        orderData.id + "&donation_id={{ donation_id }}&amount={{ amount }}";
-                });
-            },
-            
-            onError: function(err) {
-                console.error('PayPal error:', err);
-                alert('There was an error processing your payment. Please try again.');
-                document.getElementById('payment-fallback').style.display = 'block';
-            },
-            
-            onCancel: function() {
-                // Simply display a message instead of redirecting
-                const messageDiv = document.createElement('div');
-                messageDiv.className = 'alert alert-info';
-                messageDiv.innerHTML = 'Payment cancelled. You can try again when ready.';
-                
-                // Insert at the top of the product-purchase section
-                const purchaseSection = document.querySelector('.product-purchase');
-                purchaseSection.insertBefore(messageDiv, purchaseSection.firstChild);
-                
-                // Auto-remove message after 5 seconds
-                setTimeout(function() {
-                    messageDiv.remove();
-                }, 5000);
-            },
-            
-            style: {
-                layout: 'vertical',
-                color: 'blue',
-                shape: 'rect',
-                label: 'paypal'
-            }
-        }).render('#paypal-button-container');
-        
-        // Style PayPal elements with proper timing
-        stylePayPalElements();
-    }
-
-    function handlePayPalFailure() {
-        console.error("PayPal SDK failed to load");
-        document.getElementById('paypal-loading').style.display = 'none';
-        document.getElementById('payment-fallback').style.display = 'block';
-    }
-
-    function showPayPalButtons() {
-        document.getElementById('paypal-loading').style.display = 'none';
-        document.getElementById('paypal-button-container').style.display = 'block';
-    }
-
-    // Enhanced styling function with multiple attempts
-    let stylingAttempts = 0;
-    const maxAttempts = 5;
-
-    function stylePayPalElements() {
-        // Style billing address section
-        const billingElements = document.querySelectorAll('.paypal-card-form-container label');
-        if (billingElements.length > 0) {
-            processBillingElements(billingElements);
-        }
-        
-        // Style form containers
-        const formContainers = document.querySelectorAll('.paypal-card-fields-container');
-        if (formContainers.length > 0) {
-            formContainers.forEach(function(container) {
-                container.style.backgroundColor = '#fff';
-                container.style.padding = '15px';
-                container.style.borderRadius = '10px';
-                container.style.color = '#000';
-                container.style.maxWidth = '310px';
-            });
-            console.log("PayPal elements styled successfully");
-        } 
-        
-        // Retry if elements not found yet
-        if ((billingElements.length === 0 || formContainers.length === 0) && stylingAttempts < maxAttempts) {
-            stylingAttempts++;
-            setTimeout(stylePayPalElements, 500);
-        }
-    }
-
-    function processBillingElements(elements) {
-        elements.forEach(function(element) {
-            if (element.textContent.includes('Billing address')) {
-                // Create a new styled header element
-                const billingHeader = document.createElement('div');
-                billingHeader.className = 'billing-address-heading';
-                billingHeader.textContent = 'Billing Address';
-                
-                // Insert the new header before the label
-                element.parentNode.insertBefore(billingHeader, element);
-                
-                // Hide the original label
-                element.style.display = 'none';
-            }
+            body: JSON.stringify({ 
+                is_donation: true,
+                amount: '{{ amount }}'
+            })
         });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        document.getElementById('checkout-loading').style.display = 'none';
+        
+        const checkout = await stripe.initEmbeddedCheckout({
+            clientSecret: data.clientSecret
+        });
+        
+        checkout.mount('#checkout');
+        
+    } catch (error) {
+        console.error('Checkout error:', error);
+        document.getElementById('checkout-loading').style.display = 'none';
+        document.getElementById('checkout-error').style.display = 'block';
+        document.getElementById('checkout-error').textContent = 'Error loading checkout. Please refresh and try again.';
     }
+}
+
+initCheckout();
 </script>
 {% endblock %}

@@ -76,6 +76,9 @@ urlpatterns = [
 
     # Payment Processing
     path('payment/<int:product_id>/', views.payment_page, name='payment_page'),
+    # Stripe checkout
+    path('create-checkout-session/', views.create_checkout_session, name='create_checkout_session'),
+    path('stripe-webhook/', views.stripe_webhook, name='stripe_webhook'),
     path('payment/success/', views.payment_success, name='payment_success'),
     path('payment/cancel/', views.payment_cancel, name='payment_cancel'),
     path('apply-discount/<int:product_id>/', views.apply_discount, name='apply_discount'),

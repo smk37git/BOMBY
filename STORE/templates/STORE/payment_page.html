@@ -3,7 +3,117 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/payment.css' %}">
+    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        .success-icon {
+            font-size: 4rem;
+            color: #33ffa0;
+            margin-bottom: 1.5rem;
+            animation: pulse 2s ease-in-out;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .success-message {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .success-title {
+            font-size: 2.5rem;
+            color: white;
+            margin-bottom: 1rem;
+        }
+        
+        .success-subtitle {
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 2rem;
+        }
+        
+        .order-details {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .detail-label {
+            font-weight: 600;
+        }
+        
+        .detail-value {
+            color: white;
+        }
+        
+        .total-row {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            padding-top: 1rem;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 1.5rem;
+        }
+        
+        @media screen and (min-width: 1920px) and (max-width: 1921px) {
+            .success-message i {
+                font-size: 5rem !important;
+            }
+            
+            .success-title {
+                font-size: 4rem;
+            }
+            
+            .success-subtitle {
+                font-size: 2rem;
+            }
+            
+            .detail-item {
+                font-size: 1.5rem;
+            }
+            
+            .total-row {
+                font-size: 2rem;
+            }
+            
+            .redirect-message {
+                font-size: 1.2rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .success-title {
+                font-size: 1.8rem;
+            }
+            
+            .success-subtitle {
+                font-size: 1rem;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block background %}
@@ -12,197 +122,103 @@
 
 {% block content %}
 <div class="product-container">
-    <!-- Back link -->
-    <div class="product-navigation">
-        <a href="{% url 'STORE:store' %}" class="back-link">
-            <i class="fas fa-arrow-left"></i> Back to Store
-        </a>
-    </div>
-    
     <div class="product-card">
-        <h1 class="product-title">Complete Your Purchase</h1>
-        <hr class="page-divider"></hr>
+        <div class="success-message">
+            <i class="fas fa-check-circle success-icon"></i>
+            <h1 class="success-title">Payment Successful!</h1>
+            {% if is_donation %}
+                <p class="success-subtitle">Thank you for your donation. Your support is greatly appreciated.</p>
+            {% else %}
+                <p class="success-subtitle">Thank you for your purchase. Your order has been confirmed.</p>
+            {% endif %}
+        </div>
         
-        <div class="product-description">
-            <h2>Order Summary</h2>
-            <p>Product: {{ product.name }}</p>
-            
-            <!-- Discount Code Form -->
-            {% if user.is_authenticated and not discount_applied %}
-                <div class="discount-form">
-                    <h3>Have a discount code?</h3>
-                    <form id="discount-form" method="post" action="{% url 'STORE:apply_discount' product.id %}">
-                        {% csrf_token %}
-                        <input type="text" name="discount_code" class="discount-input" placeholder="Enter discount code" required>
-                        <button type="submit" class="apply-btn">Apply</button>
-                    </form>
-                    {% if discount_error %}
-                        <p class="discount-message" style="color: #ff6b6b;">{{ discount_error }}</p>
-                    {% endif %}
+        <div class="order-details">
+            {% if is_donation %}
+                <div class="detail-item">
+                    <span class="detail-label">Donation ID:</span>
+                    <span class="detail-value">#{{ donation.id }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Date:</span>
+                    <span class="detail-value">{{ donation.created_at|date:"F j, Y" }}</span>
+                </div>
+                <div class="detail-item total-row">
+                    <span class="detail-label">Amount:</span>
+                    <span class="detail-value">${{ donation.amount|floatformat:2 }}</span>
+                </div>
+            {% else %}
+                <div class="detail-item">
+                    <span class="detail-label">Order Number:</span>
+                    <span class="detail-value">#{{ order.id }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Product:</span>
+                    <span class="detail-value">{{ order.product.name }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Date:</span>
+                    <span class="detail-value">{{ order.created_at|date:"F j, Y" }}</span>
+                </div>
+                <div class="detail-item total-row">
+                    <span class="detail-label">Total:</span>
+                    <span class="detail-value">${{ order.product.price|floatformat:2 }}</span>
                 </div>
             {% endif %}
         </div>
         
-        <div class="product-purchase">
-            <div class="price-section">
-                <div class="price-label">Total:</div>
-                <div class="price-value">
-                    {% if discount_applied %}
-                        <span class="original-price">${{ product.price }}</span>
-                        <span class="discounted-price">${{ discounted_price|floatformat:2 }}</span>
-                        <div style="font-size: 0.8em; color: #33ffa0;">10% Discount Applied</div>
-                    {% else %}
-                        ${{ product.price }}
-                    {% endif %}
+        {% if is_donation %}
+            <div class="success-subtitle">
+                Thank you for your generous donation! 
+                {% if promoted_to_supporter %}
+                    You have been promoted to supporter status.
+                {% endif %}
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{% url 'STORE:store' %}" class="action-button">
+                    <i class="fas fa-store"></i> Return to Store
+                </a>
+                
+                {% if user.is_authenticated %}
+                <a href="{% url 'ACCOUNTS:account' %}" class="action-button">
+                    <i class="fas fa-user"></i> My Account
+                </a>
+                {% endif %}
+            </div>
+        {% else %}
+            {% if order.product.id == 4 %}
+                <!-- Stream Store specific content -->
+                <div class="success-subtitle">
+                    You now have access to the Stream Store! You can download stream assets to enhance your stream.
                 </div>
-            </div>
-            
-            <!-- PayPal Loading Indicator -->
-            <div id="paypal-loading" class="paypal-loader">
-                <div class="paypal-loader-spinner"></div>
-                <p class="loading-text">Loading payment options...</p>
-            </div>
-            
-            <!-- PayPal Button Container with updated styling -->
-            <div id="paypal-button-container" style="display:none; width: 100%; height: auto;">
-                <!-- PayPal buttons will render here -->
-            </div>
-            
-            <!-- Alternative payment option as fallback -->
-            <div id="payment-fallback" style="display:none; margin-top:20px;" class="payment-fallback">
-                <p>PayPal payment option is currently unavailable.</p>
-                <a href="{% url 'MAIN:contact' %}" class="purchase-btn">CONTACT SUPPORT</a>
-            </div>
-        </div>
+                
+                <div class="action-buttons">
+                    <a href="{% url 'STORE:stream_store' %}" class="action-button">
+                        <i class="fas fa-photo-film"></i> Go to Stream Store
+                    </a>
+                    
+                    <a href="{% url 'STORE:my_orders' %}" class="action-button">
+                        <i class="fas fa-shopping-cart"></i> View My Orders
+                    </a>
+                </div>
+            {% else %}
+                <!-- Regular order content -->
+                <div class="success-subtitle">
+                    Please complete the required information to begin your order process.
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="{% url 'STORE:order_form' order.id %}" class="action-button">
+                        <i class="fas fa-clipboard-list"></i> Complete Order Form
+                    </a>
+                    
+                    <a href="{% url 'STORE:my_orders' %}" class="action-button">
+                        <i class="fas fa-shopping-cart"></i> View My Orders
+                    </a>
+                </div>
+            {% endif %}
+        {% endif %}
     </div>
 </div>
-
-<!-- PayPal JavaScript SDK -->
-<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD&intent=capture&disable-funding=credit,card&commit=true"></script>
-
-<script>
-    // Main initialization function - match the product payment page approach
-    window.addEventListener('load', initializePayment);
-        
-        function initializePayment() {
-            if (typeof paypal === 'undefined') {
-                handlePayPalFailure();
-                return;
-            }
-            
-            console.log("PayPal SDK loaded successfully");
-            showPayPalButtons();
-            
-            // Initialize PayPal buttons
-            paypal.Buttons({
-                createOrder: function(data, actions) {
-                    return actions.order.create({
-                        purchase_units: [{
-                            amount: {
-                                value: '{{ discounted_price|default:product.price }}'
-                            }
-                        }]
-                    });
-                },
-                
-                onApprove: function(data, actions) {
-                    return actions.order.capture().then(function(orderData) {
-                        window.location.href = "{% url 'STORE:payment_success' %}?paymentId=" + 
-                            orderData.id + "&product_id={{ product.id }}{% if discount_applied %}&discount_applied=true{% endif %}";
-                    });
-                },
-                
-                onError: function(err) {
-                    console.error('PayPal error:', err);
-                    alert('There was an error processing your payment. Please try again.');
-                    document.getElementById('payment-fallback').style.display = 'block';
-                },
-                
-                onCancel: function() {
-                    // Show in-page message instead of redirecting
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = 'alert alert-info';
-                    messageDiv.innerHTML = 'Payment cancelled. You can try again when ready.';
-                    
-                    // Insert at the top of the product-purchase section
-                    const purchaseSection = document.querySelector('.product-purchase');
-                    purchaseSection.insertBefore(messageDiv, purchaseSection.firstChild);
-                    
-                    // Auto-remove message after 5 seconds
-                    setTimeout(function() {
-                        messageDiv.remove();
-                    }, 5000);
-                },
-                
-                style: {
-                    layout: 'vertical',
-                    color: 'blue',
-                    shape: 'rect',
-                    label: 'paypal'
-                }
-            }).render('#paypal-button-container');
-            
-            // Style PayPal elements with proper timing
-            stylePayPalElements();
-        }
-        
-        function handlePayPalFailure() {
-            console.error("PayPal SDK failed to load");
-            document.getElementById('paypal-loading').style.display = 'none';
-            document.getElementById('payment-fallback').style.display = 'block';
-        }
-        
-        function showPayPalButtons() {
-            document.getElementById('paypal-loading').style.display = 'none';
-            document.getElementById('paypal-button-container').style.display = 'block';
-        }
-        
-        // Enhanced styling function with multiple attempts
-        let stylingAttempts = 0;
-        const maxAttempts = 5;
-        
-        function stylePayPalElements() {
-            // Style billing address section
-            const billingElements = document.querySelectorAll('.paypal-card-form-container label');
-            if (billingElements.length > 0) {
-                processBillingElements(billingElements);
-            }
-            
-            // Style form containers
-            const formContainers = document.querySelectorAll('.paypal-card-fields-container');
-            if (formContainers.length > 0) {
-                formContainers.forEach(function(container) {
-                    container.style.backgroundColor = '#fff';
-                    container.style.padding = '15px';
-                    container.style.borderRadius = '10px';
-                    container.style.color = '#000';
-                    container.style.maxWidth = '310px';
-                });
-                console.log("PayPal elements styled successfully");
-            } 
-            
-            // Retry if elements not found yet
-            if ((billingElements.length === 0 || formContainers.length === 0) && stylingAttempts < maxAttempts) {
-                stylingAttempts++;
-                setTimeout(stylePayPalElements, 500);
-            }
-        }
-        
-        function processBillingElements(elements) {
-            elements.forEach(function(element) {
-                if (element.textContent.includes('Billing address')) {
-                    // Create a new styled header element
-                    const billingHeader = document.createElement('div');
-                    billingHeader.className = 'billing-address-heading';
-                    billingHeader.textContent = 'Billing Address';
-                    
-                    // Insert the new header before the label
-                    element.parentNode.insertBefore(billingHeader, element);
-                    
-                    // Hide the original label
-                    element.style.display = 'none';
-                }
-            });
-        }
-</script>
 {% endblock %}
