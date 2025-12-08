@@ -276,9 +276,15 @@ function handleMessage(e) {{
     }}
     
     const configKey = `${{data.platform}}-${{data.event_type}}`;
-    const config = eventConfigs[configKey] || {{...defaultConfig, message_template: defaultTemplates[configKey] || defaultConfig.message_template}};
+    const savedConfig = eventConfigs[configKey] || {{}};
+    const config = {{
+        ...defaultConfig,
+        ...savedConfig,
+        message_template: savedConfig.message_template || defaultTemplates[configKey] || defaultConfig.message_template
+    }};
     
-    if (!config.enabled) return;
+    if (!config.enabled && savedConfig.enabled === undefined) config.enabled = true;
+    if (config.enabled === false) return;
     
     const alert = document.createElement('div');
     alert.className = 'alert';
