@@ -366,18 +366,32 @@ def trigger_donation_alert(user_id, data):
     """Send donation alert to all applicable widgets"""
     channel_layer = get_channel_layer()
     
-    # Alert Box - send to all platforms
+    # Format for Event List and Alert Box (consistent structure)
+    alert_data = {
+        'type': 'donation',
+        'event_type': 'donation',
+        'platform': 'donation',
+        'event_data': {
+            'username': data['name'],
+            'amount': data['formatted_amount'],
+            'raw_amount': data['amount'],
+            'currency': data['currency'],
+            'message': data['message'],
+        },
+        # Flat fields for Alert Box compatibility
+        'name': data['name'],
+        'amount': data['amount'],
+        'currency': data['currency'],
+        'message': data['message'],
+        'formatted_amount': data['formatted_amount'],
+    }
+    
+    # Alert Box + Event List - send to all platform channels
     for platform in ['twitch', 'youtube', 'kick', 'facebook', 'tiktok']:
         async_to_sync(channel_layer.group_send)(
             f'alerts_{user_id}_{platform}',
-            {'type': 'alert_event', 'data': data}
+            {'type': 'alert_event', 'data': alert_data}
         )
-
-    # Event List - add this
-    async_to_sync(channel_layer.group_send)(
-        f'events_{user_id}',
-        {'type': 'event_update', 'data': data}
-    )
     
     # Goal Bar - update progress
     async_to_sync(channel_layer.group_send)(
