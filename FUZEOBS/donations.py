@@ -110,7 +110,7 @@ def paypal_connect(request):
     
     # PayPal OAuth URL
     redirect_uri = 'https://bomby.us/fuzeobs/donations/paypal/callback'
-    scopes = 'openid email https://uri.paypal.com/services/paypalattributes'
+    scopes = 'openid email'
     
     auth_url = (
         f'{PAYPAL_BASE.replace("api-m", "www")}/signin/authorize'
