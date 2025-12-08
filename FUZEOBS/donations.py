@@ -372,6 +372,12 @@ def trigger_donation_alert(user_id, data):
             f'alerts_{user_id}_{platform}',
             {'type': 'alert_event', 'data': data}
         )
+
+    # Event List - add this
+    async_to_sync(channel_layer.group_send)(
+        f'events_{user_id}',
+        {'type': 'event_update', 'data': data}
+    )
     
     # Goal Bar - update progress
     async_to_sync(channel_layer.group_send)(
