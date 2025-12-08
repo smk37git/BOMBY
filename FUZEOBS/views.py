@@ -1620,10 +1620,7 @@ def fuzeobs_connect_platform(request):
         else:
             cache.set(f'oauth_state_{state}', {'user_id': user.id, 'platform': platform}, timeout=600)
         
-        if platform == 'tiktok':
-            redirect_uri = 'http://localhost:5000/tiktok-callback'
-        else:
-            redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
+        redirect_uri = f'https://bomby.us/fuzeobs/callback/{platform}'
         scopes = ' '.join(config['scopes']) if platform != 'tiktok' else ','.join(config['scopes'])
         
         if platform == 'tiktok':
