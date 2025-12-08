@@ -2753,9 +2753,70 @@ def stripe_webhook(request):
     except stripe.error.SignatureVerificationError:
         return HttpResponse(status=400)
     
-    # Handle checkout.session.completed
+    # Handle different event types
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        print(f"Payment completed for session: {session['id']}")
+        metadata = session.get('metadata', {})
+        print(f"Checkout completed: {session['id']}, type: {metadata.get('type')}")
+        
+        # Handle FuzeOBS lifetime purchase
+        if metadata.get('type') == 'fuzeobs_lifetime':
+            user_id = metadata.get('user_id')
+            if user_id:
+                User = get_user_model()
+                try:
+                    user = User.objects.get(id=user_id)
+                    user.fuzeobs_lifetime = True
+                    user.fuzeobs_active = True
+                    user.save()
+                    print(f"Activated FuzeOBS lifetime for user {user_id}")
+                except User.DoesNotExist:
+                    print(f"User {user_id} not found for lifetime activation")
+    
+    elif event['type'] == 'customer.subscription.created':
+        subscription = event['data']['object']
+        customer_id = subscription['customer']
+        
+        User = get_user_model()
+        user = User.objects.filter(stripe_customer_id=customer_id).first()
+        if user:
+            user.fuzeobs_subscription_id = subscription['id']
+            user.fuzeobs_active = True
+            user.fuzeobs_subscription_end = timezone.make_aware(
+                datetime.fromtimestamp(subscription['current_period_end'])
+            )
+            user.save()
+            print(f"FuzeOBS subscription created for user {user.id}")
+    
+    elif event['type'] == 'customer.subscription.updated':
+        subscription = event['data']['object']
+        customer_id = subscription['customer']
+        
+        User = get_user_model()
+        user = User.objects.filter(stripe_customer_id=customer_id).first()
+        if user:
+            user.fuzeobs_subscription_end = timezone.make_aware(
+                datetime.fromtimestamp(subscription['current_period_end'])
+            )
+            user.fuzeobs_active = subscription['status'] == 'active'
+            user.save()
+            print(f"FuzeOBS subscription updated for user {user.id}")
+    
+    elif event['type'] == 'customer.subscription.deleted':
+        subscription = event['data']['object']
+        customer_id = subscription['customer']
+        
+        User = get_user_model()
+        user = User.objects.filter(stripe_customer_id=customer_id).first()
+        if user:
+            user.fuzeobs_active = False
+            user.fuzeobs_subscription_id = ''
+            user.save()
+            print(f"FuzeOBS subscription cancelled for user {user.id}")
+    
+    elif event['type'] == 'invoice.payment_failed':
+        invoice = event['data']['object']
+        customer_id = invoice['customer']
+        print(f"Payment failed for customer {customer_id}")
     
     return HttpResponse(status=200)

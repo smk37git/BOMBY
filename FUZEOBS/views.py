@@ -1,5 +1,15 @@
 from django.conf import settings
 from django.http import StreamingHttpResponse, JsonResponse, HttpResponse
+import stripe
+
+# Initialize Stripe
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+# FuzeOBS Stripe Price IDs (set in settings.py)
+FUZEOBS_PRICES = {
+    'monthly': getattr(settings, 'FUZEOBS_STRIPE_PRICE_MONTHLY', ''),
+    'lifetime': getattr(settings, 'FUZEOBS_STRIPE_PRICE_LIFETIME', ''),
+}
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.clickjacking import xframe_options_exempt
 from django.contrib.auth import get_user_model
@@ -2663,3 +2673,166 @@ def fuzeobs_get_facebook_viewers(request, user_id):
 def fuzeobs_get_tiktok_viewers(request, user_id):
     """TikTok doesn't provide viewer count via API"""
     return JsonResponse({'viewers': 0})
+
+# =========== STRIPE SUBSCRIPTIONS ===========
+
+@csrf_exempt
+def fuzeobs_subscribe(request):
+    """Create Stripe Checkout session for FuzeOBS subscription"""
+    # Get user from session or token
+    user = getattr(request, 'user', None)
+    if not user or not user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+    
+    plan = request.GET.get('plan', 'monthly')
+    
+    if plan not in ['monthly', 'lifetime']:
+        return JsonResponse({'error': 'Invalid plan'}, status=400)
+    
+    # Check if already has lifetime
+    if user.fuzeobs_lifetime:
+        return JsonResponse({'error': 'Already have lifetime access', 'redirect': '/fuzeobs/'}, status=400)
+    
+    # Get or create Stripe customer
+    if not user.stripe_customer_id:
+        try:
+            customer = stripe.Customer.create(
+                email=user.email,
+                metadata={'user_id': str(user.id)}
+            )
+            user.stripe_customer_id = customer.id
+            user.save()
+        except stripe.error.StripeError as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    try:
+        if plan == 'lifetime':
+            # One-time payment for lifetime access
+            checkout_session = stripe.checkout.Session.create(
+                customer=user.stripe_customer_id,
+                payment_method_types=['card'],
+                line_items=[{
+                    'price': FUZEOBS_PRICES['lifetime'],
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=request.build_absolute_uri('/fuzeobs/subscription/success/') + '?session_id={CHECKOUT_SESSION_ID}&plan=lifetime',
+                cancel_url=request.build_absolute_uri('/fuzeobs/'),
+                metadata={
+                    'type': 'fuzeobs_lifetime',
+                    'user_id': str(user.id),
+                },
+            )
+        else:
+            # Monthly subscription
+            checkout_session = stripe.checkout.Session.create(
+                customer=user.stripe_customer_id,
+                payment_method_types=['card'],
+                line_items=[{
+                    'price': FUZEOBS_PRICES['monthly'],
+                    'quantity': 1,
+                }],
+                mode='subscription',
+                success_url=request.build_absolute_uri('/fuzeobs/subscription/success/') + '?session_id={CHECKOUT_SESSION_ID}&plan=monthly',
+                cancel_url=request.build_absolute_uri('/fuzeobs/'),
+                metadata={
+                    'type': 'fuzeobs_monthly',
+                    'user_id': str(user.id),
+                },
+            )
+        
+        return redirect(checkout_session.url)
+        
+    except stripe.error.StripeError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@csrf_exempt
+def fuzeobs_subscription_success(request):
+    """Handle successful subscription payment"""
+    session_id = request.GET.get('session_id')
+    plan = request.GET.get('plan', 'monthly')
+    
+    user = getattr(request, 'user', None)
+    if not user or not user.is_authenticated:
+        return redirect('/fuzeobs/')
+    
+    if not session_id:
+        return redirect('/fuzeobs/')
+    
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status != 'paid':
+            return redirect('/fuzeobs/')
+        
+        if plan == 'lifetime':
+            user.fuzeobs_lifetime = True
+            user.fuzeobs_active = True
+            user.save()
+        else:
+            user.fuzeobs_active = True
+            if session.subscription:
+                user.fuzeobs_subscription_id = session.subscription
+            user.save()
+        
+        return redirect('/fuzeobs/')
+        
+    except stripe.error.StripeError:
+        return redirect('/fuzeobs/')
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def fuzeobs_cancel_subscription(request):
+    """Cancel FuzeOBS subscription"""
+    user = getattr(request, 'user', None)
+    if not user or not user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+    
+    if not user.fuzeobs_subscription_id:
+        return JsonResponse({'error': 'No active subscription'}, status=400)
+    
+    if user.fuzeobs_lifetime:
+        return JsonResponse({'error': 'Lifetime access cannot be cancelled'}, status=400)
+    
+    try:
+        # Cancel at period end
+        stripe.Subscription.modify(
+            user.fuzeobs_subscription_id,
+            cancel_at_period_end=True
+        )
+        
+        return JsonResponse({'success': True, 'message': 'Subscription will cancel at period end'})
+        
+    except stripe.error.StripeError as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_subscription_status(request):
+    """Get current subscription status"""
+    user = getattr(request, 'user', None)
+    if not user or not user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+    
+    status = {
+        'has_access': getattr(user, 'has_fuzeobs_access', False) if hasattr(user, 'has_fuzeobs_access') else (user.fuzeobs_lifetime or user.fuzeobs_active),
+        'is_lifetime': user.fuzeobs_lifetime,
+        'is_active': user.fuzeobs_active,
+        'subscription_id': user.fuzeobs_subscription_id or None,
+        'subscription_end': user.fuzeobs_subscription_end.isoformat() if user.fuzeobs_subscription_end else None,
+    }
+    
+    # Get more details from Stripe if subscription exists
+    if user.fuzeobs_subscription_id and not user.fuzeobs_lifetime:
+        try:
+            subscription = stripe.Subscription.retrieve(user.fuzeobs_subscription_id)
+            status['cancel_at_period_end'] = subscription.cancel_at_period_end
+            status['current_period_end'] = subscription.current_period_end
+            status['stripe_status'] = subscription.status
+        except stripe.error.StripeError:
+            pass
+    
+    return JsonResponse(status)

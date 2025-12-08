@@ -34,6 +34,15 @@ class User(AbstractUser):
     class Meta:
         db_table = 'ACCOUNTS_user'
 
+    # Stripe fields
+    stripe_customer_id = models.CharField(max_length=100, blank=True, null=True)
+    
+    # FuzeOBS Subscription fields
+    fuzeobs_subscription_id = models.CharField(max_length=100, blank=True, null=True)
+    fuzeobs_active = models.BooleanField(default=False)
+    fuzeobs_lifetime = models.BooleanField(default=False)
+    fuzeobs_subscription_end = models.DateTimeField(null=True, blank=True)
+
     # FuzeOBS fields
     fuzeobs_tier = models.CharField(max_length=20, default='free')
     fuzeobs_ai_usage_monthly = models.IntegerField(default=0)
@@ -95,6 +104,16 @@ class User(AbstractUser):
     @property
     def is_admin_user(self):
         return self.user_type == self.UserType.ADMIN
+    
+    @property
+    def has_fuzeobs_access(self):
+        """Check if user has active FuzeOBS subscription or lifetime"""
+        if self.fuzeobs_lifetime:
+            return True
+        if self.fuzeobs_active and self.fuzeobs_subscription_end:
+            from django.utils import timezone
+            return self.fuzeobs_subscription_end > timezone.now()
+        return False
 
     def promote_to_supporter(self):
         if self.user_type == self.UserType.MEMBER:
