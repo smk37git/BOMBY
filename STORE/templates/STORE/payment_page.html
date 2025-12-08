@@ -3,116 +3,17 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/payment.css' %}">
-    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        .success-icon {
-            font-size: 4rem;
-            color: #33ffa0;
-            margin-bottom: 1.5rem;
-            animation: pulse 2s ease-in-out;
+        #checkout { width: 100%; min-height: 400px; }
+        .checkout-loading { text-align: center; padding: 40px; color: white; }
+        .checkout-loading .spinner { 
+            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%; margin: 0 auto 15px;
+            animation: spin 1s linear infinite;
         }
-        
-        @keyframes pulse {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .success-message {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .success-title {
-            font-size: 2.5rem;
-            color: white;
-            margin-bottom: 1rem;
-        }
-        
-        .success-subtitle {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 2rem;
-        }
-        
-        .order-details {
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-            color: rgba(255, 255, 255, 0.9);
-        }
-        
-        .detail-label {
-            font-weight: 600;
-        }
-        
-        .detail-value {
-            color: white;
-        }
-        
-        .total-row {
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 1rem;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-        
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 1.5rem;
-        }
-        
-        @media screen and (min-width: 1920px) and (max-width: 1921px) {
-            .success-message i {
-                font-size: 5rem !important;
-            }
-            
-            .success-title {
-                font-size: 4rem;
-            }
-            
-            .success-subtitle {
-                font-size: 2rem;
-            }
-            
-            .detail-item {
-                font-size: 1.5rem;
-            }
-            
-            .total-row {
-                font-size: 2rem;
-            }
-            
-            .redirect-message {
-                font-size: 1.2rem;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .success-title {
-                font-size: 1.8rem;
-            }
-            
-            .success-subtitle {
-                font-size: 1rem;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .checkout-error { color: #ff6b6b; text-align: center; padding: 20px; }
     </style>
 {% endblock %}
 
@@ -122,103 +23,103 @@
 
 {% block content %}
 <div class="product-container">
+    <div class="product-navigation">
+        <a href="{% url 'STORE:store' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to Store
+        </a>
+    </div>
+    
     <div class="product-card">
-        <div class="success-message">
-            <i class="fas fa-check-circle success-icon"></i>
-            <h1 class="success-title">Payment Successful!</h1>
-            {% if is_donation %}
-                <p class="success-subtitle">Thank you for your donation. Your support is greatly appreciated.</p>
-            {% else %}
-                <p class="success-subtitle">Thank you for your purchase. Your order has been confirmed.</p>
-            {% endif %}
-        </div>
+        <h1 class="product-title">Complete Your Purchase</h1>
+        <hr class="page-divider">
         
-        <div class="order-details">
-            {% if is_donation %}
-                <div class="detail-item">
-                    <span class="detail-label">Donation ID:</span>
-                    <span class="detail-value">#{{ donation.id }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Date:</span>
-                    <span class="detail-value">{{ donation.created_at|date:"F j, Y" }}</span>
-                </div>
-                <div class="detail-item total-row">
-                    <span class="detail-label">Amount:</span>
-                    <span class="detail-value">${{ donation.amount|floatformat:2 }}</span>
-                </div>
-            {% else %}
-                <div class="detail-item">
-                    <span class="detail-label">Order Number:</span>
-                    <span class="detail-value">#{{ order.id }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Product:</span>
-                    <span class="detail-value">{{ order.product.name }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Date:</span>
-                    <span class="detail-value">{{ order.created_at|date:"F j, Y" }}</span>
-                </div>
-                <div class="detail-item total-row">
-                    <span class="detail-label">Total:</span>
-                    <span class="detail-value">${{ order.product.price|floatformat:2 }}</span>
+        <div class="product-description">
+            <h2>Order Summary</h2>
+            <p>Product: {{ product.name }}</p>
+            
+            {% if user.is_authenticated and not discount_applied %}
+                <div class="discount-form">
+                    <h3>Have a discount code?</h3>
+                    <form method="post" action="{% url 'STORE:apply_discount' product.id %}">
+                        {% csrf_token %}
+                        <input type="text" name="discount_code" class="discount-input" placeholder="Enter discount code" required>
+                        <button type="submit" class="apply-btn">Apply</button>
+                    </form>
+                    {% if discount_error %}
+                        <p class="discount-message" style="color: #ff6b6b;">{{ discount_error }}</p>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>
         
-        {% if is_donation %}
-            <div class="success-subtitle">
-                Thank you for your generous donation! 
-                {% if promoted_to_supporter %}
-                    You have been promoted to supporter status.
-                {% endif %}
+        <div class="product-purchase">
+            <div class="price-section">
+                <div class="price-label">Total:</div>
+                <div class="price-value">
+                    {% if discount_applied %}
+                        <span class="original-price">${{ product.price }}</span>
+                        <span class="discounted-price">${{ discounted_price|floatformat:2 }}</span>
+                        <div style="font-size: 0.8em; color: #33ffa0;">Discount Applied</div>
+                    {% else %}
+                        ${{ product.price }}
+                    {% endif %}
+                </div>
             </div>
             
-            <div class="action-buttons">
-                <a href="{% url 'STORE:store' %}" class="action-button">
-                    <i class="fas fa-store"></i> Return to Store
-                </a>
-                
-                {% if user.is_authenticated %}
-                <a href="{% url 'ACCOUNTS:account' %}" class="action-button">
-                    <i class="fas fa-user"></i> My Account
-                </a>
-                {% endif %}
+            <div id="checkout-container">
+                <div id="checkout-loading" class="checkout-loading">
+                    <div class="spinner"></div>
+                    <p>Loading secure checkout...</p>
+                </div>
+                <div id="checkout"></div>
+                <div id="checkout-error" class="checkout-error" style="display:none;"></div>
             </div>
-        {% else %}
-            {% if order.product.id == 4 %}
-                <!-- Stream Store specific content -->
-                <div class="success-subtitle">
-                    You now have access to the Stream Store! You can download stream assets to enhance your stream.
-                </div>
-                
-                <div class="action-buttons">
-                    <a href="{% url 'STORE:stream_store' %}" class="action-button">
-                        <i class="fas fa-photo-film"></i> Go to Stream Store
-                    </a>
-                    
-                    <a href="{% url 'STORE:my_orders' %}" class="action-button">
-                        <i class="fas fa-shopping-cart"></i> View My Orders
-                    </a>
-                </div>
-            {% else %}
-                <!-- Regular order content -->
-                <div class="success-subtitle">
-                    Please complete the required information to begin your order process.
-                </div>
-                
-                <div class="action-buttons">
-                    <a href="{% url 'STORE:order_form' order.id %}" class="action-button">
-                        <i class="fas fa-clipboard-list"></i> Complete Order Form
-                    </a>
-                    
-                    <a href="{% url 'STORE:my_orders' %}" class="action-button">
-                        <i class="fas fa-shopping-cart"></i> View My Orders
-                    </a>
-                </div>
-            {% endif %}
-        {% endif %}
+        </div>
     </div>
 </div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    var STRIPE_KEY = "{{ stripe_publishable_key }}";
+    var CSRF_TOKEN = "{{ csrf_token }}";
+    var PRODUCT_ID = "{{ product.id }}";
+</script>
+<script>
+    var stripe = Stripe(STRIPE_KEY);
+
+    async function initCheckout() {
+        try {
+            var response = await fetch('/store/create-checkout-session/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: JSON.stringify({ product_id: PRODUCT_ID })
+            });
+            
+            var data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            document.getElementById('checkout-loading').style.display = 'none';
+            
+            var checkout = await stripe.initEmbeddedCheckout({
+                clientSecret: data.clientSecret
+            });
+            
+            checkout.mount('#checkout');
+            
+        } catch (error) {
+            console.error('Checkout error:', error);
+            document.getElementById('checkout-loading').style.display = 'none';
+            document.getElementById('checkout-error').style.display = 'block';
+            document.getElementById('checkout-error').textContent = 'Error loading checkout. Please refresh and try again.';
+        }
+    }
+
+    initCheckout();
+</script>
 {% endblock %}

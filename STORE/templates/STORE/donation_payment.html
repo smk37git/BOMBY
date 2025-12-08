@@ -44,7 +44,6 @@
                 <div class="price-value">${{ amount }}</div>
             </div>
             
-            <!-- Stripe Checkout Container -->
             <div id="checkout-container">
                 <div id="checkout-loading" class="checkout-loading">
                     <div class="spinner"></div>
@@ -59,44 +58,49 @@
 
 <script src="https://js.stripe.com/v3/"></script>
 <script>
-const stripe = Stripe('{{ stripe_publishable_key }}');
+    var STRIPE_KEY = "{{ stripe_publishable_key }}";
+    var CSRF_TOKEN = "{{ csrf_token }}";
+    var DONATION_AMOUNT = "{{ amount }}";
+</script>
+<script>
+    var stripe = Stripe(STRIPE_KEY);
 
-async function initCheckout() {
-    try {
-        const response = await fetch('/store/create-checkout-session/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({ 
-                is_donation: true,
-                amount: '{{ amount }}'
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.error) {
-            throw new Error(data.error);
+    async function initCheckout() {
+        try {
+            var response = await fetch('/store/create-checkout-session/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': CSRF_TOKEN
+                },
+                body: JSON.stringify({ 
+                    is_donation: true,
+                    amount: DONATION_AMOUNT
+                })
+            });
+            
+            var data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            document.getElementById('checkout-loading').style.display = 'none';
+            
+            var checkout = await stripe.initEmbeddedCheckout({
+                clientSecret: data.clientSecret
+            });
+            
+            checkout.mount('#checkout');
+            
+        } catch (error) {
+            console.error('Checkout error:', error);
+            document.getElementById('checkout-loading').style.display = 'none';
+            document.getElementById('checkout-error').style.display = 'block';
+            document.getElementById('checkout-error').textContent = 'Error loading checkout. Please refresh and try again.';
         }
-        
-        document.getElementById('checkout-loading').style.display = 'none';
-        
-        const checkout = await stripe.initEmbeddedCheckout({
-            clientSecret: data.clientSecret
-        });
-        
-        checkout.mount('#checkout');
-        
-    } catch (error) {
-        console.error('Checkout error:', error);
-        document.getElementById('checkout-loading').style.display = 'none';
-        document.getElementById('checkout-error').style.display = 'block';
-        document.getElementById('checkout-error').textContent = 'Error loading checkout. Please refresh and try again.';
     }
-}
 
-initCheckout();
+    initCheckout();
 </script>
 {% endblock %}
