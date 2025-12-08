@@ -1678,9 +1678,18 @@ def fuzeobs_tiktok_exchange(request):
             return JsonResponse({'error': f'Token exchange failed: {token_response.text}'}, status=400)
         
         token_json = token_response.json()
+        print(f'[TIKTOK] Token response: {token_json}')
+        
+        if 'error' in token_json or token_json.get('error_code'):
+            error_msg = token_json.get('error_description') or token_json.get('message') or str(token_json)
+            return JsonResponse({'error': f'TikTok error: {error_msg}'}, status=400)
+        
         access_token = token_json.get('access_token') or token_json.get('data', {}).get('access_token')
         refresh_token = token_json.get('refresh_token') or token_json.get('data', {}).get('refresh_token', '')
         expires_in = token_json.get('expires_in') or token_json.get('data', {}).get('expires_in', 86400)
+        
+        if not access_token:
+            return JsonResponse({'error': f'No access token in response: {token_json}'}, status=400)
         
         username, platform_user_id = get_platform_username('tiktok', access_token)
         
