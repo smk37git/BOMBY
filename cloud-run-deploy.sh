@@ -33,6 +33,8 @@ YOUTUBE_CLIENT_ID=$(grep YOUTUBE_CLIENT_ID .env | cut -d'=' -f2)
 YOUTUBE_CLIENT_SECRET=$(grep YOUTUBE_CLIENT_SECRET .env | cut -d'=' -f2)
 KICK_CLIENT_ID=$(grep KICK_CLIENT_ID .env | cut -d'=' -f2)
 KICK_CLIENT_SECRET=$(grep KICK_CLIENT_SECRET .env | cut -d'=' -f2)
+STRIPE_PUBLISHABLE_KEY=$(grep STRIPE_PUBLISHABLE_KEY .env | cut -d'=' -f2)
+STRIPE_SECRET_KEY=$(grep STRIPE_SECRET_KEY .env | cut -d'=' -f2)
 
 # Build and push Docker image
 echo "Building and pushing Docker image..."
@@ -64,6 +66,8 @@ SECRETS=(
   "youtube-client-secret"
   "kick-client-id"
   "kick-client-secret"
+  "stripe-publishable-key"
+  "stripe-secret-key"
 )
 
 for SECRET_NAME in "${SECRETS[@]}"; do
@@ -94,6 +98,8 @@ echo -n "$YOUTUBE_CLIENT_ID" | gcloud secrets versions add youtube-client-id --d
 echo -n "$YOUTUBE_CLIENT_SECRET" | gcloud secrets versions add youtube-client-secret --data-file=-
 echo -n "$KICK_CLIENT_ID" | gcloud secrets versions add kick-client-id --data-file=-
 echo -n "$KICK_CLIENT_SECRET" | gcloud secrets versions add kick-client-secret --data-file=-
+echo -n "$STRIPE_PUBLISHABLE_KEY" | gcloud secrets versions add stripe-publishable-key --data-file=-
+echo -n "$STRIPE_SECRET_KEY" | gcloud secrets versions add stripe-secret-key --data-file=-
 
 # Set up storage bucket
 echo "Setting up storage bucket..."
@@ -141,7 +147,9 @@ SCHEDULER_SECRET=scheduler-secret:latest,\
 YOUTUBE_CLIENT_ID=youtube-client-id:latest,\
 YOUTUBE_CLIENT_SECRET=youtube-client-secret:latest,\
 KICK_CLIENT_ID=kick-client-id:latest,\
-KICK_CLIENT_SECRET=kick-client-secret:latest" \
+KICK_CLIENT_SECRET=kick-client-secret:latest,\
+STRIPE_PUBLISHABLE_KEY=stripe-publishable-key:latest,\
+STRIPE_SECRET_KEY=stripe-secret-key:latest" \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
 echo ""

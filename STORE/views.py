@@ -40,6 +40,12 @@ import secrets
 import string
 from django.contrib.admin.views.decorators import staff_member_required
 from MAIN.decorators import admin_code_required
+from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ValidationError
+import stripe
+
+# Initialize Stripe
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 def store(request):
@@ -115,94 +121,122 @@ def premium_package(request):
 
 def donation_page(request):
     """View for custom donation amount"""
-    # Check if user cancelled a payment
     cancelled = request.GET.get('cancelled', False)
     if cancelled:
-        messages.info(request, "Payment was cancelled. You can try again when you're ready.")
+        messages.info(request, "Donation was cancelled. You can try again when ready.")
     
-    return render(request, 'STORE/donation_page.html', {
-        'paypal_client_id': settings.PAYPAL_CLIENT_ID,
-    })
+    return render(request, 'STORE/donation_page.html')
+
 
 def donation_payment(request):
-    """Handle processing a donation with custom amount"""
-    if request.method == 'POST':
-        amount = request.POST.get('amount')
-        
-        try:
-            # Validate amount is a positive number
-            amount = float(amount)
-            if amount <= 0:
-                raise ValueError("Amount must be positive")
-                
-            # Format with 2 decimal places
-            amount = "{:.2f}".format(amount)
-                
-            # Create donation object (not saving yet)
-            donation = Donation(amount=amount)
-            if request.user.is_authenticated:
-                donation.user = request.user
-                
-            # Redirect to payment processing
-            return render(request, 'STORE/donation_payment.html', {
-                'amount': amount,
-                'paypal_client_id': settings.PAYPAL_CLIENT_ID,
-                'donation_id': str(uuid.uuid4())  # Generate a temporary ID
-            })
-                
-        except (ValueError, TypeError) as e:
-            messages.error(request, f"Invalid donation amount: {str(e)}")
-            
-    return redirect('STORE:donation_page')
-
-def donation_success(request):
-    """Handle successful donation and promote to supporter"""
-    donation_id = request.GET.get('donation_id')
-    payment_id = request.GET.get('paymentId')
-    amount = request.GET.get('amount')
+    """Create Stripe Checkout session for donation"""
+    if request.method != 'POST':
+        return redirect('STORE:donation_page')
+    
+    amount = request.POST.get('amount')
     
     try:
-        # Verify payment with PayPal
-        is_verified, payment_data = verify_paypal_payment(payment_id)
+        amount = float(amount)
+        if amount <= 0:
+            raise ValueError("Amount must be positive")
         
-        if not is_verified:
-            messages.error(request, "Payment verification failed. Please contact support.")
+        amount_cents = int(amount * 100)
+        
+        # Create Stripe Checkout Session for donation
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {
+                        'name': 'Donation to BOMBY',
+                        'description': 'Thank you for your support!',
+                    },
+                    'unit_amount': amount_cents,
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=request.build_absolute_uri(
+                reverse('STORE:donation_success')
+            ) + f'?session_id={{CHECKOUT_SESSION_ID}}&amount={amount:.2f}',
+            cancel_url=request.build_absolute_uri(
+                reverse('STORE:donation_page')
+            ) + '?cancelled=true',
+            metadata={
+                'type': 'donation',
+                'user_id': str(request.user.id) if request.user.is_authenticated else '',
+                'amount': str(amount),
+            },
+            customer_email=request.user.email if request.user.is_authenticated else None,
+        )
+        
+        return redirect(checkout_session.url)
+        
+    except (ValueError, TypeError) as e:
+        messages.error(request, f"Invalid donation amount: {str(e)}")
+        return redirect('STORE:donation_page')
+    except stripe.error.StripeError as e:
+        messages.error(request, f"Payment error: {str(e)}")
+        return redirect('STORE:donation_page')
+
+
+def donation_success(request):
+    """Handle successful donation payment"""
+    session_id = request.GET.get('session_id')
+    amount = request.GET.get('amount')
+    
+    if not session_id:
+        messages.error(request, "Invalid payment session.")
+        return redirect('STORE:donation_page')
+    
+    try:
+        # Verify with Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status != 'paid':
+            messages.error(request, "Payment not completed.")
             return redirect('STORE:donation_page')
         
-        # Create and save donation record
+        # Check for duplicate
+        existing_donation = Donation.objects.filter(payment_id=session_id).first()
+        if existing_donation:
+            return render(request, 'STORE/payment_success.html', {
+                'donation': existing_donation,
+                'is_donation': True
+            })
+        
+        # Create donation record
         donation = Donation(
             amount=amount,
-            payment_id=payment_id,
-            is_paid=is_verified
+            payment_id=session_id,
+            is_paid=True
         )
         
         if request.user.is_authenticated:
             donation.user = request.user
-            
-            # Promote user to supporter if donation is $10 or more
-            if float(amount) >= 10 and not request.user.is_supporter and hasattr(request.user, 'promote_to_supporter'):
-                request.user.promote_to_supporter()
+            # Promote to supporter if $10+
+            if float(amount) >= 10 and not request.user.is_supporter:
+                if hasattr(request.user, 'promote_to_supporter'):
+                    request.user.promote_to_supporter()
         
         donation.save()
         
-        # Send receipt email
-        from .utils.email_utils import send_donation_receipt
+        # Send receipt
         try:
+            from .utils.email_utils import send_donation_receipt
             send_donation_receipt(request, donation)
         except Exception as e:
             print(f"Error sending donation receipt: {e}")
         
-        # Show the payment success page instead of redirecting
         return render(request, 'STORE/payment_success.html', {
             'donation': donation,
             'is_donation': True
         })
-            
-    except Exception as e:
-        print(f"Error processing donation: {str(e)}")
-        messages.error(request, "There was an error processing your donation payment.")
         
-    return redirect('STORE:store')
+    except stripe.error.StripeError as e:
+        messages.error(request, f"Error verifying payment: {str(e)}")
+        return redirect('STORE:donation_page')
 
 def stream_store(request):
     """Stream store view with access control"""
@@ -1912,7 +1946,9 @@ def apply_discount(request, product_id):
         
         return render(request, 'STORE/payment_page.html', context)
 
+@login_required
 def payment_page(request, product_id):
+    """Show payment page with discount option, then create Stripe Checkout"""
     product = get_object_or_404(Product, id=product_id, is_active=True)
     
     # Check if user cancelled a payment
@@ -1920,12 +1956,11 @@ def payment_page(request, product_id):
     if cancelled:
         messages.info(request, "Payment was cancelled. You can try when you're ready.")
     
-    # Check if user has an unused discount code
-    discount_code = None
-    has_discount = False
+    # Check for discount in session (from apply_discount)
     discount_applied = False
     discounted_price = None
-    discount_error = None
+    discount_code = None
+    has_discount = False
     
     if request.user.is_authenticated:
         discount_code = DiscountCode.objects.filter(
@@ -1935,41 +1970,72 @@ def payment_page(request, product_id):
         
         if discount_code:
             has_discount = True
-            
-        # Check if a discount is being applied
-        if request.method == 'POST' and 'discount_code' in request.POST:
-            code = request.POST.get('discount_code', '').strip()
+        
+        # Check if discount was applied via session
+        if request.session.get('discount_code_id'):
             try:
                 discount = DiscountCode.objects.get(
-                    code=code,
+                    id=request.session.get('discount_code_id'),
                     user=request.user,
                     is_used=False
                 )
-                
-                # Calculate discounted price
                 discount_percent = discount.percentage
                 discounted_price = round(float(product.price) * (1 - discount_percent/100), 2)
                 discount_applied = True
-                
-                # Store in session for later processing
-                request.session['discount_code_id'] = discount.id
-                
             except DiscountCode.DoesNotExist:
-                discount_error = "Invalid or expired discount code."
+                del request.session['discount_code_id']
     
+    # If checkout=true, create Stripe session and redirect
+    if request.GET.get('checkout') == 'true':
+        final_price = discounted_price if discount_applied else float(product.price)
+        price_cents = int(final_price * 100)
+        
+        try:
+            checkout_session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{
+                    'price_data': {
+                        'currency': 'usd',
+                        'product_data': {
+                            'name': product.name,
+                            'description': product.description[:500] if product.description else None,
+                        },
+                        'unit_amount': price_cents,
+                    },
+                    'quantity': 1,
+                }],
+                mode='payment',
+                success_url=request.build_absolute_uri(
+                    reverse('STORE:payment_success')
+                ) + f'?session_id={{CHECKOUT_SESSION_ID}}&product_id={product_id}' + 
+                    ('&discount_applied=true' if discount_applied else ''),
+                cancel_url=request.build_absolute_uri(
+                    reverse('STORE:payment_page', args=[product_id])
+                ) + '?cancelled=true',
+                metadata={
+                    'product_id': str(product_id),
+                    'user_id': str(request.user.id),
+                    'discount_code_id': str(request.session.get('discount_code_id', '')),
+                },
+                customer_email=request.user.email,
+            )
+            
+            return redirect(checkout_session.url)
+            
+        except stripe.error.StripeError as e:
+            messages.error(request, f"Payment error: {str(e)}")
+            return redirect('STORE:store')
+    
+    # Show payment page
     context = {
         'product': product,
-        'paypal_client_id': settings.PAYPAL_CLIENT_ID,
         'has_discount': has_discount,
         'discount_code': discount_code,
         'discount_applied': discount_applied,
         'discounted_price': discounted_price,
-        'discount_error': discount_error
     }
     
     response = render(request, 'STORE/payment_page.html', context)
-    
-    # Add cache control headers
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response['Pragma'] = 'no-cache'
     response['Expires'] = '0'
@@ -1978,94 +2044,90 @@ def payment_page(request, product_id):
 
 @login_required
 def payment_success(request):
-    payment_id = request.GET.get('paymentId')
+    """Handle successful Stripe payment"""
+    session_id = request.GET.get('session_id')
     product_id = request.GET.get('product_id')
     discount_applied = request.GET.get('discount_applied', False)
     
-    is_verified, payment_data = verify_paypal_payment(payment_id)
-    if not is_verified:
-        messages.error(request, "Payment verification failed. Please contact support.")
+    if not session_id:
+        messages.error(request, "Invalid payment session.")
         return redirect('STORE:store')
     
-    product = get_object_or_404(Product, id=product_id, is_active=True)
-    
-    # If a discount was applied, mark it as used
-    if discount_applied and request.session.get('discount_code_id'):
-        try:
-            discount = DiscountCode.objects.get(
-                id=request.session.get('discount_code_id'),
-                user=request.user,
-                is_used=False
-            )
-            
-            # Mark as used
-            discount.is_used = True
-            discount.used_at = timezone.now()
-            discount.save()
-            
-            # Clear from session
-            del request.session['discount_code_id']
-            
-        except DiscountCode.DoesNotExist:
-            # Log the error but continue with order creation
-            print(f"Error: Discount code not found for session id {request.session.get('discount_code_id')}")
-    
-    # Create order
-    if int(product_id) == 4:  # Stream Store product
-        order = Order.objects.create(
-            user=request.user,
-            product=product,
-            status='completed',
-            payment_id=payment_id,
-            is_paid=True
-        )
-        
-        # Promote to supporter if not already client/admin
-        if not (request.user.is_client or request.user.is_admin_user):
-            request.user.promote_to_supporter()
-    else:
-        # Regular product flow
-        order = Order.objects.create(
-            user=request.user,
-            product=product,
-            status='pending',
-            payment_id=payment_id,
-            is_paid=True
-        )
-        
-        # Promote user to client
-        if not request.user.is_client:
-            request.user.promote_to_client()
-    
-    # Generate invoice
     try:
-        # Create invoice record
-        invoice = Invoice(order=order)
-        invoice.invoice_number = f"INV-{order.created_at.year}-{order.created_at.month:02d}-{order.id}"
-        invoice.save()
+        # Verify with Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
         
-        # Send invoice email
-        send_invoice_email(request, order, invoice)
+        if session.payment_status != 'paid':
+            messages.error(request, "Payment not completed.")
+            return redirect('STORE:store')
         
-    except Exception as e:
-        # Log error but don't stop the flow
-        print(f"Error generating invoice: {e}")
-    
-    # Send appropriate emails based on product type
-    if int(product_id) == 4:
+        # Check for duplicate order
+        existing_order = Order.objects.filter(payment_id=session_id).first()
+        if existing_order:
+            return render(request, 'STORE/payment_success.html', {'order': existing_order})
+        
+        product = get_object_or_404(Product, id=product_id, is_active=True)
+        
+        # Mark discount as used
+        if discount_applied and request.session.get('discount_code_id'):
+            try:
+                discount = DiscountCode.objects.get(
+                    id=request.session.get('discount_code_id'),
+                    user=request.user,
+                    is_used=False
+                )
+                discount.is_used = True
+                discount.used_at = timezone.now()
+                discount.save()
+                del request.session['discount_code_id']
+            except DiscountCode.DoesNotExist:
+                pass
+        
+        # Create order
+        if int(product_id) == 4:  # Stream Store product
+            order = Order.objects.create(
+                user=request.user,
+                product=product,
+                status='completed',
+                payment_id=session_id,
+                is_paid=True
+            )
+            if not (request.user.is_client or request.user.is_admin_user):
+                request.user.promote_to_supporter()
+        else:
+            order = Order.objects.create(
+                user=request.user,
+                product=product,
+                status='pending',
+                payment_id=session_id,
+                is_paid=True
+            )
+            if not request.user.is_client:
+                request.user.promote_to_client()
+        
+        # Generate invoice
         try:
-            send_completed_order_email(request, order)
+            invoice = Invoice(order=order)
+            invoice.invoice_number = f"INV-{order.created_at.year}-{order.created_at.month:02d}-{order.id}"
+            invoice.save()
+            send_invoice_email(request, order, invoice)
         except Exception as e:
-            print(f"Error sending completed order email: {e}")
-    else:
+            print(f"Error generating invoice: {e}")
+        
+        # Send emails
         try:
-            send_pending_order_email(request, order)
+            if int(product_id) == 4:
+                send_completed_order_email(request, order)
+            else:
+                send_pending_order_email(request, order)
         except Exception as e:
-            print(f"Error sending pending order email: {e}")
-    
-    return render(request, 'STORE/payment_success.html', {
-        'order': order,
-    })
+            print(f"Error sending email: {e}")
+        
+        return render(request, 'STORE/payment_success.html', {'order': order})
+        
+    except stripe.error.StripeError as e:
+        messages.error(request, f"Error verifying payment: {str(e)}")
+        return redirect('STORE:store')
 
 @login_required
 def download_invoice(request, order_id):
@@ -2430,9 +2492,9 @@ def qr_code_management(request):
     
     if search_query:
         qr_codes = QRCodeRedirect.objects.filter(
-            models.Q(code__icontains=search_query) | 
-            models.Q(description__icontains=search_query) |
-            models.Q(destination_url__icontains=search_query)
+            Q(code__icontains=search_query) | 
+            Q(description__icontains=search_query) |
+            Q(destination_url__icontains=search_query)
         )
     else:
         qr_codes = QRCodeRedirect.objects.all()
@@ -2672,3 +2734,28 @@ def clear_qr_code_analytics(request, code):
     messages.success(request, f"Analytics cleared for QR code '{code}'. Removed {click_count} click records.")
     
     return redirect('STORE:qr_code_analytics', code=code)
+
+
+# Stripe Webhook
+@csrf_exempt
+@require_POST
+def stripe_webhook(request):
+    """Handle Stripe webhooks for payment confirmation"""
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+    except ValueError:
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError:
+        return HttpResponse(status=400)
+    
+    # Handle checkout.session.completed
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        print(f"Payment completed for session: {session['id']}")
+    
+    return HttpResponse(status=200)

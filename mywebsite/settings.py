@@ -281,6 +281,10 @@ if os.environ.get('K_SERVICE'):  # This env var is present in Cloud Run
     MEDIA_ROOT = GS_MEDIA_BUCKET_PATH
 
 # Payment Details
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
+
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
 PAYPAL_SECRET = os.environ.get('PAYPAL_SECRET')
 PAYPAL_SANDBOX_MODE = False
