@@ -1,78 +1,466 @@
 {% extends 'MAIN/base.html' %}
 {% load static %}
 
+{% block title %}Checkout - {{ product.name }} | BOMBY{% endblock %}
+
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/payment.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        #checkout { width: 100%; min-height: 400px; }
-        .checkout-loading { text-align: center; padding: 40px; color: white; }
-        .checkout-loading .spinner { 
-            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.3);
-            border-top-color: white; border-radius: 50%; margin: 0 auto 15px;
-            animation: spin 1s linear infinite;
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<style>
+    .checkout-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+    
+    .checkout-nav {
+        margin-bottom: 30px;
+    }
+    
+    .back-link {
+        color: rgba(255, 255, 255, 0.7);
+        text-decoration: none;
+        font-size: 0.95rem;
+        transition: color 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .back-link:hover {
+        color: #33ffa0;
+    }
+    
+    .checkout-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .checkout-header h1 {
+        font-size: 2rem;
+        color: white;
+        margin: 0 0 10px 0;
+        font-weight: 600;
+    }
+    
+    .checkout-header p {
+        color: rgba(255, 255, 255, 0.6);
+        margin: 0;
+    }
+    
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 30px;
+        align-items: start;
+    }
+    
+    @media (max-width: 900px) {
+        .checkout-grid {
+            grid-template-columns: 1fr;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .checkout-error { color: #ff6b6b; text-align: center; padding: 20px; }
-    </style>
+    }
+    
+    .order-summary-card {
+        background: rgba(15, 15, 20, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 30px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .order-summary-card h2 {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 25px 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    .product-item {
+        display: flex;
+        gap: 20px;
+        padding-bottom: 25px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        margin-bottom: 25px;
+    }
+    
+    .product-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, rgba(51, 255, 160, 0.15), rgba(51, 255, 160, 0.05));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .product-icon i {
+        font-size: 1.8rem;
+        color: #33ffa0;
+    }
+    
+    .product-details {
+        flex: 1;
+    }
+    
+    .product-details h3 {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin: 0 0 8px 0;
+    }
+    
+    .product-details p {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.85rem;
+        margin: 0;
+    }
+    
+    .product-price {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    /* Discount Section */
+    .discount-section {
+        margin-bottom: 25px;
+        padding-bottom: 25px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .discount-section h3 {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin: 0 0 12px 0;
+    }
+    
+    .discount-form {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .discount-input {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        padding: 12px 15px;
+        color: white;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.3s ease;
+    }
+    
+    .discount-input:focus {
+        border-color: #33ffa0;
+    }
+    
+    .discount-input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .apply-btn {
+        background: transparent;
+        border: 1px solid #33ffa0;
+        color: #33ffa0;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .apply-btn:hover {
+        background: #33ffa0;
+        color: #0a0a0a;
+    }
+    
+    .discount-error {
+        color: #ff6b6b;
+        font-size: 0.85rem;
+        margin-top: 10px;
+    }
+    
+    .discount-success {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(51, 255, 160, 0.1);
+        border: 1px solid rgba(51, 255, 160, 0.3);
+        border-radius: 8px;
+        padding: 12px 15px;
+    }
+    
+    .discount-success i {
+        color: #33ffa0;
+    }
+    
+    .discount-success span {
+        color: #33ffa0;
+        font-size: 0.9rem;
+    }
+    
+    /* Order Totals */
+    .order-totals {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .total-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .total-row.subtotal {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.95rem;
+    }
+    
+    .total-row.discount-row {
+        color: #33ffa0;
+        font-size: 0.95rem;
+    }
+    
+    .total-row.final {
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        margin-top: 5px;
+    }
+    
+    .total-row.final .label {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+    
+    .total-row.final .value {
+        color: #33ffa0;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+    
+    .original-price {
+        text-decoration: line-through;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 1rem;
+        margin-right: 10px;
+    }
+    
+    /* Secure Badge */
+    .secure-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.8rem;
+    }
+    
+    .secure-badge i {
+        color: #33ffa0;
+    }
+    
+    /* Checkout Card */
+    .checkout-card {
+        background: rgba(15, 15, 20, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 30px;
+        backdrop-filter: blur(10px);
+    }
+    
+    .checkout-card h2 {
+        color: white;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin: 0 0 25px 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    
+    #checkout {
+        width: 100%;
+        min-height: 350px;
+    }
+    
+    .checkout-loading {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    
+    .spinner {
+        width: 45px;
+        height: 45px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top-color: #33ffa0;
+        border-radius: 50%;
+        margin: 0 auto 20px;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .checkout-loading p {
+        color: rgba(255, 255, 255, 0.6);
+        margin: 0;
+        font-size: 0.95rem;
+    }
+    
+    .checkout-error {
+        text-align: center;
+        padding: 40px 20px;
+        color: #ff6b6b;
+    }
+    
+    .checkout-error i {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        display: block;
+    }
+    
+    /* Payment Methods Info */
+    .payment-methods {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    
+    .payment-methods span {
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 0.8rem;
+    }
+    
+    .payment-methods i {
+        font-size: 1.5rem;
+        color: rgba(255, 255, 255, 0.5);
+    }
+</style>
 {% endblock %}
 
 {% block background %}
-    {% include 'MAIN/base_background_starry.html' %}
+{% include 'MAIN/base_background_starry.html' %}
 {% endblock %}
 
 {% block content %}
-<div class="product-container">
-    <div class="product-navigation">
+<div class="checkout-container">
+    <div class="checkout-nav">
         <a href="{% url 'STORE:store' %}" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to Store
         </a>
     </div>
     
-    <div class="product-card">
-        <h1 class="product-title">Complete Your Purchase</h1>
-        <hr class="page-divider">
-        
-        <div class="product-description">
-            <h2>Order Summary</h2>
-            <p>Product: {{ product.name }}</p>
+    <div class="checkout-header">
+        <h1>Secure Checkout</h1>
+        <p>Complete your purchase below</p>
+    </div>
+    
+    <div class="checkout-grid">
+        <!-- Order Summary -->
+        <div class="order-summary-card">
+            <h2><i class="fas fa-receipt" style="margin-right: 10px; color: #33ffa0;"></i>Order Summary</h2>
             
-            {% if user.is_authenticated and not discount_applied %}
-                <div class="discount-form">
-                    <h3>Have a discount code?</h3>
-                    <form method="post" action="{% url 'STORE:apply_discount' product.id %}">
-                        {% csrf_token %}
-                        <input type="text" name="discount_code" class="discount-input" placeholder="Enter discount code" required>
-                        <button type="submit" class="apply-btn">Apply</button>
-                    </form>
-                    {% if discount_error %}
-                        <p class="discount-message" style="color: #ff6b6b;">{{ discount_error }}</p>
-                    {% endif %}
+            <div class="product-item">
+                <div class="product-icon">
+                    <i class="fas fa-box"></i>
                 </div>
-            {% endif %}
-        </div>
-        
-        <div class="product-purchase">
-            <div class="price-section">
-                <div class="price-label">Total:</div>
-                <div class="price-value">
-                    {% if discount_applied %}
-                        <span class="original-price">${{ product.price }}</span>
-                        <span class="discounted-price">${{ discounted_price|floatformat:2 }}</span>
-                        <div style="font-size: 0.8em; color: #33ffa0;">Discount Applied</div>
-                    {% else %}
-                        ${{ product.price }}
-                    {% endif %}
+                <div class="product-details">
+                    <h3>{{ product.name }}</h3>
+                    <p>Digital Service • Instant Delivery</p>
                 </div>
+                <div class="product-price">${{ product.price }}</div>
             </div>
             
-            <div id="checkout-container">
-                <div id="checkout-loading" class="checkout-loading">
-                    <div class="spinner"></div>
-                    <p>Loading secure checkout...</p>
+            {% if user.is_authenticated and not discount_applied %}
+            <div class="discount-section">
+                <h3>Have a discount code?</h3>
+                <form method="post" action="{% url 'STORE:apply_discount' product.id %}" class="discount-form">
+                    {% csrf_token %}
+                    <input type="text" name="discount_code" class="discount-input" placeholder="Enter code" required>
+                    <button type="submit" class="apply-btn">Apply</button>
+                </form>
+                {% if discount_error %}
+                <p class="discount-error"><i class="fas fa-exclamation-circle"></i> {{ discount_error }}</p>
+                {% endif %}
+            </div>
+            {% elif discount_applied %}
+            <div class="discount-section">
+                <div class="discount-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Discount code applied!</span>
                 </div>
-                <div id="checkout"></div>
-                <div id="checkout-error" class="checkout-error" style="display:none;"></div>
+            </div>
+            {% endif %}
+            
+            <div class="order-totals">
+                {% if discount_applied %}
+                <div class="total-row subtotal">
+                    <span>Subtotal</span>
+                    <span>${{ product.price }}</span>
+                </div>
+                <div class="total-row discount-row">
+                    <span>Discount</span>
+                    <span>-${{ discount_amount|floatformat:2 }}</span>
+                </div>
+                <div class="total-row final">
+                    <span class="label">Total</span>
+                    <span class="value">${{ discounted_price|floatformat:2 }}</span>
+                </div>
+                {% else %}
+                <div class="total-row final">
+                    <span class="label">Total</span>
+                    <span class="value">${{ product.price }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="secure-badge">
+                <i class="fas fa-lock"></i>
+                <span>Secured by Stripe • 256-bit SSL encryption</span>
+            </div>
+        </div>
+        
+        <!-- Checkout Form -->
+        <div class="checkout-card">
+            <h2><i class="fas fa-credit-card" style="margin-right: 10px; color: #33ffa0;"></i>Payment Details</h2>
+            
+            <div id="checkout-loading" class="checkout-loading">
+                <div class="spinner"></div>
+                <p>Loading secure checkout...</p>
+            </div>
+            
+            <div id="checkout"></div>
+            
+            <div id="checkout-error" class="checkout-error" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error loading checkout. Please refresh and try again.</p>
+            </div>
+            
+            <div class="payment-methods">
+                <span>We accept:</span>
+                <i class="fab fa-cc-visa"></i>
+                <i class="fab fa-cc-mastercard"></i>
+                <i class="fab fa-cc-amex"></i>
+                <i class="fab fa-cc-discover"></i>
+                <i class="fab fa-apple-pay"></i>
+                <i class="fab fa-google-pay"></i>
             </div>
         </div>
     </div>
@@ -86,7 +474,7 @@
 </script>
 <script>
     var stripe = Stripe(STRIPE_KEY);
-
+    
     async function initCheckout() {
         try {
             var response = await fetch('/store/create-checkout-session/', {
@@ -116,10 +504,9 @@
             console.error('Checkout error:', error);
             document.getElementById('checkout-loading').style.display = 'none';
             document.getElementById('checkout-error').style.display = 'block';
-            document.getElementById('checkout-error').textContent = 'Error loading checkout. Please refresh and try again.';
         }
     }
-
+    
     initCheckout();
 </script>
 {% endblock %}

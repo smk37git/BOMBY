@@ -1943,6 +1943,7 @@ def payment_page(request, product_id):
     
     # Calculate final price
     final_price = discounted_price if discount_applied else float(product.price)
+    discount_amount = float(product.price) - discounted_price if discount_applied else 0
     
     context = {
         'product': product,
@@ -1951,6 +1952,7 @@ def payment_page(request, product_id):
         'discount_code': discount_code,
         'discount_applied': discount_applied,
         'discounted_price': discounted_price,
+        'discount_amount': discount_amount,
         'discount_error': discount_error,
         'final_price': final_price,
     }
