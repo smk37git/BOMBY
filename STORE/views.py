@@ -2015,13 +2015,14 @@ def create_checkout_session(request):
             
             amount_cents = int(final_price * 100)
             
+            product_data = {'name': product.name}
+            if product.description:
+                product_data['description'] = product.description[:500]
+            
             line_items = [{
                 'price_data': {
                     'currency': 'usd',
-                    'product_data': {
-                        'name': product.name,
-                        'description': product.description[:500] if product.description else '',
-                    },
+                    'product_data': product_data,
                     'unit_amount': amount_cents,
                 },
                 'quantity': 1,
