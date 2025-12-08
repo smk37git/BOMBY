@@ -2216,6 +2216,17 @@ def fuzeobs_test_alert(request):
         
         user = request.fuzeobs_user
         
+        # Build event data based on event type
+        event_data = {
+            'username': 'FuzeOBS',
+            'amount': random.randint(1, 2000),
+            'viewers': random.randint(1, 2000),
+            'count': random.randint(1, 100),
+            'gift': 'Rose',
+            'message': 'Test message!',
+            'months': random.randint(1, 24),
+        }
+        
         # Send test alert via WebSocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
@@ -2225,11 +2236,7 @@ def fuzeobs_test_alert(request):
                 'data': {
                     'platform': platform,
                     'event_type': event_type,
-                    'event_data': {
-                        'username': 'FuzeOBS',
-                        'amount': random.randint(1, 2000),
-                        'viewers': random.randint(1, 2000),
-                    },
+                    'event_data': event_data,
                     'clear_existing': True
                 }
             }

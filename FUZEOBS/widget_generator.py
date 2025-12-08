@@ -210,6 +210,31 @@ const defaultConfig = {{
     layout: 'image_above'
 }};
 
+const defaultTemplates = {{
+    'twitch-follow': '{{name}} just followed!',
+    'twitch-subscribe': '{{name}} subscribed!',
+    'twitch-bits': '{{name}} cheered {{amount}} bits!',
+    'twitch-raid': '{{name}} raided with {{viewers}} viewers!',
+    'twitch-host': '{{name}} is hosting!',
+    'twitch-donation': '{{name}} donated {{amount}}!',
+    'youtube-subscribe': '{{name}} subscribed!',
+    'youtube-member': '{{name}} became a member!',
+    'youtube-superchat': '{{name}} sent {{amount}}!',
+    'youtube-donation': '{{name}} donated {{amount}}!',
+    'kick-follow': '{{name}} just followed!',
+    'kick-subscribe': '{{name}} subscribed!',
+    'kick-gift_sub': '{{name}} gifted {{amount}} subs!',
+    'kick-donation': '{{name}} donated {{amount}}!',
+    'facebook-follow': '{{name}} just followed!',
+    'facebook-stars': '{{name}} sent {{amount}} stars!',
+    'facebook-donation': '{{name}} donated {{amount}}!',
+    'tiktok-follow': '{{name}} just followed!',
+    'tiktok-gift': '{{name}} sent {{count}}x {{gift}}!',
+    'tiktok-share': '{{name}} shared the stream!',
+    'tiktok-like': '{{name}} sent {{count}} likes!',
+    'tiktok-donation': '{{name}} donated {{amount}}!'
+}};
+
 const eventConfigs = {{}};
 let configsLoaded = false;
 
@@ -251,7 +276,7 @@ function handleMessage(e) {{
     }}
     
     const configKey = `${{data.platform}}-${{data.event_type}}`;
-    const config = eventConfigs[configKey] || defaultConfig;
+    const config = eventConfigs[configKey] || {{...defaultConfig, message_template: defaultTemplates[configKey] || defaultConfig.message_template}};
     
     if (!config.enabled) return;
     
