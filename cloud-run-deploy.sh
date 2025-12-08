@@ -35,6 +35,7 @@ KICK_CLIENT_ID=$(grep KICK_CLIENT_ID .env | cut -d'=' -f2)
 KICK_CLIENT_SECRET=$(grep KICK_CLIENT_SECRET .env | cut -d'=' -f2)
 STRIPE_PUBLISHABLE_KEY=$(grep STRIPE_PUBLISHABLE_KEY .env | cut -d'=' -f2)
 STRIPE_SECRET_KEY=$(grep STRIPE_SECRET_KEY .env | cut -d'=' -f2)
+STRIPE_WEBHOOK_SECRET=$(grep STRIPE_SECRET_KEY .env | cut -d'=' -f2)
 
 # Build and push Docker image
 echo "Building and pushing Docker image..."
@@ -68,6 +69,7 @@ SECRETS=(
   "kick-client-secret"
   "stripe-publishable-key"
   "stripe-secret-key"
+  "stripe-webhook-secret"
 )
 
 for SECRET_NAME in "${SECRETS[@]}"; do
@@ -100,6 +102,7 @@ echo -n "$KICK_CLIENT_ID" | gcloud secrets versions add kick-client-id --data-fi
 echo -n "$KICK_CLIENT_SECRET" | gcloud secrets versions add kick-client-secret --data-file=-
 echo -n "$STRIPE_PUBLISHABLE_KEY" | gcloud secrets versions add stripe-publishable-key --data-file=-
 echo -n "$STRIPE_SECRET_KEY" | gcloud secrets versions add stripe-secret-key --data-file=-
+echo -n "$STRIPE_WEBHOOK_SECRET" | gcloud secrets versions add stripe-webhook-secret --data-file=-
 
 # Set up storage bucket
 echo "Setting up storage bucket..."
@@ -149,7 +152,8 @@ YOUTUBE_CLIENT_SECRET=youtube-client-secret:latest,\
 KICK_CLIENT_ID=kick-client-id:latest,\
 KICK_CLIENT_SECRET=kick-client-secret:latest,\
 STRIPE_PUBLISHABLE_KEY=stripe-publishable-key:latest,\
-STRIPE_SECRET_KEY=stripe-secret-key:latest" \
+STRIPE_SECRET_KEY=stripe-secret-key:latest, \
+STRIPE_WEBHOOK_SECRET=stripe-webhook_secret:latest" \
   --add-cloudsql-instances=$INSTANCE_CONNECTION_NAME
 
 echo ""

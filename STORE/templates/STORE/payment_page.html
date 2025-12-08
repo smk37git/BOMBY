@@ -4,54 +4,6 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/payment.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        .payment-methods {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 15px;
-            opacity: 0.7;
-        }
-        .payment-methods i {
-            font-size: 1.5rem;
-            color: white;
-        }
-        .checkout-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            width: 100%;
-            max-width: 400px;
-            padding: 15px 30px;
-            background: linear-gradient(135deg, #635bff 0%, #7c3aed 100%);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            margin-top: 20px;
-        }
-        .checkout-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(99, 91, 255, 0.4);
-        }
-        .secure-badge {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 15px;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-        }
-        .secure-badge i {
-            color: #33ffa0;
-        }
-    </style>
 {% endblock %}
 
 {% block background %}
@@ -76,7 +28,7 @@
             <p>Product: {{ product.name }}</p>
             
             <!-- Discount Code Form -->
-            {% if user.is_authenticated and not discount_applied and has_discount %}
+            {% if user.is_authenticated and not discount_applied %}
                 <div class="discount-form">
                     <h3>Have a discount code?</h3>
                     <form id="discount-form" method="post" action="{% url 'STORE:apply_discount' product.id %}">
@@ -98,31 +50,159 @@
                     {% if discount_applied %}
                         <span class="original-price">${{ product.price }}</span>
                         <span class="discounted-price">${{ discounted_price|floatformat:2 }}</span>
-                        <div style="font-size: 0.8em; color: #33ffa0;">Discount Applied!</div>
+                        <div style="font-size: 0.8em; color: #33ffa0;">10% Discount Applied</div>
                     {% else %}
                         ${{ product.price }}
                     {% endif %}
                 </div>
             </div>
             
-            <!-- Stripe Checkout Button -->
-            <a href="{% url 'STORE:payment_page' product.id %}?checkout=true" class="checkout-btn">
-                <i class="fas fa-lock"></i> Pay Securely with Card
-            </a>
-            
-            <div class="secure-badge">
-                <i class="fas fa-shield-alt"></i>
-                <span>Secure checkout powered by Stripe</span>
+            <!-- PayPal Loading Indicator -->
+            <div id="paypal-loading" class="paypal-loader">
+                <div class="paypal-loader-spinner"></div>
+                <p class="loading-text">Loading payment options...</p>
             </div>
             
-            <div class="payment-methods">
-                <i class="fab fa-cc-visa"></i>
-                <i class="fab fa-cc-mastercard"></i>
-                <i class="fab fa-cc-amex"></i>
-                <i class="fab fa-apple-pay"></i>
-                <i class="fab fa-google-pay"></i>
+            <!-- PayPal Button Container with updated styling -->
+            <div id="paypal-button-container" style="display:none; width: 100%; height: auto;">
+                <!-- PayPal buttons will render here -->
+            </div>
+            
+            <!-- Alternative payment option as fallback -->
+            <div id="payment-fallback" style="display:none; margin-top:20px;" class="payment-fallback">
+                <p>PayPal payment option is currently unavailable.</p>
+                <a href="{% url 'MAIN:contact' %}" class="purchase-btn">CONTACT SUPPORT</a>
             </div>
         </div>
     </div>
 </div>
+
+<!-- PayPal JavaScript SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD&intent=capture&disable-funding=credit,card&commit=true"></script>
+
+<script>
+    // Main initialization function - match the product payment page approach
+    window.addEventListener('load', initializePayment);
+        
+        function initializePayment() {
+            if (typeof paypal === 'undefined') {
+                handlePayPalFailure();
+                return;
+            }
+            
+            console.log("PayPal SDK loaded successfully");
+            showPayPalButtons();
+            
+            // Initialize PayPal buttons
+            paypal.Buttons({
+                createOrder: function(data, actions) {
+                    return actions.order.create({
+                        purchase_units: [{
+                            amount: {
+                                value: '{{ discounted_price|default:product.price }}'
+                            }
+                        }]
+                    });
+                },
+                
+                onApprove: function(data, actions) {
+                    return actions.order.capture().then(function(orderData) {
+                        window.location.href = "{% url 'STORE:payment_success' %}?paymentId=" + 
+                            orderData.id + "&product_id={{ product.id }}{% if discount_applied %}&discount_applied=true{% endif %}";
+                    });
+                },
+                
+                onError: function(err) {
+                    console.error('PayPal error:', err);
+                    alert('There was an error processing your payment. Please try again.');
+                    document.getElementById('payment-fallback').style.display = 'block';
+                },
+                
+                onCancel: function() {
+                    // Show in-page message instead of redirecting
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'alert alert-info';
+                    messageDiv.innerHTML = 'Payment cancelled. You can try again when ready.';
+                    
+                    // Insert at the top of the product-purchase section
+                    const purchaseSection = document.querySelector('.product-purchase');
+                    purchaseSection.insertBefore(messageDiv, purchaseSection.firstChild);
+                    
+                    // Auto-remove message after 5 seconds
+                    setTimeout(function() {
+                        messageDiv.remove();
+                    }, 5000);
+                },
+                
+                style: {
+                    layout: 'vertical',
+                    color: 'blue',
+                    shape: 'rect',
+                    label: 'paypal'
+                }
+            }).render('#paypal-button-container');
+            
+            // Style PayPal elements with proper timing
+            stylePayPalElements();
+        }
+        
+        function handlePayPalFailure() {
+            console.error("PayPal SDK failed to load");
+            document.getElementById('paypal-loading').style.display = 'none';
+            document.getElementById('payment-fallback').style.display = 'block';
+        }
+        
+        function showPayPalButtons() {
+            document.getElementById('paypal-loading').style.display = 'none';
+            document.getElementById('paypal-button-container').style.display = 'block';
+        }
+        
+        // Enhanced styling function with multiple attempts
+        let stylingAttempts = 0;
+        const maxAttempts = 5;
+        
+        function stylePayPalElements() {
+            // Style billing address section
+            const billingElements = document.querySelectorAll('.paypal-card-form-container label');
+            if (billingElements.length > 0) {
+                processBillingElements(billingElements);
+            }
+            
+            // Style form containers
+            const formContainers = document.querySelectorAll('.paypal-card-fields-container');
+            if (formContainers.length > 0) {
+                formContainers.forEach(function(container) {
+                    container.style.backgroundColor = '#fff';
+                    container.style.padding = '15px';
+                    container.style.borderRadius = '10px';
+                    container.style.color = '#000';
+                    container.style.maxWidth = '310px';
+                });
+                console.log("PayPal elements styled successfully");
+            } 
+            
+            // Retry if elements not found yet
+            if ((billingElements.length === 0 || formContainers.length === 0) && stylingAttempts < maxAttempts) {
+                stylingAttempts++;
+                setTimeout(stylePayPalElements, 500);
+            }
+        }
+        
+        function processBillingElements(elements) {
+            elements.forEach(function(element) {
+                if (element.textContent.includes('Billing address')) {
+                    // Create a new styled header element
+                    const billingHeader = document.createElement('div');
+                    billingHeader.className = 'billing-address-heading';
+                    billingHeader.textContent = 'Billing Address';
+                    
+                    // Insert the new header before the label
+                    element.parentNode.insertBefore(billingHeader, element);
+                    
+                    // Hide the original label
+                    element.style.display = 'none';
+                }
+            });
+        }
+</script>
 {% endblock %}

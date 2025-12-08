@@ -32,12 +32,6 @@ urlpatterns = [
     path('quickstart/dismiss', views.fuzeobs_quickstart_dismiss, name='quickstart_dismiss'),
     path('quickstart/check', views.fuzeobs_quickstart_check, name='quickstart_check'),
 
-    # == Subscription URLs ==
-    path('subscribe/', views.fuzeobs_subscribe, name='subscribe'),
-    path('subscription/success/', views.fuzeobs_subscription_success, name='subscription_success'),
-    path('subscription/cancel/', views.fuzeobs_cancel_subscription, name='cancel_subscription'),
-    path('subscription/status/', views.fuzeobs_subscription_status, name='subscription_status'),
-
     # == Widget URLS ==
 
     # PLATFORM ALERTS

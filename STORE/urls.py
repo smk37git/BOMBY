@@ -79,9 +79,6 @@ urlpatterns = [
     path('payment/success/', views.payment_success, name='payment_success'),
     path('payment/cancel/', views.payment_cancel, name='payment_cancel'),
     path('apply-discount/<int:product_id>/', views.apply_discount, name='apply_discount'),
-    
-    # Stripe Webhook
-    path('stripe-webhook/', views.stripe_webhook, name='stripe_webhook'),
 
     # Store Analytics
     path('admin/analytics/', views.store_analytics, name='store_analytics'),
