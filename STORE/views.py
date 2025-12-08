@@ -1940,10 +1940,18 @@ def payment_page(request, product_id):
                 discounted_price = round(float(product.price) * (1 - discount_percent/100), 2)
             except DiscountCode.DoesNotExist:
                 discount_applied = False
+        else:
+            # Reset if no discount_code_id in session
+            discount_applied = False
     
-    # Calculate final price
-    final_price = discounted_price if discount_applied else float(product.price)
-    discount_amount = float(product.price) - discounted_price if discount_applied else 0
+    # Calculate final price and discount amount
+    if discount_applied and discounted_price is not None:
+        final_price = discounted_price
+        discount_amount = float(product.price) - discounted_price
+    else:
+        final_price = float(product.price)
+        discount_amount = 0
+        discount_applied = False
     
     context = {
         'product': product,

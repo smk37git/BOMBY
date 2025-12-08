@@ -27,7 +27,7 @@
     }
     
     .back-link:hover {
-        color: #33ffa0;
+        color: #a855f7;
     }
     
     .checkout-header {
@@ -60,15 +60,17 @@
         }
     }
     
-    .order-summary-card {
-        background: rgba(15, 15, 20, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
+    .order-summary-card,
+    .checkout-card {
+        background: rgba(0, 0, 0, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
         padding: 30px;
-        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
     
-    .order-summary-card h2 {
+    .order-summary-card h2,
+    .checkout-card h2 {
         color: white;
         font-size: 1.1rem;
         font-weight: 600;
@@ -81,14 +83,15 @@
         display: flex;
         gap: 20px;
         padding-bottom: 25px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
         margin-bottom: 25px;
     }
     
     .product-icon {
         width: 70px;
         height: 70px;
-        background: linear-gradient(135deg, rgba(51, 255, 160, 0.15), rgba(51, 255, 160, 0.05));
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(168, 85, 247, 0.1));
+        border: 1px solid rgba(168, 85, 247, 0.3);
         border-radius: 12px;
         display: flex;
         align-items: center;
@@ -98,7 +101,7 @@
     
     .product-icon i {
         font-size: 1.8rem;
-        color: #33ffa0;
+        color: #a855f7;
     }
     
     .product-details {
@@ -128,7 +131,7 @@
     .discount-section {
         margin-bottom: 25px;
         padding-bottom: 25px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
     }
     
     .discount-section h3 {
@@ -146,7 +149,7 @@
     .discount-input {
         flex: 1;
         background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 8px;
         padding: 12px 15px;
         color: white;
@@ -156,7 +159,7 @@
     }
     
     .discount-input:focus {
-        border-color: #33ffa0;
+        border-color: #a855f7;
     }
     
     .discount-input::placeholder {
@@ -165,8 +168,8 @@
     
     .apply-btn {
         background: transparent;
-        border: 1px solid #33ffa0;
-        color: #33ffa0;
+        border: 1px solid #a855f7;
+        color: #a855f7;
         padding: 12px 20px;
         border-radius: 8px;
         font-size: 0.85rem;
@@ -178,8 +181,8 @@
     }
     
     .apply-btn:hover {
-        background: #33ffa0;
-        color: #0a0a0a;
+        background: #a855f7;
+        color: white;
     }
     
     .discount-error {
@@ -192,18 +195,18 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        background: rgba(51, 255, 160, 0.1);
-        border: 1px solid rgba(51, 255, 160, 0.3);
+        background: rgba(168, 85, 247, 0.15);
+        border: 1px solid rgba(168, 85, 247, 0.4);
         border-radius: 8px;
         padding: 12px 15px;
     }
     
     .discount-success i {
-        color: #33ffa0;
+        color: #a855f7;
     }
     
     .discount-success span {
-        color: #33ffa0;
+        color: #c084fc;
         font-size: 0.9rem;
     }
     
@@ -226,13 +229,13 @@
     }
     
     .total-row.discount-row {
-        color: #33ffa0;
+        color: #c084fc;
         font-size: 0.95rem;
     }
     
     .total-row.final {
         padding-top: 15px;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
         margin-top: 5px;
     }
     
@@ -243,16 +246,9 @@
     }
     
     .total-row.final .value {
-        color: #33ffa0;
+        color: #a855f7;
         font-size: 1.5rem;
         font-weight: 700;
-    }
-    
-    .original-price {
-        text-decoration: line-through;
-        color: rgba(255, 255, 255, 0.4);
-        font-size: 1rem;
-        margin-right: 10px;
     }
     
     /* Secure Badge */
@@ -263,31 +259,13 @@
         gap: 8px;
         margin-top: 25px;
         padding-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
         color: rgba(255, 255, 255, 0.5);
         font-size: 0.8rem;
     }
     
     .secure-badge i {
-        color: #33ffa0;
-    }
-    
-    /* Checkout Card */
-    .checkout-card {
-        background: rgba(15, 15, 20, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 30px;
-        backdrop-filter: blur(10px);
-    }
-    
-    .checkout-card h2 {
-        color: white;
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin: 0 0 25px 0;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+        color: #a855f7;
     }
     
     #checkout {
@@ -304,7 +282,7 @@
         width: 45px;
         height: 45px;
         border: 3px solid rgba(255, 255, 255, 0.1);
-        border-top-color: #33ffa0;
+        border-top-color: #a855f7;
         border-radius: 50%;
         margin: 0 auto 20px;
         animation: spin 1s linear infinite;
@@ -332,25 +310,34 @@
         display: block;
     }
     
-    /* Payment Methods Info */
+    /* Payment Methods */
     .payment-methods {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 15px;
+        flex-wrap: wrap;
+        gap: 12px;
         margin-top: 25px;
         padding-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
     }
     
     .payment-methods span {
         color: rgba(255, 255, 255, 0.4);
         font-size: 0.8rem;
+        width: 100%;
+        text-align: center;
+        margin-bottom: 5px;
     }
     
     .payment-methods i {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .payment-methods img {
+        height: 22px;
+        opacity: 0.5;
     }
 </style>
 {% endblock %}
@@ -375,7 +362,7 @@
     <div class="checkout-grid">
         <!-- Order Summary -->
         <div class="order-summary-card">
-            <h2><i class="fas fa-receipt" style="margin-right: 10px; color: #33ffa0;"></i>Order Summary</h2>
+            <h2><i class="fas fa-receipt" style="margin-right: 10px; color: #a855f7;"></i>Order Summary</h2>
             
             <div class="product-item">
                 <div class="product-icon">
@@ -439,7 +426,7 @@
         
         <!-- Checkout Form -->
         <div class="checkout-card">
-            <h2><i class="fas fa-credit-card" style="margin-right: 10px; color: #33ffa0;"></i>Payment Details</h2>
+            <h2><i class="fas fa-credit-card" style="margin-right: 10px; color: #a855f7;"></i>Payment Details</h2>
             
             <div id="checkout-loading" class="checkout-loading">
                 <div class="spinner"></div>
@@ -459,8 +446,10 @@
                 <i class="fab fa-cc-mastercard"></i>
                 <i class="fab fa-cc-amex"></i>
                 <i class="fab fa-cc-discover"></i>
-                <i class="fab fa-apple-pay"></i>
+                <i class="fab fa-cc-apple-pay"></i>
                 <i class="fab fa-google-pay"></i>
+                <i class="fab fa-cc-paypal"></i>
+                <i class="fab fa-amazon-pay"></i>
             </div>
         </div>
     </div>
@@ -468,45 +457,51 @@
 
 <script src="https://js.stripe.com/v3/"></script>
 <script>
-    var STRIPE_KEY = "{{ stripe_publishable_key }}";
+    var STRIPE_KEY = "{{ stripe_publishable_key|escapejs }}";
     var CSRF_TOKEN = "{{ csrf_token }}";
     var PRODUCT_ID = "{{ product.id }}";
 </script>
 <script>
-    var stripe = Stripe(STRIPE_KEY);
-    
-    async function initCheckout() {
-        try {
-            var response = await fetch('/store/create-checkout-session/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': CSRF_TOKEN
-                },
-                body: JSON.stringify({ product_id: PRODUCT_ID })
-            });
-            
-            var data = await response.json();
-            
-            if (data.error) {
-                throw new Error(data.error);
+    if (!STRIPE_KEY || STRIPE_KEY === '') {
+        document.getElementById('checkout-loading').style.display = 'none';
+        document.getElementById('checkout-error').style.display = 'block';
+        document.getElementById('checkout-error').innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>Payment configuration error. Please contact support.</p>';
+    } else {
+        var stripe = Stripe(STRIPE_KEY);
+        
+        async function initCheckout() {
+            try {
+                var response = await fetch('/store/create-checkout-session/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': CSRF_TOKEN
+                    },
+                    body: JSON.stringify({ product_id: PRODUCT_ID })
+                });
+                
+                var data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                document.getElementById('checkout-loading').style.display = 'none';
+                
+                var checkout = await stripe.initEmbeddedCheckout({
+                    clientSecret: data.clientSecret
+                });
+                
+                checkout.mount('#checkout');
+                
+            } catch (error) {
+                console.error('Checkout error:', error);
+                document.getElementById('checkout-loading').style.display = 'none';
+                document.getElementById('checkout-error').style.display = 'block';
             }
-            
-            document.getElementById('checkout-loading').style.display = 'none';
-            
-            var checkout = await stripe.initEmbeddedCheckout({
-                clientSecret: data.clientSecret
-            });
-            
-            checkout.mount('#checkout');
-            
-        } catch (error) {
-            console.error('Checkout error:', error);
-            document.getElementById('checkout-loading').style.display = 'none';
-            document.getElementById('checkout-error').style.display = 'block';
         }
+        
+        initCheckout();
     }
-    
-    initCheckout();
 </script>
 {% endblock %}
