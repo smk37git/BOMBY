@@ -154,29 +154,48 @@
     margin-bottom: 30px;
 }
 
+/* Top Row - Back Button and Header in same row */
+.checkout-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+    gap: 20px;
+}
+
+.checkout-top-row .back-link {
+    flex-shrink: 0;
+}
+
+.checkout-top-row .checkout-header {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+.checkout-spacer {
+    width: 140px;
+    flex-shrink: 0;
+}
+
 /* Checkout Header with Background Container */
 .checkout-header {
     text-align: center;
-    margin-bottom: 40px;
     padding: 20px 40px;
     background-color: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
-    width: fit-content;
-    margin-left: auto;
-    margin-right: auto;
 }
 
 .checkout-header h1 {
     font-size: 2rem;
     color: white;
-    margin: 0 0 10px 0;
+    margin: 0;
     font-weight: 600;
 }
 
 .checkout-header p {
     color: rgba(255, 255, 255, 0.6);
-    margin: 0;
+    margin: 10px 0 0 0;
 }
 
 /* Checkout Grid Layout */
@@ -755,8 +774,19 @@
 
     .checkout-header {
         padding: 15px 25px;
-        width: auto;
-        max-width: 90%;
+    }
+
+    .checkout-top-row {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .checkout-top-row .back-link {
+        align-self: flex-start;
+    }
+
+    .checkout-spacer {
+        display: none;
     }
 }
 

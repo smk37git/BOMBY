@@ -14,15 +14,14 @@
 
 {% block content %}
 <div class="checkout-container">
-    <div class="checkout-nav">
+    <div class="checkout-top-row">
         <a href="{{ product_url }}" class="back-link">
             <i class="fas fa-arrow-left"></i> Back to Store
         </a>
-    </div>
-    
-    <div class="checkout-header">
-        <h1>Secure Checkout</h1>
-        <p>Complete your purchase securely</p>
+        <div class="checkout-header">
+            <h1>Secure Checkout</h1>
+        </div>
+        <div class="checkout-spacer"></div>
     </div>
     
     <div class="checkout-grid">
@@ -35,12 +34,11 @@
                 </div>
                 <div class="checkout-product-details">
                     <h3>{{ product.name }}</h3>
-                    <p>Digital Product</p>
+                    <p>Digital Service</p>
                 </div>
                 <div class="checkout-product-price">${{ product.price }}</div>
             </div>
             
-            {% if has_discount %}
             <div class="discount-section" id="discount-section">
                 {% if discount_applied %}
                 <div class="discount-success">
@@ -59,7 +57,6 @@
                 {% endif %}
                 {% endif %}
             </div>
-            {% endif %}
             
             <div class="order-totals" id="order-totals">
                 {% if discount_applied and discount_amount > 0 %}
