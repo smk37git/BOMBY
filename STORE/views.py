@@ -1864,31 +1864,45 @@ def admin_add_review(request):
 @require_POST
 @login_required
 def apply_discount(request, product_id):
-    """Apply a discount code to a product"""
+    """Apply a discount code to a product - supports AJAX"""
     product = get_object_or_404(Product, id=product_id, is_active=True)
     discount_code = request.POST.get('discount_code', '').strip()
     
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    
     try:
-        # Check if the code exists and is valid
         discount = DiscountCode.objects.get(
             code=discount_code,
             user=request.user,
             is_used=False
         )
         
-        # Store discount info in session
+        # Calculate prices
+        original_price = float(product.price)
+        discounted_price = round(original_price * (1 - discount.percentage/100), 2)
+        discount_amount = round(original_price - discounted_price, 2)
+        
+        # Store in session
         request.session['discount_code_id'] = discount.id
         request.session['discount_applied'] = True
         
-        # Redirect back to payment page (it will read from session)
+        if is_ajax:
+            return JsonResponse({
+                'success': True,
+                'discounted_price': discounted_price,
+                'discount_amount': discount_amount,
+                'discount_percent': discount.percentage
+            })
+        
         return redirect('STORE:payment_page', product_id=product_id)
         
     except DiscountCode.DoesNotExist:
-        # Clear any existing discount session data
         request.session.pop('discount_code_id', None)
         request.session.pop('discount_applied', None)
         
-        # Redirect with error parameter
+        if is_ajax:
+            return JsonResponse({'success': False, 'error': 'Invalid or expired discount code.'})
+        
         from django.urls import reverse
         url = reverse('STORE:payment_page', args=[product_id])
         return redirect(f'{url}?discount_error=Invalid+or+expired+discount+code')
@@ -1943,8 +1957,21 @@ def payment_page(request, product_id):
         discount_amount = 0
         discount_applied = False
     
+    # Map product IDs to their detail page URLs
+    product_url_map = {
+        1: '/store/basic-package/',
+        2: '/store/standard-package/',
+        3: '/store/premium-package/',
+        4: '/store/stream-store/',
+        5: '/store/basic-website/',
+        6: '/store/ecommerce-website/',
+        7: '/store/custom-project/',
+    }
+    product_url = product_url_map.get(product.id, '/store/')
+    
     context = {
         'product': product,
+        'product_url': product_url,
         'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
         'has_discount': has_discount,
         'discount_code': discount_code,

@@ -4,139 +4,8 @@
 {% block title %}Complete Your Donation | BOMBY{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/payment.css' %}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-<style>
-    .checkout-container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
-    .checkout-nav { margin-bottom: 30px; }
-    .back-link {
-        color: rgba(255, 255, 255, 0.7);
-        text-decoration: none;
-        font-size: 0.95rem;
-        transition: color 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .back-link:hover { color: #a855f7; }
-    .checkout-header { text-align: center; margin-bottom: 40px; }
-    .checkout-header h1 { font-size: 2rem; color: white; margin: 0 0 10px 0; font-weight: 600; }
-    .checkout-header p { color: rgba(255, 255, 255, 0.6); margin: 0; }
-    .checkout-grid {
-        display: grid;
-        grid-template-columns: 1fr 1.2fr;
-        gap: 30px;
-        align-items: start;
-    }
-    @media (max-width: 900px) { .checkout-grid { grid-template-columns: 1fr; } }
-    .order-summary-card, .checkout-card {
-        background-color: rgba(0, 0, 0, 0.85);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 10px;
-        padding: 30px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-    .order-summary-card h2, .checkout-card h2 {
-        color: white;
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin: 0 0 25px 0;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    .product-item {
-        display: flex;
-        gap: 20px;
-        padding-bottom: 25px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-        margin-bottom: 25px;
-    }
-    .product-icon {
-        width: 70px;
-        height: 70px;
-        background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(168, 85, 247, 0.1));
-        border: 1px solid rgba(168, 85, 247, 0.3);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
-    .product-icon i { font-size: 1.8rem; color: #a855f7; }
-    .product-details { flex: 1; }
-    .product-details h3 { color: white; font-size: 1.1rem; font-weight: 500; margin: 0 0 8px 0; }
-    .product-details p { color: rgba(255, 255, 255, 0.5); font-size: 0.85rem; margin: 0; }
-    .product-price { color: white; font-size: 1.1rem; font-weight: 600; }
-    .order-totals { display: flex; flex-direction: column; gap: 12px; }
-    .total-row { display: flex; justify-content: space-between; align-items: center; }
-    .total-row.final {
-        padding-top: 15px;
-        border-top: 1px solid rgba(255, 255, 255, 0.15);
-        margin-top: 5px;
-    }
-    .total-row.final .label { color: white; font-size: 1.1rem; font-weight: 600; }
-    .total-row.final .value { color: #a855f7; font-size: 1.5rem; font-weight: 700; }
-    .supporter-info {
-        background: rgba(168, 85, 247, 0.15);
-        border: 1px solid rgba(168, 85, 247, 0.4);
-        border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 20px;
-    }
-    .supporter-info p {
-        color: #c084fc;
-        font-size: 0.9rem;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    .supporter-info i { color: #a855f7; }
-    .secure-badge {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        margin-top: 25px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.15);
-        color: rgba(255, 255, 255, 0.5);
-        font-size: 0.8rem;
-    }
-    .secure-badge i { color: #a855f7; }
-    #checkout { width: 100%; min-height: 350px; }
-    .checkout-loading { text-align: center; padding: 60px 20px; }
-    .spinner {
-        width: 45px;
-        height: 45px;
-        border: 3px solid rgba(255, 255, 255, 0.1);
-        border-top-color: #a855f7;
-        border-radius: 50%;
-        margin: 0 auto 20px;
-        animation: spin 1s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .checkout-loading p { color: rgba(255, 255, 255, 0.6); margin: 0; font-size: 0.95rem; }
-    .checkout-error { text-align: center; padding: 40px 20px; color: #ff6b6b; }
-    .checkout-error i { font-size: 2.5rem; margin-bottom: 15px; display: block; }
-    .payment-methods {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-wrap: wrap;
-        gap: 12px;
-        margin-top: 25px;
-        padding-top: 20px;
-        border-top: 1px solid rgba(255, 255, 255, 0.15);
-    }
-    .payment-methods span {
-        color: rgba(255, 255, 255, 0.4);
-        font-size: 0.8rem;
-        width: 100%;
-        text-align: center;
-        margin-bottom: 5px;
-    }
-    .payment-methods i { font-size: 1.6rem; color: rgba(255, 255, 255, 0.5); }
-</style>
 {% endblock %}
 
 {% block background %}
@@ -160,15 +29,15 @@
         <div class="order-summary-card">
             <h2><i class="fas fa-heart" style="margin-right: 10px; color: #a855f7;"></i>Donation Summary</h2>
             
-            <div class="product-item">
-                <div class="product-icon">
+            <div class="checkout-product-item">
+                <div class="checkout-product-icon">
                     <i class="fas fa-gift"></i>
                 </div>
-                <div class="product-details">
+                <div class="checkout-product-details">
                     <h3>Donation to BOMBY</h3>
                     <p>Your support means everything!</p>
                 </div>
-                <div class="product-price">${{ amount }}</div>
+                <div class="checkout-product-price">${{ amount }}</div>
             </div>
             
             {% if amount >= 10 %}
@@ -213,8 +82,6 @@
                 <i class="fab fa-cc-discover"></i>
                 <i class="fab fa-cc-apple-pay"></i>
                 <i class="fab fa-google-pay"></i>
-                <i class="fab fa-cc-paypal"></i>
-                <i class="fab fa-amazon-pay"></i>
             </div>
         </div>
     </div>

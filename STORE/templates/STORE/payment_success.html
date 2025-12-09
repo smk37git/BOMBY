@@ -1,123 +1,15 @@
 {% extends 'MAIN/base.html' %}
 {% load static %}
 
+{% block title %}Payment Successful | BOMBY{% endblock %}
+
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'css/payment.css' %}">
-    <link rel="stylesheet" href="{% static 'css/orders.css' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <style>
-        .success-icon {
-            font-size: 4rem;
-            color: #33ffa0;
-            margin-bottom: 1.5rem;
-            animation: pulse 2s ease-in-out;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(0.8); opacity: 0; }
-            50% { transform: scale(1.2); opacity: 1; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        
-        .success-message {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .success-title {
-            font-size: 2.5rem;
-            color: white;
-            margin-bottom: 1rem;
-        }
-        
-        .success-subtitle {
-            font-size: 1.2rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 2rem;
-        }
-        
-        .order-details {
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 10px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .detail-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 1rem;
-            color: rgba(255, 255, 255, 0.9);
-        }
-        
-        .detail-label {
-            font-weight: 600;
-        }
-        
-        .detail-value {
-            color: white;
-        }
-        
-        .total-row {
-            border-top: 1px solid rgba(255, 255, 255, 0.2);
-            padding-top: 1rem;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-        
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 1.5rem;
-        }
-        
-        @media screen and (min-width: 1920px) and (max-width: 1921px) {
-            .success-message i {
-                font-size: 5rem !important;
-            }
-            
-            .success-title {
-                font-size: 4rem;
-            }
-            
-            .success-subtitle {
-                font-size: 2rem;
-            }
-            
-            .detail-item {
-                font-size: 1.5rem;
-            }
-            
-            .total-row {
-                font-size: 2rem;
-            }
-            
-            .redirect-message {
-                font-size: 1.2rem;
-            }
-        }
-        
-        @media (max-width: 768px) {
-            .success-title {
-                font-size: 1.8rem;
-            }
-            
-            .success-subtitle {
-                font-size: 1rem;
-            }
-            
-            .action-buttons {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
-    </style>
+<link rel="stylesheet" href="{% static 'css/payment.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 {% endblock %}
 
 {% block background %}
-    {% include 'MAIN/base_background_starry.html' %}
+{% include 'MAIN/base_background_starry.html' %}
 {% endblock %}
 
 {% block content %}
