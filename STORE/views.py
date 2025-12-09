@@ -1876,32 +1876,22 @@ def apply_discount(request, product_id):
             is_used=False
         )
         
-        # Calculate discounted price
-        discount_percent = discount.percentage
-        discounted_price = float(product.price) * (1 - discount_percent/100)
-        discounted_price = round(discounted_price, 2)
-        
-        # Store discount info in session for later use
+        # Store discount info in session
         request.session['discount_code_id'] = discount.id
+        request.session['discount_applied'] = True
         
-        context = {
-            'product': product,
-            'paypal_client_id': settings.PAYPAL_CLIENT_ID,
-            'discount_applied': True,
-            'discounted_price': discounted_price
-        }
-        
-        return render(request, 'STORE/payment_page.html', context)
+        # Redirect back to payment page (it will read from session)
+        return redirect('STORE:payment_page', product_id=product_id)
         
     except DiscountCode.DoesNotExist:
-        # Code doesn't exist or is already used
-        context = {
-            'product': product,
-            'paypal_client_id': settings.PAYPAL_CLIENT_ID,
-            'discount_error': 'Invalid or expired discount code.'
-        }
+        # Clear any existing discount session data
+        request.session.pop('discount_code_id', None)
+        request.session.pop('discount_applied', None)
         
-        return render(request, 'STORE/payment_page.html', context)
+        # Redirect with error parameter
+        from django.urls import reverse
+        url = reverse('STORE:payment_page', args=[product_id])
+        return redirect(f'{url}?discount_error=Invalid+or+expired+discount+code')
 
 @login_required
 def payment_page(request, product_id):
@@ -1917,7 +1907,7 @@ def payment_page(request, product_id):
     has_discount = False
     discount_applied = request.session.get('discount_applied', False)
     discounted_price = None
-    discount_error = None
+    discount_error = request.GET.get('discount_error', None)
     
     if request.user.is_authenticated:
         discount_code = DiscountCode.objects.filter(
