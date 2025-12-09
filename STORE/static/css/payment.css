@@ -173,27 +173,9 @@
     margin: 10px 0 0 0;
 }
 
-/* Back Link Row */
+/* Back Link Row - Below header, aligned with grid */
 .checkout-back-row {
     margin-bottom: 20px;
-}
-
-.back-link-subtle {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    color: rgba(255, 255, 255, 0.6);
-    text-decoration: none;
-    font-size: 0.95rem;
-    transition: color 0.3s ease;
-}
-
-.back-link-subtle:hover {
-    color: #a855f7;
-}
-
-.back-link-subtle i {
-    font-size: 0.85rem;
 }
 
 /* Checkout Grid Layout */
@@ -204,7 +186,7 @@
     align-items: start;
 }
 
-/* Order Summary & Checkout Cards */
+/* Order Summary & Checkout Cards - SOLID BACKGROUNDS */
 .order-summary-card,
 .checkout-card {
     background-color: #0a0a0a;
