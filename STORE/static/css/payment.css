@@ -150,40 +150,15 @@
     padding: 40px 20px;
 }
 
-.checkout-nav {
-    margin-bottom: 30px;
-}
-
-/* Top Row - Back Button and Header in same row */
-.checkout-top-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 40px;
-    gap: 20px;
-}
-
-.checkout-top-row .back-link {
-    flex-shrink: 0;
-}
-
-.checkout-top-row .checkout-header {
-    margin: 0;
-    flex-shrink: 0;
-}
-
-.checkout-spacer {
-    width: 140px;
-    flex-shrink: 0;
-}
-
-/* Checkout Header with Background Container */
+/* Checkout Header - Centered */
 .checkout-header {
     text-align: center;
     padding: 20px 40px;
     background-color: #0a0a0a;
     border: 2px solid rgba(255, 255, 255, 0.3);
     border-radius: 15px;
+    width: fit-content;
+    margin: 0 auto 20px auto;
 }
 
 .checkout-header h1 {
@@ -198,6 +173,29 @@
     margin: 10px 0 0 0;
 }
 
+/* Back Link Row */
+.checkout-back-row {
+    margin-bottom: 20px;
+}
+
+.back-link-subtle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: color 0.3s ease;
+}
+
+.back-link-subtle:hover {
+    color: #a855f7;
+}
+
+.back-link-subtle i {
+    font-size: 0.85rem;
+}
+
 /* Checkout Grid Layout */
 .checkout-grid {
     display: grid;
@@ -206,7 +204,7 @@
     align-items: start;
 }
 
-/* Order Summary & Checkout Cards - SOLID BACKGROUNDS */
+/* Order Summary & Checkout Cards */
 .order-summary-card,
 .checkout-card {
     background-color: #0a0a0a;
@@ -774,19 +772,6 @@
 
     .checkout-header {
         padding: 15px 25px;
-    }
-
-    .checkout-top-row {
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .checkout-top-row .back-link {
-        align-self: flex-start;
-    }
-
-    .checkout-spacer {
-        display: none;
     }
 }
 

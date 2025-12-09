@@ -14,14 +14,15 @@
 
 {% block content %}
 <div class="checkout-container">
-    <div class="checkout-top-row">
-        <a href="{{ product_url }}" class="back-link">
-            <i class="fas fa-arrow-left"></i> Back to Store
+    <div class="checkout-header">
+        <h1>Secure Checkout</h1>
+        <p>Complete your purchase securely</p>
+    </div>
+    
+    <div class="checkout-back-row">
+        <a href="{{ product_url }}" class="back-link-subtle">
+            <i class="fas fa-arrow-left"></i> Back to {{ product.name }}
         </a>
-        <div class="checkout-header">
-            <h1>Secure Checkout</h1>
-        </div>
-        <div class="checkout-spacer"></div>
     </div>
     
     <div class="checkout-grid">
