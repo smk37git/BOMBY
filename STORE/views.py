@@ -218,7 +218,6 @@ def stripe_webhook(request):
     webhook_secret = settings.STRIPE_WEBHOOK_SECRET
     
     if not webhook_secret:
-        # If no webhook secret configured, just return OK
         return HttpResponse(status=200)
     
     try:
@@ -230,12 +229,63 @@ def stripe_webhook(request):
     except stripe.error.SignatureVerificationError:
         return HttpResponse(status=400)
     
-    # Handle the event
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        # Payment already handled in success view, but you can add
-        # additional logic here if needed (e.g., for async payments)
-        print(f"Checkout completed: {session['id']}")
+        payment_id = session.get('payment_intent')
+        metadata = session.get('metadata', {})
+        
+        if metadata.get('type') == 'product':
+            product_id = metadata.get('product_id')
+            user_id = metadata.get('user_id')
+            
+            if product_id and user_id and payment_id:
+                if not Order.objects.filter(payment_id=payment_id).exists():
+                    try:
+                        from django.contrib.auth import get_user_model
+                        User = get_user_model()
+                        user = User.objects.get(id=user_id)
+                        product = Product.objects.get(id=product_id)
+                        
+                        if int(product_id) == 4:
+                            order = Order.objects.create(
+                                user=user,
+                                product=product,
+                                status='completed',
+                                payment_id=payment_id,
+                                is_paid=True
+                            )
+                        else:
+                            order = Order.objects.create(
+                                user=user,
+                                product=product,
+                                status='pending',
+                                payment_id=payment_id,
+                                is_paid=True
+                            )
+                        print(f"Webhook created order: {order.id}")
+                    except Exception as e:
+                        print(f"Webhook order creation error: {e}")
+        
+        elif metadata.get('type') == 'donation':
+            amount = metadata.get('amount')
+            user_id = metadata.get('user_id')
+            
+            if amount and payment_id:
+                if not Donation.objects.filter(payment_id=payment_id).exists():
+                    try:
+                        donation = Donation.objects.create(
+                            amount=amount,
+                            payment_id=payment_id,
+                            is_paid=True
+                        )
+                        if user_id:
+                            from django.contrib.auth import get_user_model
+                            User = get_user_model()
+                            donation.user = User.objects.get(id=user_id)
+                            donation.save()
+                        print(f"Webhook created donation: {donation.id}")
+                    except Exception as e:
+                        print(f"Webhook donation creation error: {e}")
     
     return HttpResponse(status=200)
 
@@ -2092,6 +2142,9 @@ def payment_success(request):
     product_id = request.GET.get('product_id')
     
     if not session_id:
+        if product_id:
+            messages.error(request, "Invalid payment session. Please try again.")
+            return redirect('STORE:payment_page', product_id=product_id)
         messages.error(request, "Invalid payment session.")
         return redirect('STORE:store')
     
@@ -2104,15 +2157,15 @@ def payment_success(request):
         
         if session.status != 'complete' and session.payment_status != 'paid':
             messages.error(request, "Payment not completed. Please try again.")
-            return redirect('STORE:store')
+            return redirect('STORE:payment_page', product_id=product_id)
         
         payment_id = session.payment_intent
         
     except stripe.error.StripeError as e:
         messages.error(request, "Payment verification failed. Please contact support.")
-        return redirect('STORE:store')
+        return redirect('STORE:payment_page', product_id=product_id)
     
-    product = get_object_or_404(Product, id=product_id, is_active=True)
+    product = get_object_or_404(Product, id=product_id)
     
     # Check if order already exists (prevent duplicates)
     existing_order = Order.objects.filter(payment_id=payment_id).first()
