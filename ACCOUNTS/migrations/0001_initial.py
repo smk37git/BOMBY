@@ -96,7 +96,6 @@ class Migration(migrations.Migration):
                 ('is_read', models.BooleanField(default=False)),
                 ('conversation', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='messages', to='ACCOUNTS.conversation')),
                 ('recipient', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='received_messages', to=settings.AUTH_USER_MODEL)),
-                ('related_order', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='STORE.order')),
                 ('related_product', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='STORE.product')),
                 ('sender', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='sent_messages', to=settings.AUTH_USER_MODEL)),
             ],

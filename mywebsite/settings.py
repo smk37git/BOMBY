@@ -10,8 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
-# Stripe Testing
-
 from pathlib import Path
 from django.urls import reverse_lazy
 import os
@@ -170,7 +168,7 @@ DATABASES = {
     }
 }
 
-if DEBUG:
+if DEBUG and not os.environ.get('DB_HOST'):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
