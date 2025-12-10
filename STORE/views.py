@@ -2091,11 +2091,14 @@ def payment_success(request):
         messages.error(request, "Invalid payment session.")
         return redirect('STORE:store')
     
+    if not product_id:
+        messages.error(request, "Missing product information.")
+        return redirect('STORE:store')
+    
     try:
-        # Retrieve the session from Stripe
         session = stripe.checkout.Session.retrieve(session_id)
         
-        if session.payment_status != 'paid':
+        if session.status != 'complete' and session.payment_status != 'paid':
             messages.error(request, "Payment not completed. Please try again.")
             return redirect('STORE:store')
         
