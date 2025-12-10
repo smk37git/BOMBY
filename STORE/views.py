@@ -2076,7 +2076,10 @@ def create_checkout_session(request):
             customer_email=request.user.email if request.user.is_authenticated else None,
         )
         
-        return JsonResponse({'clientSecret': checkout_session.client_secret})
+        return JsonResponse({
+            'clientSecret': checkout_session.client_secret,
+            'sessionId': checkout_session.id
+        })
         
     except Exception as e:
         print(f"Stripe checkout error: {str(e)}")
