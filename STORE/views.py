@@ -2072,6 +2072,7 @@ def create_checkout_session(request):
             line_items=line_items,
             mode='payment',
             return_url=success_url,
+            redirect_on_completion='if_required',
             metadata=metadata,
             customer_email=request.user.email if request.user.is_authenticated else None,
         )

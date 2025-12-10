@@ -201,13 +201,15 @@
         checkoutSessionId = data.sessionId;
         document.getElementById('checkout-loading').style.display = 'none';
         return stripe.initEmbeddedCheckout({ 
-            clientSecret: data.clientSecret,
-            onComplete: function() {
-                window.location.href = '/store/payment/success/?session_id=' + checkoutSessionId + '&product_id=' + PRODUCT_ID;
-            }
+            clientSecret: data.clientSecret
         });
     })
-    .then(function(checkout) { checkout.mount('#checkout'); })
+    .then(function(checkout) { 
+        checkout.mount('#checkout');
+        checkout.on('complete', function() {
+            window.location.href = '/store/payment/success/?session_id=' + checkoutSessionId + '&product_id=' + PRODUCT_ID;
+        });
+    })
     .catch(function(error) {
         console.error('Checkout error:', error);
         showError('Error loading checkout: ' + error.message);
