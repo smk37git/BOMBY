@@ -81,10 +81,12 @@ def cleanup_old_sessions():
 
 # ====== VERSION / UPDATES ======
 
+FUZEOBS_VERSION = '0.9.13'
+
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
-        'version': '0.9.13',
+        'version': FUZEOBS_VERSION,
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
         'changelog': 'Widgets Creation/Deletion Fixed',
         'mandatory': False
@@ -1000,7 +1002,9 @@ def cleanup_old_sessions():
 
 # ====== WEBSITE VIEWS =======
 def fuzeobs_view(request):
-    return render(request, 'FUZEOBS/fuzeobs.html')
+    return render(request, 'FUZEOBS/fuzeobs.html', {
+        'fuzeobs_version': FUZEOBS_VERSION
+    })
 
 @staff_member_required
 def fuzeobs_download_windows(request):
