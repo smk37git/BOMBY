@@ -1,0 +1,93 @@
+.price-value-subtitle {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    margin: 2rem 0;
+}
+
+.feature-item {
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.feature-item:hover {
+    transform: translateY(-5px);
+}
+
+.feature-item i {
+    font-size: 2.5rem;
+    color: #a970ff;
+    margin-bottom: 1rem;
+}
+
+.feature-item h3 {
+    color: white;
+    margin-bottom: 0.5rem;
+}
+
+.feature-item p {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Stream Store Client */
+.account-type {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background-size: 200% auto;
+    transition: 0.5s;
+    color: white;
+}
+
+.account-type.client {
+    background-image: linear-gradient(45deg, #c833e6, #d75050, #e695fd);
+}
+
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .price-value-subtitle {
+        font-size: 3rem;
+    }
+
+    .account-type.client {
+        font-size: 1.5rem;
+    }
+
+    .features-grid {
+        margin: 4rem auto !important;
+        width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-item i {
+        font-size: 4rem;
+    }
+
+    .feature-item h3 {
+        font-size: 3rem;
+    }
+
+    .feature-item p {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .features-grid {
+        max-width: 100% !important;
+        gap: 1rem;
+        transform: translateX(-6.5%);
+    }
+}
