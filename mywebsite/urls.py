@@ -28,3 +28,5 @@ urlpatterns = [
 # Static files only
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+handler500 = 'MAIN.views.custom_500'

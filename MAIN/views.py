@@ -242,3 +242,10 @@ def terms(request):
 # Privacy Policy
 def privacy(request):
     return render(request, 'MAIN/privacy.html')
+
+# Error Handling
+def test_500(request):
+    raise Exception("Test 500 error")
+
+def custom_500(request):
+    return render(request, 'MAIN/500.html', status=500)

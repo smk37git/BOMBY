@@ -1,0 +1,26 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/product_management.css' %}">
+    <link rel="stylesheet" href="{% static 'css/store.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background_starry.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="profile-header">
+    <h1 class="user_management-title">500 - SERVER ERROR</h1>
+</div>
+
+<div class="profile-container">
+    <div style="text-align: center; margin-bottom: 50px;">
+        <h2>Oops! Something went wrong on our end.</h2>
+        <p>We're sorry for the inconvenience. Our team has been notified and is working to fix the issue.</p>
+        <p style="margin-bottom: 50px;">Please try again in a few moments.</p>
+        <a href="/" class="cta-button">RETURN HOME</a>
+    </div>
+</div>
+{% endblock %}
