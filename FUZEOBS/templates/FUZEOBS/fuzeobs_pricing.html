@@ -1,0 +1,168 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block title %}FuzeOBS Pricing - Choose Your Plan | BOMBY{% endblock %}
+{% block description %}Choose the perfect FuzeOBS plan. Free forever, Pro monthly, or Lifetime access.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuzeobs.css' %}">
+<link rel="stylesheet" href="{% static 'css/fuzeobs_payment.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+{% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<main class="pricing-page">
+    <div class="pricing-back">
+        <a href="{% url 'FUZEOBS:fuzeobs' %}"><i class="fas fa-arrow-left"></i> Back to FuzeOBS</a>
+    </div>
+    
+    <div class="pricing-page-header">
+        <span class="section-label">PRICING</span>
+        <h1>Choose Your Plan</h1>
+        <p>Start free and upgrade when you're ready. All plans include core features with no hidden fees.</p>
+    </div>
+    
+    <div class="pricing-grid-full">
+        <!-- Free Tier -->
+        <div class="pricing-card-full">
+            <div class="pricing-tier">
+                <h3>Free</h3>
+                <div class="pricing-amount">$0</div>
+                <span class="pricing-period">forever</span>
+            </div>
+            <ul class="pricing-list">
+                <li class="included">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    System Detection
+                </li>
+                <li class="included">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Standard Configuration
+                </li>
+                <li class="included">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Basic Optimization
+                </li>
+                <li class="included">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Standard Deployment
+                </li>
+                <li class="included">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    AI Assistance (5/day)
+                </li>
+                <li class="excluded">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Advanced Setup Generation
+                </li>
+                <li class="excluded">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Real-Time Benchmarking
+                </li>
+            </ul>
+            <a href="{% url 'FUZEOBS:download_windows' %}" class="pricing-btn pricing-btn-secondary">Download Free</a>
+        </div>
+        
+        <!-- Pro Tier -->
+        <div class="pricing-card-full featured">
+            <div class="pricing-badge-full">MOST POPULAR</div>
+            <div class="pricing-tier">
+                <h3>Pro</h3>
+                <div class="pricing-amount">$7.50</div>
+                <span class="pricing-period">/month</span>
+            </div>
+            <ul class="pricing-list">
+                <li class="included">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Everything in Free
+                </li>
+                <li class="included highlight">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Advanced Setup Generation
+                </li>
+                <li class="included highlight">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Detailed Scene Templates
+                </li>
+                <li class="included highlight">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Real-Time Benchmarking
+                </li>
+                <li class="included highlight">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    3 Profile Slots
+                </li>
+                <li class="included highlight">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Unlimited AI Assistance
+                </li>
+                <li class="included">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Priority Support
+                </li>
+            </ul>
+            <a href="{% url 'FUZEOBS:payment' 'pro' %}" class="pricing-btn pricing-btn-primary">Subscribe to Pro</a>
+        </div>
+        
+        <!-- Lifetime Tier -->
+        <div class="pricing-card-full">
+            <div class="pricing-tier">
+                <h3>Lifetime</h3>
+                <div class="pricing-amount">$45</div>
+                <span class="pricing-period">one-time</span>
+            </div>
+            <ul class="pricing-list">
+                <li class="included highlight">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Everything in Pro
+                </li>
+                <li class="included highlight">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Lifetime Access
+                </li>
+                <li class="included highlight">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    5 Profile Slots
+                </li>
+                <li class="included highlight">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    No Recurring Fees
+                </li>
+                <li class="included">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Future Updates Included
+                </li>
+            </ul>
+            <a href="{% url 'FUZEOBS:payment' 'lifetime' %}" class="pricing-btn pricing-btn-secondary">Get Lifetime</a>
+        </div>
+    </div>
+    
+    <p class="pricing-note"><i class="fas fa-shield-alt"></i> Secure checkout powered by Stripe. Cancel anytime.</p>
+    
+    <section class="faq-section">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-grid">
+            <div class="faq-item">
+                <h4>Can I upgrade from Free to Pro later?</h4>
+                <p>Yes! You can upgrade at any time. Your settings and profiles will be preserved.</p>
+            </div>
+            <div class="faq-item">
+                <h4>What payment methods do you accept?</h4>
+                <p>We accept all major credit cards, Apple Pay, and Google Pay through Stripe.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Can I cancel my Pro subscription?</h4>
+                <p>Yes, cancel anytime. You'll keep Pro access until the end of your billing period.</p>
+            </div>
+            <div class="faq-item">
+                <h4>Is Lifetime really forever?</h4>
+                <p>Yes! One payment, lifetime access to all Pro features including future updates.</p>
+            </div>
+        </div>
+    </section>
+</main>
+{% endblock %}

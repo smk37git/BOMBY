@@ -4,7 +4,7 @@
 
 .section-label {
   display: inline-block;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 3px;
   color: rgba(255, 255, 255, 0.5);
@@ -193,9 +193,9 @@
   transform: translateY(-2px);
 }
 
-.platform-windows:hover { border-color: rgba(0, 120, 215, 0.5); box-shadow: 0 8px 32px rgba(0, 120, 215, 0.15); }
-.platform-mac:hover { border-color: rgba(255, 255, 255, 0.3); }
-.platform-linux:hover { border-color: rgba(255, 170, 0, 0.4); }
+.platform-windows:hover { border-color: rgba(255, 255, 255, 0.5); box-shadow: 0 8px 32px rgba(255, 255, 255, 0.15); }
+.platform-mac:hover { border-color: rgba(255, 255, 255, 0.5); box-shadow: 0 8px 32px rgba(255, 255, 255, 0.15); }
+.platform-linux:hover { border-color: rgba(255, 255, 255, 0.5); box-shadow: 0 8px 32px rgba(255, 255, 255, 0.15); }
 
 .platform-icon {
   width: 44px;
@@ -229,6 +229,7 @@
 .pricing-section {
   padding: 80px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .pricing-grid {
@@ -301,8 +302,7 @@
    Tabs Showcase Section - NO OVERFLOW
    =========================================== */
 .tabs-showcase {
-  padding: 80px 0;
-  background: linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.01) 50%, transparent 100%);
+  padding: 80px 0 10px;
   overflow: hidden;
 }
 
@@ -555,7 +555,11 @@
 /* ===========================================
    Features Section
    =========================================== */
-.features-section { padding: 100px 40px; }
+.features-section { 
+  padding: 50px 40px; 
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
 
 .section-header { text-align: center; margin-bottom: 60px; }
 .section-title { font-size: 42px; font-weight: 700; margin-bottom: 12px; letter-spacing: -1px; color: #fff; }
@@ -602,7 +606,6 @@
    =========================================== */
 .workflow-section {
   padding: 70px 0;
-  background: rgba(255, 255, 255, 0.01);
 }
 
 .workflow-grid {
@@ -619,7 +622,7 @@
 .step-number {
   font-size: 56px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.393);
   margin-bottom: 14px;
   font-family: monospace;
 }
@@ -631,7 +634,10 @@
 /* ===========================================
    Widgets Section
    =========================================== */
-.widgets-section { padding: 80px 0; }
+.widgets-section { 
+  padding: 80px 0; 
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
 
 .widgets-grid {
   display: grid;

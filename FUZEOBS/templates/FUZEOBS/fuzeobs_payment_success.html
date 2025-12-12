@@ -1,0 +1,70 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block title %}Payment {% if error %}Issue{% else %}Successful{% endif %} | FuzeOBS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuzeobs_payment.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+{% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="fuzeobs-success-container">
+    <div class="fuzeobs-success-card">
+        {% if error %}
+        <i class="fas fa-exclamation-triangle fuzeobs-success-icon" style="color: #f59e0b;"></i>
+        <h1 class="fuzeobs-success-title">Payment Issue</h1>
+        <p class="fuzeobs-success-subtitle">{{ error }}</p>
+        
+        <div class="fuzeobs-action-buttons">
+            <a href="{% url 'FUZEOBS:pricing' %}" class="fuzeobs-action-btn">
+                <i class="fas fa-arrow-left"></i> Back to Pricing
+            </a>
+            <a href="{% url 'ACCOUNTS:account' %}" class="fuzeobs-action-btn secondary">
+                <i class="fas fa-user"></i> My Account
+            </a>
+        </div>
+        {% else %}
+        <i class="fas fa-check-circle fuzeobs-success-icon"></i>
+        <h1 class="fuzeobs-success-title">Payment Successful!</h1>
+        <p class="fuzeobs-success-subtitle">Thank you for purchasing FuzeOBS {{ plan_name }}.</p>
+        
+        <div class="fuzeobs-order-details">
+            <div class="fuzeobs-detail-item">
+                <span class="fuzeobs-detail-label">Plan:</span>
+                <span class="fuzeobs-detail-value">FuzeOBS {{ plan_name }}</span>
+            </div>
+            <div class="fuzeobs-detail-item">
+                <span class="fuzeobs-detail-label">Date:</span>
+                <span class="fuzeobs-detail-value">{{ purchase.created_at|date:"F j, Y" }}</span>
+            </div>
+            <div class="fuzeobs-detail-item">
+                <span class="fuzeobs-detail-label">Amount:</span>
+                <span class="fuzeobs-detail-value">${{ purchase.amount }}</span>
+            </div>
+        </div>
+        
+        <p class="fuzeobs-success-subtitle">
+            {% if plan_type == 'pro' %}
+            Your Pro subscription is now active. Open FuzeOBS and sign in to access all Pro features.
+            {% else %}
+            Your Lifetime license is now active. Open FuzeOBS and sign in to unlock all features.
+            {% endif %}
+        </p>
+        
+        <div class="fuzeobs-action-buttons">
+            <a href="{% url 'FUZEOBS:fuzeobs' %}" class="fuzeobs-action-btn">
+                <i class="fas fa-download"></i> Download FuzeOBS
+            </a>
+            <a href="{% url 'ACCOUNTS:account' %}" class="fuzeobs-action-btn secondary">
+                <i class="fas fa-user"></i> My Account
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

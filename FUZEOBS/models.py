@@ -296,3 +296,49 @@ class Donation(models.Model):
             models.Index(fields=['paypal_order_id']),
             models.Index(fields=['created_at']),
         ]
+
+# ==== PAYMENTS ====
+class FuzeOBSSubscription(models.Model):
+    """Track FuzeOBS subscription status"""
+    PLAN_CHOICES = (
+        ('free', 'Free'),
+        ('pro', 'Pro'),
+        ('lifetime', 'Lifetime'),
+    )
+    
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='fuzeobs_subscription'
+    )
+    plan_type = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free')
+    is_active = models.BooleanField(default=True)
+    stripe_subscription_id = models.CharField(max_length=100, blank=True, null=True)
+    stripe_customer_id = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.plan_type}"
+    
+    @property
+    def is_pro(self):
+        return self.plan_type in ('pro', 'lifetime') and self.is_active
+
+
+class FuzeOBSPurchase(models.Model):
+    """Track individual purchases"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='fuzeobs_purchases'
+    )
+    plan_type = models.CharField(max_length=20)
+    amount = models.DecimalField(max_digits=8, decimal_places=2)
+    payment_id = models.CharField(max_length=100, blank=True, null=True)
+    is_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.plan_type} - ${self.amount}"

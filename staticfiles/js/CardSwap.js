@@ -116,7 +116,7 @@ class CardSwap {
     }, 700);
   }
   
-  // Bring specific card to front by tab id
+  // Bring specific card to front by tab id - preserves natural order
   showCard(tabId) {
     if (this.isAnimating) return;
     
@@ -127,18 +127,30 @@ class CardSwap {
     if (orderIndex === 0) return; // Already at front
     
     this.isAnimating = true;
+    this.isPaused = true;
     
-    // Reorder: move target to front
-    const newOrder = [cardIndex, ...this.order.filter(i => i !== cardIndex)];
+    // Temporarily show this card at front
+    const tempOrder = [cardIndex, ...this.order.filter(i => i !== cardIndex)];
     
-    // Animate all cards to new positions
-    newOrder.forEach((idx, i) => {
+    // Animate all cards to temp positions
+    tempOrder.forEach((idx, i) => {
       this.placeCard(this.cards[idx], i, true);
     });
     
+    // After animation, restore the natural order starting from clicked card
     setTimeout(() => {
-      this.order = newOrder;
+      // Reset to natural order: clicked card first, then sequential wrap-around
+      const naturalOrder = [];
+      for (let i = 0; i < this.cards.length; i++) {
+        naturalOrder.push((cardIndex + i) % this.cards.length);
+      }
+      this.order = naturalOrder;
       this.isAnimating = false;
+      
+      // Resume rotation after 10 seconds
+      setTimeout(() => {
+        this.isPaused = false;
+      }, 10000);
     }, 700);
   }
   

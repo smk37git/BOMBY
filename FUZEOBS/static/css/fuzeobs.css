@@ -4,7 +4,7 @@
 
 .section-label {
   display: inline-block;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: 3px;
   color: rgba(255, 255, 255, 0.5);
@@ -193,9 +193,9 @@
   transform: translateY(-2px);
 }
 
-.platform-windows:hover { border-color: rgba(0, 120, 215, 0.5); box-shadow: 0 8px 32px rgba(0, 120, 215, 0.15); }
-.platform-mac:hover { border-color: rgba(255, 255, 255, 0.3); }
-.platform-linux:hover { border-color: rgba(255, 170, 0, 0.4); }
+.platform-windows:hover { border-color: rgba(255, 255, 255, 0.5); box-shadow: 0 8px 32px rgba(255, 255, 255, 0.15); }
+.platform-mac:hover { border-color: rgba(255, 255, 255, 0.5); box-shadow: 0 8px 32px rgba(255, 255, 255, 0.15); }
+.platform-linux:hover { border-color: rgba(255, 255, 255, 0.5); box-shadow: 0 8px 32px rgba(255, 255, 255, 0.15); }
 
 .platform-icon {
   width: 44px;
@@ -636,7 +636,7 @@
    =========================================== */
 .widgets-section { 
   padding: 80px 0; 
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .widgets-grid {

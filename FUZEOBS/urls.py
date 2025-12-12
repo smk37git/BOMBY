@@ -104,4 +104,11 @@ urlpatterns = [
     path('analytics/all-users', views.fuzeobs_all_users_view, name='all_users'),
     path('analytics/user/<int:user_id>/', views.fuzeobs_user_detail, name='user_detail'),
     path('analytics/user/<int:user_id>/chat/<int:chat_index>/', views.fuzeobs_chat_detail, name='chat_detail'),
+
+    # Payments
+    path('pricing/', views.fuzeobs_pricing, name='pricing'),
+    path('payment/<str:plan_type>/', views.fuzeobs_payment, name='payment'),
+    path('create-checkout-session/', views.fuzeobs_create_checkout_session, name='create_checkout_session'),
+    path('payment/success/', views.fuzeobs_payment_success, name='payment_success'),
+    path('stripe-webhook/', views.fuzeobs_stripe_webhook, name='stripe_webhook'),
 ]
