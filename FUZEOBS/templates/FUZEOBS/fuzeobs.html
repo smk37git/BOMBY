@@ -8,12 +8,6 @@
     <link rel="stylesheet" href="{% static 'css/fuzeobs.css' %}">
 {% endblock %}
 
-{% block extra_js %}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="{% static 'js/cubes.js' %}"></script>
-    <script src="{% static 'js/CardSwap.js' %}"></script>
-{% endblock %}
-
 {% block background %}
     {% include 'MAIN/base_background.html' %}
 {% endblock %}
@@ -141,7 +135,6 @@
                     <span>YouTube</span>
                 </div>
                 <div class="platform-logo" data-platform="kick">
-                    <!-- Kick Logo -->
                     <svg width="40" height="40" viewBox="0 0 512 512" fill="currentColor">
                         <path d="M37 .036h164.448v113.621h54.71v-56.82h54.731V.036h164.448v170.777h-54.73v56.82h-54.711v56.8h54.71v56.82h54.73V512.03H310.89v-56.82h-54.73v-56.8h-54.711v113.62H37V.036z"/>
                     </svg>
@@ -422,66 +415,90 @@
         </div>
     </section>
 </main>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script src="{% static 'js/cubes.js' %}"></script>
+<script src="{% static 'js/CardSwap.js' %}"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    new CubesAnimation('#cubes-container', {
-        gridSize: 14,
-        maxAngle: 45,
-        radius: 3,
-        borderStyle: '1px dashed rgba(255, 255, 255, 0.7)',
-        faceColor: '#000',
-        rippleColor: 'rgba(255, 255, 255, 0.9)',
-        rippleSpeed: 2.5,
-        autoAnimate: true,
-        rippleOnClick: true,
-        cellGap: 0
-    });
-    
-    // CardSwap - use generateTabCards(true) for images
-    const cardContainer = document.getElementById('card-swap-container');
-    let cardSwap = null;
-    if (cardContainer) {
-        cardContainer.innerHTML = generateTabCards(true);
-        cardSwap = new CardSwap(cardContainer, {
-            cardDistance: 30,
-            verticalDistance: 28,
-            delay: 4000,
-            pauseOnHover: true,
-            skewAmount: 0,
-            width: 640,
-            height: 360,
-            visibleCards: 5
+(function() {
+    // Wait for everything to load
+    function init() {
+        // Initialize Cubes - smaller grid for mobile
+        var container = document.getElementById('cubes-container');
+        if (container && typeof CubesAnimation !== 'undefined') {
+            var gridSize = window.innerWidth < 480 ? 8 : (window.innerWidth < 768 ? 10 : 14);
+            new CubesAnimation(container, {
+                gridSize: gridSize,
+                maxAngle: 45,
+                radius: 3,
+                borderStyle: '1px dashed rgba(255, 255, 255, 0.7)',
+                faceColor: '#000',
+                rippleColor: 'rgba(255, 255, 255, 0.9)',
+                rippleSpeed: 2.5,
+                autoAnimate: true,
+                rippleOnClick: true
+            });
+        }
+        
+        // Initialize CardSwap
+        var cardContainer = document.getElementById('card-swap-container');
+        var cardSwap = null;
+        if (cardContainer && typeof CardSwap !== 'undefined' && typeof generateTabCards !== 'undefined') {
+            cardContainer.innerHTML = generateTabCards(true);
+            
+            // Responsive card sizes and distances
+            var width = 512, height = 288, cardDist = 30, vertDist = 28, visCards = 5;
+            if (window.innerWidth < 480) { 
+                width = 240; height = 135; cardDist = 18; vertDist = 16; visCards = 3;
+            } else if (window.innerWidth < 768) { 
+                width = 280; height = 158; cardDist = 22; vertDist = 20; visCards = 4;
+            } else if (window.innerWidth < 1024) { 
+                width = 440; height = 248; cardDist = 26; vertDist = 24;
+            }
+            
+            cardSwap = new CardSwap(cardContainer, {
+                cardDistance: cardDist,
+                verticalDistance: vertDist,
+                delay: 4000,
+                pauseOnHover: true,
+                skewAmount: 0,
+                width: width,
+                height: height,
+                visibleCards: visCards
+            });
+        }
+        
+        // Tab pill click handlers
+        var tabMap = {
+            'Detection': 'detection',
+            'Configuration': 'configuration',
+            'Optimization': 'optimization',
+            'Audio': 'audio',
+            'Scenes': 'scenes',
+            'Tools': 'tools',
+            'Plugins': 'plugins',
+            'Docs': 'documentation',
+            'Benchmark': 'benchmark',
+            'Fuze-AI': 'fuze-ai'
+        };
+        
+        document.querySelectorAll('.tab-pill').forEach(function(pill) {
+            pill.addEventListener('click', function() {
+                var tabId = tabMap[pill.textContent.trim()];
+                if (tabId && cardSwap) {
+                    cardSwap.showCard(tabId);
+                    cardSwap.isPaused = true;
+                    setTimeout(function() { cardSwap.isPaused = false; }, 10000);
+                }
+            });
         });
     }
     
-    // Tab pill click handlers
-    const tabMap = {
-        'Detection': 'detection',
-        'Configuration': 'configuration',
-        'Optimization': 'optimization',
-        'Audio': 'audio',
-        'Scenes': 'scenes',
-        'Tools': 'tools',
-        'Plugins': 'plugins',
-        'Docs': 'documentation',
-        'Benchmark': 'benchmark',
-        'Fuze-AI': 'fuze-ai'
-    };
-    
-    document.querySelectorAll('.tab-pill').forEach(pill => {
-        pill.addEventListener('click', () => {
-            const tabId = tabMap[pill.textContent.trim()];
-            if (tabId && cardSwap) {
-                cardSwap.showCard(tabId);
-                // Hold for 10 seconds
-                cardSwap.isPaused = true;
-                setTimeout(() => {
-                    cardSwap.isPaused = false;
-                }, 10000);
-            }
-        });
-    });
-});
+    // Run init when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
 </script>
 {% endblock %}
