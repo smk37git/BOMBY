@@ -5,6 +5,10 @@ import django.db.models.deletion
 def add_related_order_if_not_exists(apps, schema_editor):
     """Only add column if it doesn't exist"""
     connection = schema_editor.connection
+    
+    if connection.vendor != 'postgresql':
+        return  # Skip for SQLite
+    
     with connection.cursor() as cursor:
         cursor.execute("""
             SELECT column_name FROM information_schema.columns 
