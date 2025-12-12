@@ -1054,11 +1054,24 @@ FUZEOBS_PLANS = {
 }
 
 def fuzeobs_pricing(request):
-    return render(request, 'FUZEOBS/fuzeobs_pricing.html')
+    current_plan = 'free'
+    if request.user.is_authenticated:
+        current_plan = request.user.fuzeobs_tier or 'free'
+    return render(request, 'FUZEOBS/fuzeobs_pricing.html', {'current_plan': current_plan})
 
 @login_required
 def fuzeobs_payment(request, plan_type):
     if plan_type not in FUZEOBS_PLANS:
+        return redirect('FUZEOBS:pricing')
+    
+    current_plan = request.user.fuzeobs_tier or 'free'
+    
+    # Block invalid purchases
+    if current_plan == 'lifetime':
+        messages.info(request, "You already have Lifetime access!")
+        return redirect('FUZEOBS:pricing')
+    if current_plan == 'pro' and plan_type == 'pro':
+        messages.info(request, "You already have Pro! Consider upgrading to Lifetime.")
         return redirect('FUZEOBS:pricing')
     
     plan = FUZEOBS_PLANS[plan_type]

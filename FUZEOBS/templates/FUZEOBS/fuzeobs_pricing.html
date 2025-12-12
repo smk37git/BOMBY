@@ -28,7 +28,10 @@
     
     <div class="pricing-grid-full">
         <!-- Free Tier -->
-        <div class="pricing-card-full">
+        <div class="pricing-card-full {% if current_plan == 'free' %}current{% endif %}">
+            {% if current_plan == 'free' %}
+            <div class="pricing-badge-full current-badge">CURRENT PLAN</div>
+            {% endif %}
             <div class="pricing-tier">
                 <h3>Free</h3>
                 <div class="pricing-amount">$0</div>
@@ -64,12 +67,20 @@
                     Real-Time Benchmarking
                 </li>
             </ul>
+            {% if current_plan == 'free' %}
             <a href="{% url 'FUZEOBS:download_windows' %}" class="pricing-btn pricing-btn-secondary">Download Free</a>
+            {% else %}
+            <span class="pricing-btn pricing-btn-disabled">Included in your plan</span>
+            {% endif %}
         </div>
         
         <!-- Pro Tier -->
-        <div class="pricing-card-full featured">
+        <div class="pricing-card-full {% if current_plan == 'free' %}featured{% endif %} {% if current_plan == 'pro' %}current{% endif %}">
+            {% if current_plan == 'free' %}
             <div class="pricing-badge-full">MOST POPULAR</div>
+            {% elif current_plan == 'pro' %}
+            <div class="pricing-badge-full current-badge">CURRENT PLAN</div>
+            {% endif %}
             <div class="pricing-tier">
                 <h3>Pro</h3>
                 <div class="pricing-amount">$7.50</div>
@@ -105,11 +116,22 @@
                     Priority Support
                 </li>
             </ul>
+            {% if current_plan == 'free' %}
             <a href="{% url 'FUZEOBS:payment' 'pro' %}" class="pricing-btn pricing-btn-primary">Subscribe to Pro</a>
+            {% elif current_plan == 'pro' %}
+            <a href="{% url 'FUZEOBS:manage_subscription' %}" class="pricing-btn pricing-btn-secondary">Manage Subscription</a>
+            {% else %}
+            <span class="pricing-btn pricing-btn-disabled">Included in Lifetime</span>
+            {% endif %}
         </div>
         
         <!-- Lifetime Tier -->
-        <div class="pricing-card-full">
+        <div class="pricing-card-full {% if current_plan == 'lifetime' %}current{% endif %} {% if current_plan == 'pro' %}featured{% endif %}">
+            {% if current_plan == 'lifetime' %}
+            <div class="pricing-badge-full current-badge">CURRENT PLAN</div>
+            {% elif current_plan == 'pro' %}
+            <div class="pricing-badge-full">RECOMMENDED</div>
+            {% endif %}
             <div class="pricing-tier">
                 <h3>Lifetime</h3>
                 <div class="pricing-amount">$45</div>
@@ -137,7 +159,13 @@
                     Future Updates Included
                 </li>
             </ul>
+            {% if current_plan == 'lifetime' %}
+            <span class="pricing-btn pricing-btn-disabled">You own this <i class="fas fa-check" style="margin-left: 5px;"></i></span>
+            {% elif current_plan == 'pro' %}
+            <a href="{% url 'FUZEOBS:payment' 'lifetime' %}" class="pricing-btn pricing-btn-primary">Upgrade to Lifetime</a>
+            {% else %}
             <a href="{% url 'FUZEOBS:payment' 'lifetime' %}" class="pricing-btn pricing-btn-secondary">Get Lifetime</a>
+            {% endif %}
         </div>
     </div>
     
@@ -160,7 +188,7 @@
             </div>
             <div class="faq-item">
                 <h4>Is Lifetime really forever?</h4>
-                <p>Yes! One payment, lifetime access to all Pro features including future updates.</p>
+                <p>Yes! One payment and lifetime access to all Pro features plus priority support!</p>
             </div>
         </div>
     </section>

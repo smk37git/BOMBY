@@ -64,9 +64,12 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 36px 28px;
+    padding-top: 44px;
     position: relative;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
+    margin-top: 12px;
 }
 
 .pricing-card-full.featured {
@@ -87,6 +90,7 @@
     letter-spacing: 1px;
     padding: 6px 16px;
     border-radius: 20px;
+    white-space: nowrap;
 }
 
 .pricing-tier {
@@ -159,15 +163,19 @@
 .pricing-btn {
     display: block;
     width: 100%;
-    padding: 14px 24px;
+    padding: 14px 16px;
     border-radius: 10px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     text-align: center;
     text-decoration: none;
     transition: all 0.3s;
     cursor: pointer;
     border: none;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .pricing-btn-primary {
@@ -181,14 +189,32 @@
 }
 
 .pricing-btn-secondary {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
     color: #fff;
+    box-sizing: border-box;
 }
 
 .pricing-btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
+}
+
+.pricing-btn-disabled {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(124, 58, 237, 0.3));
+    color: rgba(255, 255, 255, 0.6);
+    cursor: not-allowed;
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    border: none;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .pricing-note {
@@ -200,6 +226,16 @@
 .pricing-note i {
     color: #a855f7;
     margin-right: 8px;
+}
+
+/* Current Plan Styles */
+.pricing-card-full.current {
+    border-color: rgba(168, 85, 247, 0.5);
+    background: rgba(168, 85, 247, 0.05);
+}
+
+.pricing-badge-full.current-badge {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
 }
 
 /* FAQ Section */
@@ -627,6 +663,10 @@
         margin: 0 auto 40px;
     }
     
+    .pricing-back {
+        text-align: center;
+    }
+    
     .faq-grid {
         grid-template-columns: 1fr;
     }
@@ -634,15 +674,64 @@
     .fuzeobs-checkout-grid {
         grid-template-columns: 1fr;
     }
+    
+    .fuzeobs-checkout-header {
+        padding: 20px;
+        width: auto;
+        margin: 0 0 20px 0;
+    }
+    
+    .fuzeobs-checkout-back {
+        text-align: center;
+    }
 }
 
 @media (max-width: 600px) {
+    .pricing-page {
+        padding: 40px 16px;
+    }
+    
     .pricing-page-header h1 {
         font-size: 32px;
     }
     
+    .pricing-page-header p {
+        font-size: 16px;
+    }
+    
     .pricing-amount {
         font-size: 40px;
+    }
+    
+    .pricing-card-full {
+        padding: 28px 20px;
+        padding-top: 40px;
+    }
+    
+    .faq-section h2 {
+        font-size: 24px;
+    }
+    
+    .fuzeobs-checkout-container {
+        padding: 20px 16px;
+    }
+    
+    .fuzeobs-checkout-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .fuzeobs-order-card,
+    .fuzeobs-payment-card {
+        padding: 20px;
+    }
+    
+    .fuzeobs-product-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .fuzeobs-product-icon {
+        margin: 0 auto;
     }
     
     .fuzeobs-action-buttons {
@@ -652,5 +741,33 @@
     .fuzeobs-action-btn {
         width: 100%;
         justify-content: center;
+    }
+    
+    .fuzeobs-success-card {
+        padding: 30px 20px;
+    }
+    
+    .fuzeobs-success-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* Large screens */
+@media (min-width: 1400px) {
+    .pricing-page {
+        max-width: 1200px;
+    }
+    
+    .pricing-grid-full {
+        gap: 32px;
+    }
+    
+    .pricing-card-full {
+        padding: 40px 32px;
+        padding-top: 48px;
+    }
+    
+    .fuzeobs-checkout-container {
+        max-width: 1200px;
     }
 }

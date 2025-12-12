@@ -67,6 +67,8 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .pricing-card-full.featured {
@@ -87,6 +89,7 @@
     letter-spacing: 1px;
     padding: 6px 16px;
     border-radius: 20px;
+    white-space: nowrap;
 }
 
 .pricing-tier {
@@ -159,15 +162,19 @@
 .pricing-btn {
     display: block;
     width: 100%;
-    padding: 14px 24px;
+    padding: 14px 0px;
     border-radius: 10px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     text-align: center;
     text-decoration: none;
     transition: all 0.3s;
     cursor: pointer;
     border: none;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .pricing-btn-primary {
@@ -184,11 +191,30 @@
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #fff;
+    box-sizing: border-box;
 }
 
 .pricing-btn-secondary:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.3);
+}
+
+.pricing-btn-disabled {
+    display: block;
+    width: 100%;
+    padding: 14px 0px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: not-allowed;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .pricing-note {
@@ -200,6 +226,16 @@
 .pricing-note i {
     color: #a855f7;
     margin-right: 8px;
+}
+
+/* Current Plan Styles */
+.pricing-card-full.current {
+    border-color: rgba(168, 85, 247, 0.5);
+    background: rgba(168, 85, 247, 0.05);
+}
+
+.pricing-badge-full.current-badge {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
 }
 
 /* FAQ Section */
