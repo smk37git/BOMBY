@@ -2,6 +2,8 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 import secrets
+import uuid
+
 
 class ActiveSession(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
@@ -237,9 +239,7 @@ class DonationSettings(models.Model):
     """Streamer's donation page settings"""
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     donation_token = models.CharField(max_length=64, unique=True, blank=True)
-    paypal_email = models.EmailField(blank=True)
-    paypal_merchant_id = models.CharField(max_length=100, blank=True)
-    oauth_state = models.CharField(max_length=64, blank=True)
+    stripe_account_id = models.CharField(max_length=100, blank=True)  # Stripe Connect account
     
     min_amount = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
     suggested_amounts = models.JSONField(default=list)  # [5, 10, 25, 50]
@@ -266,7 +266,6 @@ class DonationSettings(models.Model):
 
 
 class Donation(models.Model):
-    """Individual donation records"""
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('completed', 'Completed'),
@@ -274,9 +273,9 @@ class Donation(models.Model):
         ('refunded', 'Refunded'),
     ]
     
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     streamer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='fuzeobs_donations')
-    paypal_order_id = models.CharField(max_length=100, unique=True)
-    paypal_capture_id = models.CharField(max_length=100, blank=True)
+    stripe_payment_intent = models.CharField(max_length=100, blank=True)
     
     donor_name = models.CharField(max_length=100)
     donor_email = models.EmailField(blank=True)
@@ -287,14 +286,12 @@ class Donation(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     created_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['streamer', 'status']),
-            models.Index(fields=['paypal_order_id']),
-            models.Index(fields=['created_at']),
+            models.Index(fields=['stripe_payment_intent']),
         ]
 
 # ==== PAYMENTS ====
