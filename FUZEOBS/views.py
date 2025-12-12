@@ -1574,14 +1574,23 @@ def fuzeobs_analytics_view(request):
 
 @staff_member_required
 def fuzeobs_all_users_view(request):
-    # All FuzeOBS users with activity stats
+    from django.core.paginator import Paginator
+    
+    # Paginated query - much lighter on database
     all_users = User.objects.filter(fuzeobs_activated=True).annotate(
         last_activity=Max('useractivity__timestamp'),
         total_ai_requests=Count('aiusage', distinct=True),
         total_ai_cost=Sum('aiusage__estimated_cost')
     ).order_by('-total_ai_requests')
     
-    context = {'all_users': all_users}
+    paginator = Paginator(all_users, 50)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'all_users': page_obj,
+        'page_obj': page_obj,
+    }
     return render(request, 'FUZEOBS/fuzeobs_all_users.html', context)
 
 @staff_member_required

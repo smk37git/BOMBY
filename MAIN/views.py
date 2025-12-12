@@ -244,8 +244,8 @@ def privacy(request):
     return render(request, 'MAIN/privacy.html')
 
 # Error Handling
-def test_500(request):
-    raise Exception("Test 500 error")
-
 def custom_500(request):
     return render(request, 'MAIN/500.html', status=500)
+
+def custom_403(request, exception=None):
+    return render(request, 'MAIN/403.html', status=403)

@@ -23,6 +23,4 @@ urlpatterns = [
     # Easter Egg
     path('easter-egg/', views.easter_egg, name='easter_egg'),
     path('generate-discount-code/', views.generate_discount_code, name='generate_discount_code'),
-
-    path('test-500/', views.test_500, name='test_500'),
 ]

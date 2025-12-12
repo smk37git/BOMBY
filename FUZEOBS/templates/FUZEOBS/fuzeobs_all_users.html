@@ -44,7 +44,7 @@
             <tbody>
                 {% for user in all_users %}
                 <tr>
-                    <td>{{ forloop.counter }}</td>
+                    <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
                     <td>{{ user.username }}</td>
                     <td><span class="tier-{{ user.fuzeobs_tier }}">{{ user.fuzeobs_tier|upper }}</span></td>
                     <td>{{ user.total_ai_requests|default:0 }}</td>
@@ -60,5 +60,23 @@
             </tbody>
         </table>
     </div>
+
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+        {% if page_obj.has_previous %}
+            <a href="?page=1" class="btn btn-secondary">« First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-secondary">‹ Prev</a>
+        {% endif %}
+        
+        <span style="padding: 8px 16px; color: #fff;">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn btn-secondary">Next ›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn btn-secondary">Last »</a>
+        {% endif %}
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
