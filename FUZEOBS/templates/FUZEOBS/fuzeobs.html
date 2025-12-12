@@ -415,28 +415,52 @@
         </div>
     </section>
 </main>
+
+<!-- Load GSAP first -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+<script>
+if (typeof gsap === 'undefined') {
+    console.error('GSAP failed to load from CDN');
+}
+</script>
 <script src="{% static 'js/cubes.js' %}"></script>
 <script src="{% static 'js/CardSwap.js' %}"></script>
 <script>
 (function() {
     // Wait for everything to load
     function init() {
+        console.log('FuzeOBS init starting...');
+        console.log('GSAP:', typeof gsap);
+        console.log('CubesAnimation:', typeof CubesAnimation);
+        
         // Initialize Cubes - smaller grid for mobile
         var container = document.getElementById('cubes-container');
-        if (container && typeof CubesAnimation !== 'undefined') {
+        if (container) {
+            if (typeof CubesAnimation === 'undefined') {
+                console.error('CubesAnimation not loaded - check static files');
+                return;
+            }
+            if (typeof gsap === 'undefined') {
+                console.error('GSAP not loaded');
+                return;
+            }
             var gridSize = window.innerWidth < 480 ? 8 : (window.innerWidth < 768 ? 10 : 14);
-            new CubesAnimation(container, {
-                gridSize: gridSize,
-                maxAngle: 45,
-                radius: 3,
-                borderStyle: '1px dashed rgba(255, 255, 255, 0.7)',
-                faceColor: '#000',
-                rippleColor: 'rgba(255, 255, 255, 0.9)',
-                rippleSpeed: 2.5,
-                autoAnimate: true,
-                rippleOnClick: true
-            });
+            try {
+                new CubesAnimation(container, {
+                    gridSize: gridSize,
+                    maxAngle: 45,
+                    radius: 3,
+                    borderStyle: '1px dashed rgba(255, 255, 255, 0.7)',
+                    faceColor: '#000',
+                    rippleColor: 'rgba(255, 255, 255, 0.9)',
+                    rippleSpeed: 2.5,
+                    autoAnimate: true,
+                    rippleOnClick: true
+                });
+                console.log('CubesAnimation initialized');
+            } catch(e) {
+                console.error('CubesAnimation error:', e);
+            }
         }
         
         // Initialize CardSwap
