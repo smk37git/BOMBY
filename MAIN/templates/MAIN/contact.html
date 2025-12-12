@@ -9,6 +9,7 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/contact.css' %}">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 {% endblock %}
 
 {% block background %}
@@ -58,6 +59,9 @@
                     <div class="contactpageform-group">
                         <label for="message">Message</label>
                         <textarea id="message" name="message" placeholder="Your Message" required></textarea>
+                    </div>
+                    <div style="display: flex; justify-content: center; margin-bottom: 15px;">
+                        <div class="cf-turnstile" data-sitekey="{{ TURNSTILE_SITE_KEY }}" data-theme="dark"></div>
                     </div>
                     <button type="submit" class="submit-btn">Send Message</button>
                 </form>

@@ -11,6 +11,7 @@ from MAIN.decorators import *
 from .models import Announcement
 from django.conf import settings
 from django.core.mail import EmailMessage
+import requests
 from .decorators import admin_code_required
 
 # Easter Egg Discount Code
@@ -30,17 +31,28 @@ def home(request):
 def about(request):
     return render(request, 'MAIN/about.html')
 
-# Contact View
 def contact(request):
     if request.method == 'POST':
-        # Extract form data
+        # Verify Turnstile
+        turnstile_response = request.POST.get('cf-turnstile-response')
+        verify_url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify'
+        verify_data = {
+            'secret': settings.CLOUDFLARE_TURNSTILE_SECRET_KEY,
+            'response': turnstile_response,
+        }
+        verify_result = requests.post(verify_url, data=verify_data).json()
+        
+        if not verify_result.get('success'):
+            messages.error(request, 'CAPTCHA verification failed. Please try again.')
+            return render(request, 'MAIN/contact.html', {'TURNSTILE_SITE_KEY': settings.CLOUDFLARE_TURNSTILE_SITE_KEY})
+        
+        # Rest of your existing code...
         name = request.POST.get('name')
         email = request.POST.get('email')
         subject = request.POST.get('subject')
         message = request.POST.get('message')
         
         try:
-            # Compose email
             email_message = f"""
             From: {name}
             Email: {email}
@@ -49,24 +61,19 @@ def contact(request):
             Message:
             {message}
             """
-            # Send email using settings from project configuration
-            email = EmailMessage(
+            email_obj = EmailMessage(
                 subject=f'BOMBY Contact: {subject}',
                 body=email_message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[settings.DEFAULT_FROM_EMAIL],
-                reply_to=[email],  # User's email for replies
+                reply_to=[email],
             )
-            email.send()
-            
-            # Add success message
+            email_obj.send()
             messages.success(request, 'Your message was sent successfully!')
-        
         except Exception as e:
-            # Add error message with more info for debugging
             messages.error(request, f'There was an error sending your message: {str(e)}')
     
-    return render(request, 'MAIN/contact.html')
+    return render(request, 'MAIN/contact.html', {'TURNSTILE_SITE_KEY': settings.CLOUDFLARE_TURNSTILE_SITE_KEY})
 
 # Portfolio View
 def portfolio(request):

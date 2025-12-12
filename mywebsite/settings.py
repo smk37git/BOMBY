@@ -33,7 +33,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
 ALLOWED_HOSTS = ['bomby.us', 'www.bomby.us', 'bomby-799218251279.us-central1.run.app', 'localhost', '127.0.0.1']
@@ -372,3 +372,7 @@ FACEBOOK_CLIENT_SECRET = os.environ.get('FACEBOOK_CLIENT_SECRET')
 # TikTok Keys
 TIKTOK_CLIENT_KEY = os.environ.get('TIKTOK_CLIENT_KEY')
 TIKTOK_CLIENT_SECRET = os.environ.get('TIKTOK_CLIENT_SECRET')
+
+# CloudFlare Turnstile
+CLOUDFLARE_TURNSTILE_SITE_KEY = os.environ.get('CLOUDFLARE_TURNSTILE_SITE_KEY')
+CLOUDFLARE_TURNSTILE_SECRET_KEY = os.environ.get('CLOUDFLARE_TURNSTILE_SECRET_KEY')

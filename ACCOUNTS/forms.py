@@ -8,16 +8,23 @@ from .validators import BANNED_WORDS
 from .models import Message
 from .validators import validate_clean_content
 
-## Create User Interface
+# Create User Interface
 class CustomUserCreationForm(UserCreationForm):
     username = forms.CharField(
         validators=[validate_clean_username],
         help_text="Required. 20 characters or fewer. No inappropriate words allowed."
     )
+    email = forms.EmailField(required=True)
 
     class Meta:
         model = User
         fields = ['username', 'email', 'password1', 'password2']
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email and User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("An account with this email already exists.")
+        return email.lower()
 
 # Edit Profile
 class ProfileEditForm(forms.ModelForm):
