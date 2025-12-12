@@ -1,0 +1,139 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block title %}Manage Subscription | FuzeOBS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuzeobs_manage_subscriptions.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+{% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="subscription-container">
+    <a href="{% url 'ACCOUNTS:purchase_history' %}" class="subscription-back-link">
+        <i class="fas fa-arrow-left"></i> Back to Purchase History
+    </a>
+    
+    <div class="subscription-card">
+        <div class="subscription-header">
+            <h1>FuzeOBS Pro</h1>
+            <p>Manage your subscription</p>
+        </div>
+        
+        {% if messages %}
+        {% for message in messages %}
+        <div class="{% if 'success' in message.tags %}success-box{% else %}warning-box{% endif %}">
+            <i class="fas {% if 'success' in message.tags %}fa-check-circle{% else %}fa-exclamation-triangle{% endif %}"></i>
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        
+        {% if cancel_at_period_end %}
+        <div class="warning-box">
+            <i class="fas fa-exclamation-triangle"></i>
+            Your subscription is set to cancel. You'll keep Pro access until the end of your billing period.
+        </div>
+        {% endif %}
+        
+        <div class="subscription-details">
+            <div class="detail-row">
+                <span class="detail-label">Plan</span>
+                <span class="detail-value">Pro Monthly</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Price</span>
+                <span class="detail-value">$7.50/month</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="detail-value {% if cancel_at_period_end %}status-cancelling{% elif subscription.is_active %}status-active{% else %}status-cancelled{% endif %}">
+                    {% if cancel_at_period_end %}
+                    Cancelling
+                    {% elif subscription.is_active %}
+                    Active
+                    {% else %}
+                    Cancelled
+                    {% endif %}
+                </span>
+            </div>
+            {% if current_period_end %}
+            <div class="detail-row">
+                <span class="detail-label">{% if cancel_at_period_end %}Access Until{% else %}Next Billing{% endif %}</span>
+                <span class="detail-value" id="period-end" data-timestamp="{{ current_period_end }}">-</span>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="subscription-actions">
+            {% if cancel_at_period_end %}
+            <form method="post" action="{% url 'FUZEOBS:reactivate_subscription' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-reactivate">
+                    <i class="fas fa-redo"></i> Reactivate Subscription
+                </button>
+            </form>
+            {% elif subscription.is_active %}
+            <button type="button" class="btn-cancel" onclick="showCancelModal()">
+                <i class="fas fa-times"></i> Cancel Subscription
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div class="modal-overlay" id="cancelModal">
+    <div class="modal-content">
+        <i class="fas fa-exclamation-triangle modal-icon"></i>
+        <h2 class="modal-title">Cancel Subscription?</h2>
+        <p class="modal-text">
+            Are you sure you want to cancel your Pro subscription? You'll keep access to all Pro features until the end of your current billing period.
+        </p>
+        <div class="modal-buttons">
+            <button type="button" class="modal-btn modal-btn-cancel" onclick="hideCancelModal()">
+                Keep Subscription
+            </button>
+            <form method="post" action="{% url 'FUZEOBS:cancel_subscription' %}" style="margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="modal-btn modal-btn-confirm">
+                    Yes, Cancel
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const periodEnd = document.getElementById('period-end');
+    if (periodEnd && periodEnd.dataset.timestamp) {
+        const date = new Date(parseInt(periodEnd.dataset.timestamp) * 1000);
+        periodEnd.textContent = date.toLocaleDateString(undefined, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+});
+
+function showCancelModal() {
+    document.getElementById('cancelModal').classList.add('active');
+}
+
+function hideCancelModal() {
+    document.getElementById('cancelModal').classList.remove('active');
+}
+
+// Close modal on overlay click
+document.getElementById('cancelModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideCancelModal();
+    }
+});
+</script>
+{% endblock %}

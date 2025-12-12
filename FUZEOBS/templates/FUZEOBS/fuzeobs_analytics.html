@@ -103,6 +103,34 @@
 
     <div class="analytics-section">
         <div class="section-header">
+            <h3>Revenue Tracking</h3>
+        </div>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Total Revenue</div>
+                <div class="metric-value" style="color: #4ef954;">${{ total_revenue|floatformat:2 }}</div>
+                <div class="metric-subtext">{{ pro_purchases|add:lifetime_purchases }} purchases</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Pro Subscriptions</div>
+                <div class="metric-value">${{ pro_revenue|floatformat:2 }}</div>
+                <div class="metric-subtext">{{ pro_purchases }} @ $7.50/mo</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Lifetime Purchases</div>
+                <div class="metric-value">${{ lifetime_revenue|floatformat:2 }}</div>
+                <div class="metric-subtext">{{ lifetime_purchases }} @ $45.00</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Upgrades</div>
+                <div class="metric-value">{{ upgrades }}</div>
+                <div class="metric-subtext">{{ downgrades }} downgrades</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="analytics-section">
+        <div class="section-header">
             <h3>Top 10 FuzeOBS Users by AI Usage</h3>
             <a href="{% url 'FUZEOBS:all_users' %}" class="btn-secondary">View All Users →</a>
         </div>

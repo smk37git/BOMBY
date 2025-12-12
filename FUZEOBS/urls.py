@@ -101,14 +101,18 @@ urlpatterns = [
     path('download/windows', views.fuzeobs_download_windows, name='download_windows'),
     path('download/mac', views.fuzeobs_download_mac, name='download_mac'),
     path('analytics', views.fuzeobs_analytics_view, name='analytics'),
+    path('analytics/reset/', views.fuzeobs_reset_analytics, name='reset_analytics'),
     path('analytics/all-users', views.fuzeobs_all_users_view, name='all_users'),
     path('analytics/user/<int:user_id>/', views.fuzeobs_user_detail, name='user_detail'),
     path('analytics/user/<int:user_id>/chat/<int:chat_index>/', views.fuzeobs_chat_detail, name='chat_detail'),
 
     # Payments
     path('pricing/', views.fuzeobs_pricing, name='pricing'),
+    path('payment/success/', views.fuzeobs_payment_success, name='payment_success'),
+    path('manage-subscription/', views.fuzeobs_manage_subscription, name='manage_subscription'),
+    path('cancel-subscription/', views.fuzeobs_cancel_subscription, name='cancel_subscription'),
+    path('reactivate-subscription/', views.fuzeobs_reactivate_subscription, name='reactivate_subscription'),
     path('payment/<str:plan_type>/', views.fuzeobs_payment, name='payment'),
     path('create-checkout-session/', views.fuzeobs_create_checkout_session, name='create_checkout_session'),
-    path('payment/success/', views.fuzeobs_payment_success, name='payment_success'),
     path('stripe-webhook/', views.fuzeobs_stripe_webhook, name='stripe_webhook'),
 ]

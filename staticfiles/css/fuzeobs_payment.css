@@ -607,6 +607,16 @@
     box-shadow: none;
 }
 
+/* Stripe Checkout Container */
+#checkout {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#checkout iframe {
+    border-radius: 12px;
+}
+
 /* ===========================================
    Responsive
    =========================================== */

@@ -36,7 +36,7 @@
         </div>
     </div>
     
-    {% if user_orders %}
+    {% if user_orders or fuzeobs_purchases %}
         <div class="purchase-table-container">
             <table class="purchase-table">
                 <thead>
@@ -80,6 +80,28 @@
                                 <a href="{% url 'STORE:order_details' order_id=order.id %}" class="view-details-button">
                                     <i class="fas fa-eye"></i> View Details
                                 </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% for purchase in fuzeobs_purchases %}
+                    <tr data-status="completed" data-date="{{ purchase.created_at|date:'U' }}">
+                        <td>FZ-{{ purchase.id }}</td>
+                        <td>FuzeOBS {{ purchase.plan_type|title }}</td>
+                        <td data-utc="{{ purchase.created_at|date:'c' }}">
+                            {{ purchase.created_at|date:"M d, Y" }}
+                        </td>
+                        <td><span class="order-badge badge-success">Active</span></td>
+                        <td>${{ purchase.amount }}</td>
+                        <td>
+                            {% if purchase.plan_type == 'pro' %}
+                            <a href="{% url 'FUZEOBS:manage_subscription' %}" class="view-details-button">
+                                <i class="fas fa-cog"></i> Manage
+                            </a>
+                            {% else %}
+                            <a href="{% url 'FUZEOBS:fuzeobs' %}" class="view-details-button">
+                                <i class="fas fa-download"></i> Download
+                            </a>
                             {% endif %}
                         </td>
                     </tr>

@@ -14,7 +14,8 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
-from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData
+from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription
+from decimal import Decimal
 from google.cloud import storage
 import hmac
 import hashlib
@@ -34,9 +35,11 @@ import requests
 import base64
 from .twitch_chat import start_twitch_chat
 from .kick_chat import start_kick_chat
+from .utils.email_utils import send_fuzeobs_invoice_email
 
 # Website Imports
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.db.models import Count, Sum, Avg, Q, Max
 from django.utils import timezone
 from datetime import timedelta
@@ -48,6 +51,7 @@ from .models import WidgetConfig
 
 # Payements
 from django.views.decorators.http import require_POST
+from django.contrib import messages
 import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -1046,19 +1050,14 @@ FUZEOBS_PLANS = {
         'price': '45.00',
         'stripe_price_id': settings.FUZEOBS_STRIPE_PRICE_LIFETIME,
         'mode': 'payment',
-    }
+    },
 }
 
-
-# =========== PAYMENTS ===========
 def fuzeobs_pricing(request):
-    """Display pricing page"""
     return render(request, 'FUZEOBS/fuzeobs_pricing.html')
-
 
 @login_required
 def fuzeobs_payment(request, plan_type):
-    """Display payment page for selected plan"""
     if plan_type not in FUZEOBS_PLANS:
         return redirect('FUZEOBS:pricing')
     
@@ -1070,11 +1069,9 @@ def fuzeobs_payment(request, plan_type):
         'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
     })
 
-
 @login_required
 @require_POST
 def fuzeobs_create_checkout_session(request):
-    """Create Stripe checkout session for FuzeOBS purchase"""
     try:
         data = json.loads(request.body)
         plan_type = data.get('plan_type')
@@ -1083,13 +1080,15 @@ def fuzeobs_create_checkout_session(request):
             return JsonResponse({'error': 'Invalid plan'}, status=400)
         
         plan = FUZEOBS_PLANS[plan_type]
+        return_url = request.build_absolute_uri('/fuzeobs/payment/success/') + '?session_id={CHECKOUT_SESSION_ID}'
         
         session = stripe.checkout.Session.create(
             ui_mode='embedded',
             customer_email=request.user.email,
             line_items=[{'price': plan['stripe_price_id'], 'quantity': 1}],
             mode=plan['mode'],
-            return_url=request.build_absolute_uri('/fuzeobs/payment/success/') + '?session_id={CHECKOUT_SESSION_ID}',
+            return_url=return_url,
+            redirect_on_completion='if_required',
             metadata={
                 'user_id': str(request.user.id),
                 'plan_type': plan_type,
@@ -1097,54 +1096,39 @@ def fuzeobs_create_checkout_session(request):
             }
         )
         
-        return JsonResponse({
-            'clientSecret': session.client_secret,
-            'sessionId': session.id,
-        })
+        return JsonResponse({'clientSecret': session.client_secret, 'sessionId': session.id})
     except Exception as e:
-        print(f"[PAYMENT] Checkout session error: {e}")
+        import traceback
+        traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=500)
 
-
+@login_required
 def fuzeobs_payment_success(request):
-    """Handle successful payment - no login required to avoid redirect issues"""
     session_id = request.GET.get('session_id')
     
-    print(f"[PAYMENT SUCCESS] session_id={session_id}, user={request.user}, authenticated={request.user.is_authenticated}")
-    
     if not session_id:
-        print("[PAYMENT SUCCESS] No session_id provided")
-        return render(request, 'FUZEOBS/fuzeobs_payment_success.html', {
-            'error': 'No session ID provided. Please contact support if you were charged.',
-            'plan_type': 'unknown',
-            'plan_name': 'Unknown',
-            'purchase': {'created_at': timezone.now(), 'amount': '0'}
-        })
+        messages.error(request, "Invalid payment session.")
+        return redirect('FUZEOBS:pricing')
     
     try:
         session = stripe.checkout.Session.retrieve(session_id)
-        print(f"[PAYMENT SUCCESS] Stripe session status: {session.payment_status}, metadata: {session.metadata}")
         
-        if session.payment_status != 'paid':
-            print(f"[PAYMENT SUCCESS] Payment not completed: {session.payment_status}")
-            return render(request, 'FUZEOBS/fuzeobs_payment_success.html', {
-                'error': f'Payment status: {session.payment_status}. Please try again.',
-                'plan_type': 'unknown',
-                'plan_name': 'Unknown',
-                'purchase': {'created_at': timezone.now(), 'amount': '0'}
-            })
+        is_complete = session.status == 'complete' or session.payment_status == 'paid'
+        
+        if not is_complete:
+            messages.error(request, "Payment not completed.")
+            return redirect('FUZEOBS:pricing')
         
         plan_type = session.metadata.get('plan_type', 'pro')
         user_id = session.metadata.get('user_id')
         plan = FUZEOBS_PLANS.get(plan_type, FUZEOBS_PLANS['pro'])
         
-        # Get user from metadata (more reliable than request.user)
         try:
             user = User.objects.get(id=user_id)
             old_tier = user.fuzeobs_tier
             user.fuzeobs_tier = 'lifetime' if plan_type == 'lifetime' else 'pro'
+            user.promote_to_supporter()
             user.save()
-            print(f"[PAYMENT SUCCESS] Updated user {user.id} tier: {old_tier} -> {user.fuzeobs_tier}")
             
             TierChange.objects.create(
                 user=user,
@@ -1152,8 +1136,34 @@ def fuzeobs_payment_success(request):
                 to_tier=user.fuzeobs_tier,
                 reason='stripe_purchase'
             )
+            
+            purchase = FuzeOBSPurchase.objects.create(
+                user=user,
+                plan_type=plan_type,
+                amount=Decimal(plan['price']),
+                payment_id=session_id,
+                is_paid=True
+            )
+            
+            # Send invoice email
+            try:
+                send_fuzeobs_invoice_email(request, user, purchase, plan_type)
+            except Exception as e:
+                print(f"Failed to send invoice email: {e}")
+            
+            # Save subscription info for Pro plans
+            if plan_type == 'pro' and session.subscription:
+                FuzeOBSSubscription.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        'plan_type': 'pro',
+                        'stripe_customer_id': session.customer,
+                        'stripe_subscription_id': session.subscription,
+                        'is_active': True
+                    }
+                )
         except User.DoesNotExist:
-            print(f"[PAYMENT SUCCESS] User {user_id} not found!")
+            pass
         
         return render(request, 'FUZEOBS/fuzeobs_payment_success.html', {
             'plan_type': plan_type,
@@ -1164,53 +1174,31 @@ def fuzeobs_payment_success(request):
             }
         })
         
-    except stripe.error.InvalidRequestError as e:
-        print(f"[PAYMENT SUCCESS] Invalid session_id {session_id}: {e}")
-        return render(request, 'FUZEOBS/fuzeobs_payment_success.html', {
-            'error': 'Invalid session. This may be a test session or already processed.',
-            'plan_type': 'unknown',
-            'plan_name': 'Unknown',
-            'purchase': {'created_at': timezone.now(), 'amount': '0'}
-        })
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        print(f"[PAYMENT SUCCESS] Unexpected error: {e}")
-        return render(request, 'FUZEOBS/fuzeobs_payment_success.html', {
-            'error': f'Error processing payment: {str(e)}',
-            'plan_type': 'unknown',
-            'plan_name': 'Unknown',
-            'purchase': {'created_at': timezone.now(), 'amount': '0'}
-        })
-
+    except stripe.error.StripeError:
+        messages.error(request, "Payment verification failed.")
+        return redirect('FUZEOBS:pricing')
 
 @csrf_exempt
 @require_POST
 def fuzeobs_stripe_webhook(request):
-    """Handle Stripe webhooks for FuzeOBS"""
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
-        )
-    except (ValueError, stripe.error.SignatureVerificationError) as e:
-        print(f"[WEBHOOK] Signature error: {e}")
+        event = stripe.Webhook.construct_event(payload, sig_header, settings.STRIPE_WEBHOOK_SECRET)
+    except (ValueError, stripe.error.SignatureVerificationError):
         return JsonResponse({'error': 'Invalid signature'}, status=400)
-    
-    print(f"[WEBHOOK] Received event: {event['type']}")
     
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         if session.get('metadata', {}).get('product') == 'fuzeobs':
             user_id = session['metadata'].get('user_id')
             plan_type = session['metadata'].get('plan_type')
-            print(f"[WEBHOOK] Processing fuzeobs purchase: user={user_id}, plan={plan_type}")
             try:
                 user = User.objects.get(id=user_id)
                 old_tier = user.fuzeobs_tier
                 user.fuzeobs_tier = 'lifetime' if plan_type == 'lifetime' else 'pro'
+                user.promote_to_supporter()
                 user.save()
                 TierChange.objects.create(
                     user=user,
@@ -1218,14 +1206,106 @@ def fuzeobs_stripe_webhook(request):
                     to_tier=user.fuzeobs_tier,
                     reason='stripe_webhook'
                 )
-                print(f"[WEBHOOK] Updated user {user_id}: {old_tier} -> {user.fuzeobs_tier}")
+                
+                # Save subscription info for Pro plans
+                if plan_type == 'pro' and session.get('subscription'):
+                    FuzeOBSSubscription.objects.update_or_create(
+                        user=user,
+                        defaults={
+                            'plan_type': 'pro',
+                            'stripe_customer_id': session.get('customer'),
+                            'stripe_subscription_id': session.get('subscription'),
+                            'is_active': True
+                        }
+                    )
             except User.DoesNotExist:
-                print(f"[WEBHOOK] User {user_id} not found")
+                pass
     
+    # Handle subscription cancellation
     elif event['type'] == 'customer.subscription.deleted':
-        print(f"[WEBHOOK] Subscription deleted event received")
+        subscription = event['data']['object']
+        try:
+            sub = FuzeOBSSubscription.objects.get(stripe_subscription_id=subscription['id'])
+            sub.is_active = False
+            sub.save()
+            
+            # Downgrade user to free
+            user = sub.user
+            old_tier = user.fuzeobs_tier
+            user.fuzeobs_tier = 'free'
+            user.save()
+            TierChange.objects.create(
+                user=user,
+                from_tier=old_tier,
+                to_tier='free',
+                reason='subscription_cancelled'
+            )
+        except FuzeOBSSubscription.DoesNotExist:
+            pass
     
     return JsonResponse({'status': 'success'})
+
+@login_required
+def fuzeobs_manage_subscription(request):
+    """Subscription management page"""
+    try:
+        sub = FuzeOBSSubscription.objects.get(user=request.user)
+        # Get subscription details from Stripe if active
+        stripe_sub = None
+        if sub.stripe_subscription_id and sub.is_active:
+            try:
+                stripe_sub = stripe.Subscription.retrieve(sub.stripe_subscription_id)
+            except:
+                pass
+        
+        return render(request, 'FUZEOBS/fuzeobs_manage_subscription.html', {
+            'subscription': sub,
+            'stripe_sub': stripe_sub,
+            'cancel_at_period_end': stripe_sub.cancel_at_period_end if stripe_sub else False,
+            'current_period_end': stripe_sub.current_period_end if stripe_sub else None,
+        })
+    except FuzeOBSSubscription.DoesNotExist:
+        messages.error(request, "No subscription found.")
+        return redirect('ACCOUNTS:purchase_history')
+
+@login_required
+@require_POST
+def fuzeobs_cancel_subscription(request):
+    """Cancel user's Pro subscription"""
+    try:
+        sub = FuzeOBSSubscription.objects.get(user=request.user, is_active=True)
+        if sub.stripe_subscription_id:
+            # Cancel at period end (user keeps access until billing cycle ends)
+            stripe.Subscription.modify(
+                sub.stripe_subscription_id,
+                cancel_at_period_end=True
+            )
+            messages.success(request, "Your subscription will cancel at the end of your billing period. You'll keep Pro access until then.")
+        else:
+            messages.error(request, "No active subscription found.")
+    except FuzeOBSSubscription.DoesNotExist:
+        messages.error(request, "No active subscription found.")
+    
+    return redirect('FUZEOBS:manage_subscription')
+
+@login_required
+@require_POST
+def fuzeobs_reactivate_subscription(request):
+    """Reactivate a cancelled subscription"""
+    try:
+        sub = FuzeOBSSubscription.objects.get(user=request.user, is_active=True)
+        if sub.stripe_subscription_id:
+            stripe.Subscription.modify(
+                sub.stripe_subscription_id,
+                cancel_at_period_end=False
+            )
+            messages.success(request, "Your subscription has been reactivated.")
+        else:
+            messages.error(request, "No subscription found.")
+    except FuzeOBSSubscription.DoesNotExist:
+        messages.error(request, "No subscription found.")
+    
+    return redirect('FUZEOBS:manage_subscription')
 
 def fuzeobs_user_detail(request, user_id):
     view_user = get_object_or_404(User, id=user_id)
@@ -1355,6 +1435,22 @@ def fuzeobs_analytics_view(request):
     upgrades = TierChange.objects.filter(timestamp__gte=date_from).exclude(from_tier='free', to_tier='free').exclude(to_tier='free').count()
     downgrades = TierChange.objects.filter(timestamp__gte=date_from, to_tier='free').count()
     
+    # Revenue tracking
+    pro_purchases = TierChange.objects.filter(
+        timestamp__gte=date_from,
+        to_tier='pro',
+        reason__in=['stripe_purchase', 'stripe_webhook']
+    ).count()
+    lifetime_purchases = TierChange.objects.filter(
+        timestamp__gte=date_from,
+        to_tier='lifetime',
+        reason__in=['stripe_purchase', 'stripe_webhook']
+    ).count()
+    
+    pro_revenue = pro_purchases * 7.50
+    lifetime_revenue = lifetime_purchases * 45.00
+    total_revenue = pro_revenue + lifetime_revenue
+    
     # Cost by tier (detailed)
     cost_by_tier_raw = AIUsage.objects.filter(timestamp__gte=date_from).values('user_tier').annotate(
         request_count=Count('id'), 
@@ -1430,6 +1526,11 @@ def fuzeobs_analytics_view(request):
         'tier_distribution_json': json.dumps(tier_distribution),
         'upgrades': upgrades,
         'downgrades': downgrades,
+        'pro_purchases': pro_purchases,
+        'lifetime_purchases': lifetime_purchases,
+        'pro_revenue': pro_revenue,
+        'lifetime_revenue': lifetime_revenue,
+        'total_revenue': total_revenue,
         'cost_by_tier': cost_by_tier,
         'top_users': top_users,
         'feature_usage': feature_usage,
@@ -1453,6 +1554,32 @@ def fuzeobs_all_users_view(request):
     
     context = {'all_users': all_users}
     return render(request, 'FUZEOBS/fuzeobs_all_users.html', context)
+
+@staff_member_required
+@require_http_methods(["GET", "POST"])
+def fuzeobs_reset_analytics(request):
+    """Admin view to reset analytics data for testing"""
+    if request.method == 'POST':
+        reset_type = request.POST.getlist('reset_type')
+        deleted = {}
+        
+        if 'tier_changes' in reset_type:
+            deleted['tier_changes'] = TierChange.objects.all().delete()[0]
+        if 'ai_usage' in reset_type:
+            deleted['ai_usage'] = AIUsage.objects.all().delete()[0]
+        if 'user_activity' in reset_type:
+            deleted['user_activity'] = UserActivity.objects.all().delete()[0]
+        if 'downloads' in reset_type:
+            deleted['downloads'] = DownloadTracking.objects.all().delete()[0]
+        if 'active_sessions' in reset_type:
+            deleted['active_sessions'] = ActiveSession.objects.all().delete()[0]
+        
+        return render(request, 'FUZEOBS/fuzeobs_reset_analytics.html', {
+            'deleted': deleted,
+            'success': True
+        })
+    
+    return render(request, 'FUZEOBS/fuzeobs_reset_analytics.html')
 
 # ===== WIDGETS SYSTEM =====
 # Widget HTML generators

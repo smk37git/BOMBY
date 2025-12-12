@@ -1,0 +1,176 @@
+{% autoescape off %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice #{{ invoice_number }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #ffffff;
+        }
+        .container {
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            background: #111111;
+        }
+        .invoice-header {
+            text-align: center;
+            border-bottom: 2px solid rgba(168, 85, 247, 0.3);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .title-section {
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .title-section h1 {
+            color: #a855f7;
+            margin: 0 0 5px 0;
+            font-size: 28px;
+        }
+        .title-section h2 {
+            color: rgba(255, 255, 255, 0.7);
+            margin: 0;
+            font-size: 18px;
+            font-weight: normal;
+        }
+        .fuzeobs-logo {
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .invoice-details {
+            margin-bottom: 30px;
+        }
+        .invoice-details table {
+            width: 100%;
+        }
+        .invoice-details td {
+            padding: 5px 0;
+            vertical-align: top;
+        }
+        .info-label {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+        .info-value {
+            color: #ffffff;
+        }
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .invoice-table th, .invoice-table td {
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            padding: 12px;
+            text-align: left;
+        }
+        .invoice-table th {
+            background: rgba(168, 85, 247, 0.1);
+            color: #a855f7;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .total-row {
+            font-weight: bold;
+            background: rgba(168, 85, 247, 0.05);
+        }
+        .total-row td {
+            color: #a855f7;
+            font-size: 18px;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            border-top: 1px solid rgba(168, 85, 247, 0.2);
+            padding-top: 20px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="title-section">
+            <h1>INVOICE</h1>
+            <h2>{{ invoice_number }}</h2>
+        </div>
+        
+        <div class="invoice-header">
+            <div class="fuzeobs-logo">FuzeOBS</div>
+            <p style="margin: 5px 0 0 0; color: rgba(255,255,255,0.6);">AI-Powered OBS Enhancement</p>
+        </div>
+        
+        <div class="invoice-details">
+            <table width="100%">
+                <tr>
+                    <td width="50%">
+                        <span class="info-label">Bill To:</span><br>
+                        <span class="info-value">{{ user.username }}</span><br>
+                        <span class="info-value">{{ user.email }}</span>
+                    </td>
+                    <td width="50%" class="text-right">
+                        <span class="info-label">Invoice #:</span> <span class="info-value">{{ invoice_number }}</span><br>
+                        <span class="info-label">Date:</span> <span class="info-value">{{ purchase.created_at|date:"F j, Y" }}</span><br>
+                        <span class="info-label">Status:</span> <span class="badge badge-success">Paid</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <table class="invoice-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Description</th>
+                    <th class="text-right">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ plan_name }}</td>
+                    <td>FuzeOBS software license</td>
+                    <td class="text-right">{{ plan_price }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="2" class="text-right"><strong>Total</strong></td>
+                    <td class="text-right">{{ plan_price }}</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="footer">
+            <p>Thank you for your purchase!</p>
+            <p>For support, visit <a href="https://{{ domain }}/fuzeobs/" style="color: #a855f7;">{{ domain }}/fuzeobs</a></p>
+            <p>&copy; {% now "Y" %} Sebe_TV. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
+{% endautoescape %}

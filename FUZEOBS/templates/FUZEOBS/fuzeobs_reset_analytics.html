@@ -1,0 +1,59 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuzeobs_analytics.css' %}">
+{% endblock %}
+
+{% block background %}
+{% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="analytics-container" style="max-width: 600px;">
+    <h2>Reset Analytics Data</h2>
+    <p style="color: #ff6b6b; margin-bottom: 20px;">⚠️ Warning: This permanently deletes data!</p>
+    
+    {% if success %}
+    <div style="background: rgba(78, 249, 84, 0.2); border: 1px solid #4ef954; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <strong>Deleted:</strong>
+        <ul style="margin: 10px 0 0 20px;">
+            {% for key, count in deleted.items %}
+            <li>{{ key }}: {{ count }} records</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    <form method="post">
+        {% csrf_token %}
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            <label style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" name="reset_type" value="tier_changes">
+                Tier Changes (resets revenue tracking)
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" name="reset_type" value="ai_usage">
+                AI Usage (resets cost tracking)
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" name="reset_type" value="user_activity">
+                User Activity
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" name="reset_type" value="downloads">
+                Download Tracking
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" name="reset_type" value="active_sessions">
+                Active Sessions
+            </label>
+        </div>
+        <button type="submit" style="margin-top: 20px; padding: 12px 24px; background: #ff4444; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 16px;">
+            Delete Selected Data
+        </button>
+    </form>
+    
+    <a href="{% url 'FUZEOBS:analytics' %}" style="display: inline-block; margin-top: 20px; color: #a855f7;">← Back to Analytics</a>
+</div>
+{% endblock %}

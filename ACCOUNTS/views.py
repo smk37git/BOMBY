@@ -56,12 +56,17 @@ def signup(request):
 
 @login_required
 def account(request):
-
+    from FUZEOBS.models import FuzeOBSPurchase
+    
     # Get user's orders
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    fuzeobs_purchases = FuzeOBSPurchase.objects.filter(user=request.user, is_paid=True).order_by('-created_at')
+    total_purchases = user_orders.count() + fuzeobs_purchases.count()
     
     return render(request, 'ACCOUNTS/account.html', {
-        'user_orders': user_orders
+        'user_orders': user_orders,
+        'fuzeobs_purchases': fuzeobs_purchases,
+        'total_purchases': total_purchases
     })
 
 class AdminRequiredMixin(UserPassesTestMixin):
@@ -74,20 +79,18 @@ class ClientRequiredMixin(UserPassesTestMixin):
 
 @login_required
 def purchase_history(request):
-    # Get all orders for the current user
-    user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    from FUZEOBS.models import FuzeOBSPurchase
     
-    # Mark Stream Store purchases differently in the template
+    user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    fuzeobs_purchases = FuzeOBSPurchase.objects.filter(user=request.user, is_paid=True).order_by('-created_at')
+    
     for order in user_orders:
-        if order.product.id == 4:
-            order.is_access_product = True
-        else:
-            order.is_access_product = False
+        order.is_access_product = order.product.id == 4
     
     return render(request, 'ACCOUNTS/purchase_history.html', {
-        'user_orders': user_orders
+        'user_orders': user_orders,
+        'fuzeobs_purchases': fuzeobs_purchases
     })
-
 # Profile View
 User = get_user_model()
 def profile_view(request, username=None):
