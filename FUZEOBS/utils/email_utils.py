@@ -15,12 +15,10 @@ def get_html_class():
     except ImportError:
         return None
 
-
 def send_fuzeobs_invoice_email(request, user, purchase, plan_type):
     """Send invoice email for FuzeOBS purchase"""
     current_site = get_current_site(request)
     
-    # Generate invoice number
     invoice_number = f"FOB-{purchase.created_at.year}-{purchase.created_at.month:02d}-{purchase.id}"
     
     plan_details = {
@@ -44,33 +42,30 @@ def send_fuzeobs_invoice_email(request, user, purchase, plan_type):
     html_message = render_to_string('FUZEOBS/emails/fuzeobs_invoice_email.html', context)
     plain_message = strip_tags(html_message)
     
+    # Try PDF generation, fall back to HTML-only on any error
+    pdf_data = None
     HTML = get_html_class()
     
     if HTML:
-        # Generate PDF with WeasyPrint
-        temp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
-        HTML(string=html_message).write_pdf(temp.name)
-        
-        email = EmailMessage(
-            subject=subject,
-            body=html_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[user.email]
-        )
-        email.content_subtype = "html"
-        
-        with open(temp.name, 'rb') as f:
-            email.attach(f"fuzeobs_invoice_{invoice_number}.pdf", f.read(), "application/pdf")
-        
-        email.send(fail_silently=False)
-        os.unlink(temp.name)
-    else:
-        # Fallback to HTML email without PDF
-        send_mail(
-            subject=subject,
-            message=plain_message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            html_message=html_message,
-            fail_silently=False,
-        )
+        try:
+            temp = tempfile.NamedTemporaryFile(delete=False, suffix='.pdf')
+            HTML(string=html_message).write_pdf(temp.name)
+            with open(temp.name, 'rb') as f:
+                pdf_data = f.read()
+            os.unlink(temp.name)
+        except Exception as e:
+            print(f'[FUZEOBS] PDF generation failed, sending HTML only: {e}')
+            pdf_data = None
+    
+    email = EmailMessage(
+        subject=subject,
+        body=html_message,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[user.email]
+    )
+    email.content_subtype = "html"
+    
+    if pdf_data:
+        email.attach(f"fuzeobs_invoice_{invoice_number}.pdf", pdf_data, "application/pdf")
+    
+    email.send(fail_silently=False)

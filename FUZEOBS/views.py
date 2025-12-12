@@ -1207,6 +1207,22 @@ def fuzeobs_stripe_webhook(request):
                     reason='stripe_webhook'
                 )
                 
+                # Create purchase record and send invoice
+                amount = Decimal('45.00') if plan_type == 'lifetime' else Decimal('7.50')
+                purchase = FuzeOBSPurchase.objects.create(
+                    user=user,
+                    plan_type=plan_type,
+                    amount=amount,
+                    payment_id=session.get('payment_intent') or session.get('id'),
+                    is_paid=True
+                )
+                
+                # Send invoice email
+                try:
+                    send_fuzeobs_invoice_email(request, user, purchase, plan_type)
+                except Exception as e:
+                    print(f'[FUZEOBS] Invoice email failed: {e}')
+                
                 # Save subscription info for Pro plans
                 if plan_type == 'pro' and session.get('subscription'):
                     FuzeOBSSubscription.objects.update_or_create(

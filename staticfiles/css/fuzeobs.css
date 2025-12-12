@@ -693,10 +693,10 @@
 .btn-large { padding: 16px 40px; font-size: 16px; }
 .btn-primary { background: linear-gradient(135deg, #a855f7, #7c3aed); color: #fff; }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(168, 85, 247, 0.4); }
-.btn-secondary { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; }
+.btn-secondary { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; }
 .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
-.btn-outline { background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; }
-.btn-outline:hover { border-color: rgba(255, 255, 255, 0.4); background: rgba(255, 255, 255, 0.05); }
+.btn-outline { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; }
+.btn-outline:hover { background: rgba(255, 255, 255, 0.1); }
 
 /* ===========================================
    Responsive
