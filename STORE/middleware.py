@@ -1,5 +1,5 @@
 from django.utils.deprecation import MiddlewareMixin
-from .models import PageView, Product, ProductInteraction
+from asgiref.sync import sync_to_async
 import re
 
 class AnalyticsMiddleware(MiddlewareMixin):
@@ -34,6 +34,9 @@ class AnalyticsMiddleware(MiddlewareMixin):
             return None
         
         try:
+            # Import models to avoid circular imports
+            from .models import PageView, Product, ProductInteraction
+            
             # Get user or session ID
             user = request.user if request.user.is_authenticated else None
             session_id = request.session.session_key
@@ -96,6 +99,6 @@ class AnalyticsMiddleware(MiddlewareMixin):
                 )
         except Exception as e:
             # Don't break the site if analytics tracking fails
-            print(f"Analytics tracking error: {e}")
+            pass
             
         return None
