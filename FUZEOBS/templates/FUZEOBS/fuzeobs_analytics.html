@@ -3,33 +3,6 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/fuzeobs_analytics.css' %}">
-<style>
-    .tier-free { background: #ffffff; padding: 4px 12px; border-radius: 4px; }
-    .tier-pro { background: #4ef954; padding: 4px 12px; border-radius: 4px; }
-    .tier-lifetime { background: #7a33ff; padding: 4px 12px; border-radius: 4px; }
-    .platform-windows { background: #3b82f6; }
-    .platform-mac { background: #808080; }
-    .platform-linux { background: #79ff5e; }
-    .view-link { color: #a855f7; text-decoration: none; font-weight: bold; }
-    .view-link:hover { color: #c084fc; text-decoration: underline; }
-    .btn-secondary {
-        background: rgba(168, 85, 247, 0.2);
-        border: 1px solid rgba(168, 85, 247, 0.4);
-        color: #a855f7;
-        padding: 8px 16px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-size: 14px;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        transition: all 0.2s;
-    }
-    .btn-secondary:hover {
-        background: rgba(168, 85, 247, 0.3);
-        border-color: rgba(168, 85, 247, 0.6);
-    }
-</style>
 {% endblock %}
 
 {% block background %}
@@ -37,7 +10,7 @@
 {% endblock %}
 
 {% block content %}
-<h1 class="user_management-title" style="margin: 50px auto;">FuzeOBS Analytics Dashboard</h1>
+<h1 class="user_management-title">FuzeOBS Analytics Dashboard</h1>
 
 <div class="analytics-container">
     <div class="analytics-header">
@@ -85,12 +58,12 @@
             </div>
             <div class="metric-card">
                 <div class="metric-label">Free Users Cost</div>
-                <div class="metric-value" style="color: #ff3f3f;">${{ free_cost }}</div>
+                <div class="metric-value" style="color: #f87171;">${{ free_cost }}</div>
                 <div class="metric-subtext">{{ free_requests }} requests</div>
             </div>
             <div class="metric-card">
                 <div class="metric-label">Paid Users Cost</div>
-                <div class="metric-value" style="color: #33ffa0;">${{ paid_cost }}</div>
+                <div class="metric-value" style="color: #4ade80;">${{ paid_cost }}</div>
                 <div class="metric-subtext">{{ paid_requests }} requests</div>
             </div>
             <div class="metric-card">
@@ -108,7 +81,7 @@
         <div class="metrics-grid">
             <div class="metric-card">
                 <div class="metric-label">Total Revenue</div>
-                <div class="metric-value" style="color: #4ef954;">${{ total_revenue|floatformat:2 }}</div>
+                <div class="metric-value" style="color: #4ade80;">${{ total_revenue|floatformat:2 }}</div>
                 <div class="metric-subtext">{{ pro_purchases|add:lifetime_purchases }} purchases</div>
             </div>
             <div class="metric-card">
@@ -132,7 +105,12 @@
     <div class="analytics-section">
         <div class="section-header">
             <h3>Top 10 FuzeOBS Users by AI Usage</h3>
-            <a href="{% url 'FUZEOBS:all_users' %}" class="btn-secondary">View All Users →</a>
+            <a href="{% url 'FUZEOBS:all_users' %}" class="btn-secondary">
+                View All Users
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+            </a>
         </div>
         <table class="product-table">
             <thead>
@@ -157,7 +135,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="6" style="text-align: center; padding: 20px; color: #666;">No FuzeOBS users yet</td>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: rgba(255,255,255,0.4);">No FuzeOBS users yet</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -208,7 +186,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (downloadsTotal > 0 && downloadsChart) {
         let gradientStr = 'conic-gradient(';
         let cumulative = 0;
-        const colors = {'windows': '#3b82f6', 'mac': '#808080', 'linux': '#79ff5e'};
+        const colors = {'windows': '#3b82f6', 'mac': '#9ca3af', 'linux': '#22c55e'};
         
         downloadsData.forEach((d, i) => {
             const percent = (d.count / downloadsTotal * 100);
@@ -229,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (tiersTotal > 0 && tiersChart) {
         let gradientStr = 'conic-gradient(';
         let cumulative = 0;
-        const colors = {'free': '#ffffff', 'pro': '#4ef954', 'lifetime': '#7a33ff'};
+        const colors = {'free': '#f87171', 'pro': '#fbbf24', 'lifetime': '#4ade80'};
         
         tiersData.forEach((t, i) => {
             const percent = (t.count / tiersTotal * 100);
