@@ -140,8 +140,10 @@ def stripe_connect_complete(request):
 
 
 @csrf_exempt
-@require_http_methods(["GET"])
-def stripe_connect_status(request):
+@require_http_methods(["POST"])
+def stripe_connect(request):
+    import traceback
+    
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -150,20 +152,38 @@ def stripe_connect_status(request):
     if not user:
         return JsonResponse({'error': 'Invalid token'}, status=401)
     
+    ds, _ = DonationSettings.objects.get_or_create(user=user)
+    
     try:
-        ds = DonationSettings.objects.get(user=user)
-        if not ds.stripe_account_id:
-            return JsonResponse({'connected': False, 'onboarding_complete': False})
+        print(f"Stripe API key set: {bool(stripe.api_key)}")
+        print(f"Creating account for user: {user.id}")
         
-        account = stripe.Account.retrieve(ds.stripe_account_id)
-        return JsonResponse({
-            'connected': True,
-            'onboarding_complete': account.charges_enabled and account.payouts_enabled,
-            'charges_enabled': account.charges_enabled,
-            'payouts_enabled': account.payouts_enabled,
-        })
-    except:
-        return JsonResponse({'connected': False, 'onboarding_complete': False})
+        if not ds.stripe_account_id:
+            account = stripe.Account.create(
+                type="express",
+                email=user.email,
+                capabilities={
+                    "card_payments": {"requested": True},
+                    "transfers": {"requested": True},
+                },
+                metadata={"fuzeobs_user_id": str(user.id), "username": user.username}
+            )
+            ds.stripe_account_id = account.id
+            ds.save()
+            print(f"Created Stripe account: {account.id}")
+        
+        account_link = stripe.AccountLink.create(
+            account=ds.stripe_account_id,
+            refresh_url=f"{SITE_URL}/fuzeobs/donations/stripe/refresh",
+            return_url=f"{SITE_URL}/fuzeobs/donations/stripe/complete",
+            type="account_onboarding",
+        )
+        
+        return JsonResponse({'url': account_link.url})
+    except Exception as e:
+        print(f"Stripe connect error: {e}")
+        traceback.print_exc()
+        return JsonResponse({'error': str(e)}, status=400)
 
 
 @csrf_exempt
