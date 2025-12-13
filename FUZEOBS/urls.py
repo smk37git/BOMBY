@@ -1,10 +1,9 @@
 from django.urls import path
 from . import views
 from .donations import (
-    donation_settings, stripe_connect, stripe_connect_status, 
-    stripe_connect_refresh, stripe_connect_complete, stripe_disconnect,
-    stripe_dashboard, donation_page, create_payment_intent, 
-    confirm_donation, stripe_donation_webhook, donation_history
+    donation_settings, paypal_connect, paypal_callback, 
+    paypal_disconnect, donation_page, create_donation_order, 
+    capture_donation, donation_history
 )
 
 app_name = 'FUZEOBS'
@@ -87,19 +86,15 @@ urlpatterns = [
     path('viewers/facebook/<int:user_id>', views.fuzeobs_get_facebook_viewers),
     path('viewers/tiktok/<int:user_id>', views.fuzeobs_get_tiktok_viewers),
 
-    # Donations (Stripe)
+    # Donations
     path('donations/settings', donation_settings, name='donation_settings'),
-    path('donations/stripe/connect', stripe_connect, name='stripe_connect'),
-    path('donations/stripe/status', stripe_connect_status, name='stripe_connect_status'),
-    path('donations/stripe/refresh', stripe_connect_refresh, name='stripe_connect_refresh'),
-    path('donations/stripe/complete', stripe_connect_complete, name='stripe_connect_complete'),
-    path('donations/stripe/disconnect', stripe_disconnect, name='stripe_disconnect'),
-    path('donations/stripe/dashboard', stripe_dashboard, name='stripe_dashboard'),
+    path('donations/paypal/connect', paypal_connect, name='paypal_connect'),
+    path('donations/paypal/callback', paypal_callback, name='paypal_callback'),
+    path('donations/paypal/disconnect', paypal_disconnect, name='paypal_disconnect'),
     path('donations/history', donation_history, name='donation_history'),
     path('donate/<str:token>', donation_page, name='donation_page'),
-    path('donate/<str:token>/create', create_payment_intent, name='create_payment_intent'),
-    path('donate/<str:token>/confirm', confirm_donation, name='confirm_donation'),
-    path('stripe/webhook/donations', stripe_donation_webhook, name='stripe_donation_webhook'),
+    path('donate/<str:token>/create', create_donation_order, name='create_donation_order'),
+    path('donate/<str:token>/capture', capture_donation, name='capture_donation'),
 
     # Website URLS
     path('', views.fuzeobs_view, name="fuzeobs"),

@@ -3,7 +3,6 @@ from django.conf import settings
 from django.utils import timezone
 import secrets
 
-
 class ActiveSession(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     session_id = models.CharField(max_length=100, unique=True)
@@ -14,7 +13,6 @@ class ActiveSession(models.Model):
     
     class Meta:
         indexes = [models.Index(fields=['last_ping', 'is_anonymous'])]
-
 
 class AIUsage(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
@@ -43,7 +41,6 @@ class AIUsage(models.Model):
             models.Index(fields=['is_anonymous']),
         ]
 
-
 class UserActivity(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     activity_type = models.CharField(max_length=50, choices=[
@@ -67,7 +64,6 @@ class UserActivity(models.Model):
             models.Index(fields=['source']),
         ]
 
-
 class TierChange(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     from_tier = models.CharField(max_length=20)
@@ -82,7 +78,6 @@ class TierChange(models.Model):
             models.Index(fields=['timestamp']),
         ]
 
-
 class FuzeOBSProfile(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
@@ -93,7 +88,6 @@ class FuzeOBSProfile(models.Model):
     class Meta:
         ordering = ['-updated_at']
 
-
 class FuzeOBSChat(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
@@ -102,7 +96,6 @@ class FuzeOBSChat(models.Model):
     
     class Meta:
         ordering = ['-created_at']
-
 
 class FuzeOBSQuickstart(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -113,7 +106,6 @@ class FuzeOBSQuickstart(models.Model):
         if self.dismissed and not self.dismissed_at:
             self.dismissed_at = timezone.now()
         super().save(*args, **kwargs)
-
 
 class DownloadTracking(models.Model):
     platform = models.CharField(max_length=20, choices=[
@@ -132,7 +124,6 @@ class DownloadTracking(models.Model):
             models.Index(fields=['platform', 'timestamp']),
             models.Index(fields=['timestamp']),
         ]
-
 
 class WidgetConfig(models.Model):
     WIDGET_TYPES = [
@@ -178,7 +169,6 @@ class WidgetConfig(models.Model):
             models.Index(fields=['token']),
         ]
 
-
 class MediaLibrary(models.Model):
     MEDIA_TYPES = [
         ('image', 'Image'),
@@ -195,7 +185,6 @@ class MediaLibrary(models.Model):
     
     class Meta:
         ordering = ['-uploaded_at']
-
 
 class PlatformConnection(models.Model):
     PLATFORMS = [
@@ -220,7 +209,6 @@ class PlatformConnection(models.Model):
     class Meta:
         unique_together = ['user', 'platform']
 
-
 class WidgetEvent(models.Model):
     widget = models.ForeignKey('WidgetConfig', on_delete=models.CASCADE)
     event_type = models.CharField(max_length=50)
@@ -232,8 +220,8 @@ class WidgetEvent(models.Model):
     class Meta:
         unique_together = ['widget', 'event_type', 'platform']
 
-
 class LabelSessionData(models.Model):
+    """Persists label widget data across OBS restarts"""
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     label_type = models.CharField(max_length=50)
     data = models.JSONField(default=dict)
@@ -245,14 +233,16 @@ class LabelSessionData(models.Model):
             models.Index(fields=['user', 'label_type']),
         ]
 
-
 class DonationSettings(models.Model):
+    """Streamer's donation page settings"""
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     donation_token = models.CharField(max_length=64, unique=True, blank=True)
-    stripe_account_id = models.CharField(max_length=100, blank=True)
+    paypal_email = models.EmailField(blank=True)
+    paypal_merchant_id = models.CharField(max_length=100, blank=True)
+    oauth_state = models.CharField(max_length=64, blank=True)
     
     min_amount = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
-    suggested_amounts = models.JSONField(default=list)
+    suggested_amounts = models.JSONField(default=list)  # [5, 10, 25, 50]
     currency = models.CharField(max_length=3, default='USD')
     
     page_title = models.CharField(max_length=200, default='Support My Stream!')
@@ -276,6 +266,7 @@ class DonationSettings(models.Model):
 
 
 class Donation(models.Model):
+    """Individual donation records"""
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('completed', 'Completed'),
@@ -284,7 +275,8 @@ class Donation(models.Model):
     ]
     
     streamer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='fuzeobs_donations')
-    stripe_payment_intent = models.CharField(max_length=100, blank=True, db_index=True)
+    paypal_order_id = models.CharField(max_length=100, unique=True)
+    paypal_capture_id = models.CharField(max_length=100, blank=True)
     
     donor_name = models.CharField(max_length=100)
     donor_email = models.EmailField(blank=True)
@@ -295,15 +287,19 @@ class Donation(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['streamer', 'status']),
+            models.Index(fields=['paypal_order_id']),
+            models.Index(fields=['created_at']),
         ]
 
-
+# ==== PAYMENTS ====
 class FuzeOBSSubscription(models.Model):
+    """Track FuzeOBS subscription status"""
     PLAN_CHOICES = (
         ('free', 'Free'),
         ('pro', 'Pro'),
@@ -332,6 +328,7 @@ class FuzeOBSSubscription(models.Model):
 
 
 class FuzeOBSPurchase(models.Model):
+    """Track individual purchases"""
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
