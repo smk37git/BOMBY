@@ -2218,6 +2218,17 @@ def payment_success(request):
         if not request.user.is_client:
             request.user.promote_to_client()
     
+    # Track purchase in analytics
+    try:
+        ProductInteraction.objects.create(
+            product=product,
+            user=request.user,
+            session_id=request.session.session_key or '',
+            interaction_type='purchase'
+        )
+    except Exception as e:
+        print(f"Analytics tracking error: {e}")
+    
     # Generate invoice
     try:
         invoice = Invoice(order=order)

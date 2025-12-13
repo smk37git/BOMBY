@@ -200,6 +200,8 @@
     border-radius: 12px;
     padding: 30px;
     box-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+    min-width: 0;
+    overflow: hidden;
 }
 
 .order-summary-card h2,
@@ -266,6 +268,8 @@
     margin-bottom: 25px;
     padding-bottom: 0;
     border-bottom: none;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .discount-section h3 {
@@ -283,10 +287,13 @@
     border: none;
     border-radius: 0;
     margin-bottom: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .discount-input {
     flex: 1;
+    min-width: 0;
     background: rgba(255, 255, 255, 0.05);
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
@@ -295,8 +302,7 @@
     font-size: 0.9rem;
     outline: none;
     transition: border-color 0.3s ease;
-    width: auto;
-    margin-right: 0;
+    box-sizing: border-box;
 }
 
 .discount-input:focus {
@@ -429,11 +435,20 @@
 /* Stripe Checkout Container */
 #checkout {
     border-radius: 12px;
-    overflow: hidden;
+    overflow: visible;
+    min-width: 0;
+    width: 100%;
 }
 
 #checkout iframe {
     border-radius: 12px;
+    max-width: 100%;
+}
+
+/* Override for checkout card to allow Stripe iframe */
+.checkout-card {
+    overflow: visible !important;
+    min-width: 0;
 }
 
 .checkout-loading {
@@ -815,17 +830,32 @@
     .checkout-card {
         padding: 20px;
     }
+    
+    .checkout-card {
+        padding: 16px 12px;
+    }
+    
+    #checkout {
+        margin: 0 -4px;
+        width: calc(100% + 8px);
+    }
 
     .discount-form {
         flex-direction: column;
+        width: 100%;
     }
 
     .discount-input {
         width: 100%;
+        box-sizing: border-box;
     }
 
     .apply-btn {
         width: 100%;
+    }
+
+    .order-summary-card {
+        overflow: hidden;
     }
 
     .success-title {
