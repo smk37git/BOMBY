@@ -40,7 +40,8 @@ from .utils.email_utils import send_fuzeobs_invoice_email
 # Website Imports
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.db.models import Count, Sum, Avg, Q, Max
+from django.db.models import Count, Sum, Avg, Q, Max, OuterRef, Subquery, IntegerField, DecimalField
+from django.db.models.functions import Coalesce
 from django.utils import timezone
 from datetime import timedelta
 from django.shortcuts import render, get_object_or_404
@@ -1576,11 +1577,23 @@ def fuzeobs_analytics_view(request):
 def fuzeobs_all_users_view(request):
     from django.core.paginator import Paginator
     
-    # Paginated query - much lighter on database
+    # Use subqueries
+    ai_requests_subq = AIUsage.objects.filter(user=OuterRef('pk')).values('user').annotate(
+        cnt=Count('id')
+    ).values('cnt')[:1]
+    
+    ai_cost_subq = AIUsage.objects.filter(user=OuterRef('pk')).values('user').annotate(
+        total=Sum('estimated_cost')
+    ).values('total')[:1]
+    
+    last_activity_subq = UserActivity.objects.filter(user=OuterRef('pk')).order_by(
+        '-timestamp'
+    ).values('timestamp')[:1]
+    
     all_users = User.objects.filter(fuzeobs_activated=True).annotate(
-        last_activity=Max('useractivity__timestamp'),
-        total_ai_requests=Count('aiusage', distinct=True),
-        total_ai_cost=Sum('aiusage__estimated_cost')
+        total_ai_requests=Coalesce(Subquery(ai_requests_subq, output_field=IntegerField()), 0),
+        total_ai_cost=Coalesce(Subquery(ai_cost_subq, output_field=DecimalField()), 0),
+        last_activity=Subquery(last_activity_subq)
     ).order_by('-total_ai_requests')
     
     paginator = Paginator(all_users, 50)
