@@ -82,17 +82,20 @@ def donation_settings(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def stripe_connect(request):
-    auth = request.headers.get('Authorization', '')
-    if not auth.startswith('Bearer '):
-        return JsonResponse({'error': 'Unauthorized'}, status=401)
-    
-    user = get_user_from_token(auth.replace('Bearer ', ''))
-    if not user:
-        return JsonResponse({'error': 'Invalid token'}, status=401)
-    
-    ds, _ = DonationSettings.objects.get_or_create(user=user)
+    import traceback
+    import sys
     
     try:
+        auth = request.headers.get('Authorization', '')
+        if not auth.startswith('Bearer '):
+            return JsonResponse({'error': 'Unauthorized'}, status=401)
+        
+        user = get_user_from_token(auth.replace('Bearer ', ''))
+        if not user:
+            return JsonResponse({'error': 'Invalid token'}, status=401)
+        
+        ds, _ = DonationSettings.objects.get_or_create(user=user)
+        
         if not ds.stripe_account_id:
             account = stripe.Account.create(
                 type="express",
@@ -114,7 +117,8 @@ def stripe_connect(request):
         )
         
         return JsonResponse({'url': account_link.url})
-    except stripe.error.StripeError as e:
+    except Exception as e:
+        traceback.print_exc(file=sys.stderr)
         return JsonResponse({'error': str(e)}, status=400)
 
 
