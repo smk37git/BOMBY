@@ -21,7 +21,6 @@ SITE_URL = 'https://bomby.us'
 @csrf_exempt
 @require_http_methods(["GET", "POST"])
 def donation_settings(request):
-    """Get or update donation settings"""
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -40,7 +39,6 @@ def donation_settings(request):
     )
     
     if request.method == 'GET':
-        # Check Stripe Connect status
         stripe_connected = False
         stripe_email = ''
         if ds.stripe_account_id:
@@ -68,7 +66,6 @@ def donation_settings(request):
             'total_received': float(total),
         })
     
-    # POST - update settings
     data = json.loads(request.body)
     ds.min_amount = data.get('min_amount', ds.min_amount)
     ds.currency = data.get('currency', ds.currency)
@@ -85,7 +82,6 @@ def donation_settings(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def stripe_connect(request):
-    """Start Stripe Connect onboarding"""
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -97,7 +93,6 @@ def stripe_connect(request):
     ds, _ = DonationSettings.objects.get_or_create(user=user)
     
     try:
-        # Create or retrieve account
         if not ds.stripe_account_id:
             account = stripe.Account.create(
                 type="express",
@@ -111,7 +106,6 @@ def stripe_connect(request):
             ds.stripe_account_id = account.id
             ds.save()
         
-        # Create onboarding link
         account_link = stripe.AccountLink.create(
             account=ds.stripe_account_id,
             refresh_url=f"{SITE_URL}/fuzeobs/donations/stripe/refresh",
@@ -126,7 +120,6 @@ def stripe_connect(request):
 
 @csrf_exempt
 def stripe_connect_refresh(request):
-    """Redirect back to onboarding if needed"""
     return HttpResponse('''
         <html><body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;padding-top:100px;">
         <h2>Session expired</h2>
@@ -137,7 +130,6 @@ def stripe_connect_refresh(request):
 
 @csrf_exempt
 def stripe_connect_complete(request):
-    """Stripe Connect onboarding complete"""
     return HttpResponse('''
         <html><body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;padding-top:100px;">
         <h2>✓ Stripe Connected!</h2>
@@ -150,7 +142,6 @@ def stripe_connect_complete(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def stripe_connect_status(request):
-    """Check Stripe Connect status"""
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -178,7 +169,6 @@ def stripe_connect_status(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def stripe_disconnect(request):
-    """Disconnect Stripe account"""
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -194,7 +184,6 @@ def stripe_disconnect(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def stripe_dashboard(request):
-    """Get Stripe Express dashboard link"""
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
@@ -215,57 +204,43 @@ def stripe_dashboard(request):
 
 
 def donation_page(request, token):
-    """Public donation page for viewers"""
     try:
         ds = DonationSettings.objects.select_related('user').get(donation_token=token)
     except DonationSettings.DoesNotExist:
-        return HttpResponse('Donation page not found', status=404)
+        return HttpResponse('Not found', status=404)
     
     if not ds.stripe_account_id:
-        return HttpResponse('Donations not configured', status=404)
-    
-    # Verify account is ready
-    try:
-        account = stripe.Account.retrieve(ds.stripe_account_id)
-        if not account.charges_enabled:
-            return HttpResponse('Donations not ready', status=404)
-    except:
-        return HttpResponse('Donations unavailable', status=404)
+        return HttpResponse('Donations not configured', status=400)
     
     recent_donations = []
     if ds.show_recent_donations:
-        recent_donations = list(
-            Donation.objects.filter(streamer=ds.user, status='completed')
-            .order_by('-created_at')[:5]
-            .values('donor_name', 'amount', 'currency', 'created_at')
-        )
+        recent_donations = list(Donation.objects.filter(
+            streamer=ds.user, status='completed'
+        ).order_by('-created_at')[:5].values('donor_name', 'amount', 'currency'))
     
-    context = {
-        'streamer': ds.user.username,
+    return render(request, 'FUZEOBS/donation_page.html', {
         'page_title': ds.page_title,
         'page_message': ds.page_message,
-        'min_amount': float(ds.min_amount),
+        'streamer': ds.user.username,
+        'min_amount': ds.min_amount,
         'suggested_amounts': ds.suggested_amounts,
         'currency': ds.currency,
         'recent_donations': recent_donations,
         'token': token,
         'stripe_publishable_key': settings.STRIPE_PUBLISHABLE_KEY,
-    }
-    
-    return render(request, 'FUZEOBS/donation_page.html', context)
+    })
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_payment_intent(request, token):
-    """Create Stripe PaymentIntent"""
     try:
         ds = DonationSettings.objects.select_related('user').get(donation_token=token)
     except DonationSettings.DoesNotExist:
         return JsonResponse({'error': 'Not found'}, status=404)
     
     if not ds.stripe_account_id:
-        return JsonResponse({'error': 'Donations not set up'}, status=400)
+        return JsonResponse({'error': 'Donations not configured'}, status=400)
     
     try:
         data = json.loads(request.body)
@@ -279,7 +254,6 @@ def create_payment_intent(request, token):
         amount_cents = int(amount * 100)
         platform_fee = int(amount_cents * 0.025)
         
-        # Create donation record
         donation = Donation.objects.create(
             streamer=ds.user,
             donor_name=donor_name,
@@ -289,7 +263,6 @@ def create_payment_intent(request, token):
             status='pending',
         )
         
-        # Create PaymentIntent with destination charge
         payment_intent = stripe.PaymentIntent.create(
             amount=amount_cents,
             currency=ds.currency.lower(),
@@ -321,7 +294,6 @@ def create_payment_intent(request, token):
 @csrf_exempt
 @require_http_methods(["POST"])
 def confirm_donation(request, token):
-    """Called after successful payment to trigger alerts"""
     try:
         ds = DonationSettings.objects.select_related('user').get(donation_token=token)
     except DonationSettings.DoesNotExist:
@@ -334,7 +306,6 @@ def confirm_donation(request, token):
         return JsonResponse({'error': 'Missing payment_intent'}, status=400)
     
     try:
-        # Verify payment succeeded
         pi = stripe.PaymentIntent.retrieve(payment_intent_id)
         if pi.status != 'succeeded':
             return JsonResponse({'error': 'Payment not completed'}, status=400)
@@ -343,12 +314,11 @@ def confirm_donation(request, token):
         donation = Donation.objects.get(id=donation_id, streamer=ds.user)
         
         if donation.status == 'completed':
-            return JsonResponse({'success': True})  # Already processed
+            return JsonResponse({'success': True})
         
         donation.status = 'completed'
         donation.save()
         
-        # Trigger alerts
         trigger_donation_alert(ds.user.id, {
             'type': 'donation',
             'name': donation.donor_name,
@@ -369,11 +339,9 @@ def confirm_donation(request, token):
 @csrf_exempt
 @require_http_methods(["POST"])
 def stripe_donation_webhook(request):
-    """Handle Stripe webhooks for donation payments"""
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     
-    # Use separate webhook secret for donations if configured
     webhook_secret = getattr(settings, 'STRIPE_DONATION_WEBHOOK_SECRET', settings.STRIPE_WEBHOOK_SECRET)
     
     try:
@@ -413,7 +381,6 @@ def stripe_donation_webhook(request):
 
 
 def trigger_donation_alert(user_id, data):
-    """Send donation alert to all widgets"""
     channel_layer = get_channel_layer()
     
     alert_data = {
@@ -434,14 +401,12 @@ def trigger_donation_alert(user_id, data):
         'formatted_amount': data['formatted_amount'],
     }
     
-    # Send to all platform alert channels
     for platform in ['twitch', 'youtube', 'kick', 'facebook', 'tiktok']:
         async_to_sync(channel_layer.group_send)(
             f'alerts_{user_id}_{platform}',
             {'type': 'alert_event', 'data': alert_data}
         )
     
-    # Goal bar
     async_to_sync(channel_layer.group_send)(
         f'goals_{user_id}',
         {'type': 'goal_update', 'data': {
@@ -451,7 +416,6 @@ def trigger_donation_alert(user_id, data):
         }}
     )
     
-    # Labels
     async_to_sync(channel_layer.group_send)(
         f'labels_{user_id}',
         {'type': 'label_update', 'data': {
@@ -465,7 +429,6 @@ def trigger_donation_alert(user_id, data):
 
 @csrf_exempt
 def donation_history(request):
-    """Get donation history"""
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
