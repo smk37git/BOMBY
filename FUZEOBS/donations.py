@@ -118,7 +118,8 @@ def stripe_connect(request):
         
         return JsonResponse({'url': account_link.url})
     except Exception as e:
-        traceback.print_exc(file=sys.stderr)
+        print(f"STRIPE CONNECT ERROR: {e}")
+        traceback.print_exc()
         return JsonResponse({'error': str(e)}, status=400)
 
 
