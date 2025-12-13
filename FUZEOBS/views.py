@@ -1576,6 +1576,9 @@ def fuzeobs_analytics_view(request):
 @staff_member_required
 def fuzeobs_all_users_view(request):
     from django.core.paginator import Paginator
+    from django.db.models import OuterRef, Subquery, IntegerField, DecimalField, Value, Count, Sum
+    from django.db.models.functions import Coalesce
+    from decimal import Decimal
     
     # Use subqueries
     ai_requests_subq = AIUsage.objects.filter(user=OuterRef('pk')).values('user').annotate(
@@ -1591,8 +1594,8 @@ def fuzeobs_all_users_view(request):
     ).values('timestamp')[:1]
     
     all_users = User.objects.filter(fuzeobs_activated=True).annotate(
-        total_ai_requests=Coalesce(Subquery(ai_requests_subq, output_field=IntegerField()), 0),
-        total_ai_cost=Coalesce(Subquery(ai_cost_subq, output_field=DecimalField()), 0),
+        total_ai_requests=Coalesce(Subquery(ai_requests_subq, output_field=IntegerField()), Value(0)),
+        total_ai_cost=Coalesce(Subquery(ai_cost_subq, output_field=DecimalField()), Value(Decimal('0'))),
         last_activity=Subquery(last_activity_subq)
     ).order_by('-total_ai_requests')
     
