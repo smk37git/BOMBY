@@ -235,9 +235,9 @@
 
 /* Tier Badges */
 .tier-free {
-    background: rgba(239, 68, 68, 0.2);
+    background: #f87171;
     border: 1px solid rgba(239, 68, 68, 0.4);
-    color: #f87171;
+    color: white;
     padding: 6px 14px;
     border-radius: 6px;
     font-size: 11px;
@@ -247,9 +247,9 @@
 }
 
 .tier-pro {
-    background: #9724fb40;
+    background: #9724fb;
     border: 1px solid #9724fb56;
-    color: #9724fb;
+    color: white;
     padding: 6px 14px;
     border-radius: 6px;
     font-size: 11px;
@@ -259,9 +259,9 @@
 }
 
 .tier-lifetime {
-    background: rgba(34, 197, 94, 0.2);
+    background: #4ade80;
     border: 1px solid rgba(34, 197, 94, 0.4);
-    color: #4ade80;
+    color: white;
     padding: 6px 14px;
     border-radius: 6px;
     font-size: 11px;
@@ -288,17 +288,17 @@
 
 /* Platform Badges (Downloads) */
 .platform-windows {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.2));
+    background: linear-gradient(135deg, rgb(0, 98, 255), rgba(37, 99, 235, 0.2));
     border: 1px solid rgba(59, 130, 246, 0.4);
 }
 
 .platform-mac {
-    background: linear-gradient(135deg, rgba(156, 163, 175, 0.3), rgba(107, 114, 128, 0.2));
+    background: linear-gradient(135deg, rgb(156, 163, 175), rgba(107, 114, 128, 0.2));
     border: 1px solid rgba(156, 163, 175, 0.4);
 }
 
 .platform-linux {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.2));
+    background: linear-gradient(135deg, rgb(34, 197, 94), rgba(22, 163, 74, 0.2));
     border: 1px solid rgba(34, 197, 94, 0.4);
 }
 
