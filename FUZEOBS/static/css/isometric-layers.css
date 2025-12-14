@@ -79,7 +79,6 @@
     justify-content: center;
 }
 
-
 .iso-layers-wrapper {
     width: 100%;
     display: flex;
@@ -89,7 +88,7 @@
 
 .iso-layers-svg {
     width: auto;
-    height: 580px;
+    height: 500px;
     max-width: 100%;
     display: block;
     overflow: visible;
@@ -107,9 +106,13 @@
 @media (max-width: 1024px) {
     .layers-showcase-layout { grid-template-columns: 1fr; gap: 40px; }
     .layers-graphic { order: -1; }
+    .iso-layers-svg { height: 420px; }
 }
 @media (max-width: 768px) {
     .layers-showcase { padding: 40px 16px 20px; }
+    .iso-layers-svg { height: 360px; }
 }
 @media (max-width: 480px) {
+    .iso-layers-svg { height: 290px; }
+    .layers-showcase { padding: 30px 12px 16px; }
 }

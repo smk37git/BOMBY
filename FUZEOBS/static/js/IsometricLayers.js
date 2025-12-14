@@ -21,7 +21,7 @@ class IsometricLayers {
         this.offsetX = 175;
         this.startY = 0;
         this.svgW = 1020;
-        this.svgH = 550;
+        this.svgH = 480;
         
         this.init();
     }
@@ -64,10 +64,10 @@ class IsometricLayers {
                             <stop offset="100%" stop-color="white" stop-opacity="0"/>
                         </linearGradient>
                         <mask id="dotsFade">
-                            <rect x="0" y="0" width="${this.svgW}" height="${this.svgH * 1.4}" fill="url(#dotsFeatherV)"/>
+                            <rect x="0" y="0" width="${this.svgW}" height="${this.svgH * 1.6}" fill="url(#dotsFeatherV)"/>
                         </mask>
                         <mask id="dotsFadeH">
-                            <rect x="0" y="0" width="${this.svgW}" height="${this.svgH * 1.4}" fill="url(#dotsFeatherH)"/>
+                            <rect x="0" y="0" width="${this.svgW}" height="${this.svgH * 1.6}" fill="url(#dotsFeatherH)"/>
                         </mask>
                     </defs>
                     <g class="dots-grid" opacity="0.15" mask="url(#dotsFade)">
@@ -84,7 +84,7 @@ class IsometricLayers {
     renderDots() {
         let dots = '';
         for (let x = 10; x < this.svgW; x += 20) {
-            for (let y = 10; y < this.svgH * 1.5; y += 20) {
+            for (let y = 10; y < this.svgH * 1.6; y += 20) {
                 dots += `<circle cx="${x}" cy="${y}" r="1" fill="white"/>`;
             }
         }
@@ -120,7 +120,7 @@ class IsometricLayers {
                       transform="matrix(${cos.toFixed(4)}, ${sin.toFixed(4)}, 0, 1, ${labelX}, ${labelY})"
                       text-anchor="middle"
                       dominant-baseline="middle"
-                      fill="rgba(255,255,255,0.5)" font-size="18" font-weight="700"
+                      fill="rgba(255,255,255,0.5)" font-size="24" font-weight="700"
                       font-family="system-ui, -apple-system, sans-serif">${layer.label}</text>
             </g>
         `;
