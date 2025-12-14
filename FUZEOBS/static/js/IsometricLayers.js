@@ -80,10 +80,13 @@ class IsometricLayers {
         const leftPath = `M ${x} ${y + h/2} L ${x} ${y + h/2 + t} L ${x + w/2} ${y + h + t} L ${x + w/2} ${y + h} Z`;
         const rightPath = `M ${x + w} ${y + h/2} L ${x + w} ${y + h/2 + t} L ${x + w/2} ${y + h + t} L ${x + w/2} ${y + h} Z`;
         
-        // Left face center
-        const leftCenterX = x + w/4;
-        const leftCenterY = y + h*0.75 + t/2;
-        const angle = Math.atan2(h/2, w/2) * (180/Math.PI); // ~23 deg
+        // Isometric transform for left face: x-axis follows slope, y-axis vertical
+        const labelX = x + w/4;
+        const labelY = y + h*0.75 + t/2;
+        const angle = Math.atan(h / w); // radians
+        const cos = Math.cos(angle);
+        const sin = Math.sin(angle);
+        // matrix(a, b, c, d, e, f) = matrix(cosθ, sinθ, 0, 1, tx, ty)
         
         return `
             <g class="iso-layer" data-layer="${index}" transform="translate(0, 0)">
@@ -94,10 +97,12 @@ class IsometricLayers {
                     <g class="iso-grid" opacity="0.06">${this.renderTopGrid(x, y, w, h)}</g>
                 </g>
                 <g class="iso-rings" opacity="0">${this.renderRings(x + w/2, y + h/2, w * 0.18, h * 0.18)}</g>
-                <text class="iso-layer-label" x="${leftCenterX}" y="${leftCenterY}" text-anchor="middle"
-                      fill="rgba(255,255,255,0.5)" font-size="22" font-weight="600"
-                      font-family="system-ui, -apple-system, sans-serif"
-                      transform="rotate(${angle}, ${leftCenterX}, ${leftCenterY})">${layer.label}</text>
+                <text class="iso-layer-label" 
+                      transform="matrix(${cos.toFixed(4)}, ${sin.toFixed(4)}, 0, 1, ${labelX}, ${labelY})"
+                      text-anchor="middle"
+                      dominant-baseline="middle"
+                      fill="rgba(255,255,255,0.5)" font-size="18" font-weight="700"
+                      font-family="system-ui, -apple-system, sans-serif">${layer.label}</text>
             </g>
         `;
     }
