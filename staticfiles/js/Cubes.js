@@ -31,7 +31,7 @@ class CubesAnimation {
     this.animationFrame = null;
     this.idleTimer = null;
     this.lastPointerTime = 0;
-    this.throttleMs = 16;
+    this.throttleMs = 4;
     
     this.init();
   }

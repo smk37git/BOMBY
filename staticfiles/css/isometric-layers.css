@@ -1,0 +1,278 @@
+/* ===========================================
+   Isometric Layers Section
+   =========================================== */
+
+.layers-showcase {
+    padding: 80px 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.layers-showcase-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 60px;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Accordion */
+.layers-accordion {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.accordion-item {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.accordion-item:first-child {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.accordion-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.accordion-header:hover {
+    padding-left: 8px;
+}
+
+.accordion-title {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+}
+
+.accordion-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 400;
+}
+
+.accordion-number span {
+    color: #8b5cf6;
+}
+
+.accordion-heading {
+    font-size: clamp(20px, 2.5vw, 28px);
+    font-weight: 600;
+    color: #fff;
+    margin: 0;
+    transition: color 0.3s ease;
+}
+
+.accordion-item.active .accordion-heading {
+    color: #fff;
+}
+
+.accordion-item:not(.active) .accordion-heading {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.accordion-toggle {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 20px;
+    font-weight: 300;
+    transition: transform 0.3s ease;
+}
+
+.accordion-item.active .accordion-toggle {
+    color: #fff;
+}
+
+.accordion-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.accordion-item.active .accordion-content {
+    max-height: 200px;
+    padding-bottom: 24px;
+}
+
+.accordion-desc {
+    font-size: 15px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+    padding-left: 44px;
+}
+
+.accordion-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 16px;
+    padding-left: 44px;
+}
+
+.accordion-tab {
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.7);
+    transition: all 0.2s ease;
+}
+
+.accordion-tab:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Isometric Graphic */
+.layers-graphic {
+    position: relative;
+    width: 100%;
+    min-height: 400px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.iso-layers-wrapper {
+    width: 100%;
+    height: 100%;
+}
+
+.iso-layers-svg {
+    width: 100%;
+    height: auto;
+    max-height: 450px;
+}
+
+.iso-layer {
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.iso-layer:hover {
+    filter: url(#glow);
+}
+
+.iso-layer.active {
+    filter: url(#glow);
+}
+
+.iso-face {
+    transition: all 0.4s ease;
+}
+
+.iso-layer-label {
+    pointer-events: none;
+    font-family: 'Inter', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.iso-side-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    fill: rgba(255, 255, 255, 0.5);
+    transition: all 0.3s ease;
+}
+
+.iso-highlight {
+    transition: all 0.4s ease;
+}
+
+/* Color indicators for accordion items */
+.accordion-item[data-layer="0"] .accordion-number span { color: #3b82f6; }
+.accordion-item[data-layer="1"] .accordion-number span { color: #8b5cf6; }
+.accordion-item[data-layer="2"] .accordion-number span { color: #f59e0b; }
+.accordion-item[data-layer="3"] .accordion-number span { color: #10b981; }
+
+.accordion-item[data-layer="0"].active .accordion-heading { color: #3b82f6; }
+.accordion-item[data-layer="1"].active .accordion-heading { color: #8b5cf6; }
+.accordion-item[data-layer="2"].active .accordion-heading { color: #f59e0b; }
+.accordion-item[data-layer="3"].active .accordion-heading { color: #10b981; }
+
+/* ===========================================
+   Responsive - Tablet
+   =========================================== */
+@media (max-width: 1024px) {
+    .layers-showcase-layout {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+
+    .layers-graphic {
+        order: -1;
+        min-height: 300px;
+    }
+
+    .iso-layers-svg {
+        max-height: 350px;
+    }
+
+    .accordion-desc,
+    .accordion-tabs {
+        padding-left: 0;
+    }
+}
+
+/* ===========================================
+   Responsive - Mobile
+   =========================================== */
+@media (max-width: 768px) {
+    .layers-showcase {
+        padding: 60px 16px;
+    }
+
+    .accordion-header {
+        padding: 20px 0;
+    }
+
+    .accordion-heading {
+        font-size: 18px;
+    }
+
+    .accordion-desc {
+        font-size: 14px;
+    }
+
+    .layers-graphic {
+        min-height: 250px;
+    }
+
+    .iso-layers-svg {
+        max-height: 280px;
+    }
+}
+
+@media (max-width: 480px) {
+    .layers-graphic {
+        min-height: 200px;
+    }
+
+    .iso-layers-svg {
+        max-height: 220px;
+    }
+
+    .accordion-tabs {
+        gap: 6px;
+    }
+
+    .accordion-tab {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+}

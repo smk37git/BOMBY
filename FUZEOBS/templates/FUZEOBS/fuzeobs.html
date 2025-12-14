@@ -6,6 +6,7 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/fuzeobs.css' %}">
+    <link rel="stylesheet" href="{% static 'css/isometric-layers.css' %}">
 {% endblock %}
 
 {% block background %}
@@ -157,30 +158,90 @@
         </div>
     </section>
 
-    <!-- Tab Showcase -->
-    <section class="tabs-showcase">
+    <!-- Layers Showcase -->
+    <section class="layers-showcase">
         <div class="container">
-            <div class="tabs-showcase-layout">
-                <div class="tabs-showcase-content">
-                    <span class="section-label">10 POWERFUL TABS</span>
-                    <h2 class="section-title">Everything in one place</h2>
-                    <p class="section-desc">From hardware detection to AI assistance, FuzeOBS covers every aspect of your streaming setup.</p>
+            <div class="section-header">
+                <span class="section-label">10 POWERFUL TABS</span>
+                <h2 class="section-title">Everything in one place</h2>
+                <p class="section-subtitle">From hardware detection to AI assistance, FuzeOBS covers every aspect of your streaming setup.</p>
+            </div>
+            
+            <div class="layers-showcase-layout">
+                <div class="layers-accordion">
+                    <div class="accordion-item active" data-layer="0">
+                        <div class="accordion-header">
+                            <div class="accordion-title">
+                                <span class="accordion-number">01<span>/</span></span>
+                                <h3 class="accordion-heading">Deployment</h3>
+                            </div>
+                            <span class="accordion-toggle">−</span>
+                        </div>
+                        <div class="accordion-content">
+                            <p class="accordion-desc">Analyze your system, generate optimized settings, and deploy them to OBS with one click. Automatic encoder selection and bitrate optimization.</p>
+                            <div class="accordion-tabs">
+                                <span class="accordion-tab">Detection</span>
+                                <span class="accordion-tab">Configuration</span>
+                                <span class="accordion-tab">Optimization</span>
+                            </div>
+                        </div>
+                    </div>
                     
-                    <div class="tabs-list">
-                        <div class="tab-pill">Detection</div>
-                        <div class="tab-pill">Configuration</div>
-                        <div class="tab-pill">Optimization</div>
-                        <div class="tab-pill">Audio</div>
-                        <div class="tab-pill">Scenes</div>
-                        <div class="tab-pill">Tools</div>
-                        <div class="tab-pill">Plugins</div>
-                        <div class="tab-pill">Docs</div>
-                        <div class="tab-pill">Benchmark</div>
-                        <div class="tab-pill">Fuze-AI</div>
+                    <div class="accordion-item" data-layer="1">
+                        <div class="accordion-header">
+                            <div class="accordion-title">
+                                <span class="accordion-number">02<span>/</span></span>
+                                <h3 class="accordion-heading">Setup</h3>
+                            </div>
+                            <span class="accordion-toggle">+</span>
+                        </div>
+                        <div class="accordion-content">
+                            <p class="accordion-desc">Configure audio devices, create scene templates, and set up your streaming environment. Professional layouts ready to use.</p>
+                            <div class="accordion-tabs">
+                                <span class="accordion-tab">Audio</span>
+                                <span class="accordion-tab">Scenes</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item" data-layer="2">
+                        <div class="accordion-header">
+                            <div class="accordion-title">
+                                <span class="accordion-number">03<span>/</span></span>
+                                <h3 class="accordion-heading">Extras</h3>
+                            </div>
+                            <span class="accordion-toggle">+</span>
+                        </div>
+                        <div class="accordion-content">
+                            <p class="accordion-desc">Access utility tools, manage plugins, and browse comprehensive documentation. Everything to extend your streaming capabilities.</p>
+                            <div class="accordion-tabs">
+                                <span class="accordion-tab">Tools</span>
+                                <span class="accordion-tab">Plugins</span>
+                                <span class="accordion-tab">Documentation</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item" data-layer="3">
+                        <div class="accordion-header">
+                            <div class="accordion-title">
+                                <span class="accordion-number">04<span>/</span></span>
+                                <h3 class="accordion-heading">AI Enhancements</h3>
+                            </div>
+                            <span class="accordion-toggle">+</span>
+                        </div>
+                        <div class="accordion-content">
+                            <p class="accordion-desc">Real-time performance benchmarking and AI-powered assistance. Get intelligent recommendations and troubleshooting help.</p>
+                            <div class="accordion-tabs">
+                                <span class="accordion-tab">Benchmark</span>
+                                <span class="accordion-tab">Fuze-AI</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="tabs-showcase-cards">
-                    <div id="card-swap-container"></div>
+                
+                <div class="layers-graphic">
+                    <div id="iso-layers-container"></div>
                 </div>
             </div>
         </div>
@@ -256,18 +317,13 @@
             <div class="widgets-grid">
                 <div class="widget-card">
                     <div class="widget-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div>
-                    <h4>Alert Boxes</h4>
-                    <p>Follows, subs, raids, bits, etc...</p>
+                    <h4>Alerts</h4>
+                    <p>Follow, sub, donation alerts</p>
                 </div>
                 <div class="widget-card">
                     <div class="widget-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
                     <h4>Chat Box</h4>
-                    <p>Customizable global chat overlay</p>
-                </div>
-                <div class="widget-card">
-                    <div class="widget-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
-                    <h4>Goal Bars</h4>
-                    <p>Track metrics on every platform</p>
+                    <p>Customizable chat overlay</p>
                 </div>
                 <div class="widget-card">
                     <div class="widget-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
@@ -283,6 +339,11 @@
                     <div class="widget-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
                     <h4>Donations</h4>
                     <p>Earn while you Stream</p>
+                </div>
+                <div class="widget-card">
+                    <div class="widget-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                    <h4>Timer</h4>
+                    <p>Countdown & stopwatch</p>
                 </div>
             </div>
         </div>
@@ -424,26 +485,15 @@ if (typeof gsap === 'undefined') {
 }
 </script>
 <script src="{% static 'js/Cubes.js' %}"></script>
-<script src="{% static 'js/CardSwap.js' %}"></script>
+<script src="{% static 'js/IsometricLayers.js' %}"></script>
 <script>
 (function() {
-    // Wait for everything to load
     function init() {
         console.log('FuzeOBS init starting...');
-        console.log('GSAP:', typeof gsap);
-        console.log('CubesAnimation:', typeof CubesAnimation);
         
-        // Initialize Cubes - smaller grid for mobile
+        // Initialize Cubes Hero
         var container = document.getElementById('cubes-container');
-        if (container) {
-            if (typeof CubesAnimation === 'undefined') {
-                console.error('CubesAnimation not loaded - check static files');
-                return;
-            }
-            if (typeof gsap === 'undefined') {
-                console.error('GSAP not loaded');
-                return;
-            }
+        if (container && typeof CubesAnimation !== 'undefined' && typeof gsap !== 'undefined') {
             var gridSize = window.innerWidth < 480 ? 8 : (window.innerWidth < 768 ? 10 : 14);
             try {
                 new CubesAnimation(container, {
@@ -457,67 +507,71 @@ if (typeof gsap === 'undefined') {
                     autoAnimate: true,
                     rippleOnClick: true
                 });
-                console.log('CubesAnimation initialized');
             } catch(e) {
                 console.error('CubesAnimation error:', e);
             }
         }
         
-        // Initialize CardSwap
-        var cardContainer = document.getElementById('card-swap-container');
-        var cardSwap = null;
-        if (cardContainer && typeof CardSwap !== 'undefined' && typeof generateTabCards !== 'undefined') {
-            cardContainer.innerHTML = generateTabCards(true);
-            
-            // Responsive card sizes and distances
-            var width = 512, height = 288, cardDist = 30, vertDist = 28, visCards = 5;
-            if (window.innerWidth < 480) { 
-                width = 240; height = 135; cardDist = 18; vertDist = 16; visCards = 3;
-            } else if (window.innerWidth < 768) { 
-                width = 280; height = 158; cardDist = 22; vertDist = 20; visCards = 4;
-            } else if (window.innerWidth < 1024) { 
-                width = 440; height = 248; cardDist = 26; vertDist = 24;
-            }
-            
-            cardSwap = new CardSwap(cardContainer, {
-                cardDistance: cardDist,
-                verticalDistance: vertDist,
-                delay: 4000,
-                pauseOnHover: true,
-                skewAmount: 0,
-                width: width,
-                height: height,
-                visibleCards: visCards
+        // Initialize Isometric Layers
+        var isoContainer = document.getElementById('iso-layers-container');
+        var isoLayers = null;
+        
+        if (isoContainer && typeof IsometricLayers !== 'undefined') {
+            isoLayers = new IsometricLayers(isoContainer, {
+                initialLayer: 0,
+                layers: [
+                    { id: 'deployment', label: 'Deployment', sideLabel: 'CORE' },
+                    { id: 'setup', label: 'Setup', sideLabel: 'CUSTOMIZE' },
+                    { id: 'extras', label: 'Extras', sideLabel: 'EXTEND' },
+                    { id: 'ai', label: 'AI Enhancements', sideLabel: 'INTELLIGENT' }
+                ]
             });
         }
         
-        // Tab pill click handlers
-        var tabMap = {
-            'Detection': 'detection',
-            'Configuration': 'configuration',
-            'Optimization': 'optimization',
-            'Audio': 'audio',
-            'Scenes': 'scenes',
-            'Tools': 'tools',
-            'Plugins': 'plugins',
-            'Docs': 'documentation',
-            'Benchmark': 'benchmark',
-            'Fuze-AI': 'fuze-ai'
-        };
+        // Accordion functionality
+        var accordionItems = document.querySelectorAll('.accordion-item');
         
-        document.querySelectorAll('.tab-pill').forEach(function(pill) {
-            pill.addEventListener('click', function() {
-                var tabId = tabMap[pill.textContent.trim()];
-                if (tabId && cardSwap) {
-                    cardSwap.showCard(tabId);
-                    cardSwap.isPaused = true;
-                    setTimeout(function() { cardSwap.isPaused = false; }, 10000);
+        accordionItems.forEach(function(item) {
+            var header = item.querySelector('.accordion-header');
+            
+            header.addEventListener('click', function() {
+                var layerIndex = parseInt(item.dataset.layer);
+                
+                // Close all items
+                accordionItems.forEach(function(other) {
+                    other.classList.remove('active');
+                    other.querySelector('.accordion-toggle').textContent = '+';
+                });
+                
+                // Open clicked item
+                item.classList.add('active');
+                item.querySelector('.accordion-toggle').textContent = '−';
+                
+                // Update isometric graphic
+                if (isoLayers) {
+                    isoLayers.selectLayer(layerIndex);
                 }
             });
         });
+        
+        // Listen for layer changes from graphic clicks
+        if (isoContainer) {
+            isoContainer.addEventListener('layerchange', function(e) {
+                var idx = e.detail.index;
+                
+                accordionItems.forEach(function(item) {
+                    if (parseInt(item.dataset.layer) === idx) {
+                        item.classList.add('active');
+                        item.querySelector('.accordion-toggle').textContent = '−';
+                    } else {
+                        item.classList.remove('active');
+                        item.querySelector('.accordion-toggle').textContent = '+';
+                    }
+                });
+            });
+        }
     }
     
-    // Run init when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
