@@ -7,10 +7,10 @@ class IsometricLayers {
         this.container = container;
         this.activeLayer = options.initialLayer || 0;
         this.layers = options.layers || [
-            { id: 'deployment', label: 'Deployment', sideLabel: 'CORE' },
-            { id: 'setup', label: 'Setup', sideLabel: 'CUSTOMIZE' },
-            { id: 'extras', label: 'Extras', sideLabel: 'EXTEND' },
-            { id: 'ai', label: 'AI Enhancements', sideLabel: 'INTELLIGENT' }
+            { id: 'deployment', label: 'Deployment', sideLabel: 'CORE', number: '01' },
+            { id: 'setup', label: 'Setup', sideLabel: 'CUSTOMIZE', number: '02' },
+            { id: 'extras', label: 'Extras', sideLabel: 'EXTEND', number: '03' },
+            { id: 'ai', label: 'AI Enhancements', sideLabel: 'INTELLIGENT', number: '04' }
         ];
         
         this.w = 700;
@@ -107,6 +107,10 @@ class IsometricLayers {
         const cos = Math.cos(angle);
         const sin = Math.sin(angle);
         
+        // Right face label position
+        const rightLabelX = x + w*0.75;
+        const rightLabelY = labelY;
+        
         return `
             <g class="iso-layer" data-layer="${index}" transform="translate(0, 0)">
                 <g class="iso-box">
@@ -122,6 +126,12 @@ class IsometricLayers {
                       dominant-baseline="middle"
                       fill="rgba(255,255,255,0.5)" font-size="24" font-weight="700"
                       font-family="system-ui, -apple-system, sans-serif">${layer.label}</text>
+                <text class="iso-layer-number" 
+                      transform="matrix(${cos.toFixed(4)}, ${(-sin).toFixed(4)}, 0, 1, ${rightLabelX}, ${rightLabelY})"
+                      text-anchor="middle"
+                      dominant-baseline="middle"
+                      fill="rgba(255,255,255,0.25)" font-size="16" font-weight="500"
+                      font-family="'JetBrains Mono', monospace">${layer.number || '0' + (index + 1)}</text>
             </g>
         `;
     }
@@ -174,27 +184,19 @@ class IsometricLayers {
             const ry = h/2 * r * 0.8;
             
             for (let i = 0; i < count; i++) {
-                const angle = (i / count) * Math.PI * 2 + ringIdx * 0.3;
-                const dotX = cx + rx * Math.cos(angle);
-                const dotY = cy + ry * Math.sin(angle);
+                const angle = (i / count) * Math.PI * 2;
+                const dotX = cx + Math.cos(angle) * rx;
+                const dotY = cy + Math.sin(angle) * ry;
                 grid += `<circle cx="${dotX}" cy="${dotY}" r="2" fill="white"/>`;
             }
         });
-        
-        grid += `<circle cx="${cx}" cy="${cy}" r="4" fill="white"/>`;
         
         return grid;
     }
 
     renderDottedGrid(x, y, w, h) {
         let grid = '';
-        const steps = 5;
-        
-        for (let i = 1; i < steps; i++) {
-            const r = i / steps;
-            grid += `<line x1="${x + r*w/2}" y1="${y + h/2 - r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + h - r*h/2}" stroke="white" stroke-width="0.5"/>`;
-            grid += `<line x1="${x + r*w/2}" y1="${y + h/2 + r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + r*h/2}" stroke="white" stroke-width="0.5"/>`;
-        }
+        const steps = 6;
         for (let i = 1; i < steps; i++) {
             for (let j = 1; j < steps; j++) {
                 const px = x + (i/steps)*w/2 + (j/steps)*w/2;
@@ -264,22 +266,26 @@ class IsometricLayers {
             const left = layer.querySelector('.iso-left');
             const right = layer.querySelector('.iso-right');
             const label = layer.querySelector('.iso-layer-label');
+            const number = layer.querySelector('.iso-layer-number');
             
             if (idx === index) {
                 top.setAttribute('stroke', 'rgba(255,255,255,0.45)');
                 left.setAttribute('stroke', 'rgba(255,255,255,0.45)');
                 right.setAttribute('stroke', 'rgba(255,255,255,0.45)');
                 label.setAttribute('fill', 'rgba(255,255,255,0.65)');
+                number.setAttribute('fill', 'rgba(255,255,255,0.4)');
             } else if (idx === this.activeLayer) {
                 top.setAttribute('stroke', 'rgba(255,255,255,0.6)');
                 left.setAttribute('stroke', 'rgba(255,255,255,0.6)');
                 right.setAttribute('stroke', 'rgba(255,255,255,0.6)');
                 label.setAttribute('fill', 'rgba(255,255,255,0.95)');
+                number.setAttribute('fill', 'rgba(255,255,255,0.5)');
             } else {
                 top.setAttribute('stroke', 'rgba(255,255,255,0.12)');
                 left.setAttribute('stroke', 'rgba(255,255,255,0.08)');
                 right.setAttribute('stroke', 'rgba(255,255,255,0.08)');
                 label.setAttribute('fill', 'rgba(255,255,255,0.33)');
+                number.setAttribute('fill', 'rgba(255,255,255,0.15)');
             }
         });
     }
@@ -329,6 +335,7 @@ class IsometricLayers {
     applyLayerStyles(layer, isActive) {
         const rings = layer.querySelector('.iso-rings');
         const label = layer.querySelector('.iso-layer-label');
+        const number = layer.querySelector('.iso-layer-number');
         const top = layer.querySelector('.iso-top');
         const left = layer.querySelector('.iso-left');
         const right = layer.querySelector('.iso-right');
@@ -339,6 +346,7 @@ class IsometricLayers {
         
         if (isActive) {
             label.setAttribute('fill', 'rgba(255,255,255,1)');
+            number.setAttribute('fill', 'rgba(255,255,255,0.5)');
             top.setAttribute('stroke', 'rgba(255,255,255,0.6)');
             top.setAttribute('stroke-width', '1.5');
             left.setAttribute('stroke', 'rgba(255,255,255,0.6)');
@@ -348,6 +356,7 @@ class IsometricLayers {
             grid.setAttribute('opacity', '0.28');
         } else {
             label.setAttribute('fill', 'rgba(255,255,255,0.33)');
+            number.setAttribute('fill', 'rgba(255,255,255,0.15)');
             top.setAttribute('stroke', 'rgba(255,255,255,0.12)');
             top.setAttribute('stroke-width', '1');
             left.setAttribute('stroke', 'rgba(255,255,255,0.08)');

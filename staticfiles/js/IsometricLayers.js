@@ -20,8 +20,8 @@ class IsometricLayers {
         this.expandAmount = 100;
         this.offsetX = 175;
         this.startY = 0;
-        this.svgW = 1020;
-        this.svgH = 550;
+        this.svgW = 1150;
+        this.svgH = 480;
         
         this.init();
     }
@@ -37,7 +37,6 @@ class IsometricLayers {
         return this.startY + index * layerHeight;
     }
 
-    // Gap opens between layer above active and active layer
     getTransformY(index, activeIndex) {
         if (activeIndex > 0 && index >= activeIndex) {
             return this.expandAmount;
@@ -51,10 +50,33 @@ class IsometricLayers {
         this.container.innerHTML = `
             <div class="iso-layers-wrapper">
                 <svg class="iso-layers-svg" viewBox="0 0 ${this.svgW} ${this.svgH}" preserveAspectRatio="xMidYMin meet">
-                    <g class="dots-grid" opacity="0.04">
+                    <defs>
+                        <linearGradient id="dotsFeatherV" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" stop-color="white" stop-opacity="0"/>
+                            <stop offset="10%" stop-color="white" stop-opacity="1"/>
+                            <stop offset="90%" stop-color="white" stop-opacity="1"/>
+                            <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                        </linearGradient>
+                        <linearGradient id="dotsFeatherH" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="white" stop-opacity="0"/>
+                            <stop offset="15%" stop-color="white" stop-opacity="1"/>
+                            <stop offset="85%" stop-color="white" stop-opacity="1"/>
+                            <stop offset="100%" stop-color="white" stop-opacity="0"/>
+                        </linearGradient>
+                        <mask id="dotsFade">
+                            <rect x="0" y="0" width="${this.svgW}" height="${this.svgH * 1.6}" fill="url(#dotsFeatherV)"/>
+                        </mask>
+                        <mask id="dotsFadeH">
+                            <rect x="0" y="0" width="${this.svgW}" height="${this.svgH * 1.6}" fill="url(#dotsFeatherH)"/>
+                        </mask>
+                    </defs>
+                    <g class="dots-grid" opacity="0.15" mask="url(#dotsFade)">
+                        <g mask="url(#dotsFadeH)">
                         ${this.renderDots()}
+                        </g>
                     </g>
                     ${renderOrder.map(i => this.renderLayer(i)).join('')}
+                    ${this.layers.map((_, i) => this.renderVerticalConnector(i)).join('')}
                 </svg>
             </div>
         `;
@@ -62,8 +84,8 @@ class IsometricLayers {
 
     renderDots() {
         let dots = '';
-        for (let x = 15; x < this.svgW - 15; x += 20) {
-            for (let y = 15; y < this.svgH - 15; y += 20) {
+        for (let x = 10; x < this.svgW; x += 20) {
+            for (let y = 10; y < this.svgH * 1.6; y += 20) {
                 dots += `<circle cx="${x}" cy="${y}" r="1" fill="white"/>`;
             }
         }
@@ -80,52 +102,38 @@ class IsometricLayers {
         const leftPath = `M ${x} ${y + h/2} L ${x} ${y + h/2 + t} L ${x + w/2} ${y + h + t} L ${x + w/2} ${y + h} Z`;
         const rightPath = `M ${x + w} ${y + h/2} L ${x + w} ${y + h/2 + t} L ${x + w/2} ${y + h + t} L ${x + w/2} ${y + h} Z`;
         
-        // Isometric transform for left face: x-axis follows slope, y-axis vertical
         const labelX = x + w/4;
         const labelY = y + h*0.75 + t/2;
-        const angle = Math.atan(h / w); // radians
+        const angle = Math.atan(h / w);
         const cos = Math.cos(angle);
         const sin = Math.sin(angle);
-        // matrix(a, b, c, d, e, f) = matrix(cosθ, sinθ, 0, 1, tx, ty)
         
         return `
             <g class="iso-layer" data-layer="${index}" transform="translate(0, 0)">
                 <g class="iso-box">
-                    <path class="iso-left" d="${leftPath}" fill="#080808" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-                    <path class="iso-right" d="${rightPath}" fill="#0d0d0d" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
-                    <path class="iso-top" d="${topPath}" fill="#0a0a0a" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-                    <g class="iso-grid" opacity="0.15">${this.renderTopGrid(x, y, w, h, index)}</g>
+                    <path class="iso-left" d="${leftPath}" fill="#090909" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                    <path class="iso-right" d="${rightPath}" fill="#0e0e0e" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                    <path class="iso-top" d="${topPath}" fill="#0b0b0b" stroke="rgba(255,255,255,0.12)" stroke-width="1"/>
+                    <g class="iso-grid" opacity="0.18">${this.renderTopGrid(x, y, w, h, index)}</g>
                 </g>
-                <g class="iso-rings" opacity="0">${index === 0 ? '' : ''}</g>
+                <g class="iso-rings" opacity="0"></g>
                 <text class="iso-layer-label" 
                       transform="matrix(${cos.toFixed(4)}, ${sin.toFixed(4)}, 0, 1, ${labelX}, ${labelY})"
                       text-anchor="middle"
                       dominant-baseline="middle"
-                      fill="rgba(255,255,255,0.5)" font-size="18" font-weight="700"
+                      fill="rgba(255,255,255,0.5)" font-size="24" font-weight="700"
                       font-family="system-ui, -apple-system, sans-serif">${layer.label}</text>
             </g>
         `;
     }
 
     renderTopGrid(x, y, w, h, index) {
-        const cx = x + w/2;
-        const cy = y + h/2;
-        
         switch(index) {
-            case 0: // Deployment - radial lines from center
-                return this.renderRadialLines(x, y, w, h);
-            
-            case 1: // Setup - grid with dots
-                return this.renderDottedGrid(x, y, w, h);
-            
-            case 2: // Extras - concentric diamonds
-                return this.renderConcentricDiamonds(x, y, w, h);
-            
-            case 3: // AI Enhancements - neural network nodes
-                return this.renderNeuralPattern(x, y, w, h);
-            
-            default:
-                return this.renderDashedGrid(x, y, w, h);
+            case 0: return this.renderRadialLines(x, y, w, h);
+            case 1: return this.renderDottedGrid(x, y, w, h);
+            case 2: return this.renderConcentricDiamonds(x, y, w, h);
+            case 3: return this.renderNeuralPattern(x, y, w, h);
+            default: return this.renderDashedGrid(x, y, w, h);
         }
     }
 
@@ -134,24 +142,14 @@ class IsometricLayers {
         const cx = x + w/2;
         const cy = y + h/2;
         
-        // Main X
         grid += `<line x1="${x}" y1="${cy}" x2="${x + w}" y2="${cy}" stroke="white" stroke-width="0.6"/>`;
         grid += `<line x1="${cx}" y1="${y}" x2="${cx}" y2="${y + h}" stroke="white" stroke-width="0.6"/>`;
         
-        // 3 chevrons per quadrant - nested from center outward
         for (let i = 1; i <= 3; i++) {
             const r = i * 0.25;
-            
-            // Top ^ - tip points up
             grid += `<path d="M ${cx - r*w/2} ${cy} L ${cx} ${cy - r*h/2} L ${cx + r*w/2} ${cy}" fill="none" stroke="white" stroke-width="0.5"/>`;
-            
-            // Bottom v - tip points down
             grid += `<path d="M ${cx - r*w/2} ${cy} L ${cx} ${cy + r*h/2} L ${cx + r*w/2} ${cy}" fill="none" stroke="white" stroke-width="0.5"/>`;
-            
-            // Left < - tip points left
             grid += `<path d="M ${cx} ${cy - r*h/2} L ${cx - r*w/2} ${cy} L ${cx} ${cy + r*h/2}" fill="none" stroke="white" stroke-width="0.5"/>`;
-            
-            // Right > - tip points right
             grid += `<path d="M ${cx} ${cy - r*h/2} L ${cx + r*w/2} ${cy} L ${cx} ${cy + r*h/2}" fill="none" stroke="white" stroke-width="0.5"/>`;
         }
         
@@ -163,7 +161,6 @@ class IsometricLayers {
         const cx = x + w/2;
         const cy = y + h/2;
         
-        // Concentric pulsing rings with data points
         for (let i = 1; i <= 4; i++) {
             const r = i / 5;
             const rx = w/2 * r * 0.8;
@@ -171,7 +168,6 @@ class IsometricLayers {
             grid += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="white" stroke-width="${i === 2 ? 1.5 : 0.5}"/>`;
         }
         
-        // Orbiting dots on rings
         const dotCounts = [4, 6, 8, 10];
         dotCounts.forEach((count, ringIdx) => {
             const r = (ringIdx + 1) / 5;
@@ -180,39 +176,26 @@ class IsometricLayers {
             
             for (let i = 0; i < count; i++) {
                 const angle = (i / count) * Math.PI * 2 + ringIdx * 0.3;
-                const dotX = cx + Math.cos(angle) * rx;
-                const dotY = cy + Math.sin(angle) * ry;
-                grid += `<circle cx="${dotX}" cy="${dotY}" r="3" fill="white"/>`;
+                const dotX = cx + rx * Math.cos(angle);
+                const dotY = cy + ry * Math.sin(angle);
+                grid += `<circle cx="${dotX}" cy="${dotY}" r="2" fill="white"/>`;
             }
         });
         
-        // Center dot
-        grid += `<circle cx="${cx}" cy="${cy}" r="5" fill="white"/>`;
+        grid += `<circle cx="${cx}" cy="${cy}" r="4" fill="white"/>`;
         
-        return grid;
-    }
-
-    renderDashedGrid(x, y, w, h) {
-        let grid = '';
-        const steps = 5;
-        for (let i = 1; i < steps; i++) {
-            const r = i / steps;
-            grid += `<line x1="${x + r*w/2}" y1="${y + h/2 - r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + h - r*h/2}" stroke="white" stroke-width="0.5" stroke-dasharray="4,4"/>`;
-            grid += `<line x1="${x + r*w/2}" y1="${y + h/2 + r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + r*h/2}" stroke="white" stroke-width="0.5" stroke-dasharray="4,4"/>`;
-        }
         return grid;
     }
 
     renderDottedGrid(x, y, w, h) {
         let grid = '';
-        const steps = 6;
-        // Grid lines
+        const steps = 5;
+        
         for (let i = 1; i < steps; i++) {
             const r = i / steps;
             grid += `<line x1="${x + r*w/2}" y1="${y + h/2 - r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + h - r*h/2}" stroke="white" stroke-width="0.5"/>`;
             grid += `<line x1="${x + r*w/2}" y1="${y + h/2 + r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + r*h/2}" stroke="white" stroke-width="0.5"/>`;
         }
-        // Dots at intersections
         for (let i = 1; i < steps; i++) {
             for (let j = 1; j < steps; j++) {
                 const px = x + (i/steps)*w/2 + (j/steps)*w/2;
@@ -263,6 +246,27 @@ class IsometricLayers {
         `;
     }
 
+    renderVerticalConnector(index) {
+        const layer = this.layers[index];
+        const y = this.getBaseY(index);
+        const x = this.offsetX + this.w + 80 + (index * 60); // stagger horizontally
+        const topY = -50; // extends above SVG
+        const bottomY = y + this.h/2 + this.t/2;
+        
+        const labels = ['CORE SYSTEM', 'CONFIGURATION', 'EXTENSIONS', 'INTELLIGENCE'];
+        
+        return `
+            <g class="iso-vertical-connector" data-layer="${index}" transform="translate(0, 0)">
+                <line x1="${x}" y1="${topY}" x2="${x}" y2="${bottomY}"
+                    stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="4,6"/>
+                <circle cx="${x}" cy="${bottomY}" r="3" fill="rgba(255,255,255,0.3)"/>
+                <text x="${x}" y="${topY - 10}" text-anchor="middle"
+                    fill="rgba(255,255,255,0.5)" font-size="11" letter-spacing="2px" 
+                    font-family="system-ui, sans-serif">${labels[index]}</text>
+            </g>
+        `;
+    }
+
     attachEvents() {
         this.container.querySelectorAll('.iso-layer').forEach(layer => {
             layer.addEventListener('mouseenter', () => this.highlightLayer(parseInt(layer.dataset.layer)));
@@ -294,10 +298,10 @@ class IsometricLayers {
                 right.setAttribute('stroke', 'rgba(255,255,255,0.6)');
                 label.setAttribute('fill', 'rgba(255,255,255,0.95)');
             } else {
-                top.setAttribute('stroke', 'rgba(255,255,255,0.1)');
-                left.setAttribute('stroke', 'rgba(255,255,255,0.05)');
-                right.setAttribute('stroke', 'rgba(255,255,255,0.05)');
-                label.setAttribute('fill', 'rgba(255,255,255,0.22)');
+                top.setAttribute('stroke', 'rgba(255,255,255,0.12)');
+                left.setAttribute('stroke', 'rgba(255,255,255,0.08)');
+                right.setAttribute('stroke', 'rgba(255,255,255,0.08)');
+                label.setAttribute('fill', 'rgba(255,255,255,0.33)');
             }
         });
     }
@@ -325,9 +329,30 @@ class IsometricLayers {
             g.querySelector('.iso-side-label').setAttribute('fill', idx === index ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.1)');
             g.querySelector('.iso-connection').setAttribute('stroke', idx === index ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.05)');
         });
+
+        this.container.querySelectorAll('.iso-vertical-connector').forEach((g) => {
+            const idx = parseInt(g.dataset.layer);
+            const transformY = this.getTransformY(idx, index);
+            
+            g.style.transition = animate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
+            g.setAttribute('transform', `translate(0, ${transformY})`);
+            
+            const line = g.querySelector('line');
+            const circle = g.querySelector('circle');
+            const text = g.querySelector('text');
+            
+            if (idx === index) {
+                line.setAttribute('stroke', 'rgba(255,255,255,0.4)');
+                circle.setAttribute('fill', 'rgba(255,255,255,0.6)');
+                text.setAttribute('fill', 'rgba(255,255,255,0.8)');
+            } else {
+                line.setAttribute('stroke', 'rgba(255,255,255,0.15)');
+                circle.setAttribute('fill', 'rgba(255,255,255,0.3)');
+                text.setAttribute('fill', 'rgba(255,255,255,0.5)');
+            }
+        });
     }
 
-    // Highlight layer visually without moving
     highlightActive(index) {
         this.activeLayer = index;
         this.container.querySelectorAll('.iso-layer').forEach((layer) => {
@@ -336,7 +361,6 @@ class IsometricLayers {
         });
     }
 
-    // Move layers to their positions for active index
     moveToActive(index) {
         this.container.querySelectorAll('.iso-layer').forEach((layer) => {
             const idx = parseInt(layer.dataset.layer);
@@ -365,16 +389,16 @@ class IsometricLayers {
             left.setAttribute('stroke-width', '1.5');
             right.setAttribute('stroke', 'rgba(255,255,255,0.6)');
             right.setAttribute('stroke-width', '1.5');
-            grid.setAttribute('opacity', '0.25');
+            grid.setAttribute('opacity', '0.28');
         } else {
-            label.setAttribute('fill', 'rgba(255,255,255,0.25)');
-            top.setAttribute('stroke', 'rgba(255,255,255,0.1)');
+            label.setAttribute('fill', 'rgba(255,255,255,0.33)');
+            top.setAttribute('stroke', 'rgba(255,255,255,0.12)');
             top.setAttribute('stroke-width', '1');
-            left.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+            left.setAttribute('stroke', 'rgba(255,255,255,0.08)');
             left.setAttribute('stroke-width', '1');
-            right.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+            right.setAttribute('stroke', 'rgba(255,255,255,0.08)');
             right.setAttribute('stroke-width', '1');
-            grid.setAttribute('opacity', '0.12');
+            grid.setAttribute('opacity', '0.16');
         }
     }
 
