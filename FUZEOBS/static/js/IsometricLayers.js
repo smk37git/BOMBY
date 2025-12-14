@@ -13,15 +13,15 @@ class IsometricLayers {
             { id: 'ai', label: 'AI Enhancements', sideLabel: 'INTELLIGENT' }
         ];
         
-        this.w = 1000;
-        this.h = 500;
-        this.t = 125;
-        this.baseGap = -150;
-        this.expandAmount = 150;
-        this.offsetX = 10;
-        this.startY = 150;
+        this.w = 700;
+        this.h = 300;
+        this.t = 75;
+        this.baseGap = -100;
+        this.expandAmount = 100;
+        this.offsetX = 175;
+        this.startY = 0;
         this.svgW = 1020;
-        this.svgH = 1450;
+        this.svgH = 650;
         
         this.init();
     }
@@ -37,10 +37,10 @@ class IsometricLayers {
         return this.startY + index * layerHeight;
     }
 
-    // Layers ABOVE active get pushed UP
+    // Gap opens between layer above active and active layer
     getTransformY(index, activeIndex) {
-        if (index < activeIndex) {
-            return -this.expandAmount;
+        if (activeIndex > 0 && index >= activeIndex) {
+            return this.expandAmount;
         }
         return 0;
     }
@@ -50,7 +50,7 @@ class IsometricLayers {
         
         this.container.innerHTML = `
             <div class="iso-layers-wrapper">
-                <svg class="iso-layers-svg" viewBox="0 0 ${this.svgW} ${this.svgH}" preserveAspectRatio="xMidYMid meet">
+                <svg class="iso-layers-svg" viewBox="0 0 ${this.svgW} ${this.svgH}" preserveAspectRatio="xMidYMin meet">
                     <g class="dots-grid" opacity="0.04">
                         ${this.renderDots()}
                     </g>
@@ -80,8 +80,9 @@ class IsometricLayers {
         const leftPath = `M ${x} ${y + h/2} L ${x} ${y + h/2 + t} L ${x + w/2} ${y + h + t} L ${x + w/2} ${y + h} Z`;
         const rightPath = `M ${x + w} ${y + h/2} L ${x + w} ${y + h/2 + t} L ${x + w/2} ${y + h + t} L ${x + w/2} ${y + h} Z`;
         
+        // Left face - text follows the face slope
         const labelX = x + w/4;
-        const labelY = y + h/2 + t/2 + 6;
+        const labelY = y + h/2 + t/2;
         
         return `
             <g class="iso-layer" data-layer="${index}" transform="translate(0, 0)">
@@ -92,9 +93,11 @@ class IsometricLayers {
                     <g class="iso-grid" opacity="0.06">${this.renderTopGrid(x, y, w, h)}</g>
                 </g>
                 <g class="iso-rings" opacity="0">${this.renderRings(x + w/2, y + h/2, w * 0.18, h * 0.18)}</g>
-                <text class="iso-layer-label" x="${labelX}" y="${labelY}" text-anchor="middle"
-                      fill="rgba(255,255,255,0.3)" font-size="14" font-weight="500"
-                      font-family="system-ui, -apple-system, sans-serif">${layer.label}</text>
+                <g transform="translate(${labelX}, ${labelY})">
+                    <text class="iso-layer-label" x="0" y="0" text-anchor="middle"
+                          fill="rgba(255,255,255,0.5)" font-size="22" font-weight="600"
+                          font-family="system-ui, -apple-system, sans-serif">${layer.label}</text>
+                </g>
             </g>
         `;
     }

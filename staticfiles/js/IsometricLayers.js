@@ -1,6 +1,5 @@
 /**
- * Isometric Layers - Lambda-style animated layer graphic
- * For FuzeOBS
+ * Isometric Layers
  */
 
 class IsometricLayers {
@@ -13,6 +12,17 @@ class IsometricLayers {
             { id: 'extras', label: 'Extras', sideLabel: 'EXTEND' },
             { id: 'ai', label: 'AI Enhancements', sideLabel: 'INTELLIGENT' }
         ];
+        
+        this.w = 700;
+        this.h = 300;
+        this.t = 75;
+        this.baseGap = -100;
+        this.expandAmount = 150;
+        this.offsetX = 175;
+        this.startY = -150;
+        this.svgW = 1020;
+        this.svgH = 750;
+        
         this.init();
     }
 
@@ -22,259 +32,209 @@ class IsometricLayers {
         this.setActive(this.activeLayer, false);
     }
 
+    getBaseY(index) {
+        const layerHeight = this.h / 2 + this.t + this.baseGap;
+        return this.startY + index * layerHeight;
+    }
+
+    // Layers ABOVE active get pushed UP
+    getTransformY(index, activeIndex) {
+        if (index < activeIndex) {
+            return -this.expandAmount;
+        }
+        return 0;
+    }
+
     render() {
+        const renderOrder = [3, 2, 1, 0];
+        
         this.container.innerHTML = `
             <div class="iso-layers-wrapper">
-                <svg class="iso-layers-svg" viewBox="0 0 500 400" preserveAspectRatio="xMidYMid meet">
-                    <defs>
-                        <linearGradient id="layerGradient0" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:0.8"/>
-                            <stop offset="100%" style="stop-color:#1d4ed8;stop-opacity:0.6"/>
-                        </linearGradient>
-                        <linearGradient id="layerGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.8"/>
-                            <stop offset="100%" style="stop-color:#6d28d9;stop-opacity:0.6"/>
-                        </linearGradient>
-                        <linearGradient id="layerGradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:0.8"/>
-                            <stop offset="100%" style="stop-color:#d97706;stop-opacity:0.6"/>
-                        </linearGradient>
-                        <linearGradient id="layerGradient3" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.8"/>
-                            <stop offset="100%" style="stop-color:#059669;stop-opacity:0.6"/>
-                        </linearGradient>
-                        <filter id="glow">
-                            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                            <feMerge>
-                                <feMergeNode in="coloredBlur"/>
-                                <feMergeNode in="SourceGraphic"/>
-                            </feMerge>
-                        </filter>
-                    </defs>
-                    
-                    <!-- Dots/nodes background -->
-                    <g class="iso-dots" opacity="0.3">
-                        ${this.generateDots()}
+                <svg class="iso-layers-svg" viewBox="0 -200 ${this.svgW} ${this.svgH}" preserveAspectRatio="xMidYMid meet">
+                    <g class="dots-grid" opacity="0.04">
+                        ${this.renderDots()}
                     </g>
-                    
-                    <!-- Connection lines -->
-                    <g class="iso-connections">
-                        ${this.generateConnections()}
-                    </g>
-                    
-                    <!-- Layers (bottom to top) -->
-                    ${this.layers.map((layer, i) => this.renderLayer(i)).reverse().join('')}
-                    
-                    <!-- Side labels -->
-                    ${this.layers.map((layer, i) => `
-                        <text class="iso-side-label" data-layer="${i}" 
-                              x="460" y="${320 - i * 70}" 
-                              text-anchor="start" opacity="0.3">
-                            ${layer.sideLabel}
-                        </text>
-                    `).join('')}
+                    ${renderOrder.map(i => this.renderLayer(i)).join('')}
                 </svg>
             </div>
         `;
     }
 
-    generateDots() {
+    renderDots() {
         let dots = '';
-        for (let i = 0; i < 8; i++) {
-            for (let j = 0; j < 6; j++) {
-                const x = 120 + i * 40 + (j % 2) * 20;
-                const y = 60 + j * 50;
-                dots += `<circle cx="${x}" cy="${y}" r="2" fill="rgba(255,255,255,0.5)"/>`;
+        for (let x = 15; x < this.svgW - 15; x += 20) {
+            for (let y = 15; y < this.svgH - 15; y += 20) {
+                dots += `<circle cx="${x}" cy="${y}" r="1" fill="white"/>`;
             }
         }
         return dots;
     }
 
-    generateConnections() {
-        return `
-            <line x1="420" y1="110" x2="460" y2="110" stroke="rgba(255,255,255,0.1)" stroke-dasharray="2,4"/>
-            <line x1="420" y1="180" x2="460" y2="180" stroke="rgba(255,255,255,0.1)" stroke-dasharray="2,4"/>
-            <line x1="420" y1="250" x2="460" y2="250" stroke="rgba(255,255,255,0.1)" stroke-dasharray="2,4"/>
-            <line x1="420" y1="320" x2="460" y2="320" stroke="rgba(255,255,255,0.1)" stroke-dasharray="2,4"/>
-        `;
-    }
-
     renderLayer(index) {
-        const baseY = 280 - index * 70;
-        const colors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981'];
-        const color = colors[index];
+        const layer = this.layers[index];
+        const y = this.getBaseY(index);
+        const x = this.offsetX;
+        const w = this.w, h = this.h, t = this.t;
         
-        // Isometric box dimensions
-        const w = 200;  // width
-        const h = 120;  // height (isometric)
-        const d = 40;   // depth
-        const cx = 250; // center x
+        const topPath = `M ${x} ${y + h/2} L ${x + w/2} ${y} L ${x + w} ${y + h/2} L ${x + w/2} ${y + h} Z`;
+        const leftPath = `M ${x} ${y + h/2} L ${x} ${y + h/2 + t} L ${x + w/2} ${y + h + t} L ${x + w/2} ${y + h} Z`;
+        const rightPath = `M ${x + w} ${y + h/2} L ${x + w} ${y + h/2 + t} L ${x + w/2} ${y + h + t} L ${x + w/2} ${y + h} Z`;
+        
+        const labelX = x + w/4;
+        const labelY = y + h/2 + t/2 + 6;
         
         return `
-            <g class="iso-layer" data-layer="${index}">
-                <!-- Top face -->
-                <path class="iso-face iso-top" 
-                      d="M ${cx} ${baseY - d} 
-                         L ${cx + w/2} ${baseY - d + h/4} 
-                         L ${cx} ${baseY - d + h/2} 
-                         L ${cx - w/2} ${baseY - d + h/4} Z"
-                      fill="url(#layerGradient${index})"
-                      stroke="${color}"
-                      stroke-width="1"/>
-                
-                <!-- Left face -->
-                <path class="iso-face iso-left"
-                      d="M ${cx - w/2} ${baseY - d + h/4} 
-                         L ${cx} ${baseY - d + h/2} 
-                         L ${cx} ${baseY + h/2} 
-                         L ${cx - w/2} ${baseY + h/4} Z"
-                      fill="${color}"
-                      fill-opacity="0.3"
-                      stroke="${color}"
-                      stroke-width="1"/>
-                
-                <!-- Right face -->
-                <path class="iso-face iso-right"
-                      d="M ${cx + w/2} ${baseY - d + h/4} 
-                         L ${cx} ${baseY - d + h/2} 
-                         L ${cx} ${baseY + h/2} 
-                         L ${cx + w/2} ${baseY + h/4} Z"
-                      fill="${color}"
-                      fill-opacity="0.2"
-                      stroke="${color}"
-                      stroke-width="1"/>
-                
-                <!-- Grid lines on top -->
-                <g class="iso-grid" opacity="0.3">
-                    ${this.renderGridLines(cx, baseY - d, w, h)}
+            <g class="iso-layer" data-layer="${index}" transform="translate(0, 0)">
+                <g class="iso-box">
+                    <path class="iso-left" d="${leftPath}" fill="#080808" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                    <path class="iso-right" d="${rightPath}" fill="#0d0d0d" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+                    <path class="iso-top" d="${topPath}" fill="#0a0a0a" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+                    <g class="iso-grid" opacity="0.06">${this.renderTopGrid(x, y, w, h)}</g>
                 </g>
-                
-                <!-- Layer label -->
-                <text class="iso-layer-label" 
-                      x="${cx}" y="${baseY - d + h/4 + 5}" 
-                      text-anchor="middle" 
-                      fill="white" 
-                      font-size="12"
-                      opacity="0.8">
-                    ${this.layers[index].label}
-                </text>
-                
-                <!-- Highlight diamond -->
-                <path class="iso-highlight"
-                      d="M ${cx} ${baseY - d + 15}
-                         L ${cx + 15} ${baseY - d + h/4 + 7}
-                         L ${cx} ${baseY - d + h/4 + 15}
-                         L ${cx - 15} ${baseY - d + h/4 + 7} Z"
-                      fill="${color}"
-                      fill-opacity="0"
-                      stroke="${color}"
-                      stroke-width="2"
-                      stroke-opacity="0"/>
+                <g class="iso-rings" opacity="0">${this.renderRings(x + w/2, y + h/2, w * 0.18, h * 0.18)}</g>
+                <text class="iso-layer-label" x="${labelX}" y="${labelY}" text-anchor="middle"
+                      fill="rgba(255,255,255,0.3)" font-size="14" font-weight="500"
+                      font-family="system-ui, -apple-system, sans-serif">${layer.label}</text>
             </g>
         `;
     }
 
-    renderGridLines(cx, baseY, w, h) {
-        let lines = '';
-        // Diagonal lines
-        for (let i = 1; i < 4; i++) {
-            const offset = (w / 4) * i;
-            lines += `
-                <line x1="${cx - w/2 + offset/2}" y1="${baseY + h/8 * i}" 
-                      x2="${cx + offset/2}" y2="${baseY + h/2 - h/8 * (4-i)}" 
-                      stroke="white" stroke-width="0.5"/>
-            `;
+    renderTopGrid(x, y, w, h) {
+        let grid = '';
+        const steps = 5;
+        for (let i = 1; i < steps; i++) {
+            const r = i / steps;
+            grid += `<line x1="${x + r*w/2}" y1="${y + h/2 - r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + h - r*h/2}" stroke="white" stroke-width="0.5"/>`;
+            grid += `<line x1="${x + r*w/2}" y1="${y + h/2 + r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + r*h/2}" stroke="white" stroke-width="0.5"/>`;
         }
-        return lines;
+        for (let i = 0; i <= steps; i++) {
+            for (let j = 0; j <= steps; j++) {
+                grid += `<circle cx="${x + (i/steps)*w/2 + (j/steps)*w/2}" cy="${y + h/2 - (i/steps)*h/2 + (j/steps)*h/2}" r="1.5" fill="white"/>`;
+            }
+        }
+        return grid;
+    }
+
+    renderRings(cx, cy, rx, ry) {
+        return `
+            <ellipse cx="${cx}" cy="${cy}" rx="${rx*2.5}" ry="${ry*1.25}" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="4,6"/>
+            <ellipse cx="${cx}" cy="${cy}" rx="${rx*1.5}" ry="${ry*0.75}" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="1"/>
+            <ellipse cx="${cx}" cy="${cy}" rx="${rx*0.6}" ry="${ry*0.3}" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"/>
+        `;
+    }
+
+    renderSideLabel(index) {
+        const layer = this.layers[index];
+        const y = this.getBaseY(index);
+        const lineY = y + this.h/2 + this.t/2;
+        const labelX = 730;
+        
+        return `
+            <g class="iso-side-label-group" data-layer="${index}" transform="translate(0, 0)">
+                <line class="iso-connection" x1="${this.offsetX + this.w + 10}" y1="${lineY}" x2="${labelX - 5}" y2="${lineY}"
+                      stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="2,5"/>
+                <text class="iso-side-label" x="${labelX}" y="${lineY + 4}" text-anchor="start"
+                      fill="rgba(255,255,255,0.1)" font-size="10" letter-spacing="2px" font-family="system-ui, sans-serif">${layer.sideLabel}</text>
+            </g>
+        `;
     }
 
     attachEvents() {
-        // Layer hover/click
         this.container.querySelectorAll('.iso-layer').forEach(layer => {
-            layer.addEventListener('mouseenter', () => {
-                const idx = parseInt(layer.dataset.layer);
-                this.highlightLayer(idx);
-            });
+            layer.addEventListener('mouseenter', () => this.highlightLayer(parseInt(layer.dataset.layer)));
             layer.addEventListener('click', () => {
                 const idx = parseInt(layer.dataset.layer);
                 this.setActive(idx);
                 this.dispatchEvent(idx);
             });
         });
-
-        this.container.addEventListener('mouseleave', () => {
-            this.highlightLayer(this.activeLayer);
-        });
+        this.container.addEventListener('mouseleave', () => this.highlightLayer(this.activeLayer));
     }
 
     highlightLayer(index) {
-        this.container.querySelectorAll('.iso-layer').forEach((layer, i) => {
-            const isTarget = i === index;
-            layer.style.opacity = isTarget ? '1' : '0.4';
-            layer.style.transform = isTarget ? 'translateY(-5px)' : '';
-            layer.style.filter = isTarget ? 'url(#glow)' : '';
-        });
-
-        this.container.querySelectorAll('.iso-side-label').forEach((label, i) => {
-            label.setAttribute('opacity', i === index ? '1' : '0.3');
+        this.container.querySelectorAll('.iso-layer').forEach((layer) => {
+            const idx = parseInt(layer.dataset.layer);
+            const top = layer.querySelector('.iso-top');
+            const left = layer.querySelector('.iso-left');
+            const right = layer.querySelector('.iso-right');
+            const label = layer.querySelector('.iso-layer-label');
+            
+            if (idx === index) {
+                top.setAttribute('stroke', 'rgba(255,255,255,0.35)');
+                left.setAttribute('stroke', 'rgba(255,255,255,0.2)');
+                right.setAttribute('stroke', 'rgba(255,255,255,0.2)');
+                label.setAttribute('fill', 'rgba(255,255,255,0.65)');
+            } else if (idx === this.activeLayer) {
+                top.setAttribute('stroke', 'rgba(255,255,255,0.55)');
+                left.setAttribute('stroke', 'rgba(255,255,255,0.35)');
+                right.setAttribute('stroke', 'rgba(255,255,255,0.35)');
+                label.setAttribute('fill', 'rgba(255,255,255,0.95)');
+            } else {
+                top.setAttribute('stroke', 'rgba(255,255,255,0.1)');
+                left.setAttribute('stroke', 'rgba(255,255,255,0.06)');
+                right.setAttribute('stroke', 'rgba(255,255,255,0.06)');
+                label.setAttribute('fill', 'rgba(255,255,255,0.22)');
+            }
         });
     }
 
     setActive(index, animate = true) {
         this.activeLayer = index;
         
-        this.container.querySelectorAll('.iso-layer').forEach((layer, i) => {
-            const isActive = i === index;
-            layer.classList.toggle('active', isActive);
+        this.container.querySelectorAll('.iso-layer').forEach((layer) => {
+            const idx = parseInt(layer.dataset.layer);
+            const transformY = this.getTransformY(idx, index);
             
-            if (animate) {
-                layer.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
-            }
+            layer.style.transition = animate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
+            layer.setAttribute('transform', `translate(0, ${transformY})`);
             
-            // Expand/collapse effect
-            const faces = layer.querySelectorAll('.iso-face');
-            const highlight = layer.querySelector('.iso-highlight');
+            const isActive = idx === index;
+            const rings = layer.querySelector('.iso-rings');
+            const label = layer.querySelector('.iso-layer-label');
+            const top = layer.querySelector('.iso-top');
+            const left = layer.querySelector('.iso-left');
+            const right = layer.querySelector('.iso-right');
+            const grid = layer.querySelector('.iso-grid');
+            
+            rings.style.transition = animate ? 'opacity 0.5s ease' : 'none';
+            rings.style.opacity = isActive ? '1' : '0';
             
             if (isActive) {
-                layer.style.opacity = '1';
-                if (highlight) {
-                    highlight.style.fillOpacity = '0.3';
-                    highlight.style.strokeOpacity = '1';
-                }
+                label.setAttribute('fill', 'rgba(255,255,255,1)');
+                top.setAttribute('stroke', 'rgba(255,255,255,0.6)');
+                top.setAttribute('stroke-width', '1.5');
+                left.setAttribute('stroke', 'rgba(255,255,255,0.4)');
+                right.setAttribute('stroke', 'rgba(255,255,255,0.4)');
+                grid.setAttribute('opacity', '0.12');
             } else {
-                layer.style.opacity = '0.5';
-                if (highlight) {
-                    highlight.style.fillOpacity = '0';
-                    highlight.style.strokeOpacity = '0';
-                }
+                label.setAttribute('fill', 'rgba(255,255,255,0.25)');
+                top.setAttribute('stroke', 'rgba(255,255,255,0.1)');
+                top.setAttribute('stroke-width', '1');
+                left.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+                right.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+                grid.setAttribute('opacity', '0.04');
             }
         });
 
-        this.container.querySelectorAll('.iso-side-label').forEach((label, i) => {
-            label.setAttribute('opacity', i === index ? '1' : '0.3');
-            label.style.fontWeight = i === index ? '600' : '400';
+        this.container.querySelectorAll('.iso-side-label-group').forEach((g) => {
+            const idx = parseInt(g.dataset.layer);
+            const transformY = this.getTransformY(idx, index);
+            
+            g.style.transition = animate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
+            g.setAttribute('transform', `translate(0, ${transformY})`);
+            
+            g.querySelector('.iso-side-label').setAttribute('fill', idx === index ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.1)');
+            g.querySelector('.iso-connection').setAttribute('stroke', idx === index ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.05)');
         });
     }
 
     dispatchEvent(index) {
-        const event = new CustomEvent('layerchange', {
-            detail: { 
-                index, 
-                layer: this.layers[index] 
-            }
-        });
-        this.container.dispatchEvent(event);
+        this.container.dispatchEvent(new CustomEvent('layerchange', { detail: { index, layer: this.layers[index] } }));
     }
 
-    // External API to set active layer
     selectLayer(index) {
-        if (index >= 0 && index < this.layers.length) {
-            this.setActive(index);
-        }
+        if (index >= 0 && index < this.layers.length) this.setActive(index);
     }
 }
 
-// Export for use
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = IsometricLayers;
-}
+if (typeof module !== 'undefined' && module.exports) module.exports = IsometricLayers;

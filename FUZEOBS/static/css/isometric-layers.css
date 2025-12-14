@@ -84,15 +84,23 @@
     width: 100%;
     display: flex;
     justify-content: center;
+    overflow: visible;
 }
 
 .iso-layers-svg {
-    width: 100%;
-    height: auto;
+    width: auto;
+    height: 700px;
+    max-width: 100%;
     display: block;
+    overflow: visible;
 }
 
 .iso-layer { cursor: pointer; }
+
+.iso-layer-label {
+    transform-origin: center;
+    transform: rotate(30deg) skewX(-30deg);
+}
 
 /* Responsive */
 @media (max-width: 1024px) {
