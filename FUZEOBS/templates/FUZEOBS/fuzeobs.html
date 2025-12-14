@@ -547,9 +547,12 @@ if (typeof gsap === 'undefined') {
                 item.classList.add('active');
                 item.querySelector('.accordion-toggle').textContent = '−';
                 
-                // Update isometric graphic
+                // Highlight layer immediately, move after accordion animation
                 if (isoLayers) {
-                    isoLayers.selectLayer(layerIndex);
+                    isoLayers.highlightActive(layerIndex);
+                    setTimeout(function() {
+                        isoLayers.moveToActive(layerIndex);
+                    }, 400);
                 }
             });
         });

@@ -21,7 +21,7 @@ class IsometricLayers {
         this.offsetX = 175;
         this.startY = 0;
         this.svgW = 1020;
-        this.svgH = 650;
+        this.svgH = 550;
         
         this.init();
     }
@@ -94,9 +94,9 @@ class IsometricLayers {
                     <path class="iso-left" d="${leftPath}" fill="#080808" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
                     <path class="iso-right" d="${rightPath}" fill="#0d0d0d" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
                     <path class="iso-top" d="${topPath}" fill="#0a0a0a" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
-                    <g class="iso-grid" opacity="0.06">${this.renderTopGrid(x, y, w, h)}</g>
+                    <g class="iso-grid" opacity="0.15">${this.renderTopGrid(x, y, w, h, index)}</g>
                 </g>
-                <g class="iso-rings" opacity="0">${this.renderRings(x + w/2, y + h/2, w * 0.18, h * 0.18)}</g>
+                <g class="iso-rings" opacity="0">${index === 0 ? '' : ''}</g>
                 <text class="iso-layer-label" 
                       transform="matrix(${cos.toFixed(4)}, ${sin.toFixed(4)}, 0, 1, ${labelX}, ${labelY})"
                       text-anchor="middle"
@@ -107,18 +107,134 @@ class IsometricLayers {
         `;
     }
 
-    renderTopGrid(x, y, w, h) {
+    renderTopGrid(x, y, w, h, index) {
+        const cx = x + w/2;
+        const cy = y + h/2;
+        
+        switch(index) {
+            case 0: // Deployment - radial lines from center
+                return this.renderRadialLines(x, y, w, h);
+            
+            case 1: // Setup - grid with dots
+                return this.renderDottedGrid(x, y, w, h);
+            
+            case 2: // Extras - concentric diamonds
+                return this.renderConcentricDiamonds(x, y, w, h);
+            
+            case 3: // AI Enhancements - neural network nodes
+                return this.renderNeuralPattern(x, y, w, h);
+            
+            default:
+                return this.renderDashedGrid(x, y, w, h);
+        }
+    }
+
+    renderRadialLines(x, y, w, h) {
+        let grid = '';
+        const cx = x + w/2;
+        const cy = y + h/2;
+        
+        // Main X
+        grid += `<line x1="${x}" y1="${cy}" x2="${x + w}" y2="${cy}" stroke="white" stroke-width="0.6"/>`;
+        grid += `<line x1="${cx}" y1="${y}" x2="${cx}" y2="${y + h}" stroke="white" stroke-width="0.6"/>`;
+        
+        // 3 chevrons per quadrant - nested from center outward
+        for (let i = 1; i <= 3; i++) {
+            const r = i * 0.25;
+            
+            // Top ^ - tip points up
+            grid += `<path d="M ${cx - r*w/2} ${cy} L ${cx} ${cy - r*h/2} L ${cx + r*w/2} ${cy}" fill="none" stroke="white" stroke-width="0.5"/>`;
+            
+            // Bottom v - tip points down
+            grid += `<path d="M ${cx - r*w/2} ${cy} L ${cx} ${cy + r*h/2} L ${cx + r*w/2} ${cy}" fill="none" stroke="white" stroke-width="0.5"/>`;
+            
+            // Left < - tip points left
+            grid += `<path d="M ${cx} ${cy - r*h/2} L ${cx - r*w/2} ${cy} L ${cx} ${cy + r*h/2}" fill="none" stroke="white" stroke-width="0.5"/>`;
+            
+            // Right > - tip points right
+            grid += `<path d="M ${cx} ${cy - r*h/2} L ${cx + r*w/2} ${cy} L ${cx} ${cy + r*h/2}" fill="none" stroke="white" stroke-width="0.5"/>`;
+        }
+        
+        return grid;
+    }
+
+    renderNeuralPattern(x, y, w, h) {
+        let grid = '';
+        const cx = x + w/2;
+        const cy = y + h/2;
+        
+        // Concentric pulsing rings with data points
+        for (let i = 1; i <= 4; i++) {
+            const r = i / 5;
+            const rx = w/2 * r * 0.8;
+            const ry = h/2 * r * 0.8;
+            grid += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="white" stroke-width="${i === 2 ? 1.5 : 0.5}"/>`;
+        }
+        
+        // Orbiting dots on rings
+        const dotCounts = [4, 6, 8, 10];
+        dotCounts.forEach((count, ringIdx) => {
+            const r = (ringIdx + 1) / 5;
+            const rx = w/2 * r * 0.8;
+            const ry = h/2 * r * 0.8;
+            
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * Math.PI * 2 + ringIdx * 0.3;
+                const dotX = cx + Math.cos(angle) * rx;
+                const dotY = cy + Math.sin(angle) * ry;
+                grid += `<circle cx="${dotX}" cy="${dotY}" r="3" fill="white"/>`;
+            }
+        });
+        
+        // Center dot
+        grid += `<circle cx="${cx}" cy="${cy}" r="5" fill="white"/>`;
+        
+        return grid;
+    }
+
+    renderDashedGrid(x, y, w, h) {
         let grid = '';
         const steps = 5;
+        for (let i = 1; i < steps; i++) {
+            const r = i / steps;
+            grid += `<line x1="${x + r*w/2}" y1="${y + h/2 - r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + h - r*h/2}" stroke="white" stroke-width="0.5" stroke-dasharray="4,4"/>`;
+            grid += `<line x1="${x + r*w/2}" y1="${y + h/2 + r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + r*h/2}" stroke="white" stroke-width="0.5" stroke-dasharray="4,4"/>`;
+        }
+        return grid;
+    }
+
+    renderDottedGrid(x, y, w, h) {
+        let grid = '';
+        const steps = 6;
+        // Grid lines
         for (let i = 1; i < steps; i++) {
             const r = i / steps;
             grid += `<line x1="${x + r*w/2}" y1="${y + h/2 - r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + h - r*h/2}" stroke="white" stroke-width="0.5"/>`;
             grid += `<line x1="${x + r*w/2}" y1="${y + h/2 + r*h/2}" x2="${x + w/2 + r*w/2}" y2="${y + r*h/2}" stroke="white" stroke-width="0.5"/>`;
         }
-        for (let i = 0; i <= steps; i++) {
-            for (let j = 0; j <= steps; j++) {
-                grid += `<circle cx="${x + (i/steps)*w/2 + (j/steps)*w/2}" cy="${y + h/2 - (i/steps)*h/2 + (j/steps)*h/2}" r="1.5" fill="white"/>`;
+        // Dots at intersections
+        for (let i = 1; i < steps; i++) {
+            for (let j = 1; j < steps; j++) {
+                const px = x + (i/steps)*w/2 + (j/steps)*w/2;
+                const py = y + h/2 - (i/steps)*h/2 + (j/steps)*h/2;
+                grid += `<circle cx="${px}" cy="${py}" r="2.5" fill="white"/>`;
             }
+        }
+        return grid;
+    }
+
+    renderConcentricDiamonds(x, y, w, h) {
+        let grid = '';
+        const cx = x + w/2;
+        const cy = y + h/2;
+        const steps = 6;
+        
+        for (let i = 1; i <= steps; i++) {
+            const r = i / steps;
+            const rx = r * w/2 * 0.85;
+            const ry = r * h/2 * 0.85;
+            grid += `<path d="M ${cx} ${cy - ry} L ${cx + rx} ${cy} L ${cx} ${cy + ry} L ${cx - rx} ${cy} Z" 
+                     fill="none" stroke="white" stroke-width="0.5" stroke-dasharray="${i === steps ? '0' : '2,3'}"/>`;
         }
         return grid;
     }
@@ -168,19 +284,19 @@ class IsometricLayers {
             const label = layer.querySelector('.iso-layer-label');
             
             if (idx === index) {
-                top.setAttribute('stroke', 'rgba(255,255,255,0.35)');
-                left.setAttribute('stroke', 'rgba(255,255,255,0.2)');
-                right.setAttribute('stroke', 'rgba(255,255,255,0.2)');
+                top.setAttribute('stroke', 'rgba(255,255,255,0.45)');
+                left.setAttribute('stroke', 'rgba(255,255,255,0.45)');
+                right.setAttribute('stroke', 'rgba(255,255,255,0.45)');
                 label.setAttribute('fill', 'rgba(255,255,255,0.65)');
             } else if (idx === this.activeLayer) {
-                top.setAttribute('stroke', 'rgba(255,255,255,0.55)');
-                left.setAttribute('stroke', 'rgba(255,255,255,0.35)');
-                right.setAttribute('stroke', 'rgba(255,255,255,0.35)');
+                top.setAttribute('stroke', 'rgba(255,255,255,0.6)');
+                left.setAttribute('stroke', 'rgba(255,255,255,0.6)');
+                right.setAttribute('stroke', 'rgba(255,255,255,0.6)');
                 label.setAttribute('fill', 'rgba(255,255,255,0.95)');
             } else {
                 top.setAttribute('stroke', 'rgba(255,255,255,0.1)');
-                left.setAttribute('stroke', 'rgba(255,255,255,0.06)');
-                right.setAttribute('stroke', 'rgba(255,255,255,0.06)');
+                left.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+                right.setAttribute('stroke', 'rgba(255,255,255,0.05)');
                 label.setAttribute('fill', 'rgba(255,255,255,0.22)');
             }
         });
@@ -196,32 +312,7 @@ class IsometricLayers {
             layer.style.transition = animate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
             layer.setAttribute('transform', `translate(0, ${transformY})`);
             
-            const isActive = idx === index;
-            const rings = layer.querySelector('.iso-rings');
-            const label = layer.querySelector('.iso-layer-label');
-            const top = layer.querySelector('.iso-top');
-            const left = layer.querySelector('.iso-left');
-            const right = layer.querySelector('.iso-right');
-            const grid = layer.querySelector('.iso-grid');
-            
-            rings.style.transition = animate ? 'opacity 0.5s ease' : 'none';
-            rings.style.opacity = isActive ? '1' : '0';
-            
-            if (isActive) {
-                label.setAttribute('fill', 'rgba(255,255,255,1)');
-                top.setAttribute('stroke', 'rgba(255,255,255,0.6)');
-                top.setAttribute('stroke-width', '1.5');
-                left.setAttribute('stroke', 'rgba(255,255,255,0.4)');
-                right.setAttribute('stroke', 'rgba(255,255,255,0.4)');
-                grid.setAttribute('opacity', '0.12');
-            } else {
-                label.setAttribute('fill', 'rgba(255,255,255,0.25)');
-                top.setAttribute('stroke', 'rgba(255,255,255,0.1)');
-                top.setAttribute('stroke-width', '1');
-                left.setAttribute('stroke', 'rgba(255,255,255,0.05)');
-                right.setAttribute('stroke', 'rgba(255,255,255,0.05)');
-                grid.setAttribute('opacity', '0.04');
-            }
+            this.applyLayerStyles(layer, idx === index);
         });
 
         this.container.querySelectorAll('.iso-side-label-group').forEach((g) => {
@@ -234,6 +325,57 @@ class IsometricLayers {
             g.querySelector('.iso-side-label').setAttribute('fill', idx === index ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.1)');
             g.querySelector('.iso-connection').setAttribute('stroke', idx === index ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.05)');
         });
+    }
+
+    // Highlight layer visually without moving
+    highlightActive(index) {
+        this.activeLayer = index;
+        this.container.querySelectorAll('.iso-layer').forEach((layer) => {
+            const idx = parseInt(layer.dataset.layer);
+            this.applyLayerStyles(layer, idx === index);
+        });
+    }
+
+    // Move layers to their positions for active index
+    moveToActive(index) {
+        this.container.querySelectorAll('.iso-layer').forEach((layer) => {
+            const idx = parseInt(layer.dataset.layer);
+            const transformY = this.getTransformY(idx, index);
+            layer.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            layer.setAttribute('transform', `translate(0, ${transformY})`);
+        });
+    }
+
+    applyLayerStyles(layer, isActive) {
+        const rings = layer.querySelector('.iso-rings');
+        const label = layer.querySelector('.iso-layer-label');
+        const top = layer.querySelector('.iso-top');
+        const left = layer.querySelector('.iso-left');
+        const right = layer.querySelector('.iso-right');
+        const grid = layer.querySelector('.iso-grid');
+        
+        rings.style.transition = 'opacity 0.5s ease';
+        rings.style.opacity = isActive ? '1' : '0';
+        
+        if (isActive) {
+            label.setAttribute('fill', 'rgba(255,255,255,1)');
+            top.setAttribute('stroke', 'rgba(255,255,255,0.6)');
+            top.setAttribute('stroke-width', '1.5');
+            left.setAttribute('stroke', 'rgba(255,255,255,0.6)');
+            left.setAttribute('stroke-width', '1.5');
+            right.setAttribute('stroke', 'rgba(255,255,255,0.6)');
+            right.setAttribute('stroke-width', '1.5');
+            grid.setAttribute('opacity', '0.25');
+        } else {
+            label.setAttribute('fill', 'rgba(255,255,255,0.25)');
+            top.setAttribute('stroke', 'rgba(255,255,255,0.1)');
+            top.setAttribute('stroke-width', '1');
+            left.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+            left.setAttribute('stroke-width', '1');
+            right.setAttribute('stroke', 'rgba(255,255,255,0.05)');
+            right.setAttribute('stroke-width', '1');
+            grid.setAttribute('opacity', '0.12');
+        }
     }
 
     dispatchEvent(index) {
