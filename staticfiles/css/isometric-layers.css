@@ -89,13 +89,19 @@
 
 .iso-layers-svg {
     width: auto;
-    height: 700px;
+    height: 580px;
     max-width: 100%;
     display: block;
     overflow: visible;
 }
 
 .iso-layer { cursor: pointer; }
+.iso-layer path {
+    transition: stroke 0.3s ease, stroke-width 0.3s ease;
+}
+.iso-layer text {
+    transition: fill 0.3s ease;
+}
 
 /* Responsive */
 @media (max-width: 1024px) {
