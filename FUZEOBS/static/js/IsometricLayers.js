@@ -80,9 +80,10 @@ class IsometricLayers {
         const leftPath = `M ${x} ${y + h/2} L ${x} ${y + h/2 + t} L ${x + w/2} ${y + h + t} L ${x + w/2} ${y + h} Z`;
         const rightPath = `M ${x + w} ${y + h/2} L ${x + w} ${y + h/2 + t} L ${x + w/2} ${y + h + t} L ${x + w/2} ${y + h} Z`;
         
-        // Left face - text follows the face slope
-        const labelX = x + w/4;
-        const labelY = y + h/2 + t/2;
+        // Left face center
+        const leftCenterX = x + w/4;
+        const leftCenterY = y + h*0.75 + t/2;
+        const angle = Math.atan2(h/2, w/2) * (180/Math.PI); // ~23 deg
         
         return `
             <g class="iso-layer" data-layer="${index}" transform="translate(0, 0)">
@@ -93,11 +94,10 @@ class IsometricLayers {
                     <g class="iso-grid" opacity="0.06">${this.renderTopGrid(x, y, w, h)}</g>
                 </g>
                 <g class="iso-rings" opacity="0">${this.renderRings(x + w/2, y + h/2, w * 0.18, h * 0.18)}</g>
-                <g transform="translate(${labelX}, ${labelY})">
-                    <text class="iso-layer-label" x="0" y="0" text-anchor="middle"
-                          fill="rgba(255,255,255,0.5)" font-size="22" font-weight="600"
-                          font-family="system-ui, -apple-system, sans-serif">${layer.label}</text>
-                </g>
+                <text class="iso-layer-label" x="${leftCenterX}" y="${leftCenterY}" text-anchor="middle"
+                      fill="rgba(255,255,255,0.5)" font-size="22" font-weight="600"
+                      font-family="system-ui, -apple-system, sans-serif"
+                      transform="rotate(${angle}, ${leftCenterX}, ${leftCenterY})">${layer.label}</text>
             </g>
         `;
     }

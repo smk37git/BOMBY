@@ -97,11 +97,6 @@
 
 .iso-layer { cursor: pointer; }
 
-.iso-layer-label {
-    transform-origin: center;
-    transform: rotate(30deg) skewX(-30deg);
-}
-
 /* Responsive */
 @media (max-width: 1024px) {
     .layers-showcase-layout { grid-template-columns: 1fr; gap: 40px; }
