@@ -1137,12 +1137,45 @@ def fuzeobs_payment_success(request):
         user_id = session.metadata.get('user_id')
         plan = FUZEOBS_PLANS.get(plan_type, FUZEOBS_PLANS['pro'])
         
+        # Verify the logged-in user matches the payment user
+        if str(request.user.id) != str(user_id):
+            messages.error(request, "Payment session mismatch.")
+            return redirect('FUZEOBS:pricing')
+        
+        # Check if already processed (prevent duplicates)
+        existing_purchase = FuzeOBSPurchase.objects.filter(payment_id=session_id).first()
+        if existing_purchase:
+            return render(request, 'FUZEOBS/fuzeobs_payment_success.html', {
+                'plan_type': plan_type,
+                'plan_name': plan['name'],
+                'purchase': existing_purchase
+            })
+        
         try:
             user = User.objects.get(id=user_id)
             old_tier = user.fuzeobs_tier
             user.fuzeobs_tier = 'lifetime' if plan_type == 'lifetime' else 'pro'
-            user.promote_to_supporter()
+            
+            try:
+                user.promote_to_supporter()
+            except Exception as e:
+                print(f"[FUZEOBS] promote_to_supporter failed: {e}")
+            
+            # Activate as FuzeOBS user (counts in total users)
+            activate_fuzeobs_user(user)
             user.save()
+            
+            # Cancel existing Pro subscription if upgrading to Lifetime
+            if plan_type == 'lifetime':
+                try:
+                    existing_sub = FuzeOBSSubscription.objects.get(user=user, is_active=True)
+                    if existing_sub.stripe_subscription_id:
+                        stripe.Subscription.cancel(existing_sub.stripe_subscription_id)
+                    existing_sub.is_active = False
+                    existing_sub.plan_type = 'lifetime'
+                    existing_sub.save()
+                except FuzeOBSSubscription.DoesNotExist:
+                    pass
             
             TierChange.objects.create(
                 user=user,
@@ -1208,12 +1241,38 @@ def fuzeobs_stripe_webhook(request):
         if session.get('metadata', {}).get('product') == 'fuzeobs':
             user_id = session['metadata'].get('user_id')
             plan_type = session['metadata'].get('plan_type')
+            payment_id = session.get('payment_intent') or session.get('id')
+            
+            # Check if already processed (prevent duplicates)
+            if FuzeOBSPurchase.objects.filter(payment_id=payment_id).exists():
+                return JsonResponse({'status': 'already_processed'})
+            
             try:
                 user = User.objects.get(id=user_id)
                 old_tier = user.fuzeobs_tier
                 user.fuzeobs_tier = 'lifetime' if plan_type == 'lifetime' else 'pro'
-                user.promote_to_supporter()
+                
+                try:
+                    user.promote_to_supporter()
+                except Exception as e:
+                    print(f"[FUZEOBS] promote_to_supporter failed: {e}")
+                
+                # Activate as FuzeOBS user (counts in total users)
+                activate_fuzeobs_user(user)
                 user.save()
+                
+                # Cancel existing Pro subscription if upgrading to Lifetime
+                if plan_type == 'lifetime':
+                    try:
+                        existing_sub = FuzeOBSSubscription.objects.get(user=user, is_active=True)
+                        if existing_sub.stripe_subscription_id:
+                            stripe.Subscription.cancel(existing_sub.stripe_subscription_id)
+                        existing_sub.is_active = False
+                        existing_sub.plan_type = 'lifetime'
+                        existing_sub.save()
+                    except FuzeOBSSubscription.DoesNotExist:
+                        pass
+                
                 TierChange.objects.create(
                     user=user,
                     from_tier=old_tier,
@@ -1227,7 +1286,7 @@ def fuzeobs_stripe_webhook(request):
                     user=user,
                     plan_type=plan_type,
                     amount=amount,
-                    payment_id=session.get('payment_intent') or session.get('id'),
+                    payment_id=payment_id,
                     is_paid=True
                 )
                 
