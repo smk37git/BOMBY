@@ -118,6 +118,10 @@
 }
 
 /* Responsive */
+@media (max-width: 1920px) {
+    .layers-showcase { height: 725px; }
+}
+
 @media (max-width: 1024px) {
     .layers-showcase { height: auto; min-height: 900px; overflow: visible; }
     .layers-showcase-layout { grid-template-columns: 1fr; gap: 40px; min-height: auto; }

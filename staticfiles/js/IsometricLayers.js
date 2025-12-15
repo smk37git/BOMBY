@@ -175,7 +175,7 @@ class IsometricLayers {
             const r = i / 5;
             const rx = w/2 * r * 0.8;
             const ry = h/2 * r * 0.8;
-            grid += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="white" stroke-width="${i === 2 ? 1.5 : 0.5}"/>`;
+            grid += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="white" stroke-width="0.5"/>`;
         }
         
         const dotCounts = [4, 6, 8, 10];

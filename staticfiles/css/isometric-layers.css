@@ -8,6 +8,10 @@
     overflow: hidden;
 }
 
+@media (min-height: 1100px) {
+    .layers-showcase { height: 1000px; }
+}
+
 .layers-showcase-layout {
     display: grid;
     grid-template-columns: 1fr 1.2fr;
