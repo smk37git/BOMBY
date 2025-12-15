@@ -668,7 +668,8 @@ def fuzeobs_ai_chat(request):
                 'concise': '- Be extremely brief\n- Only essential information',
                 'explanatory': '- Detailed step-by-step\n- Include background context',
                 'formal': '- Professional technical language\n- Structured format',
-                'learning': '- Break down for beginners\n- Use analogies'
+                'learning': '- Break down for beginners\n- Use analogies',
+                'sassy': '- Be sassy and sarcastic with your answer\n - Still answer the question'
             }
             
             style_prompt = style_instructions.get(style, style_instructions['normal'])
