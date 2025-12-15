@@ -13,7 +13,6 @@ class IsometricLayers {
             { id: 'ai', label: 'AI Enhancements', sideLabel: 'INTELLIGENT', number: '04' }
         ];
         
-        this.isMobile = window.innerWidth <= 1024;
         this.w = 700;
         this.h = 300;
         this.t = 75;
@@ -71,11 +70,11 @@ class IsometricLayers {
                             <rect x="0" y="0" width="${this.svgW}" height="${this.svgH * 1.6}" fill="url(#dotsFeatherH)"/>
                         </mask>
                     </defs>
-                    ${this.isMobile ? '' : `<g class="dots-grid" opacity="0.15" mask="url(#dotsFade)">
+                    <g class="dots-grid" opacity="0.15" mask="url(#dotsFade)">
                         <g mask="url(#dotsFadeH)">
                         ${this.renderDots()}
                         </g>
-                    </g>`}
+                    </g>
                     ${renderOrder.map(i => this.renderLayer(i)).join('')}
                 </svg>
             </div>
@@ -138,10 +137,6 @@ class IsometricLayers {
     }
 
     renderTopGrid(x, y, w, h, index) {
-        if (this.isMobile) {
-            // Simplified grid for mobile
-            return this.renderSimpleGrid(x, y, w, h);
-        }
         switch(index) {
             case 0: return this.renderRadialLines(x, y, w, h);
             case 1: return this.renderDottedGrid(x, y, w, h);
@@ -149,15 +144,6 @@ class IsometricLayers {
             case 3: return this.renderNeuralPattern(x, y, w, h);
             default: return this.renderDashedGrid(x, y, w, h);
         }
-    }
-
-    renderSimpleGrid(x, y, w, h) {
-        const cx = x + w/2;
-        const cy = y + h/2;
-        return `
-            <line x1="${x}" y1="${cy}" x2="${x + w}" y2="${cy}" stroke="white" stroke-width="0.5"/>
-            <line x1="${cx}" y1="${y}" x2="${cx}" y2="${y + h}" stroke="white" stroke-width="0.5"/>
-        `;
     }
 
     renderRadialLines(x, y, w, h) {
@@ -318,13 +304,12 @@ class IsometricLayers {
 
     setActive(index, animate = true) {
         this.activeLayer = index;
-        const shouldAnimate = animate && !this.isMobile;
         
         this.container.querySelectorAll('.iso-layer').forEach((layer) => {
             const idx = parseInt(layer.dataset.layer);
             const transformY = this.getTransformY(idx, index);
             
-            layer.style.transition = shouldAnimate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
+            layer.style.transition = animate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
             layer.setAttribute('transform', `translate(0, ${transformY})`);
             
             this.applyLayerStyles(layer, idx === index);
@@ -354,7 +339,7 @@ class IsometricLayers {
         this.container.querySelectorAll('.iso-layer').forEach((layer) => {
             const idx = parseInt(layer.dataset.layer);
             const transformY = this.getTransformY(idx, index);
-            layer.style.transition = this.isMobile ? 'none' : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            layer.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
             layer.setAttribute('transform', `translate(0, ${transformY})`);
         });
     }
