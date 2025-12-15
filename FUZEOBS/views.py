@@ -749,7 +749,7 @@ Common Issues:
 - Widgets not updating: Check platform connection status, ensure stream is live for real-time widgets.
 
 Response Style:
-{{style_prompt}}""",
+{style_prompt}""",
                 messages=[{"role": "user", "content": messages_content}]
             ) as stream:
                 for text in stream.text_stream:
