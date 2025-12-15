@@ -138,10 +138,6 @@ class IsometricLayers {
     }
 
     renderTopGrid(x, y, w, h, index) {
-        if (this.isMobile) {
-            // Simplified grid for mobile
-            return this.renderSimpleGrid(x, y, w, h);
-        }
         switch(index) {
             case 0: return this.renderRadialLines(x, y, w, h);
             case 1: return this.renderDottedGrid(x, y, w, h);
@@ -149,15 +145,6 @@ class IsometricLayers {
             case 3: return this.renderNeuralPattern(x, y, w, h);
             default: return this.renderDashedGrid(x, y, w, h);
         }
-    }
-
-    renderSimpleGrid(x, y, w, h) {
-        const cx = x + w/2;
-        const cy = y + h/2;
-        return `
-            <line x1="${x}" y1="${cy}" x2="${x + w}" y2="${cy}" stroke="white" stroke-width="0.5"/>
-            <line x1="${cx}" y1="${y}" x2="${cx}" y2="${y + h}" stroke="white" stroke-width="0.5"/>
-        `;
     }
 
     renderRadialLines(x, y, w, h) {
@@ -318,13 +305,12 @@ class IsometricLayers {
 
     setActive(index, animate = true) {
         this.activeLayer = index;
-        const shouldAnimate = animate && !this.isMobile;
         
         this.container.querySelectorAll('.iso-layer').forEach((layer) => {
             const idx = parseInt(layer.dataset.layer);
             const transformY = this.getTransformY(idx, index);
             
-            layer.style.transition = shouldAnimate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
+            layer.style.transition = animate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
             layer.setAttribute('transform', `translate(0, ${transformY})`);
             
             this.applyLayerStyles(layer, idx === index);
@@ -354,7 +340,7 @@ class IsometricLayers {
         this.container.querySelectorAll('.iso-layer').forEach((layer) => {
             const idx = parseInt(layer.dataset.layer);
             const transformY = this.getTransformY(idx, index);
-            layer.style.transition = this.isMobile ? 'none' : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            layer.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
             layer.setAttribute('transform', `translate(0, ${transformY})`);
         });
     }
