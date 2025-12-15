@@ -669,7 +669,7 @@ def fuzeobs_ai_chat(request):
                 'explanatory': '- Detailed step-by-step\n- Include background context',
                 'formal': '- Professional technical language\n- Structured format',
                 'learning': '- Break down for beginners\n- Use analogies',
-                'sassy': '- Be sassy and sarcastic with your answer\n - Still answer the question'
+                'sassy': '- Be playfully sassy and sarcastic - eye rolls, dramatic sighs, witty comebacks\n- Use phrases like "Oh honey...", "Bless your heart", "Let me spell it out..."\n- Roast common mistakes gently\n- Still provide the correct, helpful answer after the sass'
             }
             
             style_prompt = style_instructions.get(style, style_instructions['normal'])
