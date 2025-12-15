@@ -157,14 +157,14 @@ def require_tier(min_tier):
     return decorator
 
 def get_user_from_token(token):
-    """Secure token verification"""
+    """Secure token verification - returns user regardless of tier change"""
     verification = auth_manager.verify_token(token)
     if not verification['valid']:
         return None
     try:
         user = User.objects.get(id=verification['user_id'])
-        if user.fuzeobs_tier != verification['tier']:
-            return None
+        # Store original token tier for checking later
+        user._token_tier = verification['tier']
         return user
     except User.DoesNotExist:
         return None
@@ -423,14 +423,22 @@ def fuzeobs_verify(request):
         session_id = request.META.get('HTTP_X_SESSION_ID')
         if session_id:
             update_active_session(user, session_id, get_client_ip(request))
-        return JsonResponse({
+        
+        response_data = {
             'valid': True,
             'authenticated': True,
             'tier': user.fuzeobs_tier,
             'email': user.email,
             'username': user.username,
             'reachable': True
-        })
+        }
+        
+        # Issue new token if tier changed
+        token_tier = getattr(user, '_token_tier', None)
+        if token_tier and user.fuzeobs_tier != token_tier:
+            response_data['new_token'] = auth_manager.create_signed_token(user.id, user.fuzeobs_tier)
+        
+        return JsonResponse(response_data)
     
     return JsonResponse({'valid': False, 'authenticated': False, 'reachable': True})
 
