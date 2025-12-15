@@ -197,13 +197,25 @@ class IsometricLayers {
     renderDottedGrid(x, y, w, h) {
         let grid = '';
         const steps = 6;
+        
+        // Lines going from top-left to bottom-right
         for (let i = 1; i < steps; i++) {
-            for (let j = 1; j < steps; j++) {
-                const px = x + (i/steps)*w/2 + (j/steps)*w/2;
-                const py = y + h/2 - (i/steps)*h/2 + (j/steps)*h/2;
-                grid += `<circle cx="${px}" cy="${py}" r="2.5" fill="white"/>`;
-            }
+            const startX = x + (i/steps)*w/2;
+            const startY = y + h/2 - (i/steps)*h/2;
+            const endX = startX + w/2;
+            const endY = startY + h/2;
+            grid += `<line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}" stroke="white" stroke-width="0.5"/>`;
         }
+        
+        // Lines going from top-right to bottom-left
+        for (let i = 1; i < steps; i++) {
+            const startX = x + w/2 + (i/steps)*w/2;
+            const startY = y + (i/steps)*h/2;
+            const endX = startX - w/2;
+            const endY = startY + h/2;
+            grid += `<line x1="${startX}" y1="${startY}" x2="${endX}" y2="${endY}" stroke="white" stroke-width="0.5"/>`;
+        }
+        
         return grid;
     }
 

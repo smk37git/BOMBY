@@ -4,6 +4,7 @@
     padding: 60px 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    min-height: 700px;
 }
 
 .layers-showcase-layout {
@@ -13,10 +14,11 @@
     align-items: start;
     max-width: 1600px;
     margin: 0 auto;
+    min-height: 520px;
 }
 
 /* Accordion */
-.layers-accordion { display: flex; flex-direction: column; }
+.layers-accordion { display: flex; flex-direction: column; min-height: 480px; }
 .accordion-item { border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
 .accordion-item:first-child { border-top: 1px solid rgba(255, 255, 255, 0.1); }
 
@@ -30,11 +32,10 @@
 }
 .accordion-header:hover { padding-left: 8px; }
 
-.accordion-title { display: flex; align-items: baseline; gap: 16px; }
-.accordion-number {
-    font-family: 'JetBrains Mono', 'SF Mono', monospace;
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.35);
+.accordion-title {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 .accordion-heading {
     font-size: clamp(20px, 2.5vw, 28px);
@@ -44,6 +45,17 @@
     transition: color 0.3s ease;
 }
 .accordion-item.active .accordion-heading { color: #fff; }
+
+.accordion-tabs-indicator {
+    font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.35);
+    letter-spacing: 0.1em;
+}
+.accordion-item.active .accordion-tabs-indicator {
+    color: rgba(255, 255, 255, 0.55);
+}
+
 .accordion-toggle { color: rgba(255, 255, 255, 0.4); font-size: 20px; }
 
 .accordion-content {
@@ -75,8 +87,10 @@
 .layers-graphic {
     position: relative;
     width: 100%;
+    height: 500px;
     display: flex;
     justify-content: center;
+    overflow: visible;
 }
 
 .iso-layers-wrapper {
@@ -104,15 +118,17 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
-    .layers-showcase-layout { grid-template-columns: 1fr; gap: 40px; }
-    .layers-graphic { order: -1; }
+    .layers-showcase-layout { grid-template-columns: 1fr; gap: 40px; min-height: auto; }
+    .layers-graphic { order: -1; height: 420px; }
     .iso-layers-svg { height: 420px; }
 }
 @media (max-width: 768px) {
     .layers-showcase { padding: 40px 16px 20px; }
+    .layers-graphic { height: 360px; }
     .iso-layers-svg { height: 360px; }
 }
 @media (max-width: 480px) {
+    .layers-graphic { height: 290px; }
     .iso-layers-svg { height: 290px; }
     .layers-showcase { padding: 30px 12px 16px; }
 }
