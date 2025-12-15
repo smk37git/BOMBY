@@ -4,7 +4,7 @@
     padding: 60px 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    height: 780px;
+    height: 900px;
     overflow: hidden;
 }
 
@@ -109,7 +109,7 @@
     overflow: visible;
 }
 
-.iso-layer { cursor: pointer; }
+.iso-layer { cursor: pointer; transform-origin: center center; }
 .iso-layer path {
     transition: stroke 0.3s ease, stroke-width 0.3s ease;
 }

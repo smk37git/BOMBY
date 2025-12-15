@@ -113,7 +113,7 @@ class IsometricLayers {
         const rightLabelY = labelY;
         
         return `
-            <g class="iso-layer" data-layer="${index}" transform="translate(0, 0)">
+            <g class="iso-layer" data-layer="${index}">
                 <g class="iso-box">
                     <path class="iso-left" d="${leftPath}" fill="#090909" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
                     <path class="iso-right" d="${rightPath}" fill="#0e0e0e" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
@@ -138,10 +138,6 @@ class IsometricLayers {
     }
 
     renderTopGrid(x, y, w, h, index) {
-        if (this.isMobile) {
-            // Simplified grid for mobile
-            return this.renderSimpleGrid(x, y, w, h);
-        }
         switch(index) {
             case 0: return this.renderRadialLines(x, y, w, h);
             case 1: return this.renderDottedGrid(x, y, w, h);
@@ -149,15 +145,6 @@ class IsometricLayers {
             case 3: return this.renderNeuralPattern(x, y, w, h);
             default: return this.renderDashedGrid(x, y, w, h);
         }
-    }
-
-    renderSimpleGrid(x, y, w, h) {
-        const cx = x + w/2;
-        const cy = y + h/2;
-        return `
-            <line x1="${x}" y1="${cy}" x2="${x + w}" y2="${cy}" stroke="white" stroke-width="0.5"/>
-            <line x1="${cx}" y1="${y}" x2="${cx}" y2="${y + h}" stroke="white" stroke-width="0.5"/>
-        `;
     }
 
     renderRadialLines(x, y, w, h) {
@@ -264,7 +251,7 @@ class IsometricLayers {
         const labelX = 730;
         
         return `
-            <g class="iso-side-label-group" data-layer="${index}" transform="translate(0, 0)">
+            <g class="iso-side-label-group" data-layer="${index}">
                 <line class="iso-connection" x1="${this.offsetX + this.w + 10}" y1="${lineY}" x2="${labelX - 5}" y2="${lineY}"
                       stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="2,5"/>
                 <text class="iso-side-label" x="${labelX}" y="${lineY + 4}" text-anchor="start"
@@ -318,14 +305,13 @@ class IsometricLayers {
 
     setActive(index, animate = true) {
         this.activeLayer = index;
-        const shouldAnimate = animate && !this.isMobile;
         
         this.container.querySelectorAll('.iso-layer').forEach((layer) => {
             const idx = parseInt(layer.dataset.layer);
             const transformY = this.getTransformY(idx, index);
             
-            layer.style.transition = shouldAnimate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
-            layer.setAttribute('transform', `translate(0, ${transformY})`);
+            layer.style.transition = animate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
+            layer.style.transform = `translateY(${transformY}px)`;
             
             this.applyLayerStyles(layer, idx === index);
         });
@@ -335,7 +321,7 @@ class IsometricLayers {
             const transformY = this.getTransformY(idx, index);
             
             g.style.transition = animate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
-            g.setAttribute('transform', `translate(0, ${transformY})`);
+            g.style.transform = `translateY(${transformY}px)`;
             
             g.querySelector('.iso-side-label').setAttribute('fill', idx === index ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.1)');
             g.querySelector('.iso-connection').setAttribute('stroke', idx === index ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.05)');
@@ -354,8 +340,8 @@ class IsometricLayers {
         this.container.querySelectorAll('.iso-layer').forEach((layer) => {
             const idx = parseInt(layer.dataset.layer);
             const transformY = this.getTransformY(idx, index);
-            layer.style.transition = this.isMobile ? 'none' : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-            layer.setAttribute('transform', `translate(0, ${transformY})`);
+            layer.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+            layer.style.transform = `translateY(${transformY}px)`;
         });
     }
 

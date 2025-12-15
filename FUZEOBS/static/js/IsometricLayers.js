@@ -113,7 +113,7 @@ class IsometricLayers {
         const rightLabelY = labelY;
         
         return `
-            <g class="iso-layer" data-layer="${index}" transform="translate(0, 0)">
+            <g class="iso-layer" data-layer="${index}">
                 <g class="iso-box">
                     <path class="iso-left" d="${leftPath}" fill="#090909" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
                     <path class="iso-right" d="${rightPath}" fill="#0e0e0e" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
@@ -175,7 +175,7 @@ class IsometricLayers {
             const r = i / 5;
             const rx = w/2 * r * 0.8;
             const ry = h/2 * r * 0.8;
-            grid += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="white" stroke-width="${i === 2 ? 1.5 : 0.5}"/>`;
+            grid += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="none" stroke="white" stroke-width="0.5"/>`;
         }
         
         const dotCounts = [4, 6, 8, 10];
@@ -251,7 +251,7 @@ class IsometricLayers {
         const labelX = 730;
         
         return `
-            <g class="iso-side-label-group" data-layer="${index}" transform="translate(0, 0)">
+            <g class="iso-side-label-group" data-layer="${index}">
                 <line class="iso-connection" x1="${this.offsetX + this.w + 10}" y1="${lineY}" x2="${labelX - 5}" y2="${lineY}"
                       stroke="rgba(255,255,255,0.05)" stroke-width="1" stroke-dasharray="2,5"/>
                 <text class="iso-side-label" x="${labelX}" y="${lineY + 4}" text-anchor="start"
@@ -311,7 +311,7 @@ class IsometricLayers {
             const transformY = this.getTransformY(idx, index);
             
             layer.style.transition = animate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
-            layer.setAttribute('transform', `translate(0, ${transformY})`);
+            layer.style.transform = `translateY(${transformY}px)`;
             
             this.applyLayerStyles(layer, idx === index);
         });
@@ -321,7 +321,7 @@ class IsometricLayers {
             const transformY = this.getTransformY(idx, index);
             
             g.style.transition = animate ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none';
-            g.setAttribute('transform', `translate(0, ${transformY})`);
+            g.style.transform = `translateY(${transformY}px)`;
             
             g.querySelector('.iso-side-label').setAttribute('fill', idx === index ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0.1)');
             g.querySelector('.iso-connection').setAttribute('stroke', idx === index ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.05)');
@@ -341,7 +341,7 @@ class IsometricLayers {
             const idx = parseInt(layer.dataset.layer);
             const transformY = this.getTransformY(idx, index);
             layer.style.transition = 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
-            layer.setAttribute('transform', `translate(0, ${transformY})`);
+            layer.style.transform = `translateY(${transformY}px)`;
         });
     }
 
