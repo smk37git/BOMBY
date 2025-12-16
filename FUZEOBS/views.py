@@ -1260,12 +1260,14 @@ def fuzeobs_stripe_webhook(request):
     
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
-        if session.get('metadata', {}).get('product') == 'fuzeobs':
-            user_id = session['metadata'].get('user_id')
-            plan_type = session['metadata'].get('plan_type')
-            payment_id = session.get('payment_intent') or session.get('id')
+        metadata = session.get('metadata', {})
+        payment_id = session.get('payment_intent') or session.get('id')
+        
+        # === FUZEOBS PURCHASES ===
+        if metadata.get('product') == 'fuzeobs':
+            user_id = metadata.get('user_id')
+            plan_type = metadata.get('plan_type')
             
-            # Check if already processed (prevent duplicates)
             if FuzeOBSPurchase.objects.filter(payment_id=payment_id).exists():
                 return JsonResponse({'status': 'already_processed'})
             
@@ -1279,11 +1281,9 @@ def fuzeobs_stripe_webhook(request):
                 except Exception as e:
                     print(f"[FUZEOBS] promote_to_supporter failed: {e}")
                 
-                # Activate as FuzeOBS user (counts in total users)
                 activate_fuzeobs_user(user)
                 user.save()
                 
-                # Cancel existing Pro subscription if upgrading to Lifetime
                 if plan_type == 'lifetime':
                     try:
                         existing_sub = FuzeOBSSubscription.objects.get(user=user, is_active=True)
@@ -1302,7 +1302,6 @@ def fuzeobs_stripe_webhook(request):
                     reason='stripe_webhook'
                 )
                 
-                # Create purchase record and send invoice
                 amount = Decimal('45.00') if plan_type == 'lifetime' else Decimal('7.50')
                 purchase = FuzeOBSPurchase.objects.create(
                     user=user,
@@ -1312,13 +1311,11 @@ def fuzeobs_stripe_webhook(request):
                     is_paid=True
                 )
                 
-                # Send invoice email
                 try:
                     send_fuzeobs_invoice_email(request, user, purchase, plan_type)
                 except Exception as e:
                     print(f'[FUZEOBS] Invoice email failed: {e}')
                 
-                # Save subscription info for Pro plans
                 if plan_type == 'pro' and session.get('subscription'):
                     FuzeOBSSubscription.objects.update_or_create(
                         user=user,
@@ -1331,8 +1328,51 @@ def fuzeobs_stripe_webhook(request):
                     )
             except User.DoesNotExist:
                 pass
+        
+        # === STORE PRODUCT PURCHASES ===
+        elif metadata.get('type') == 'product':
+            from STORE.models import Order, Product
+            product_id = metadata.get('product_id')
+            user_id = metadata.get('user_id')
+            
+            if product_id and user_id and payment_id:
+                if not Order.objects.filter(payment_id=payment_id).exists():
+                    try:
+                        user = User.objects.get(id=user_id)
+                        product = Product.objects.get(id=product_id)
+                        
+                        status = 'completed' if int(product_id) == 4 else 'pending'
+                        Order.objects.create(
+                            user=user,
+                            product=product,
+                            status=status,
+                            payment_id=payment_id,
+                            is_paid=True
+                        )
+                    except Exception as e:
+                        print(f"[STORE] Webhook order creation error: {e}")
+        
+        # === STORE DONATIONS ===
+        elif metadata.get('type') == 'donation':
+            from STORE.models import Donation
+            amount = metadata.get('amount')
+            user_id = metadata.get('user_id')
+            
+            if amount and payment_id:
+                if not Donation.objects.filter(payment_id=payment_id).exists():
+                    try:
+                        donation = Donation.objects.create(
+                            amount=amount,
+                            payment_id=payment_id,
+                            is_paid=True
+                        )
+                        if user_id:
+                            donation.user = User.objects.get(id=user_id)
+                            donation.save()
+                    except Exception as e:
+                        print(f"[STORE] Webhook donation creation error: {e}")
     
-    # Handle subscription cancellation
+    # Handle FUZEOBS subscription cancellation
     elif event['type'] == 'customer.subscription.deleted':
         subscription = event['data']['object']
         try:
@@ -1340,7 +1380,6 @@ def fuzeobs_stripe_webhook(request):
             sub.is_active = False
             sub.save()
             
-            # Downgrade user to free
             user = sub.user
             old_tier = user.fuzeobs_tier
             user.fuzeobs_tier = 'free'
