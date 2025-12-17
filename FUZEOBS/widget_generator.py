@@ -403,6 +403,7 @@ def generate_chat_box_html(user_id, config):
     chat_notification_enabled = config.get('chat_notification_enabled', False)
     notification_sound = config.get('notification_sound', '')
     notification_volume = config.get('notification_volume', 50)
+    notification_threshold_enabled = config.get('notification_threshold_enabled', False)
     notification_threshold = config.get('notification_threshold', 0)
     chat_delay = config.get('chat_delay', 0)
     hide_after = config.get('hide_after', 30)
@@ -539,6 +540,7 @@ const config = {{
     notification_enabled: {str(chat_notification_enabled).lower()},
     notification_sound: '{notification_sound}',
     notification_volume: {notification_volume},
+    notification_threshold_enabled: {str(notification_threshold_enabled).lower()},
     notification_threshold: {notification_threshold},
     chat_delay: {chat_delay},
     hide_after: {hide_after},
@@ -705,7 +707,8 @@ function displayMessage(data) {{
     }}
     
     const timeSinceActivity = (Date.now() - lastActivity) / 1000;
-    if (config.notification_enabled && timeSinceActivity >= config.notification_threshold && config.notification_sound) {{
+    const thresholdMet = !config.notification_threshold_enabled || timeSinceActivity >= config.notification_threshold;
+    if (config.notification_enabled && thresholdMet && config.notification_sound) {{
         const audio = document.getElementById('notificationSound');
         audio.src = config.notification_sound;
         audio.volume = config.notification_volume / 100;
