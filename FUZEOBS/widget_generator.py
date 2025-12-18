@@ -753,6 +753,8 @@ def generate_event_list_html(user_id, config, connected_platforms):
     min_bits = config.get('min_bits', 1)
     min_stars = config.get('min_stars', 1)
     min_raiders = config.get('min_raiders', 1)
+    min_superchat = config.get('min_superchat', 1)
+    min_likes = config.get('min_likes', 10)
     
     # Message templates
     message_templates = {
@@ -938,6 +940,9 @@ const config = {{
     min_bits: {min_bits},
     min_stars: {min_stars},
     min_raiders: {min_raiders},
+    min_superchat: {min_superchat},
+    min_likes: {min_likes},
+    fade_time: {fade_time},
     fade_time: {fade_time},
     flip_y: {str(flip_y).lower()},
     message_templates: {json.dumps(message_templates)}
@@ -1034,6 +1039,8 @@ function addEvent(data) {{
     if (event_type === 'bits' && event_data.amount < config.min_bits) return;
     if (event_type === 'stars' && event_data.amount < config.min_stars) return;
     if (event_type === 'raid' && event_data.viewers < config.min_raiders) return;
+    if (event_type === 'superchat' && parseFloat(event_data.amount?.replace(/[^0-9.]/g, '') || 0) < config.min_superchat) return;
+    if (event_type === 'like' && event_data.count < config.min_likes) return;
     
     const container = document.getElementById('events-container');
     const eventEl = document.createElement('div');
