@@ -2066,7 +2066,7 @@ let images = [];
 let isVisible = true;
 
 function init() {{
-    const bannerWidth = config.banner_width || 400;
+    const bannerWidth = config.banner_width || 700;
     const bannerHeight = config.banner_height || 200;
     
     container.style.width = bannerWidth + 'px';
@@ -2081,7 +2081,9 @@ function init() {{
     }}
     
     images = [];
+    const defaultImage = 'https://storage.googleapis.com/fuzeobs-public/media/sponsor-default.png';
     if (config.image_1) images.push(config.image_1);
+    else images.push(defaultImage);
     if (config.placement === 'double' && config.image_2) images.push(config.image_2);
     
     if (images.length === 0) {{
