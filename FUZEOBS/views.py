@@ -90,7 +90,7 @@ def cleanup_old_sessions():
 
 # ====== VERSION / UPDATES ======
 
-FUZEOBS_VERSION = '0.9.15'
+FUZEOBS_VERSION = '0.9.16'
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
