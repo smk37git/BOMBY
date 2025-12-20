@@ -59,7 +59,6 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 User = get_user_model()
 # ====== HELPER FUNCTIONS =======
-
 def get_client_ip(request):
     """Get real client IP, handling proxies correctly"""
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
