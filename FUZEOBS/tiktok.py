@@ -1,6 +1,9 @@
 import threading
 from TikTokLive import TikTokLiveClient
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from .twitch import send_alert
+from .models import WidgetConfig
 
 tiktok_clients = {}
 tiktok_client_lock = threading.Lock()
@@ -14,6 +17,7 @@ def start_tiktok_listener(user_id, tiktok_username):
             return True
     
     client = TikTokLiveClient(unique_id=f"@{tiktok_username}")
+    channel_layer = get_channel_layer()
     
     @client.on("connect")
     async def on_connect(event):
@@ -53,6 +57,46 @@ def start_tiktok_listener(user_id, tiktok_username):
                 'count': event.likeCount
             })
             print(f'[TIKTOK] {event.likeCount} likes from {event.user.nickname}')
+    
+    @client.on("comment")
+    async def on_comment(event):
+        # Check if chat widget enabled
+        chat_enabled = WidgetConfig.objects.filter(
+            user_id=user_id,
+            widget_type='chat_box',
+            enabled=True
+        ).exists()
+        
+        if not chat_enabled:
+            return
+        
+        username = event.user.nickname
+        message = event.comment
+        
+        if not message:
+            return
+        
+        # Build badges
+        badges = []
+        if hasattr(event.user, 'is_moderator') and event.user.is_moderator:
+            badges.append('moderator')
+        if hasattr(event.user, 'is_subscriber') and event.user.is_subscriber:
+            badges.append('subscriber')
+        
+        async_to_sync(channel_layer.group_send)(
+            f'chat_{user_id}',
+            {
+                'type': 'chat_message',
+                'data': {
+                    'username': username,
+                    'message': message,
+                    'badges': badges,
+                    'color': '#FE2858',
+                    'platform': 'tiktok',
+                    'emotes': []
+                }
+            }
+        )
     
     def run_client():
         try:

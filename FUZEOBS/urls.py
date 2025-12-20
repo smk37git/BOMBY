@@ -38,12 +38,14 @@ urlpatterns = [
     path('twitch-webhook', views.fuzeobs_twitch_webhook, name='twitch_webhook'),
     path('youtube/start/<int:user_id>', views.fuzeobs_youtube_start_listener, name='youtube_start_listener'),
     path('facebook/start/<int:user_id>', views.fuzeobs_facebook_start_listener, name='facebook_start_listener'),
+    path('kick/start/<int:user_id>', views.fuzeobs_kick_start_listener, name='kick_start_listener'),
     path('kick-webhook', views.fuzeobs_kick_webhook, name='kick_webhook'),
     path('tiktok/start/<int:user_id>', views.fuzeobs_tiktok_start_listener, name='tiktok_start_listener'),
 
     # PLATFORM CHATS
     path('twitch-chat/start/<int:user_id>', views.fuzeobs_twitch_chat_start, name='twitch_chat_start'),
     path('kick-chat/start/<int:user_id>', views.fuzeobs_kick_chat_start, name='kick_chat_start'),
+    path('facebook-chat/start/<int:user_id>', views.fuzeobs_facebook_chat_start, name='facebook_chat_start'),
 
     # Widget Serving (clean URL)
     path('w/<str:token>', views.fuzeobs_serve_widget, name='serve_widget'),

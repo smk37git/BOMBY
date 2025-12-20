@@ -169,6 +169,25 @@ if (platform === 'facebook') {{
     }}, 300000);
 }}
 
+if (platform === 'kick') {{
+    fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`)
+        .then(r => r.json())
+        .then(data => {{
+            if (data.started) {{
+                console.log('[KICK] Listener started');
+            }} else {{
+                console.log('[KICK] Not active or already running');
+            }}
+        }})
+        .catch(err => console.log('[KICK] Start failed:', err));
+    
+    // Re-check every 5 minutes
+    setInterval(() => {{
+        fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`)
+            .catch(() => {{}});
+    }}, 300000);
+}}
+
 if (platform === 'tiktok') {{
     fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`)
         .then(r => r.json())
@@ -549,6 +568,10 @@ const config = {{
 
 fetch(`https://bomby.us/fuzeobs/twitch-chat/start/${{userId}}`).catch(() => {{}});
 fetch(`https://bomby.us/fuzeobs/kick-chat/start/${{userId}}`).catch(() => {{}});
+fetch(`https://bomby.us/fuzeobs/facebook-chat/start/${{userId}}`).catch(() => {{}});
+fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
+fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}});
+fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}});
 
 let ws;
 function connectWS() {{
@@ -1015,6 +1038,20 @@ function connectWS() {{
 
 connectWS();
 
+// Start platform listeners
+if (config.show_youtube && connectedPlatforms.includes('youtube')) {{
+    fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
+}}
+if (config.show_kick && connectedPlatforms.includes('kick')) {{
+    fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}});
+}}
+if (config.show_facebook && connectedPlatforms.includes('facebook')) {{
+    fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}});
+}}
+if (config.show_tiktok && connectedPlatforms.includes('tiktok')) {{
+    fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}});
+}}
+
 function handleMessage(data) {{
     if (data.type === 'refresh') {{
         window.location.reload();
@@ -1420,6 +1457,9 @@ function startPlatformListeners() {{
     if (platforms.includes('youtube') && connectedPlatforms.includes('youtube')) {{
         fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
     }}
+    if (platforms.includes('kick') && connectedPlatforms.includes('kick')) {{
+        fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}});
+    }}
     if (platforms.includes('facebook') && connectedPlatforms.includes('facebook')) {{
         fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}});
     }}
@@ -1730,6 +1770,9 @@ function startPlatformListeners() {{
     const platforms = LABEL_PLATFORMS[labelType] || [];
     if (platforms.includes('youtube') && connectedPlatforms.includes('youtube')) {{
         fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
+    }}
+    if (platforms.includes('kick') && connectedPlatforms.includes('kick')) {{
+        fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}});
     }}
     if (platforms.includes('facebook') && connectedPlatforms.includes('facebook')) {{
         fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}});

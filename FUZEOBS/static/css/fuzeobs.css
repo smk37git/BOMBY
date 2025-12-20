@@ -546,7 +546,7 @@
 .platform-logo[data-platform="facebook"]:hover { color: #1877F2; }
 
 .platform-logo span { font-size: 12px; font-weight: 500; letter-spacing: 1px; }
-.platform-logo .platform-coming-soon {
+.platform-logo {
   font-size: 9px;
   color: rgba(255, 255, 255, 0.4);
   letter-spacing: 0.5px;

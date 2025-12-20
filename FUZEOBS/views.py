@@ -35,6 +35,7 @@ import requests
 import base64
 from .twitch_chat import start_twitch_chat
 from .kick_chat import start_kick_chat
+from .facebook_chat import start_facebook_chat
 from .utils.email_utils import send_fuzeobs_invoice_email
 
 # Website Imports
@@ -2359,6 +2360,12 @@ def fuzeobs_platform_callback(request, platform):
             print(f'[YOUTUBE] Started listener for user {user.id}')
         except Exception as e:
             print(f'[YOUTUBE] Error starting listener: {e}')
+    elif platform == 'kick':
+        try:
+            start_kick_listener(user.id, username)
+            print(f'[KICK] Started listener for user {user.id} ({username})')
+        except Exception as e:
+            print(f'[KICK] Error starting listener: {e}')
     elif platform == 'facebook':
         try:
             start_facebook_listener(user.id, platform_user_id, actual_token)
@@ -2882,6 +2889,23 @@ def fuzeobs_facebook_start_listener(request, user_id):
 
 # =========== KICK ALERTS ===========
 @csrf_exempt
+@require_http_methods(["GET"])
+def fuzeobs_kick_start_listener(request, user_id):
+    """Start Kick listener"""
+    try:
+        conn = PlatformConnection.objects.get(user_id=user_id, platform='kick')
+        started = start_kick_listener(user_id, conn.platform_username)
+        
+        response = JsonResponse({'started': started})
+        response['Access-Control-Allow-Origin'] = '*'
+        return response
+    except PlatformConnection.DoesNotExist:
+        return JsonResponse({'started': False})
+    except Exception as e:
+        print(f'[KICK] Error starting listener: {e}')
+        return JsonResponse({'started': False})
+
+@csrf_exempt
 @require_http_methods(["POST"])
 def fuzeobs_kick_webhook(request):
     """Handle Kick webhook events"""
@@ -2994,6 +3018,20 @@ def fuzeobs_kick_chat_start(request, user_id):
         return JsonResponse({'started': False, 'error': 'Not connected'})
     except Exception as e:
         print(f'[KICK CHAT] Error: {e}')
+        return JsonResponse({'error': str(e)}, status=400)
+
+@csrf_exempt
+def fuzeobs_facebook_chat_start(request, user_id):
+    """Start Facebook chat polling"""
+    try:
+        user = User.objects.get(id=user_id)
+        conn = PlatformConnection.objects.get(user=user, platform='facebook')
+        started = start_facebook_chat(user_id, conn.platform_user_id, conn.access_token)
+        return JsonResponse({'started': started})
+    except PlatformConnection.DoesNotExist:
+        return JsonResponse({'started': False, 'error': 'Not connected'})
+    except Exception as e:
+        print(f'[FB CHAT] Error: {e}')
         return JsonResponse({'error': str(e)}, status=400)
     
 # =========== LABELS ===========    

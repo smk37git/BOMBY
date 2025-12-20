@@ -1,8 +1,10 @@
 import requests
 import time
 import threading
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from .twitch import send_alert
-from .models import PlatformConnection
+from .models import PlatformConnection, WidgetConfig
 
 yt_pollers = {}
 yt_poller_lock = threading.Lock()
@@ -21,6 +23,8 @@ def start_youtube_listener(user_id, access_token):
         consecutive_not_live = 0
         poll_interval = 10
         subscriber_check_counter = 0
+        channel_layer = get_channel_layer()
+        processed_chat_ids = set()
         
         while True:
             with yt_poller_lock:
@@ -103,7 +107,7 @@ def start_youtube_listener(user_id, access_token):
                     except Exception as e:
                         print(f'[YOUTUBE] Subscriber check failed: {e}')
                 
-                # Poll live chat (SuperChats, Members)
+                # Poll live chat
                 page_token = conn.metadata.get('yt_page_token')
                 params = {
                     'liveChatId': live_chat_id,
@@ -123,9 +127,18 @@ def start_youtube_listener(user_id, access_token):
                 if chat_resp.status_code == 200:
                     data = chat_resp.json()
                     
+                    # Check if chat widget is enabled
+                    chat_enabled = WidgetConfig.objects.filter(
+                        user_id=user_id,
+                        widget_type='chat_box',
+                        enabled=True
+                    ).exists()
+                    
                     for msg in data.get('items', []):
+                        msg_id = msg['id']
                         snippet = msg['snippet']
                         author = msg['authorDetails']['displayName']
+                        author_channel = msg['authorDetails'].get('channelId', '')
                         
                         # SuperChat
                         if 'superChatDetails' in snippet:
@@ -141,6 +154,47 @@ def start_youtube_listener(user_id, access_token):
                                 'username': author
                             })
                             print(f'[YOUTUBE] New member: {author}')
+                        
+                        # Regular chat message
+                        if chat_enabled and msg_id not in processed_chat_ids:
+                            processed_chat_ids.add(msg_id)
+                            
+                            # Get message text
+                            message_text = snippet.get('displayMessage', '')
+                            if not message_text and 'textMessageDetails' in snippet:
+                                message_text = snippet['textMessageDetails'].get('messageText', '')
+                            
+                            if message_text:
+                                # Build badges
+                                badges = []
+                                author_details = msg['authorDetails']
+                                if author_details.get('isChatOwner'):
+                                    badges.append('broadcaster')
+                                if author_details.get('isChatModerator'):
+                                    badges.append('moderator')
+                                if author_details.get('isChatSponsor'):
+                                    badges.append('member')
+                                if author_details.get('isVerified'):
+                                    badges.append('verified')
+                                
+                                async_to_sync(channel_layer.group_send)(
+                                    f'chat_{user_id}',
+                                    {
+                                        'type': 'chat_message',
+                                        'data': {
+                                            'username': author,
+                                            'message': message_text,
+                                            'badges': badges,
+                                            'color': '#FF0000',
+                                            'platform': 'youtube',
+                                            'emotes': []
+                                        }
+                                    }
+                                )
+                    
+                    # Limit processed_chat_ids size
+                    if len(processed_chat_ids) > 1000:
+                        processed_chat_ids.clear()
                     
                     conn.metadata['yt_page_token'] = data.get('nextPageToken')
                     conn.save()
