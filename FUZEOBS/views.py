@@ -2066,7 +2066,7 @@ PLATFORM_OAUTH_CONFIG = {
         'token_url': 'https://graph.facebook.com/v18.0/oauth/access_token',
         'client_id': os.environ.get('FACEBOOK_CLIENT_ID', ''),
         'client_secret': os.environ.get('FACEBOOK_CLIENT_SECRET', ''),
-        'scopes': ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts', 'read_insights']
+        'scopes': ['pages_show_list', 'pages_read_engagement']
     },
     'tiktok': {
         'auth_url': 'https://www.tiktok.com/v2/auth/authorize',
@@ -2327,7 +2327,13 @@ def fuzeobs_platform_callback(request, platform):
         refresh_token = token_json.get('refresh_token', '')
         expires_in = token_json.get('expires_in', 3600)
     
-    username, platform_user_id = get_platform_username(platform, access_token)
+    # Facebook returns page token as 3rd value
+    if platform == 'facebook':
+        username, platform_user_id, page_token = get_platform_username(platform, access_token)
+        actual_token = page_token
+    else:
+        username, platform_user_id = get_platform_username(platform, access_token)
+        actual_token = access_token
     
     PlatformConnection.objects.update_or_create(
         user=user,
@@ -2335,7 +2341,7 @@ def fuzeobs_platform_callback(request, platform):
         defaults={
             'platform_username': username,
             'platform_user_id': platform_user_id,
-            'access_token': access_token,
+            'access_token': actual_token,
             'refresh_token': refresh_token,
             'expires_at': timezone.now() + timedelta(seconds=expires_in)
         }
@@ -2355,8 +2361,8 @@ def fuzeobs_platform_callback(request, platform):
             print(f'[YOUTUBE] Error starting listener: {e}')
     elif platform == 'facebook':
         try:
-            start_facebook_listener(user.id, platform_user_id, access_token)
-            print(f'[FACEBOOK] Started listener for user {user.id}')
+            start_facebook_listener(user.id, platform_user_id, actual_token)
+            print(f'[FACEBOOK] Started listener for user {user.id}, page {platform_user_id}')
         except Exception as e:
             print(f'[FACEBOOK] Error starting listener: {e}')
     elif platform == 'tiktok':
@@ -2435,12 +2441,14 @@ def get_platform_username(platform, access_token):
             'https://graph.facebook.com/v18.0/me/accounts',
             params={'access_token': access_token}
         )
+        print(f'[FACEBOOK] /me/accounts: {response.status_code} - {response.text[:500]}')
         if response.status_code == 200:
             data = response.json()
             if data.get('data'):
                 page = data['data'][0]
-                return page['name'], page['id']
-        return 'Facebook User', ''
+                # Return page token as 3rd element
+                return page.get('name', 'Facebook Page'), page.get('id', ''), page.get('access_token', access_token)
+        return 'Facebook User', '', access_token
     
     if platform == 'tiktok':
         resp = requests.get(
