@@ -135,7 +135,7 @@ def paypal_connect(request):
         
         # PayPal OAuth URL - Login with PayPal
         redirect_uri = 'https://bomby.us/fuzeobs/donations/paypal/callback'
-        scopes = 'openid email'
+        scopes = 'openid profile email'
         
         auth_url = (
             f'{PAYPAL_WEB_BASE}/signin/authorize'
@@ -208,6 +208,7 @@ def paypal_callback(request):
         
         # Try to get email from id_token (JWT) first
         email = None
+        logger.info(f"PayPal tokens keys: {list(tokens.keys())}")
         if id_token:
             try:
                 # Decode JWT payload (middle part)
@@ -215,7 +216,8 @@ def paypal_callback(request):
                 # Add padding if needed
                 payload += '=' * (4 - len(payload) % 4)
                 decoded = json.loads(base64.urlsafe_b64decode(payload))
-                email = decoded.get('email')
+                logger.info(f"id_token payload: {decoded}")
+                email = decoded.get('email') or decoded.get('email_address')
                 logger.info(f"Got email from id_token: {email}")
             except Exception as e:
                 logger.error(f"Failed to decode id_token: {e}")
