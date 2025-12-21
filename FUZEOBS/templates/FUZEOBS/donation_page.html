@@ -159,7 +159,39 @@
         
         #donate-button-container {
             margin-top: 24px;
-            min-height: 50px;
+        }
+        
+        .donate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0070ba 0%, #1546a0 100%);
+            border: none;
+            color: #fff;
+            padding: 14px 24px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-radius: 6px;
+        }
+        
+        .donate-btn:hover {
+            background: linear-gradient(135deg, #005ea6 0%, #103d8a 100%);
+            transform: translateY(-1px);
+        }
+        
+        .donate-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .paypal-hidden {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
         }
         
         .error-message {
@@ -296,7 +328,11 @@
         
         <div class="donation-card">
             <div id="donation-form">
+                {% if profile_picture %}
+                <img src="{{ profile_picture }}" alt="{{ streamer }}" class="avatar" style="object-fit: cover;">
+                {% else %}
                 <div class="avatar">{{ streamer|slice:":1"|upper }}</div>
+                {% endif %}
                 
                 {% if page_message %}
                 <p class="page-message">{{ page_message }}</p>
@@ -327,7 +363,11 @@
                     <textarea id="message" placeholder="Say something nice..." maxlength="500"></textarea>
                 </div>
 
-                <div id="donate-button-container"></div>
+                <button type="button" class="donate-btn" id="custom-donate-btn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.77.77 0 0 1 .757-.645h6.922c2.598 0 4.477.507 5.583 1.507 1.106 1 1.463 2.375 1.062 4.085-.506 2.165-1.664 3.778-3.439 4.793-1.728.988-3.937 1.49-6.565 1.49H6.93l-1.17 6.387a.641.641 0 0 1-.632.537h-.052z"/></svg>
+                    DONATE WITH PAYPAL
+                </button>
+                <div id="paypal-btn-hidden" class="paypal-hidden"></div>
                 
                 <div class="secure-badge">
                     <i class="fas fa-lock"></i>
@@ -399,8 +439,7 @@
             env: paypalEnv,
             image: {
                 src: 'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
-                title: 'PayPal - The safer, easier way to pay online!',
-                alt: 'Donate with PayPal button'
+                alt: 'Donate'
             },
             onComplete: async function(params) {
                 console.log('Donation complete:', params);
@@ -430,9 +469,10 @@
         };
 
         donateConfig.business = businessId;
-        PayPal.Donation.Button(donateConfig).render('#donate-button-container');
+        PayPal.Donation.Button(donateConfig).render('#paypal-btn-hidden');
 
-        document.getElementById('donate-button-container').addEventListener('click', async (e) => {
+        // Custom button click handler
+        document.getElementById('custom-donate-btn').addEventListener('click', async function() {
             hideError();
             const amount = parseFloat(document.getElementById('amount').value) || 0;
             const name = document.getElementById('donor-name').value.trim() || 'Anonymous';
@@ -440,10 +480,10 @@
 
             if (amount < minAmount) {
                 showError(`Minimum donation is $${minAmount} ${currency}`);
-                e.stopPropagation();
                 return;
             }
 
+            // Record donation intent
             try {
                 const resp = await fetch(`/fuzeobs/donate/${token}/create`, {
                     method: 'POST',
@@ -457,7 +497,13 @@
             } catch (e) {
                 console.error('Failed to record intent:', e);
             }
-        }, true);
+
+            // Trigger PayPal button
+            const paypalBtn = document.querySelector('#paypal-btn-hidden form input[type="image"], #paypal-btn-hidden img');
+            if (paypalBtn) {
+                paypalBtn.click();
+            }
+        });
     </script>
 </body>
 </html>

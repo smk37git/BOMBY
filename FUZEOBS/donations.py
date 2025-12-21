@@ -292,8 +292,14 @@ def donation_page(request, token):
             .values('donor_name', 'amount', 'currency', 'created_at')
         )
     
+    # Get user profile picture
+    profile_picture = None
+    if ds.user.profile_picture:
+        profile_picture = ds.user.profile_picture.url
+    
     context = {
         'streamer': ds.user.username,
+        'profile_picture': profile_picture,
         'page_title': ds.page_title,
         'page_message': ds.page_message,
         'min_amount': float(ds.min_amount),
