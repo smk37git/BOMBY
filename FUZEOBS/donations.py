@@ -118,7 +118,7 @@ def paypal_connect(request):
             f'{PAYPAL_WEB_BASE}/signin/authorize'
             f'?client_id={PAYPAL_CLIENT_ID}'
             f'&response_type=code'
-            f'&scope=openid%20email'
+            f'&scope=openid+email'
             f'&redirect_uri={redirect_uri}'
             f'&state={state}'
         )
