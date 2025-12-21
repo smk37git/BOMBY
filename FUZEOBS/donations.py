@@ -7,6 +7,7 @@ import json
 import secrets
 import requests
 import logging
+import base64
 from decimal import Decimal
 from datetime import datetime
 from django.db import models
@@ -22,6 +23,7 @@ from .views import get_user_from_token
 
 logger = logging.getLogger(__name__)
 
+# PayPal Configuration
 PAYPAL_SANDBOX_MODE = getattr(settings, 'PAYPAL_SANDBOX_MODE', False)
 PAYPAL_BASE = 'https://api-m.sandbox.paypal.com' if PAYPAL_SANDBOX_MODE else 'https://api-m.paypal.com'
 PAYPAL_WEB_BASE = 'https://www.sandbox.paypal.com' if PAYPAL_SANDBOX_MODE else 'https://www.paypal.com'
@@ -144,7 +146,7 @@ def paypal_connect(request):
             f'&state={state}'
         )
         
-        logger.info(f"PayPal connect initiated for user {user.id}, auth_url starts with: {auth_url[:50]}")
+        logger.info(f"PayPal connect initiated for user {user.id}")
         return JsonResponse({'auth_url': auth_url})
     except Exception as e:
         logger.error(f"paypal_connect error: {e}")
@@ -202,30 +204,43 @@ def paypal_callback(request):
         
         tokens = resp.json()
         access_token = tokens.get('access_token')
+        id_token = tokens.get('id_token')
         
-        # Get user info
-        user_resp = requests.get(
-            f'{PAYPAL_BASE}/v1/identity/oauth2/userinfo?schema=paypalv1.1',
-            headers={'Authorization': f'Bearer {access_token}'},
-            timeout=30
-        )
+        # Try to get email from id_token (JWT) first
+        email = None
+        if id_token:
+            try:
+                # Decode JWT payload (middle part)
+                payload = id_token.split('.')[1]
+                # Add padding if needed
+                payload += '=' * (4 - len(payload) % 4)
+                decoded = json.loads(base64.urlsafe_b64decode(payload))
+                email = decoded.get('email')
+                logger.info(f"Got email from id_token: {email}")
+            except Exception as e:
+                logger.error(f"Failed to decode id_token: {e}")
         
-        logger.info(f"PayPal userinfo response: {user_resp.status_code}")
+        # Fallback to userinfo if no email from id_token
+        if not email:
+            user_resp = requests.get(
+                f'{PAYPAL_BASE}/v1/identity/oauth2/userinfo?schema=paypalv1.1',
+                headers={'Authorization': f'Bearer {access_token}'},
+                timeout=30
+            )
+            logger.info(f"PayPal userinfo response: {user_resp.status_code}")
+            if user_resp.status_code == 200:
+                user_info = user_resp.json()
+                emails = user_info.get('emails', [])
+                email = next((e['value'] for e in emails if e.get('primary')), emails[0]['value'] if emails else '')
         
-        if user_resp.status_code == 200:
-            user_info = user_resp.json()
-            emails = user_info.get('emails', [])
-            primary_email = next((e['value'] for e in emails if e.get('primary')), emails[0]['value'] if emails else '')
-            
-            ds.paypal_email = primary_email
-            ds.paypal_merchant_id = user_info.get('payer_id', '')
+        if email:
+            ds.paypal_email = email
             ds.oauth_state = ''
             ds.save()
-            
-            logger.info(f"PayPal connected for user {ds.user_id}: {primary_email}")
+            logger.info(f"PayPal connected for user {ds.user_id}: {email}")
         else:
-            logger.error(f"PayPal userinfo failed: {user_resp.text}")
-            return HttpResponse('<script>alert("Failed to get PayPal account info"); window.close();</script>')
+            logger.error("Could not get email from PayPal")
+            return HttpResponse('<script>alert("Failed to get PayPal email"); window.close();</script>')
         
     except Exception as e:
         logger.error(f"PayPal callback exception: {e}")
