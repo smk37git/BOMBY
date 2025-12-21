@@ -1,15 +1,13 @@
 """
 Donations/Tipping System for FuzeOBS
-Handles PayPal OAuth, donation page, and alert triggering
+Uses PayPal OAuth to get Payer ID, then Donate SDK for payments
 """
-import os
 import json
 import secrets
 import requests
 import logging
 import base64
 from decimal import Decimal
-from datetime import datetime
 from django.db import models
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -29,28 +27,6 @@ PAYPAL_BASE = 'https://api-m.sandbox.paypal.com' if PAYPAL_SANDBOX_MODE else 'ht
 PAYPAL_WEB_BASE = 'https://www.sandbox.paypal.com' if PAYPAL_SANDBOX_MODE else 'https://www.paypal.com'
 PAYPAL_CLIENT_ID = getattr(settings, 'PAYPAL_CLIENT_ID', '') or ''
 PAYPAL_SECRET = getattr(settings, 'PAYPAL_SECRET', '') or ''
-
-
-def get_paypal_access_token():
-    """Get PayPal OAuth access token for API calls"""
-    if not PAYPAL_CLIENT_ID or not PAYPAL_SECRET:
-        logger.error("PayPal credentials not configured")
-        return None
-    
-    try:
-        resp = requests.post(
-            f'{PAYPAL_BASE}/v1/oauth2/token',
-            auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET),
-            data={'grant_type': 'client_credentials'},
-            headers={'Accept': 'application/json'},
-            timeout=30
-        )
-        if resp.status_code == 200:
-            return resp.json().get('access_token')
-        logger.error(f"PayPal token error: {resp.status_code} - {resp.text}")
-    except Exception as e:
-        logger.error(f"PayPal token exception: {e}")
-    return None
 
 
 @csrf_exempt
@@ -79,10 +55,14 @@ def donation_settings(request):
                 total=models.Sum('amount')
             )['total'] or 0
             
+            # Connected if we have payer_id or email
+            connected = bool(ds.paypal_merchant_id or ds.paypal_email)
+            
             return JsonResponse({
-                'paypal_connected': bool(ds.paypal_email),
+                'paypal_connected': connected,
                 'paypal_email': ds.paypal_email or '',
-                'donation_url': f'https://bomby.us/fuzeobs/donate/{ds.donation_token}' if ds.paypal_email else '',
+                'paypal_payer_id': ds.paypal_merchant_id or '',
+                'donation_url': f'https://bomby.us/fuzeobs/donate/{ds.donation_token}' if connected else '',
                 'min_amount': float(ds.min_amount),
                 'suggested_amounts': ds.suggested_amounts,
                 'currency': ds.currency,
@@ -112,10 +92,9 @@ def donation_settings(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def paypal_connect(request):
-    """Initiate PayPal OAuth connection"""
+    """Initiate PayPal OAuth to get Payer ID"""
     if not PAYPAL_CLIENT_ID or not PAYPAL_SECRET:
-        logger.error(f"PayPal not configured. CLIENT_ID exists: {bool(PAYPAL_CLIENT_ID)}, SECRET exists: {bool(PAYPAL_SECRET)}")
-        return JsonResponse({'error': 'PayPal not configured on server'}, status=500)
+        return JsonResponse({'error': 'PayPal not configured'}, status=500)
     
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
@@ -128,24 +107,20 @@ def paypal_connect(request):
     try:
         ds, _ = DonationSettings.objects.get_or_create(user=user)
         
-        # Generate state and nonce for OAuth
         state = secrets.token_urlsafe(32)
-        nonce = secrets.token_urlsafe(32)
         ds.oauth_state = state
         ds.save()
         
-        # PayPal OAuth URL - Login with PayPal
-        # Adding nonce is REQUIRED to get id_token back with email claims
         redirect_uri = 'https://bomby.us/fuzeobs/donations/paypal/callback'
         
+        # Request openid + paypalattributes for payer_id
         auth_url = (
             f'{PAYPAL_WEB_BASE}/signin/authorize'
             f'?client_id={PAYPAL_CLIENT_ID}'
             f'&response_type=code'
-            f'&scope=openid email'
+            f'&scope=openid'
             f'&redirect_uri={redirect_uri}'
             f'&state={state}'
-            f'&nonce={nonce}'
         )
         
         logger.info(f"PayPal connect initiated for user {user.id}")
@@ -157,19 +132,18 @@ def paypal_connect(request):
 
 @csrf_exempt
 def paypal_callback(request):
-    """Handle PayPal OAuth callback"""
+    """Handle PayPal OAuth callback - extract payer_id"""
     code = request.GET.get('code')
     state = request.GET.get('state')
     error = request.GET.get('error')
-    error_description = request.GET.get('error_description', '')
     
     if error:
-        logger.error(f"PayPal callback error: {error} - {error_description}")
+        logger.error(f"PayPal callback error: {error}")
         return HttpResponse(f'''
             <html><body style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
             <div style="text-align:center;">
                 <h2>✗ Connection Failed</h2>
-                <p>{error_description or error}</p>
+                <p>{error}</p>
                 <script>setTimeout(()=>window.close(), 3000);</script>
             </div>
             </body></html>
@@ -181,11 +155,12 @@ def paypal_callback(request):
     try:
         ds = DonationSettings.objects.get(oauth_state=state)
     except DonationSettings.DoesNotExist:
-        return HttpResponse('<script>alert("Invalid state - please try again"); window.close();</script>')
+        return HttpResponse('<script>alert("Invalid state"); window.close();</script>')
     
-    # Exchange code for tokens
     redirect_uri = 'https://bomby.us/fuzeobs/donations/paypal/callback'
+    
     try:
+        # Exchange code for tokens
         resp = requests.post(
             f'{PAYPAL_BASE}/v1/oauth2/token',
             auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET),
@@ -198,96 +173,98 @@ def paypal_callback(request):
             timeout=30
         )
         
-        logger.info(f"PayPal token exchange response: {resp.status_code}")
+        logger.info(f"PayPal token response: {resp.status_code}")
         
         if resp.status_code != 200:
-            logger.error(f"PayPal token exchange failed: {resp.text}")
-            return HttpResponse('<script>alert("Failed to connect - token exchange failed"); window.close();</script>')
+            logger.error(f"Token exchange failed: {resp.text}")
+            return HttpResponse('<script>alert("Token exchange failed"); window.close();</script>')
         
         tokens = resp.json()
         access_token = tokens.get('access_token')
-        id_token = tokens.get('id_token')
         
-        logger.info(f"PayPal tokens keys: {list(tokens.keys())}")
-        logger.info(f"Has id_token: {bool(id_token)}")
+        logger.info(f"Token keys: {list(tokens.keys())}")
         
+        payer_id = None
         email = None
         
-        # Method 1: Try to get email from id_token (JWT)
+        # Try to decode id_token if present
+        id_token = tokens.get('id_token')
         if id_token:
             try:
                 payload = id_token.split('.')[1]
                 payload += '=' * (4 - len(payload) % 4)
                 decoded = json.loads(base64.urlsafe_b64decode(payload))
-                logger.info(f"id_token payload keys: {list(decoded.keys())}")
+                logger.info(f"id_token claims: {list(decoded.keys())}")
+                payer_id = decoded.get('payer_id') or decoded.get('sub')
                 email = decoded.get('email')
-                if email:
-                    logger.info(f"Got email from id_token: {email}")
             except Exception as e:
-                logger.error(f"Failed to decode id_token: {e}")
+                logger.error(f"id_token decode error: {e}")
         
-        # Method 2: Try userinfo endpoint (OpenID Connect)
-        if not email:
+        # Try userinfo endpoint
+        if not payer_id:
             user_resp = requests.get(
-                f'{PAYPAL_BASE}/v1/identity/openidconnect/userinfo?schema=openid',
-                headers={'Authorization': f'Bearer {access_token}'},
-                timeout=30
-            )
-            logger.info(f"PayPal userinfo (openid) response: {user_resp.status_code}")
-            if user_resp.status_code == 200:
-                user_info = user_resp.json()
-                logger.info(f"Userinfo keys: {list(user_info.keys())}")
-                email = user_info.get('email')
-                if email:
-                    logger.info(f"Got email from userinfo: {email}")
-        
-        # Method 3: Try alternate userinfo endpoint (PayPal schema)
-        if not email:
-            user_resp2 = requests.get(
                 f'{PAYPAL_BASE}/v1/identity/oauth2/userinfo?schema=paypalv1.1',
                 headers={'Authorization': f'Bearer {access_token}'},
                 timeout=30
             )
-            logger.info(f"PayPal userinfo (paypal) response: {user_resp2.status_code}")
-            if user_resp2.status_code == 200:
-                user_info2 = user_resp2.json()
-                logger.info(f"Userinfo2 response: {user_info2}")
-                emails = user_info2.get('emails', [])
+            logger.info(f"Userinfo response: {user_resp.status_code}")
+            logger.info(f"Userinfo body: {user_resp.text[:500]}")
+            
+            if user_resp.status_code == 200:
+                user_info = user_resp.json()
+                payer_id = user_info.get('payer_id') or user_info.get('user_id')
+                emails = user_info.get('emails', [])
                 if emails:
                     email = next((e['value'] for e in emails if e.get('primary')), emails[0].get('value'))
-                    if email:
-                        logger.info(f"Got email from userinfo2: {email}")
         
-        if email:
-            ds.paypal_email = email
+        # Try openid userinfo
+        if not payer_id:
+            user_resp2 = requests.get(
+                f'{PAYPAL_BASE}/v1/identity/openidconnect/userinfo?schema=openid',
+                headers={'Authorization': f'Bearer {access_token}'},
+                timeout=30
+            )
+            logger.info(f"OpenID userinfo response: {user_resp2.status_code}")
+            logger.info(f"OpenID userinfo body: {user_resp2.text[:500]}")
+            
+            if user_resp2.status_code == 200:
+                user_info2 = user_resp2.json()
+                payer_id = user_info2.get('payer_id') or user_info2.get('user_id') or user_info2.get('sub')
+                if not email:
+                    email = user_info2.get('email')
+        
+        if payer_id or email:
+            ds.paypal_merchant_id = payer_id or ''
+            ds.paypal_email = email or ''
             ds.oauth_state = ''
             ds.save()
-            logger.info(f"PayPal connected for user {ds.user_id}: {email}")
+            
+            logger.info(f"PayPal connected: payer_id={payer_id}, email={email}")
             
             return HttpResponse('''
                 <html><body style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
                 <div style="text-align:center;">
-                    <h2>✓ PayPal Connected!</h2>
+                    <h2 style="color:#4ade80;">✓ PayPal Connected!</h2>
                     <p>You can close this window.</p>
                     <script>setTimeout(()=>window.close(), 2000);</script>
                 </div>
                 </body></html>
             ''')
         else:
-            logger.error("Could not get email from any PayPal method")
+            logger.error("Could not get payer_id or email from PayPal")
             return HttpResponse('''
                 <html><body style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
                 <div style="text-align:center;">
-                    <h2>✗ Connection Failed</h2>
-                    <p>Could not retrieve email from PayPal. Please ensure you approved email access.</p>
-                    <script>setTimeout(()=>window.close(), 4000);</script>
+                    <h2 style="color:#ef4444;">✗ Connection Failed</h2>
+                    <p>Could not get PayPal account info. Please ensure "PayPal account ID" is enabled in app settings.</p>
+                    <script>setTimeout(()=>window.close(), 5000);</script>
                 </div>
                 </body></html>
             ''')
         
     except Exception as e:
         logger.error(f"PayPal callback exception: {e}")
-        return HttpResponse(f'<script>alert("Connection error: {str(e)}"); window.close();</script>')
+        return HttpResponse(f'<script>alert("Error: {str(e)}"); window.close();</script>')
 
 
 @csrf_exempt
@@ -311,13 +288,15 @@ def paypal_disconnect(request):
 
 
 def donation_page(request, token):
-    """Public donation page for viewers"""
+    """Public donation page using PayPal Donate SDK"""
     try:
         ds = DonationSettings.objects.select_related('user').get(donation_token=token)
     except DonationSettings.DoesNotExist:
         return HttpResponse('Donation page not found', status=404)
     
-    if not ds.paypal_email:
+    # Need either payer_id or email for Donate SDK
+    business_id = ds.paypal_merchant_id or ds.paypal_email
+    if not business_id:
         return HttpResponse('Donations not configured', status=404)
     
     recent_donations = []
@@ -337,7 +316,8 @@ def donation_page(request, token):
         'currency': ds.currency,
         'recent_donations': recent_donations,
         'token': token,
-        'paypal_client_id': PAYPAL_CLIENT_ID,
+        'business_id': business_id,
+        'paypal_env': 'sandbox' if PAYPAL_SANDBOX_MODE else 'production',
     }
     
     return render(request, 'FUZEOBS/donation_page.html', context)
@@ -346,7 +326,7 @@ def donation_page(request, token):
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_donation_order(request, token):
-    """Create PayPal order for donation"""
+    """Record donation intent (Donate SDK handles actual payment)"""
     try:
         ds = DonationSettings.objects.select_related('user').get(donation_token=token)
     except DonationSettings.DoesNotExist:
@@ -360,47 +340,10 @@ def create_donation_order(request, token):
     if amount < ds.min_amount:
         return JsonResponse({'error': f'Minimum donation is {ds.min_amount} {ds.currency}'}, status=400)
     
-    access_token = get_paypal_access_token()
-    if not access_token:
-        return JsonResponse({'error': 'Payment service unavailable'}, status=500)
-    
-    # Create PayPal order
-    order_resp = requests.post(
-        f'{PAYPAL_BASE}/v2/checkout/orders',
-        headers={
-            'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'application/json',
-        },
-        json={
-            'intent': 'CAPTURE',
-            'purchase_units': [{
-                'amount': {
-                    'currency_code': ds.currency,
-                    'value': str(amount),
-                },
-                'description': f'Donation to {ds.user.username}',
-                'payee': {
-                    'email_address': ds.paypal_email,
-                },
-            }],
-            'application_context': {
-                'brand_name': f'{ds.user.username} - FuzeOBS',
-                'shipping_preference': 'NO_SHIPPING',
-            }
-        },
-        timeout=30
-    )
-    
-    if order_resp.status_code not in (200, 201):
-        logger.error(f"PayPal order creation failed: {order_resp.text}")
-        return JsonResponse({'error': 'Failed to create order'}, status=500)
-    
-    order = order_resp.json()
-    
-    # Save pending donation
-    Donation.objects.create(
+    # Create pending donation record
+    donation = Donation.objects.create(
         streamer=ds.user,
-        paypal_order_id=order['id'],
+        paypal_order_id=f'pending_{secrets.token_hex(8)}',
         donor_name=donor_name,
         message=message,
         amount=amount,
@@ -408,72 +351,48 @@ def create_donation_order(request, token):
         status='pending',
     )
     
-    return JsonResponse({'order_id': order['id']})
+    return JsonResponse({'donation_id': donation.id})
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def capture_donation(request, token):
-    """Capture PayPal payment and trigger alerts"""
+    """Mark donation as complete and trigger alerts (called after Donate SDK success)"""
     try:
         ds = DonationSettings.objects.select_related('user').get(donation_token=token)
     except DonationSettings.DoesNotExist:
         return JsonResponse({'error': 'Not found'}, status=404)
     
     data = json.loads(request.body)
-    order_id = data.get('order_id')
+    donation_id = data.get('donation_id')
+    tx_id = data.get('tx')  # Transaction ID from Donate SDK
     
     try:
-        donation = Donation.objects.get(paypal_order_id=order_id, streamer=ds.user)
+        donation = Donation.objects.get(id=donation_id, streamer=ds.user)
     except Donation.DoesNotExist:
         return JsonResponse({'error': 'Donation not found'}, status=404)
     
-    access_token = get_paypal_access_token()
-    if not access_token:
-        return JsonResponse({'error': 'Payment service unavailable'}, status=500)
-    
-    # Capture payment
-    capture_resp = requests.post(
-        f'{PAYPAL_BASE}/v2/checkout/orders/{order_id}/capture',
-        headers={
-            'Authorization': f'Bearer {access_token}',
-            'Content-Type': 'application/json',
-        },
-        timeout=30
-    )
-    
-    if capture_resp.status_code not in (200, 201):
-        donation.status = 'failed'
-        donation.save()
-        logger.error(f"PayPal capture failed: {capture_resp.text}")
-        return JsonResponse({'error': 'Payment capture failed'}, status=500)
-    
-    capture = capture_resp.json()
-    
-    if capture.get('status') == 'COMPLETED':
-        donation.status = 'completed'
-        donation.paypal_capture_id = capture.get('id', '')
-        donation.save()
-        
-        # Trigger alerts to all widgets
-        trigger_donation_alert(ds.user.id, {
-            'type': 'donation',
-            'name': donation.donor_name,
-            'amount': float(donation.amount),
-            'currency': donation.currency,
-            'message': donation.message,
-            'formatted_amount': f'{donation.currency} {donation.amount:.2f}',
-        })
-        
-        return JsonResponse({'success': True})
-    
-    donation.status = 'failed'
+    # Update donation record
+    donation.status = 'completed'
+    if tx_id:
+        donation.paypal_order_id = tx_id
     donation.save()
-    return JsonResponse({'error': 'Payment not completed'}, status=500)
+    
+    # Trigger alerts
+    trigger_donation_alert(ds.user.id, {
+        'type': 'donation',
+        'name': donation.donor_name,
+        'amount': float(donation.amount),
+        'currency': donation.currency,
+        'message': donation.message,
+        'formatted_amount': f'{donation.currency} {donation.amount:.2f}',
+    })
+    
+    return JsonResponse({'success': True})
 
 
 def trigger_donation_alert(user_id, data):
-    """Send donation alert to all applicable widgets"""
+    """Send donation alert to widgets"""
     channel_layer = get_channel_layer()
     
     alert_data = {
@@ -522,7 +441,7 @@ def trigger_donation_alert(user_id, data):
 
 @csrf_exempt
 def donation_history(request):
-    """Get donation history for streamer"""
+    """Get donation history"""
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return JsonResponse({'error': 'Unauthorized'}, status=401)

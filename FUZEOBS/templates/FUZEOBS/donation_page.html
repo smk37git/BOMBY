@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ page_title }} - {{ streamer }}</title>
-    <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency={{ currency }}"></script>
+    <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -118,8 +118,9 @@
         .custom-amount input {
             padding-left: 32px;
         }
-        #paypal-button-container {
+        #donate-button-container {
             margin-top: 24px;
+            min-height: 50px;
         }
         .recent-donations {
             margin-top: 32px;
@@ -226,7 +227,7 @@
                     <textarea id="message" placeholder="Say something nice..." maxlength="500"></textarea>
                 </div>
 
-                <div id="paypal-button-container"></div>
+                <div id="donate-button-container"></div>
             </div>
 
             <div id="success-message" class="success hidden">
@@ -255,9 +256,13 @@
 
     <script>
         const token = '{{ token }}';
-        const minAmount = '{{ min_amount }}';
+        const minAmount = parseFloat('{{ min_amount }}');
         const currency = '{{ currency }}';
+        const businessId = '{{ business_id }}';
+        const paypalEnv = '{{ paypal_env }}';
+        
         let selectedAmount = 0;
+        let currentDonationId = null;
 
         // Amount button handlers
         document.querySelectorAll('.amount-btn').forEach(btn => {
@@ -284,57 +289,74 @@
             document.getElementById('error-message').style.display = 'none';
         }
 
-        paypal.Buttons({
-            style: {
-                layout: 'vertical',
-                color: 'gold',
-                shape: 'rect',
-                label: 'donate'
+        // Render PayPal Donate Button
+        const donateConfig = {
+            env: paypalEnv,
+            image: {
+                src: 'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
+                title: 'PayPal - The safer, easier way to pay online!',
+                alt: 'Donate with PayPal button'
             },
-            createOrder: async () => {
-                hideError();
-                const amount = parseFloat(document.getElementById('amount').value) || 0;
-                const name = document.getElementById('donor-name').value.trim() || 'Anonymous';
-                const message = document.getElementById('message').value.trim();
-
-                if (amount < minAmount) {
-                    showError(`Minimum donation is $${minAmount} ${currency}`);
-                    throw new Error('Amount too low');
+            onComplete: async function(params) {
+                console.log('Donation complete:', params);
+                
+                // Record the completed donation
+                if (currentDonationId) {
+                    try {
+                        await fetch(`/fuzeobs/donate/${token}/capture`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                donation_id: currentDonationId,
+                                tx: params.tx,
+                                amt: params.amt,
+                                cc: params.cc
+                            })
+                        });
+                    } catch (e) {
+                        console.error('Failed to record donation:', e);
+                    }
                 }
+                
+                // Show success
+                document.getElementById('donation-form').classList.add('hidden');
+                document.getElementById('success-message').classList.remove('hidden');
+            }
+        };
 
+        // Use payer_id or email - both work with 'business' param
+        donateConfig.business = businessId;
+
+        PayPal.Donation.Button(donateConfig).render('#donate-button-container');
+
+        // Before donation, record the intent
+        document.getElementById('donate-button-container').addEventListener('click', async (e) => {
+            hideError();
+            const amount = parseFloat(document.getElementById('amount').value) || 0;
+            const name = document.getElementById('donor-name').value.trim() || 'Anonymous';
+            const message = document.getElementById('message').value.trim();
+
+            if (amount < minAmount) {
+                showError(`Minimum donation is $${minAmount} ${currency}`);
+                e.stopPropagation();
+                return;
+            }
+
+            // Record donation intent
+            try {
                 const resp = await fetch(`/fuzeobs/donate/${token}/create`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ amount, name, message })
                 });
-
                 const data = await resp.json();
-                if (data.error) {
-                    showError(data.error);
-                    throw new Error(data.error);
+                if (data.donation_id) {
+                    currentDonationId = data.donation_id;
                 }
-                return data.order_id;
-            },
-            onApprove: async (data) => {
-                const resp = await fetch(`/fuzeobs/donate/${token}/capture`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ order_id: data.orderID })
-                });
-
-                const result = await resp.json();
-                if (result.success) {
-                    document.getElementById('donation-form').classList.add('hidden');
-                    document.getElementById('success-message').classList.remove('hidden');
-                } else {
-                    showError(result.error || 'Payment failed. Please try again.');
-                }
-            },
-            onError: (err) => {
-                console.error('PayPal error:', err);
-                showError('Payment error. Please try again.');
+            } catch (e) {
+                console.error('Failed to record intent:', e);
             }
-        }).render('#paypal-button-container');
+        }, true);
     </script>
 </body>
 </html>
