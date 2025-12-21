@@ -215,16 +215,15 @@ def paypal_callback(request):
         # Try openid userinfo
         if not payer_id:
             user_resp2 = requests.get(
-                f'{PAYPAL_BASE}/v1/identity/openidconnect/userinfo?schema=openid',
+                f'{PAYPAL_BASE}/v1/oauth2/userinfo',
                 headers={'Authorization': f'Bearer {access_token}'},
                 timeout=30
             )
             logger.info(f"OpenID userinfo response: {user_resp2.status_code}")
-            logger.info(f"OpenID userinfo body: {user_resp2.text[:500]}")
             
             if user_resp2.status_code == 200:
                 user_info2 = user_resp2.json()
-                payer_id = user_info2.get('payer_id') or user_info2.get('user_id') or user_info2.get('sub')
+                payer_id = user_info2.get('payer_id') or user_info2.get('user_id')
                 if not email:
                     email = user_info2.get('email')
         
@@ -235,8 +234,10 @@ def paypal_callback(request):
             ds.save()
             
             logger.info(f"PayPal connected: payer_id={payer_id}, email={email}")
-            
-            return render(request, 'FUZEOBS/paypal_connected.html', {'success': True})
+            return render(request, 'FUZEOBS/paypal_connected.html', {
+                'success': True,
+                'email': email
+            })
         else:
             logger.error("Could not get payer_id or email from PayPal")
             return render(request, 'FUZEOBS/paypal_connected.html', {
@@ -404,12 +405,14 @@ def trigger_donation_alert(user_id, data):
         'formatted_amount': data['formatted_amount'],
     }
     
+    # Send to all platform alert channels
     for platform in ['twitch', 'youtube', 'kick', 'facebook', 'tiktok']:
         async_to_sync(channel_layer.group_send)(
             f'alerts_{user_id}_{platform}',
             {'type': 'alert_event', 'data': alert_data}
         )
     
+    # Send to goal bars
     async_to_sync(channel_layer.group_send)(
         f'goals_{user_id}',
         {'type': 'goal_update', 'data': {
@@ -419,6 +422,7 @@ def trigger_donation_alert(user_id, data):
         }}
     )
     
+    # Send to labels
     async_to_sync(channel_layer.group_send)(
         f'labels_{user_id}',
         {'type': 'label_update', 'data': {
@@ -427,6 +431,12 @@ def trigger_donation_alert(user_id, data):
             'amount': data['formatted_amount'],
             'message': data['message'],
         }}
+    )
+    
+    # Send to dedicated donations channel
+    async_to_sync(channel_layer.group_send)(
+        f'donations_{user_id}',
+        {'type': 'donation_event', 'data': alert_data}
     )
 
 

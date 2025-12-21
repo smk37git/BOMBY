@@ -226,7 +226,12 @@ const defaultConfig = {{
     message_template: '{{name}} just followed!',
     duration: 5,
     sound_volume: 50,
-    layout: 'image_above'
+    layout: 'image_above',
+    tts_enabled: false,
+    tts_voice: '',
+    tts_rate: 1,
+    tts_volume: 80,
+    tts_template: '{{name}} donated {{amount}}. {{message}}'
 }};
 
 const defaultTemplates = {{
@@ -251,7 +256,8 @@ const defaultTemplates = {{
     'tiktok-gift': '{{name}} sent {{count}}x {{gift}}!',
     'tiktok-share': '{{name}} shared the stream!',
     'tiktok-like': '{{name}} sent {{count}} likes!',
-    'tiktok-donation': '{{name}} donated {{amount}}!'
+    'tiktok-donation': '{{name}} donated {{amount}}!',
+    'donation-donation': '{{name}} donated {{amount}}!'
 }};
 
 const eventConfigs = {{}};
@@ -395,6 +401,26 @@ function handleMessage(e) {{
         audio.src = config.sound_url;
         audio.volume = (config.sound_volume || 50) / 100;
         audio.play().catch(err => console.log('Audio play failed:', err));
+    }}
+    
+    // TTS for donations
+    if (config.tts_enabled && data.event_type === 'donation') {{
+        const ttsText = (config.tts_template || '{{name}} donated {{amount}}. {{message}}')
+            .replace(/{{name}}/g, eventData.username || 'Someone')
+            .replace(/{{amount}}/g, eventData.amount || '')
+            .replace(/{{message}}/g, eventData.message || '');
+        
+        if (ttsText.trim()) {{
+            const utterance = new SpeechSynthesisUtterance(ttsText);
+            utterance.rate = config.tts_rate || 1;
+            utterance.volume = (config.tts_volume || 80) / 100;
+            if (config.tts_voice) {{
+                const voices = speechSynthesis.getVoices();
+                const voice = voices.find(v => v.name === config.tts_voice);
+                if (voice) utterance.voice = voice;
+            }}
+            speechSynthesis.speak(utterance);
+        }}
     }}
     
     document.getElementById('container').appendChild(alert);
