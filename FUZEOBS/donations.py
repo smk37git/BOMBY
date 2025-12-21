@@ -113,12 +113,12 @@ def paypal_connect(request):
         
         redirect_uri = 'https://bomby.us/fuzeobs/donations/paypal/callback'
         
-        # Request openid + paypalattributes for payer_id
+        # Request openid + email scope
         auth_url = (
             f'{PAYPAL_WEB_BASE}/signin/authorize'
             f'?client_id={PAYPAL_CLIENT_ID}'
             f'&response_type=code'
-            f'&scope=openid'
+            f'&scope=openid%20email'
             f'&redirect_uri={redirect_uri}'
             f'&state={state}'
         )
