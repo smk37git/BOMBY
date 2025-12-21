@@ -139,15 +139,10 @@ def paypal_callback(request):
     
     if error:
         logger.error(f"PayPal callback error: {error}")
-        return HttpResponse(f'''
-            <html><body style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
-            <div style="text-align:center;">
-                <h2>✗ Connection Failed</h2>
-                <p>{error}</p>
-                <script>setTimeout(()=>window.close(), 3000);</script>
-            </div>
-            </body></html>
-        ''')
+        return render(request, 'FUZEOBS/paypal_connected.html', {
+            'success': False,
+            'error': error
+        })
     
     if not code or not state:
         return HttpResponse('<script>window.close();</script>')
@@ -241,30 +236,20 @@ def paypal_callback(request):
             
             logger.info(f"PayPal connected: payer_id={payer_id}, email={email}")
             
-            return HttpResponse('''
-                <html><body style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
-                <div style="text-align:center;">
-                    <h2 style="color:#4ade80;">✓ PayPal Connected!</h2>
-                    <p>You can close this window.</p>
-                    <script>setTimeout(()=>window.close(), 2000);</script>
-                </div>
-                </body></html>
-            ''')
+            return render(request, 'FUZEOBS/paypal_connected.html', {'success': True})
         else:
             logger.error("Could not get payer_id or email from PayPal")
-            return HttpResponse('''
-                <html><body style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
-                <div style="text-align:center;">
-                    <h2 style="color:#ef4444;">✗ Connection Failed</h2>
-                    <p>Could not get PayPal account info. Please ensure "PayPal account ID" is enabled in app settings.</p>
-                    <script>setTimeout(()=>window.close(), 5000);</script>
-                </div>
-                </body></html>
-            ''')
+            return render(request, 'FUZEOBS/paypal_connected.html', {
+                'success': False,
+                'error': 'Could not retrieve PayPal account info. Please enable "PayPal account ID" in your app settings.'
+            })
         
     except Exception as e:
         logger.error(f"PayPal callback exception: {e}")
-        return HttpResponse(f'<script>alert("Error: {str(e)}"); window.close();</script>')
+        return render(request, 'FUZEOBS/paypal_connected.html', {
+            'success': False,
+            'error': f'Connection error: {str(e)}'
+        })
 
 
 @csrf_exempt

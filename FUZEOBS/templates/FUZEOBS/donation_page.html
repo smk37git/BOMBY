@@ -1,98 +1,127 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title }} - {{ streamer }}</title>
+    <title>BOMBY | {{ page_title }}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(45deg, #000000, #151515);
             min-height: 100vh;
             color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
-        .container {
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 40px 20px;
+        
+        .donation-container {
+            max-width: 500px;
+            width: 100%;
         }
-        .card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px;
-            padding: 32px;
-            backdrop-filter: blur(10px);
-        }
-        .header {
+        
+        .donation-header {
             text-align: center;
             margin-bottom: 24px;
         }
+        
+        .donation-header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        
+        .donation-header .streamer-name {
+            color: #a855f7;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .donation-card {
+            background: #0e0e0e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 32px;
+        }
+        
         .avatar {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #9e33e6 0%, #505ed7 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 32px;
             font-weight: bold;
-            margin: 0 auto 16px;
+            margin: 0 auto 20px;
         }
-        h1 {
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
-        .streamer-name {
-            color: #667eea;
-            font-weight: 600;
-        }
-        .message {
-            color: #888;
+        
+        .page-message {
+            color: rgba(255, 255, 255, 0.6);
             font-size: 14px;
-            line-height: 1.5;
+            line-height: 1.6;
+            text-align: center;
+            margin-bottom: 24px;
         }
+        
         .form-group {
             margin-bottom: 20px;
         }
-        label {
+        
+        .form-group label {
             display: block;
             font-size: 12px;
-            color: #888;
+            color: rgba(255, 255, 255, 0.5);
             margin-bottom: 8px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            font-weight: 600;
         }
-        input, textarea {
+        
+        .form-group input,
+        .form-group textarea {
             width: 100%;
             padding: 14px 16px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             color: #fff;
-            font-size: 16px;
-            transition: border-color 0.2s;
+            font-size: 15px;
+            transition: all 0.2s;
         }
-        input:focus, textarea:focus {
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
             outline: none;
-            border-color: #667eea;
+            border-color: #a855f7;
+            background: rgba(255, 255, 255, 0.08);
         }
-        textarea {
+        
+        .form-group textarea {
             resize: vertical;
             min-height: 80px;
         }
+        
         .amount-buttons {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 8px;
             margin-bottom: 12px;
         }
+        
         .amount-btn {
             padding: 12px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             color: #fff;
             font-size: 14px;
@@ -100,58 +129,40 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .amount-btn:hover, .amount-btn.active {
-            background: #667eea;
-            border-color: #667eea;
+        
+        .amount-btn:hover {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: rgba(168, 85, 247, 0.4);
         }
+        
+        .amount-btn.active {
+            background: linear-gradient(135deg, #9e33e6 0%, #505ed7 100%);
+            border-color: transparent;
+        }
+        
         .custom-amount {
             position: relative;
         }
+        
         .currency-symbol {
             position: absolute;
             left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: #888;
-            font-size: 16px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 15px;
         }
+        
         .custom-amount input {
             padding-left: 32px;
         }
+        
         #donate-button-container {
             margin-top: 24px;
             min-height: 50px;
         }
-        .recent-donations {
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        .recent-donations h3 {
-            font-size: 14px;
-            color: #888;
-            margin-bottom: 16px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .donation-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .donation-item:last-child {
-            border-bottom: none;
-        }
-        .donor-name {
-            font-weight: 500;
-        }
-        .donation-amount {
-            color: #4ade80;
-            font-weight: 600;
-        }
-        .error {
+        
+        .error-message {
             background: rgba(239, 68, 68, 0.1);
             border: 1px solid rgba(239, 68, 68, 0.3);
             color: #ef4444;
@@ -161,56 +172,145 @@
             font-size: 14px;
             display: none;
         }
-        .success {
-            text-align: center;
-            padding: 40px;
+        
+        .recent-donations {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
+        
+        .recent-donations h3 {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .donation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .donation-item:last-child {
+            border-bottom: none;
+        }
+        
+        .donor-name {
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .donation-amount {
+            color: #22c55e;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .success-view {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
         .success-icon {
-            width: 64px;
-            height: 64px;
-            background: #4ade80;
+            width: 80px;
+            height: 80px;
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 24px;
-            font-size: 32px;
         }
+        
+        .success-icon i {
+            font-size: 36px;
+            color: #22c55e;
+        }
+        
+        .success-view h2 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+        }
+        
+        .success-view p {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
         .powered-by {
             text-align: center;
-            margin-top: 24px;
+            margin-top: 20px;
             font-size: 12px;
-            color: #666;
+            color: rgba(255, 255, 255, 0.4);
         }
+        
         .powered-by a {
-            color: #667eea;
+            color: #a855f7;
             text-decoration: none;
         }
+        
+        .powered-by a:hover {
+            text-decoration: underline;
+        }
+        
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .secure-badge i {
+            color: #22c55e;
+        }
+        
         .hidden { display: none !important; }
+        
+        @media (max-width: 480px) {
+            .donation-card {
+                padding: 24px 20px;
+            }
+            
+            .amount-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="card">
+    <div class="donation-container">
+        <div class="donation-header">
+            <h1>{{ page_title }}</h1>
+            <p class="streamer-name">@{{ streamer }}</p>
+        </div>
+        
+        <div class="donation-card">
             <div id="donation-form">
-                <div class="header">
-                    <div class="avatar">{{ streamer|slice:":1"|upper }}</div>
-                    <h1>{{ page_title }}</h1>
-                    <p class="streamer-name">@{{ streamer }}</p>
-                    {% if page_message %}
-                    <p class="message">{{ page_message }}</p>
-                    {% endif %}
-                </div>
+                <div class="avatar">{{ streamer|slice:":1"|upper }}</div>
+                
+                {% if page_message %}
+                <p class="page-message">{{ page_message }}</p>
+                {% endif %}
 
-                <div id="error-message" class="error"></div>
+                <div id="error-message" class="error-message"></div>
 
                 <div class="form-group">
-                    <label>Your Name</label>
+                    <label><i class="fas fa-user"></i> Your Name</label>
                     <input type="text" id="donor-name" placeholder="Anonymous" maxlength="100">
                 </div>
 
                 <div class="form-group">
-                    <label>Amount ({{ currency }})</label>
+                    <label><i class="fas fa-dollar-sign"></i> Amount ({{ currency }})</label>
                     <div class="amount-buttons">
                         {% for amt in suggested_amounts %}
                         <button type="button" class="amount-btn" data-amount="{{ amt }}">${{ amt }}</button>
@@ -223,26 +323,33 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Message (Optional)</label>
+                    <label><i class="fas fa-comment"></i> Message (Optional)</label>
                     <textarea id="message" placeholder="Say something nice..." maxlength="500"></textarea>
                 </div>
 
                 <div id="donate-button-container"></div>
+                
+                <div class="secure-badge">
+                    <i class="fas fa-lock"></i>
+                    <span>Secured by PayPal</span>
+                </div>
             </div>
 
-            <div id="success-message" class="success hidden">
-                <div class="success-icon">✓</div>
+            <div id="success-message" class="success-view hidden">
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
                 <h2>Thank You!</h2>
-                <p class="message">Your donation has been sent to {{ streamer }}!</p>
+                <p>Your donation has been sent to {{ streamer }}!</p>
             </div>
 
             {% if recent_donations %}
-            <div class="recent-donations">
-                <h3>Recent Supporters</h3>
+            <div class="recent-donations" id="recent-section">
+                <h3><i class="fas fa-heart"></i> Recent Supporters</h3>
                 {% for d in recent_donations %}
                 <div class="donation-item">
                     <span class="donor-name">{{ d.donor_name }}</span>
-                    <span class="donation-amount">{{ d.currency }} {{ d.amount }}</span>
+                    <span class="donation-amount">${{ d.amount }}</span>
                 </div>
                 {% endfor %}
             </div>
@@ -264,7 +371,6 @@
         let selectedAmount = 0;
         let currentDonationId = null;
 
-        // Amount button handlers
         document.querySelectorAll('.amount-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
@@ -289,7 +395,6 @@
             document.getElementById('error-message').style.display = 'none';
         }
 
-        // Render PayPal Donate Button
         const donateConfig = {
             env: paypalEnv,
             image: {
@@ -300,7 +405,6 @@
             onComplete: async function(params) {
                 console.log('Donation complete:', params);
                 
-                // Record the completed donation
                 if (currentDonationId) {
                     try {
                         await fetch(`/fuzeobs/donate/${token}/capture`, {
@@ -318,18 +422,16 @@
                     }
                 }
                 
-                // Show success
                 document.getElementById('donation-form').classList.add('hidden');
                 document.getElementById('success-message').classList.remove('hidden');
+                const recentSection = document.getElementById('recent-section');
+                if (recentSection) recentSection.classList.add('hidden');
             }
         };
 
-        // Use payer_id or email - both work with 'business' param
         donateConfig.business = businessId;
-
         PayPal.Donation.Button(donateConfig).render('#donate-button-container');
 
-        // Before donation, record the intent
         document.getElementById('donate-button-container').addEventListener('click', async (e) => {
             hideError();
             const amount = parseFloat(document.getElementById('amount').value) || 0;
@@ -342,7 +444,6 @@
                 return;
             }
 
-            // Record donation intent
             try {
                 const resp = await fetch(`/fuzeobs/donate/${token}/create`, {
                     method: 'POST',
