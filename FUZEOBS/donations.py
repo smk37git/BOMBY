@@ -228,7 +228,11 @@ def paypal_callback(request):
                     email = user_info2.get('email')
         
         if payer_id or email:
-            ds.paypal_merchant_id = payer_id or ''
+            # Only save payer_id if it's a real ID, not a URL-like sub claim
+            if payer_id and not payer_id.startswith('http'):
+                ds.paypal_merchant_id = payer_id
+            else:
+                ds.paypal_merchant_id = ''
             ds.paypal_email = email or ''
             ds.oauth_state = ''
             ds.save()
@@ -280,8 +284,8 @@ def donation_page(request, token):
     except DonationSettings.DoesNotExist:
         return HttpResponse('Donation page not found', status=404)
     
-    # Need either payer_id or email for Donate SDK
-    business_id = ds.paypal_merchant_id or ds.paypal_email
+    # Need email or valid merchant_id for Donate SDK (email preferred)
+    business_id = ds.paypal_email or ds.paypal_merchant_id
     if not business_id:
         return HttpResponse('Donations not configured', status=404)
     
