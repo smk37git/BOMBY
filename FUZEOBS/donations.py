@@ -128,22 +128,24 @@ def paypal_connect(request):
     try:
         ds, _ = DonationSettings.objects.get_or_create(user=user)
         
-        # Generate state for OAuth
+        # Generate state and nonce for OAuth
         state = secrets.token_urlsafe(32)
+        nonce = secrets.token_urlsafe(32)
         ds.oauth_state = state
         ds.save()
         
         # PayPal OAuth URL - Login with PayPal
+        # Adding nonce is REQUIRED to get id_token back with email claims
         redirect_uri = 'https://bomby.us/fuzeobs/donations/paypal/callback'
-        scopes = 'openid email'
         
         auth_url = (
             f'{PAYPAL_WEB_BASE}/signin/authorize'
             f'?client_id={PAYPAL_CLIENT_ID}'
             f'&response_type=code'
-            f'&scope={scopes}'
+            f'&scope=openid email'
             f'&redirect_uri={redirect_uri}'
             f'&state={state}'
+            f'&nonce={nonce}'
         )
         
         logger.info(f"PayPal connect initiated for user {user.id}")
@@ -206,61 +208,86 @@ def paypal_callback(request):
         access_token = tokens.get('access_token')
         id_token = tokens.get('id_token')
         
-        # Debug: log full token response (minus sensitive data)
         logger.info(f"PayPal tokens keys: {list(tokens.keys())}")
         logger.info(f"Has id_token: {bool(id_token)}")
         
-        # Try to get email from id_token (JWT) first
         email = None
+        
+        # Method 1: Try to get email from id_token (JWT)
         if id_token:
             try:
-                # Decode JWT payload (middle part)
                 payload = id_token.split('.')[1]
-                # Add padding if needed
                 payload += '=' * (4 - len(payload) % 4)
                 decoded = json.loads(base64.urlsafe_b64decode(payload))
                 logger.info(f"id_token payload keys: {list(decoded.keys())}")
-                logger.info(f"id_token payload: {decoded}")
-                email = decoded.get('email') or decoded.get('email_address')
-                logger.info(f"Got email from id_token: {email}")
+                email = decoded.get('email')
+                if email:
+                    logger.info(f"Got email from id_token: {email}")
             except Exception as e:
                 logger.error(f"Failed to decode id_token: {e}")
         
-        # Fallback to userinfo if no email from id_token
+        # Method 2: Try userinfo endpoint (OpenID Connect)
         if not email:
             user_resp = requests.get(
+                f'{PAYPAL_BASE}/v1/identity/openidconnect/userinfo?schema=openid',
+                headers={'Authorization': f'Bearer {access_token}'},
+                timeout=30
+            )
+            logger.info(f"PayPal userinfo (openid) response: {user_resp.status_code}")
+            if user_resp.status_code == 200:
+                user_info = user_resp.json()
+                logger.info(f"Userinfo keys: {list(user_info.keys())}")
+                email = user_info.get('email')
+                if email:
+                    logger.info(f"Got email from userinfo: {email}")
+        
+        # Method 3: Try alternate userinfo endpoint (PayPal schema)
+        if not email:
+            user_resp2 = requests.get(
                 f'{PAYPAL_BASE}/v1/identity/oauth2/userinfo?schema=paypalv1.1',
                 headers={'Authorization': f'Bearer {access_token}'},
                 timeout=30
             )
-            logger.info(f"PayPal userinfo response: {user_resp.status_code}")
-            if user_resp.status_code == 200:
-                user_info = user_resp.json()
-                emails = user_info.get('emails', [])
-                email = next((e['value'] for e in emails if e.get('primary')), emails[0]['value'] if emails else '')
+            logger.info(f"PayPal userinfo (paypal) response: {user_resp2.status_code}")
+            if user_resp2.status_code == 200:
+                user_info2 = user_resp2.json()
+                logger.info(f"Userinfo2 response: {user_info2}")
+                emails = user_info2.get('emails', [])
+                if emails:
+                    email = next((e['value'] for e in emails if e.get('primary')), emails[0].get('value'))
+                    if email:
+                        logger.info(f"Got email from userinfo2: {email}")
         
         if email:
             ds.paypal_email = email
             ds.oauth_state = ''
             ds.save()
             logger.info(f"PayPal connected for user {ds.user_id}: {email}")
+            
+            return HttpResponse('''
+                <html><body style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+                <div style="text-align:center;">
+                    <h2>✓ PayPal Connected!</h2>
+                    <p>You can close this window.</p>
+                    <script>setTimeout(()=>window.close(), 2000);</script>
+                </div>
+                </body></html>
+            ''')
         else:
-            logger.error("Could not get email from PayPal")
-            return HttpResponse('<script>alert("Failed to get PayPal email"); window.close();</script>')
+            logger.error("Could not get email from any PayPal method")
+            return HttpResponse('''
+                <html><body style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+                <div style="text-align:center;">
+                    <h2>✗ Connection Failed</h2>
+                    <p>Could not retrieve email from PayPal. Please ensure you approved email access.</p>
+                    <script>setTimeout(()=>window.close(), 4000);</script>
+                </div>
+                </body></html>
+            ''')
         
     except Exception as e:
         logger.error(f"PayPal callback exception: {e}")
         return HttpResponse(f'<script>alert("Connection error: {str(e)}"); window.close();</script>')
-    
-    return HttpResponse('''
-        <html><body style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
-        <div style="text-align:center;">
-            <h2>✓ PayPal Connected!</h2>
-            <p>You can close this window.</p>
-            <script>setTimeout(()=>window.close(), 2000);</script>
-        </div>
-        </body></html>
-    ''')
 
 
 @csrf_exempt
@@ -449,7 +476,6 @@ def trigger_donation_alert(user_id, data):
     """Send donation alert to all applicable widgets"""
     channel_layer = get_channel_layer()
     
-    # Format for Event List and Alert Box (consistent structure)
     alert_data = {
         'type': 'donation',
         'event_type': 'donation',
@@ -461,7 +487,6 @@ def trigger_donation_alert(user_id, data):
             'currency': data['currency'],
             'message': data['message'],
         },
-        # Flat fields for Alert Box compatibility
         'name': data['name'],
         'amount': data['amount'],
         'currency': data['currency'],
@@ -469,14 +494,12 @@ def trigger_donation_alert(user_id, data):
         'formatted_amount': data['formatted_amount'],
     }
     
-    # Alert Box + Event List - send to all platform channels
     for platform in ['twitch', 'youtube', 'kick', 'facebook', 'tiktok']:
         async_to_sync(channel_layer.group_send)(
             f'alerts_{user_id}_{platform}',
             {'type': 'alert_event', 'data': alert_data}
         )
     
-    # Goal Bar - update progress
     async_to_sync(channel_layer.group_send)(
         f'goals_{user_id}',
         {'type': 'goal_update', 'data': {
@@ -486,7 +509,6 @@ def trigger_donation_alert(user_id, data):
         }}
     )
     
-    # Labels - update latest donation
     async_to_sync(channel_layer.group_send)(
         f'labels_{user_id}',
         {'type': 'label_update', 'data': {
