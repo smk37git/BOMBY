@@ -91,14 +91,14 @@ def cleanup_old_sessions():
 
 # ====== VERSION / UPDATES ======
 
-FUZEOBS_VERSION = '0.9.16'
+FUZEOBS_VERSION = '0.9.17'
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
         'version': FUZEOBS_VERSION,
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'Color Update + App Fixes',
+        'changelog': 'App-Are touchups, Webcam detection fix',
         'mandatory': False
     })
 
