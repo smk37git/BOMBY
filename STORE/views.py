@@ -76,8 +76,32 @@ def store(request):
     return response
 
 # Stream setup service views
+def _track_product_view(request, product):
+    """Helper to track product page views"""
+    try:
+        session_id = request.session.session_key or ''
+        if not session_id:
+            request.session.create()
+            session_id = request.session.session_key
+        user = request.user if request.user.is_authenticated else None
+        PageView.objects.create(
+            product=product,
+            user=user,
+            session_id=session_id,
+            referrer=request.META.get('HTTP_REFERER', '')
+        )
+        ProductInteraction.objects.create(
+            product=product,
+            user=user,
+            session_id=session_id,
+            interaction_type='view'
+        )
+    except:
+        pass
+
 def basic_package(request):
     product = Product.objects.get(id=1)
+    _track_product_view(request, product)
     product_reviews = get_all_reviews()
     
     context = {
@@ -93,6 +117,7 @@ def basic_package(request):
 
 def standard_package(request):
     product = Product.objects.get(id=2)
+    _track_product_view(request, product)
     product_reviews = get_all_reviews()
     
     response = render(request, 'STORE/standard_package.html', {
@@ -106,6 +131,7 @@ def standard_package(request):
 
 def premium_package(request):
     product = Product.objects.get(id=3)
+    _track_product_view(request, product)
     product_reviews = get_all_reviews()
     
     response = render(request, 'STORE/premium_package.html', {
@@ -212,6 +238,9 @@ def donation_success(request):
 
 def stream_store(request):
     """Stream store view with access control"""
+    product = Product.objects.get(id=4)
+    _track_product_view(request, product)
+    
     # Check if user can access (supporter, client, admin)
     if request.user.is_authenticated and user_can_access_stream_store(request.user):
         # User has access, show the actual store    
@@ -219,7 +248,6 @@ def stream_store(request):
         return render(request, 'STORE/stream_store.html', {'assets': assets})
     else:
         # Show the purchase page (not purchase history)
-        product = Product.objects.get(id=4)
         product_reviews = get_all_reviews()
         return render(request, 'STORE/stream_store_purchase.html', {
             'product': product,
@@ -228,6 +256,7 @@ def stream_store(request):
 
 def basic_website(request):
     product = Product.objects.get(id=5)
+    _track_product_view(request, product)
     product_reviews = get_all_reviews()
     
     response = render(request, 'STORE/basic_website.html', {
@@ -241,6 +270,7 @@ def basic_website(request):
 
 def ecommerce_website(request):
     product = Product.objects.get(id=6)
+    _track_product_view(request, product)
     product_reviews = get_all_reviews()
     
     response = render(request, 'STORE/ecommerce_website.html', {
@@ -254,6 +284,7 @@ def ecommerce_website(request):
 
 def custom_project(request):
     product = Product.objects.get(id=7)
+    _track_product_view(request, product)
     product_reviews = get_all_reviews()
     
     response = render(request, 'STORE/custom_project.html', {
