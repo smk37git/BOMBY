@@ -1034,6 +1034,21 @@ def cleanup_old_sessions():
 
 # ====== WEBSITE VIEWS =======
 def fuzeobs_view(request):
+    # Track page view
+    from .models import FuzeOBSPageView
+    try:
+        session_id = request.session.session_key or ''
+        if not session_id:
+            request.session.create()
+            session_id = request.session.session_key
+        FuzeOBSPageView.objects.create(
+            page='landing',
+            session_id=session_id,
+            user=request.user if request.user.is_authenticated else None
+        )
+    except:
+        pass
+    
     return render(request, 'FUZEOBS/fuzeobs.html', {
         'fuzeobs_version': FUZEOBS_VERSION
     })
@@ -1077,6 +1092,21 @@ FUZEOBS_PLANS = {
 }
 
 def fuzeobs_pricing(request):
+    # Track page view
+    from .models import FuzeOBSPageView
+    try:
+        session_id = request.session.session_key or ''
+        if not session_id:
+            request.session.create()
+            session_id = request.session.session_key
+        FuzeOBSPageView.objects.create(
+            page='pricing',
+            session_id=session_id,
+            user=request.user if request.user.is_authenticated else None
+        )
+    except:
+        pass
+    
     current_plan = 'free'
     if request.user.is_authenticated:
         current_plan = request.user.fuzeobs_tier or 'free'
@@ -1654,6 +1684,11 @@ def fuzeobs_analytics_view(request):
         dau_data.append({'date': day.strftime('%m/%d'), 'count': dau})
     dau_data.reverse()
     
+    # Page views tracking
+    from .models import FuzeOBSPageView
+    landing_views = FuzeOBSPageView.objects.filter(page='landing', timestamp__gte=date_from).values('session_id').distinct().count()
+    pricing_views = FuzeOBSPageView.objects.filter(page='pricing', timestamp__gte=date_from).values('session_id').distinct().count()
+    
     context = {
         'days': days,
         'total_users': total_users,
@@ -1689,6 +1724,8 @@ def fuzeobs_analytics_view(request):
         'template_usage': template_usage,
         'dau_data': dau_data,
         'dau_json': json.dumps(dau_data),
+        'landing_views': landing_views,
+        'pricing_views': pricing_views,
     }
     
     return render(request, 'FUZEOBS/fuzeobs_analytics.html', context)
@@ -1747,6 +1784,9 @@ def fuzeobs_reset_analytics(request):
             deleted['downloads'] = DownloadTracking.objects.all().delete()[0]
         if 'active_sessions' in reset_type:
             deleted['active_sessions'] = ActiveSession.objects.all().delete()[0]
+        if 'page_views' in reset_type:
+            from .models import FuzeOBSPageView
+            deleted['page_views'] = FuzeOBSPageView.objects.all().delete()[0]
         
         return render(request, 'FUZEOBS/fuzeobs_reset_analytics.html', {
             'deleted': deleted,

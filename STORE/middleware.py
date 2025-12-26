@@ -1,6 +1,9 @@
 from django.utils.deprecation import MiddlewareMixin
 from asgiref.sync import sync_to_async
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AnalyticsMiddleware(MiddlewareMixin):
     """Middleware to track page views and product interactions"""
@@ -8,15 +11,15 @@ class AnalyticsMiddleware(MiddlewareMixin):
     def __init__(self, get_response):
         self.get_response = get_response
         self.async_mode = False
-        # Compile URL patterns to match - add Stream Store pattern
+        # Compile URL patterns - allow with or without trailing slash
         self.product_patterns = [
-            re.compile(r'^/store/basic-package/$'),
-            re.compile(r'^/store/standard-package/$'),
-            re.compile(r'^/store/premium-package/$'),
-            re.compile(r'^/store/stream-store/$'),
-            re.compile(r'^/store/basic-website/$'),
-            re.compile(r'^/store/ecommerce-website/$'),
-            re.compile(r'^/store/custom-project/$'),
+            re.compile(r'^/store/basic-package/?$'),
+            re.compile(r'^/store/standard-package/?$'),
+            re.compile(r'^/store/premium-package/?$'),
+            re.compile(r'^/store/stream-store/?$'),
+            re.compile(r'^/store/basic-website/?$'),
+            re.compile(r'^/store/ecommerce-website/?$'),
+            re.compile(r'^/store/custom-project/?$'),
         ]
         
     def process_request(self, request):
@@ -69,7 +72,6 @@ class AnalyticsMiddleware(MiddlewareMixin):
                         product = Product.objects.filter(id=6).first()
                     elif 'custom-project' in request.path:
                         product = Product.objects.filter(id=7).first()
-                        continue
                     
                     if product:
                         # Track the product view
@@ -98,7 +100,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
                     referrer=referrer
                 )
         except Exception as e:
-            # Don't break the site if analytics tracking fails
-            pass
+            # Log the error for debugging
+            logger.error(f"Analytics tracking error for {request.path}: {e}")
             
         return None

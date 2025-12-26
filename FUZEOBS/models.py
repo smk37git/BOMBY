@@ -342,3 +342,15 @@ class FuzeOBSPurchase(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.plan_type} - ${self.amount}"
+
+class FuzeOBSPageView(models.Model):
+    """Track page views for FuzeOBS marketing pages"""
+    page = models.CharField(max_length=50)  # 'landing' or 'pricing'
+    session_id = models.CharField(max_length=100, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['page', 'timestamp']),
+        ]
