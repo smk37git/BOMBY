@@ -2122,6 +2122,14 @@ def payment_success(request):
     # Check if order already exists (prevent duplicates)
     existing_order = Order.objects.filter(payment_id=payment_id).first()
     if existing_order:
+        # Ensure user gets promoted even if order was created by webhook
+        if existing_order.product_id == 4:  # Stream Store
+            if not (request.user.is_client or request.user.is_admin_user):
+                request.user.promote_to_supporter()
+        else:
+            if not request.user.is_client:
+                request.user.promote_to_client()
+        
         return render(request, 'STORE/payment_success.html', {
             'order': existing_order,
             'is_donation': False
