@@ -195,10 +195,10 @@ def paypal_callback(request):
             except Exception as e:
                 logger.error(f"id_token decode error: {e}")
         
-        # Try userinfo endpoint
+        # Try userinfo endpoint (OpenID Connect path)
         if not payer_id:
             user_resp = requests.get(
-                f'{PAYPAL_BASE}/v1/identity/oauth2/userinfo?schema=paypalv1.1',
+                f'{PAYPAL_BASE}/v1/identity/openidconnect/userinfo?schema=openid',
                 headers={'Authorization': f'Bearer {access_token}'},
                 timeout=30
             )
@@ -208,25 +208,8 @@ def paypal_callback(request):
             if user_resp.status_code == 200:
                 user_info = user_resp.json()
                 payer_id = user_info.get('payer_id') or user_info.get('user_id')
-                emails = user_info.get('emails', [])
-                if emails:
-                    email = next((e['value'] for e in emails if e.get('primary')), emails[0].get('value'))
-        
-        # Try openid userinfo
-        if not payer_id:
-            user_resp2 = requests.get(
-                f'{PAYPAL_BASE}/v1/oauth2/userinfo',
-                headers={'Authorization': f'Bearer {access_token}'},
-                timeout=30
-            )
-            logger.info(f"OpenID userinfo response: {user_resp2.status_code}")
-            
-            if user_resp2.status_code == 200:
-                user_info2 = user_resp2.json()
-                payer_id = user_info2.get('payer_id') or user_info2.get('user_id')
-                if not email:
-                    email = user_info2.get('email')
-        
+                email = user_info.get('email')
+                
         if payer_id or email:
             # Only save payer_id if it's a real ID, not a URL-like sub claim
             if payer_id and not payer_id.startswith('http'):
