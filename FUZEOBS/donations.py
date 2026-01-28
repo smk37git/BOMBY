@@ -199,10 +199,10 @@ def paypal_callback(request):
         # Try userinfo endpoint (OpenID Connect path)
         if not payer_id:
             user_resp = requests.get(
-                f'{PAYPAL_BASE}/v1/identity/openidconnect/userinfo?schema=openid',
+                f'{PAYPAL_BASE}/v1/identity/oauth2/userinfo?schema=paypalv1.1',
                 headers={
                     'Authorization': f'Bearer {access_token}',
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     'Accept': 'application/json'
                 },
                 timeout=30
