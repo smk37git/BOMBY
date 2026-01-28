@@ -198,13 +198,10 @@ def paypal_callback(request):
         
         # Try userinfo endpoint (OpenID Connect path)
         if not payer_id:
+            identity_base = 'https://api.sandbox.paypal.com' if PAYPAL_SANDBOX_MODE else 'https://api.paypal.com'
             user_resp = requests.get(
-                f'{PAYPAL_BASE}/v1/identity/oauth2/userinfo?schema=paypalv1.1',
-                headers={
-                    'Authorization': f'Bearer {access_token}',
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'Accept': 'application/json'
-                },
+                f'{identity_base}/v1/identity/openidconnect/userinfo/?schema=openid',
+                headers={'Authorization': f'Bearer {access_token}'},
                 timeout=30
             )
             logger.info(f"Userinfo response: {user_resp.status_code}")
