@@ -156,9 +156,10 @@ def paypal_callback(request):
     redirect_uri = 'https://bomby.us/fuzeobs/donations/paypal/callback'
     
     try:
-        # Exchange code for tokens
+        # OpenID Connect token endpoint
+        identity_base = 'https://api.sandbox.paypal.com' if PAYPAL_SANDBOX_MODE else 'https://api.paypal.com'
         resp = requests.post(
-            f'{PAYPAL_BASE}/v1/oauth2/token',
+            f'{identity_base}/v1/identity/openidconnect/tokenservice',
             auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET),
             data={
                 'grant_type': 'authorization_code',
