@@ -1,6 +1,6 @@
 """
 Donations/Tipping System for FuzeOBS
-Uses PayPal OAuth to get Payer ID, then Donate SDK for payments
+Uses PayPal OAuth to get Payer ID, then PayPal Orders API for payments
 """
 import json
 import secrets
@@ -14,6 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.shortcuts import render
 from django.conf import settings
+from django.utils import timezone
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from .models import DonationSettings, Donation
@@ -156,10 +157,9 @@ def paypal_callback(request):
     redirect_uri = 'https://bomby.us/fuzeobs/donations/paypal/callback'
     
     try:
-        # OpenID Connect token endpoint
-        identity_base = 'https://api.sandbox.paypal.com' if PAYPAL_SANDBOX_MODE else 'https://api.paypal.com'
+        # Exchange code for tokens
         resp = requests.post(
-            f'{identity_base}/v1/identity/openidconnect/tokenservice',
+            f'{PAYPAL_BASE}/v1/oauth2/token',
             auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET),
             data={
                 'grant_type': 'authorization_code',
@@ -298,8 +298,7 @@ def donation_page(request, token):
         'currency': ds.currency,
         'recent_donations': recent_donations,
         'token': token,
-        'business_id': business_id,
-        'paypal_env': 'sandbox' if PAYPAL_SANDBOX_MODE else 'production',
+        'paypal_client_id': PAYPAL_CLIENT_ID,
     }
     
     return render(request, 'FUZEOBS/donation_page.html', context)
@@ -308,7 +307,7 @@ def donation_page(request, token):
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_donation_order(request, token):
-    """Record donation intent (Donate SDK handles actual payment)"""
+    """Create PayPal order with exact amount"""
     try:
         ds = DonationSettings.objects.select_related('user').get(donation_token=token)
     except DonationSettings.DoesNotExist:
@@ -322,55 +321,166 @@ def create_donation_order(request, token):
     if amount < ds.min_amount:
         return JsonResponse({'error': f'Minimum donation is {ds.min_amount} {ds.currency}'}, status=400)
     
-    # Create pending donation record
-    donation = Donation.objects.create(
-        streamer=ds.user,
-        paypal_order_id=f'pending_{secrets.token_hex(8)}',
-        donor_name=donor_name,
-        message=message,
-        amount=amount,
-        currency=ds.currency,
-        status='pending',
-    )
+    # Get PayPal access token
+    identity_base = 'https://api.sandbox.paypal.com' if PAYPAL_SANDBOX_MODE else 'https://api.paypal.com'
     
-    return JsonResponse({'donation_id': donation.id})
+    try:
+        # Get access token
+        auth_resp = requests.post(
+            f'{identity_base}/v1/oauth2/token',
+            auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET),
+            data={'grant_type': 'client_credentials'},
+            headers={'Accept': 'application/json'},
+            timeout=30
+        )
+        if auth_resp.status_code != 200:
+            logger.error(f"PayPal auth failed: {auth_resp.text}")
+            return JsonResponse({'error': 'Payment service unavailable'}, status=500)
+        
+        access_token = auth_resp.json().get('access_token')
+        
+        # Create order
+        order_resp = requests.post(
+            f'{identity_base}/v2/checkout/orders',
+            headers={
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'intent': 'CAPTURE',
+                'purchase_units': [{
+                    'amount': {
+                        'currency_code': ds.currency,
+                        'value': str(amount.quantize(Decimal('0.01')))
+                    },
+                    'description': f'Donation to {ds.user.username}',
+                    'payee': {
+                        'merchant_id': ds.paypal_merchant_id
+                    } if ds.paypal_merchant_id else {
+                        'email_address': ds.paypal_email
+                    },
+                    'payment_instruction': {
+                        'disbursement_mode': 'INSTANT'
+                    }
+                }],
+                'application_context': {
+                    'brand_name': f'{ds.user.username} via FuzeOBS',
+                    'shipping_preference': 'NO_SHIPPING',
+                    'user_action': 'PAY_NOW'
+                }
+            },
+            timeout=30
+        )
+        
+        if order_resp.status_code not in [200, 201]:
+            logger.error(f"PayPal order create failed: {order_resp.text}")
+            return JsonResponse({'error': 'Could not create payment'}, status=500)
+        
+        order_data = order_resp.json()
+        order_id = order_data.get('id')
+        
+        # Create pending donation record
+        donation = Donation.objects.create(
+            streamer=ds.user,
+            paypal_order_id=order_id,
+            donor_name=donor_name,
+            message=message,
+            amount=amount,
+            currency=ds.currency,
+            status='pending',
+        )
+        
+        return JsonResponse({
+            'donation_id': donation.id,
+            'order_id': order_id
+        })
+        
+    except requests.RequestException as e:
+        logger.error(f"PayPal request error: {e}")
+        return JsonResponse({'error': 'Payment service unavailable'}, status=500)
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def capture_donation(request, token):
-    """Mark donation as complete and trigger alerts (called after Donate SDK success)"""
+    """Capture PayPal payment and trigger alerts"""
     try:
         ds = DonationSettings.objects.select_related('user').get(donation_token=token)
     except DonationSettings.DoesNotExist:
         return JsonResponse({'error': 'Not found'}, status=404)
     
     data = json.loads(request.body)
-    donation_id = data.get('donation_id')
-    tx_id = data.get('tx')  # Transaction ID from Donate SDK
+    order_id = data.get('order_id')
+    
+    if not order_id:
+        return JsonResponse({'error': 'Missing order_id'}, status=400)
     
     try:
-        donation = Donation.objects.get(id=donation_id, streamer=ds.user)
+        donation = Donation.objects.get(paypal_order_id=order_id, streamer=ds.user)
     except Donation.DoesNotExist:
         return JsonResponse({'error': 'Donation not found'}, status=404)
     
-    # Update donation record
-    donation.status = 'completed'
-    if tx_id:
-        donation.paypal_order_id = tx_id
-    donation.save()
+    # Get PayPal access token and capture
+    identity_base = 'https://api.sandbox.paypal.com' if PAYPAL_SANDBOX_MODE else 'https://api.paypal.com'
     
-    # Trigger alerts
-    trigger_donation_alert(ds.user.id, {
-        'type': 'donation',
-        'name': donation.donor_name,
-        'amount': float(donation.amount),
-        'currency': donation.currency,
-        'message': donation.message,
-        'formatted_amount': f'{donation.currency} {donation.amount:.2f}',
-    })
-    
-    return JsonResponse({'success': True})
+    try:
+        # Get access token
+        auth_resp = requests.post(
+            f'{identity_base}/v1/oauth2/token',
+            auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET),
+            data={'grant_type': 'client_credentials'},
+            headers={'Accept': 'application/json'},
+            timeout=30
+        )
+        if auth_resp.status_code != 200:
+            return JsonResponse({'error': 'Payment service unavailable'}, status=500)
+        
+        access_token = auth_resp.json().get('access_token')
+        
+        # Capture the order
+        capture_resp = requests.post(
+            f'{identity_base}/v2/checkout/orders/{order_id}/capture',
+            headers={
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json',
+            },
+            timeout=30
+        )
+        
+        if capture_resp.status_code not in [200, 201]:
+            logger.error(f"PayPal capture failed: {capture_resp.text}")
+            return JsonResponse({'error': 'Payment capture failed'}, status=500)
+        
+        capture_data = capture_resp.json()
+        
+        # Get capture ID
+        capture_id = ''
+        try:
+            capture_id = capture_data['purchase_units'][0]['payments']['captures'][0]['id']
+        except (KeyError, IndexError):
+            pass
+        
+        # Update donation record
+        donation.status = 'completed'
+        donation.paypal_capture_id = capture_id
+        donation.completed_at = timezone.now()
+        donation.save()
+        
+        # Trigger alerts
+        trigger_donation_alert(ds.user.id, {
+            'type': 'donation',
+            'name': donation.donor_name,
+            'amount': float(donation.amount),
+            'currency': donation.currency,
+            'message': donation.message,
+            'formatted_amount': f'{donation.currency} {donation.amount:.2f}',
+        })
+        
+        return JsonResponse({'success': True, 'capture_id': capture_id})
+        
+    except requests.RequestException as e:
+        logger.error(f"PayPal capture error: {e}")
+        return JsonResponse({'error': 'Payment service unavailable'}, status=500)
 
 
 def trigger_donation_alert(user_id, data):
