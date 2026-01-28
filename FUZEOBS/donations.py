@@ -108,12 +108,12 @@ def paypal_connect(request):
         ds, _ = DonationSettings.objects.get_or_create(user=user)
         
         state = secrets.token_urlsafe(32)
-        ds.oauth_state = state
+        nonce = secrets.token_urlsafe(16)
+        ds.oauth_state = f"{state}:{nonce}"
         ds.save()
         
         redirect_uri = 'https://bomby.us/fuzeobs/donations/paypal/callback'
         
-        # Request openid + email scope
         auth_url = (
             f'{PAYPAL_WEB_BASE}/signin/authorize'
             f'?client_id={PAYPAL_CLIENT_ID}'
@@ -121,6 +121,7 @@ def paypal_connect(request):
             f'&scope=openid+email+https://uri.paypal.com/services/paypalattributes'
             f'&redirect_uri={redirect_uri}'
             f'&state={state}'
+            f'&nonce={nonce}'
         )
         
         logger.info(f"PayPal connect initiated for user {user.id}")
@@ -148,7 +149,7 @@ def paypal_callback(request):
         return HttpResponse('<script>window.close();</script>')
     
     try:
-        ds = DonationSettings.objects.get(oauth_state=state)
+        ds = DonationSettings.objects.get(oauth_state__startswith=state)
     except DonationSettings.DoesNotExist:
         return HttpResponse('<script>alert("Invalid state"); window.close();</script>')
     
@@ -209,7 +210,7 @@ def paypal_callback(request):
                 user_info = user_resp.json()
                 payer_id = user_info.get('payer_id') or user_info.get('user_id')
                 email = user_info.get('email')
-                
+
         if payer_id or email:
             # Only save payer_id if it's a real ID, not a URL-like sub claim
             if payer_id and not payer_id.startswith('http'):
