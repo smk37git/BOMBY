@@ -200,7 +200,11 @@ def paypal_callback(request):
         if not payer_id:
             user_resp = requests.get(
                 f'{PAYPAL_BASE}/v1/identity/openidconnect/userinfo?schema=openid',
-                headers={'Authorization': f'Bearer {access_token}'},
+                headers={
+                    'Authorization': f'Bearer {access_token}',
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
                 timeout=30
             )
             logger.info(f"Userinfo response: {user_resp.status_code}")
