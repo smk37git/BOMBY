@@ -239,7 +239,7 @@ class DonationSettings(models.Model):
     donation_token = models.CharField(max_length=64, unique=True, blank=True)
     paypal_email = models.EmailField(blank=True)
     paypal_merchant_id = models.CharField(max_length=100, blank=True)
-    oauth_state = models.CharField(max_length=64, blank=True)
+    oauth_state = models.CharField(max_length=100, blank=True)
     
     min_amount = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
     suggested_amounts = models.JSONField(default=list)  # [5, 10, 25, 50]
