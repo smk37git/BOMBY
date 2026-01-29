@@ -327,6 +327,28 @@ def create_donation_order(request, token):
 
 @csrf_exempt
 @require_http_methods(["POST"])
+def validate_donation(request, token):
+    """Pre-validate donor name and message before PayPal flow"""
+    try:
+        ds = DonationSettings.objects.get(donation_token=token)
+    except DonationSettings.DoesNotExist:
+        return JsonResponse({'error': 'Not found'}, status=404)
+    
+    data = json.loads(request.body)
+    donor_name = data.get('name', 'Anonymous')[:100]
+    message = data.get('message', '')[:500]
+    
+    if contains_profanity(donor_name):
+        return JsonResponse({'error': 'Name contains inappropriate language', 'field': 'name'}, status=400)
+    
+    if contains_profanity(message):
+        return JsonResponse({'error': 'Message contains inappropriate language', 'field': 'message'}, status=400)
+    
+    return JsonResponse({'valid': True})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
 def capture_donation(request, token):
     """Record donation after client-side PayPal capture"""
     try:

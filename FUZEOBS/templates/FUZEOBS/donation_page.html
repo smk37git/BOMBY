@@ -486,13 +486,39 @@
             },
             
             // Create order CLIENT-SIDE - payment goes directly to streamer
-            createOrder: function(data, actions) {
+            createOrder: async function(data, actions) {
                 hideError();
+                clearFieldErrors();
+                
+                const name = document.getElementById('donor-name').value.trim() || 'Anonymous';
+                const message = document.getElementById('message').value.trim();
                 const amount = parseFloat(document.getElementById('amount').value) || 0;
 
                 if (amount < minAmount) {
                     showError(`Minimum donation is $${minAmount} ${currency}`);
                     return Promise.reject(new Error('Amount too low'));
+                }
+
+                // Pre-validate name and message
+                try {
+                    const validateResp = await fetch(`/fuzeobs/donate/${token}/validate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, message })
+                    });
+                    const validateResult = await validateResp.json();
+                    
+                    if (!validateResp.ok) {
+                        if (validateResult.field) {
+                            showFieldError(validateResult.field, 'Profanity is not allowed');
+                        } else {
+                            showError(validateResult.error || 'Validation failed');
+                        }
+                        return Promise.reject(new Error('Validation failed'));
+                    }
+                } catch (e) {
+                    console.error('Validation error:', e);
+                    return Promise.reject(e);
                 }
 
                 return actions.order.create({
