@@ -331,20 +331,18 @@
     </style>
 </head>
 <body>
-    <div class="donation-container">
-        <div class="donation-header">
-            <h1>{{ page_title }}</h1>
-            <p class="streamer-name">@{{ streamer }}</p>
-        </div>
-        
+    <div class="donation-container">   
         <div class="panels-wrapper">
             <div class="donation-card">
                 <div id="donation-form">
+                    <h1>{{ page_title }}</h1>
                     {% if profile_picture %}
                     <img src="{{ profile_picture }}" alt="{{ streamer }}" class="avatar" style="object-fit: cover;">
                     {% else %}
                     <div class="avatar">{{ streamer|slice:":1"|upper }}</div>
                     {% endif %}
+
+                    <p class="streamer-name">@{{ streamer }}</p>
                     
                     {% if page_message %}
                     <p class="page-message">{{ page_message }}</p>

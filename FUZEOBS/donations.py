@@ -472,7 +472,7 @@ def donation_history(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def clear_donation_history(request):
-    """Clear all donation history for a user"""
+    """Clear recent donation list"""
     auth = request.headers.get('Authorization', '')
     if not auth.startswith('Bearer '):
         return JsonResponse({'error': 'Unauthorized'}, status=401)
