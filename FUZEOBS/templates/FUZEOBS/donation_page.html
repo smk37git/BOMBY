@@ -118,6 +118,18 @@
             transition: all 0.2s;
         }
         
+        .form-group input.field-error,
+        .form-group textarea.field-error {
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+        
+        .field-error-msg {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
@@ -343,6 +355,7 @@
                     <div class="form-group">
                         <label><i class="fas fa-user"></i> Your Name</label>
                         <input type="text" id="donor-name" placeholder="Anonymous" maxlength="100">
+                        <div id="name-error" class="field-error-msg" style="display: none;"></div>
                     </div>
 
                     <div class="form-group">
@@ -361,6 +374,7 @@
                     <div class="form-group">
                         <label><i class="fas fa-comment"></i> Message (Optional)</label>
                         <textarea id="message" placeholder="Say something nice..." maxlength="500"></textarea>
+                        <div id="message-error" class="field-error-msg" style="display: none;"></div>
                     </div>
 
                     <div id="paypal-button-container"></div>
@@ -439,6 +453,27 @@
             document.getElementById('error-message').style.display = 'none';
         }
 
+        function showFieldError(field, msg) {
+            const input = document.getElementById(field === 'name' ? 'donor-name' : 'message');
+            const errorEl = document.getElementById(field === 'name' ? 'name-error' : 'message-error');
+            if (input) input.classList.add('field-error');
+            if (errorEl) {
+                errorEl.textContent = msg;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        function clearFieldErrors() {
+            document.getElementById('donor-name').classList.remove('field-error');
+            document.getElementById('message').classList.remove('field-error');
+            document.getElementById('name-error').style.display = 'none';
+            document.getElementById('message-error').style.display = 'none';
+        }
+
+        // Clear errors on input
+        document.getElementById('donor-name').addEventListener('input', clearFieldErrors);
+        document.getElementById('message').addEventListener('input', clearFieldErrors);
+
         // PayPal Buttons - CLIENT-SIDE order creation and capture
         // This bypasses the need for Partner/Marketplace permissions
         paypal.Buttons({
@@ -488,7 +523,7 @@
                     
                     // Record completed donation on backend
                     try {
-                        await fetch(`/fuzeobs/donate/${token}/capture`, {
+                        const resp = await fetch(`/fuzeobs/donate/${token}/capture`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
@@ -499,6 +534,17 @@
                                 amount: amount
                             })
                         });
+                        
+                        const result = await resp.json();
+                        
+                        if (!resp.ok) {
+                            if (result.field) {
+                                showFieldError(result.field, 'Profanity is not allowed');
+                            } else {
+                                showError(result.error || 'Failed to process donation');
+                            }
+                            return;
+                        }
                     } catch (e) {
                         console.error('Failed to record donation:', e);
                     }

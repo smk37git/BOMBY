@@ -340,6 +340,13 @@ def capture_donation(request, token):
     message = data.get('message', '')[:500]
     amount = Decimal(str(data.get('amount', 0)))
     
+    # Profanity filter
+    if contains_profanity(donor_name):
+        return JsonResponse({'error': 'Name contains inappropriate language', 'field': 'name'}, status=400)
+    
+    if contains_profanity(message):
+        return JsonResponse({'error': 'Message contains inappropriate language', 'field': 'message'}, status=400)
+    
     # Create completed donation record
     donation = Donation.objects.create(
         streamer=ds.user,
