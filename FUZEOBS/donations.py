@@ -119,7 +119,7 @@ def paypal_connect(request):
             f'{PAYPAL_WEB_BASE}/signin/authorize'
             f'?client_id={PAYPAL_CLIENT_ID}'
             f'&response_type=code'
-            f'&scope=openid+email+https://uri.paypal.com/services/paypalattributes'
+            f'&scope=openid+profile+email+https://uri.paypal.com/services/paypalattributes'
             f'&redirect_uri={redirect_uri}'
             f'&state={state}'
             f'&nonce={nonce}'
@@ -157,9 +157,10 @@ def paypal_callback(request):
     redirect_uri = 'https://bomby.us/fuzeobs/donations/paypal/callback'
     
     try:
-        # Exchange code for tokens
+        # Exchange code for tokens using OpenID Connect endpoint
+        identity_base = 'https://api.sandbox.paypal.com' if PAYPAL_SANDBOX_MODE else 'https://api.paypal.com'
         resp = requests.post(
-            f'{PAYPAL_BASE}/v1/oauth2/token',
+            f'{identity_base}/v1/identity/openidconnect/tokenservice',
             auth=(PAYPAL_CLIENT_ID, PAYPAL_SECRET),
             data={
                 'grant_type': 'authorization_code',
@@ -200,18 +201,48 @@ def paypal_callback(request):
         # Try userinfo endpoint (OpenID Connect path)
         if not payer_id:
             identity_base = 'https://api.sandbox.paypal.com' if PAYPAL_SANDBOX_MODE else 'https://api.paypal.com'
+            
+            # Try OpenID Connect userinfo first
             user_resp = requests.get(
-                f'{identity_base}/v1/identity/openidconnect/userinfo/?schema=openid',
-                headers={'Authorization': f'Bearer {access_token}'},
+                f'{identity_base}/v1/identity/openidconnect/userinfo?schema=openid',
+                headers={
+                    'Authorization': f'Bearer {access_token}',
+                    'Content-Type': 'application/json',
+                },
                 timeout=30
             )
-            logger.info(f"Userinfo response: {user_resp.status_code}")
-            logger.info(f"Userinfo body: {user_resp.text[:500]}")
+            logger.info(f"OpenID userinfo response: {user_resp.status_code}")
             
             if user_resp.status_code == 200:
                 user_info = user_resp.json()
                 payer_id = user_info.get('payer_id') or user_info.get('user_id')
                 email = user_info.get('email')
+                logger.info(f"Got from OpenID userinfo - payer_id: {payer_id}, email: {email}")
+            else:
+                # Fallback: Try regular identity API
+                user_resp2 = requests.get(
+                    f'{identity_base}/v1/identity/oauth2/userinfo?schema=paypalv1.1',
+                    headers={
+                        'Authorization': f'Bearer {access_token}',
+                        'Content-Type': 'application/json',
+                    },
+                    timeout=30
+                )
+                logger.info(f"Identity API userinfo response: {user_resp2.status_code}")
+                
+                if user_resp2.status_code == 200:
+                    user_info = user_resp2.json()
+                    payer_id = user_info.get('payer_id') or user_info.get('user_id')
+                    email = user_info.get('email')
+                    # Check nested emails array
+                    if not email and user_info.get('emails'):
+                        for e in user_info.get('emails', []):
+                            if e.get('primary'):
+                                email = e.get('value')
+                                break
+                    logger.info(f"Got from Identity API - payer_id: {payer_id}, email: {email}")
+                else:
+                    logger.error(f"Both userinfo endpoints failed. OpenID: {user_resp.text[:200]}, Identity: {user_resp2.text[:200]}")
 
         if payer_id or email:
             # Only save payer_id if it's a real ID, not a URL-like sub claim
