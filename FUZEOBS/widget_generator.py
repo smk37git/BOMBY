@@ -1142,8 +1142,11 @@ function addEvent(data) {{
         .replace(/\\{{viewers\\}}/g, event_data.viewers || '')
         .replace(/\\{{gift\\}}/g, event_data.gift || '');
     
+    // For donations, skip platform badge since it's the same as event icon
+    const showPlatformBadge = platform !== 'donation';
+    
     eventEl.innerHTML = `
-        <span class="platform-badge" style="color: ${{platformColor}}">${{platformIcon}}</span>
+        ${{showPlatformBadge ? `<span class="platform-badge" style="color: ${{platformColor}}">${{platformIcon}}</span>` : ''}}
         <span class="event-icon" style="color: ${{platformColor}}">${{icon}}</span>
         <span class="event-text">${{text}}</span>
     `;
@@ -1388,10 +1391,14 @@ function render() {{
     container.style.setProperty('--bar-color-light', getBarColorLight(barColor));
     
     let progressText = '';
+    const isTipGoal = goalType === 'tip';
+    const formatAmount = (amt) => isTipGoal ? `$${{amt.toFixed(2)}}` : amt;
+    const formatGoal = (amt) => isTipGoal ? `$${{amt}}` : amt;
+    
     if (showNumbers && showPercentage) {{
-        progressText = `${{currentAmount}} / ${{goalAmount}} (${{Math.round(percentage)}}%)`;
+        progressText = `${{formatAmount(currentAmount)}} / ${{formatGoal(goalAmount)}} (${{Math.round(percentage)}}%)`;
     }} else if (showNumbers) {{
-        progressText = `${{currentAmount}} / ${{goalAmount}}`;
+        progressText = `${{formatAmount(currentAmount)}} / ${{formatGoal(goalAmount)}}`;
     }} else if (showPercentage) {{
         progressText = `${{Math.round(percentage)}}%`;
     }}
