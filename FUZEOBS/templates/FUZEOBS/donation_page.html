@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BOMBY | {{ page_title }}</title>
     <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
-    <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -157,41 +156,8 @@
             padding-left: 32px;
         }
         
-        #donate-button-container {
+        #paypal-button-container {
             margin-top: 24px;
-        }
-        
-        .donate-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #0070ba 0%, #1546a0 100%);
-            border: none;
-            color: #fff;
-            padding: 14px 24px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            border-radius: 6px;
-        }
-        
-        .donate-btn:hover {
-            background: linear-gradient(135deg, #005ea6 0%, #103d8a 100%);
-            transform: translateY(-1px);
-        }
-        
-        .donate-btn svg {
-            width: 20px;
-            height: 20px;
-        }
-        
-        .paypal-hidden {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
         }
         
         .error-message {
@@ -234,13 +200,11 @@
         
         .donor-name {
             font-weight: 500;
-            font-size: 14px;
         }
         
         .donation-amount {
             color: #22c55e;
             font-weight: 600;
-            font-size: 14px;
         }
         
         .success-view {
@@ -251,23 +215,18 @@
         .success-icon {
             width: 80px;
             height: 80px;
-            background: rgba(34, 197, 94, 0.1);
-            border: 1px solid rgba(34, 197, 94, 0.3);
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 24px;
-        }
-        
-        .success-icon i {
             font-size: 36px;
-            color: #22c55e;
         }
         
         .success-view h2 {
             font-size: 1.5rem;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         
         .success-view p {
@@ -276,7 +235,7 @@
         
         .powered-by {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 24px;
             font-size: 12px;
             color: rgba(255, 255, 255, 0.4);
         }
@@ -363,11 +322,7 @@
                     <textarea id="message" placeholder="Say something nice..." maxlength="500"></textarea>
                 </div>
 
-                <button type="button" class="donate-btn" id="custom-donate-btn">
-                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.72a.77.77 0 0 1 .757-.645h6.922c2.598 0 4.477.507 5.583 1.507 1.106 1 1.463 2.375 1.062 4.085-.506 2.165-1.664 3.778-3.439 4.793-1.728.988-3.937 1.49-6.565 1.49H6.93l-1.17 6.387a.641.641 0 0 1-.632.537h-.052z"/></svg>
-                    DONATE WITH PAYPAL
-                </button>
-                <div id="paypal-btn-hidden" class="paypal-hidden"></div>
+                <div id="paypal-button-container"></div>
                 
                 <div class="secure-badge">
                     <i class="fas fa-lock"></i>
@@ -401,16 +356,17 @@
         </div>
     </div>
 
+    <!-- PayPal JS SDK (NOT Donate SDK - that doesn't support dynamic amounts) -->
+    <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency={{ currency }}&intent=capture&disable-funding=credit,card"></script>
+    
     <script>
         const token = '{{ token }}';
         const minAmount = parseFloat('{{ min_amount }}');
         const currency = '{{ currency }}';
-        const businessId = '{{ business_id }}';
-        const paypalEnv = '{{ paypal_env }}';
         
         let selectedAmount = 0;
-        let currentDonationId = null;
 
+        // Amount button handlers
         document.querySelectorAll('.amount-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
@@ -435,75 +391,73 @@
             document.getElementById('error-message').style.display = 'none';
         }
 
-        const donateConfig = {
-            env: paypalEnv,
-            image: {
-                src: 'https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif',
-                alt: 'Donate'
+        // PayPal Buttons using Orders API v2
+        paypal.Buttons({
+            style: {
+                layout: 'vertical',
+                color: 'blue',
+                shape: 'rect',
+                label: 'paypal',
+                height: 45
             },
-            onComplete: async function(params) {
-                console.log('Donation complete:', params);
-                
-                if (currentDonationId) {
-                    try {
-                        await fetch(`/fuzeobs/donate/${token}/capture`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                donation_id: currentDonationId,
-                                tx: params.tx,
-                                amt: params.amt,
-                                cc: params.cc
-                            })
-                        });
-                    } catch (e) {
-                        console.error('Failed to record donation:', e);
-                    }
+            
+            // Create order on backend with custom amount
+            createOrder: async function(data, actions) {
+                hideError();
+                const amount = parseFloat(document.getElementById('amount').value) || 0;
+                const name = document.getElementById('donor-name').value.trim() || 'Anonymous';
+                const message = document.getElementById('message').value.trim();
+
+                if (amount < minAmount) {
+                    showError(`Minimum donation is $${minAmount} ${currency}`);
+                    return Promise.reject(new Error('Amount too low'));
                 }
-                
-                document.getElementById('donation-form').classList.add('hidden');
-                document.getElementById('success-message').classList.remove('hidden');
-                const recentSection = document.getElementById('recent-section');
-                if (recentSection) recentSection.classList.add('hidden');
-            }
-        };
 
-        donateConfig.business = businessId;
-        PayPal.Donation.Button(donateConfig).render('#paypal-btn-hidden');
-
-        // Custom button click handler
-        document.getElementById('custom-donate-btn').addEventListener('click', async function() {
-            hideError();
-            const amount = parseFloat(document.getElementById('amount').value) || 0;
-            const name = document.getElementById('donor-name').value.trim() || 'Anonymous';
-            const message = document.getElementById('message').value.trim();
-
-            if (amount < minAmount) {
-                showError(`Minimum donation is $${minAmount} ${currency}`);
-                return;
-            }
-
-            // Record donation intent
-            try {
                 const resp = await fetch(`/fuzeobs/donate/${token}/create`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ amount, name, message })
                 });
-                const data = await resp.json();
-                if (data.donation_id) {
-                    currentDonationId = data.donation_id;
+                
+                const orderData = await resp.json();
+                
+                if (orderData.error) {
+                    showError(orderData.error);
+                    return Promise.reject(new Error(orderData.error));
                 }
-            } catch (e) {
-                console.error('Failed to record intent:', e);
+                
+                return orderData.id;
+            },
+            
+            // Capture payment after buyer approval
+            onApprove: async function(data, actions) {
+                const resp = await fetch(`/fuzeobs/donate/${token}/capture`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ order_id: data.orderID })
+                });
+                
+                const result = await resp.json();
+                
+                if (result.success) {
+                    document.getElementById('donation-form').classList.add('hidden');
+                    document.getElementById('success-message').classList.remove('hidden');
+                    const recentSection = document.getElementById('recent-section');
+                    if (recentSection) recentSection.classList.add('hidden');
+                } else {
+                    showError(result.error || 'Payment failed');
+                }
+            },
+            
+            onError: function(err) {
+                console.error('PayPal error:', err);
+                showError('Payment could not be processed. Please try again.');
+            },
+            
+            onCancel: function() {
+                // User cancelled
             }
-
-            // Trigger PayPal button
-            const paypalBtn = document.querySelector('#paypal-btn-hidden form input[type="image"], #paypal-btn-hidden img');
-            if (paypalBtn) {
-                paypalBtn.click();
-            }
-        });
+        }).render('#paypal-button-container');
     </script>
 </body>
 </html>
