@@ -119,7 +119,7 @@ def paypal_connect(request):
             f'{PAYPAL_WEB_BASE}/signin/authorize'
             f'?client_id={PAYPAL_CLIENT_ID}'
             f'&response_type=code'
-            f'&scope=openid+profile+email+https://uri.paypal.com/services/paypalattributes'
+            f'&scope=openid+email+https://uri.paypal.com/services/paypalattributes'
             f'&redirect_uri={redirect_uri}'
             f'&state={state}'
             f'&nonce={nonce}'
