@@ -21,27 +21,25 @@
             padding: 20px;
         }
         
-        .page-wrapper {
-            display: flex;
-            gap: 24px;
+        .donation-container {
             max-width: 900px;
             width: 100%;
-            align-items: stretch;
         }
         
-        .donation-container {
+        .panels-wrapper {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+        
+        .donation-card {
             flex: 1;
             max-width: 500px;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
         }
         
-        .supporters-panel {
+        .supporters-card {
             width: 280px;
             flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
         }
         
         .donation-header {
@@ -67,14 +65,10 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             padding: 32px;
-            flex: 1;
         }
         
         .supporters-card {
             padding: 24px;
-            min-height: 400px;
-            flex: 1;
-            margin-top: 85px;
         }
         
         .avatar {
@@ -300,19 +294,16 @@
         .hidden { display: none !important; }
         
         @media (max-width: 768px) {
-            .page-wrapper {
+            .panels-wrapper {
                 flex-direction: column;
-                align-items: center;
             }
             
-            .supporters-panel {
+            .donation-card {
+                max-width: 100%;
+            }
+            
+            .supporters-card {
                 width: 100%;
-                max-width: 500px;
-                order: 2;
-            }
-            
-            .donation-container {
-                order: 1;
             }
         }
         
@@ -328,13 +319,13 @@
     </style>
 </head>
 <body>
-    <div class="page-wrapper">
-        <div class="donation-container">
-            <div class="donation-header">
-                <h1>{{ page_title }}</h1>
-                <p class="streamer-name">@{{ streamer }}</p>
-            </div>
-            
+    <div class="donation-container">
+        <div class="donation-header">
+            <h1>{{ page_title }}</h1>
+            <p class="streamer-name">@{{ streamer }}</p>
+        </div>
+        
+        <div class="panels-wrapper">
             <div class="donation-card">
                 <div id="donation-form">
                     {% if profile_picture %}
@@ -389,13 +380,7 @@
                 </div>
             </div>
 
-            <div class="powered-by">
-                Powered by <a href="https://bomby.us/fuzeobs" target="_blank">FuzeOBS</a>
-            </div>
-        </div>
-
-        {% if show_recent_donations %}
-        <div class="supporters-panel" id="supporters-panel">
+            {% if show_recent_donations %}
             <div class="supporters-card">
                 <h3 class="supporters-title"><i class="fas fa-heart"></i> Recent Supporters</h3>
                 {% if recent_donations %}
@@ -409,8 +394,12 @@
                     <p class="no-donations">Be the first to donate!</p>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
-        {% endif %}
+
+        <div class="powered-by">
+            Powered by <a href="https://bomby.us/fuzeobs" target="_blank">FuzeOBS</a>
+        </div>
     </div>
 
     <!-- PayPal JS SDK with merchant-id for direct payment to streamer -->
@@ -516,8 +505,8 @@
                     
                     document.getElementById('donation-form').classList.add('hidden');
                     document.getElementById('success-message').classList.remove('hidden');
-                    const supportersPanel = document.getElementById('supporters-panel');
-                    if (supportersPanel) supportersPanel.classList.add('hidden');
+                    const supportersCard = document.querySelector('.supporters-card');
+                    if (supportersCard) supportersCard.classList.add('hidden');
                 });
             },
             
