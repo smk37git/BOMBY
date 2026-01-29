@@ -468,3 +468,18 @@ def donation_history(request):
             'created_at': d.created_at.isoformat(),
         } for d in donations]
     })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def clear_donation_history(request):
+    """Clear all donation history for a user"""
+    auth = request.headers.get('Authorization', '')
+    if not auth.startswith('Bearer '):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    user = get_user_from_token(auth.replace('Bearer ', ''))
+    if not user:
+        return JsonResponse({'error': 'Invalid token'}, status=401)
+    
+    deleted_count, _ = Donation.objects.filter(streamer=user).delete()
+    return JsonResponse({'cleared': True, 'count': deleted_count})

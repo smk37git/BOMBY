@@ -3,7 +3,8 @@ from . import views
 from .donations import (
     donation_settings, paypal_connect, paypal_callback, 
     paypal_disconnect, donation_page, create_donation_order, 
-    capture_donation, donation_history, validate_donation
+    capture_donation, donation_history, validate_donation,
+    clear_donation_history
 )
 
 app_name = 'FUZEOBS'
@@ -94,6 +95,7 @@ urlpatterns = [
     path('donations/paypal/callback', paypal_callback, name='paypal_callback'),
     path('donations/paypal/disconnect', paypal_disconnect, name='paypal_disconnect'),
     path('donations/history', donation_history, name='donation_history'),
+    path('donations/clear', clear_donation_history, name='clear_donation_history'),
     path('donate/<str:token>', donation_page, name='donation_page'),
     path('donate/<str:token>/validate', validate_donation, name='validate_donation'),
     path('donate/<str:token>/create', create_donation_order, name='create_donation_order'),
