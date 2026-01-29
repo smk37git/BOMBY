@@ -356,13 +356,15 @@
         </div>
     </div>
 
-    <!-- PayPal JS SDK (NOT Donate SDK - that doesn't support dynamic amounts) -->
-    <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency={{ currency }}&intent=capture&disable-funding=credit,card"></script>
+    <!-- PayPal JS SDK with merchant-id for direct payment to streamer -->
+    <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&merchant-id={{ business_id }}&currency={{ currency }}&intent=capture&disable-funding=credit,card"></script>
     
     <script>
         const token = '{{ token }}';
         const minAmount = parseFloat('{{ min_amount }}');
         const currency = '{{ currency }}';
+        const businessId = '{{ business_id }}';
+        const streamer = '{{ streamer }}';
         
         let selectedAmount = 0;
 
@@ -391,7 +393,8 @@
             document.getElementById('error-message').style.display = 'none';
         }
 
-        // PayPal Buttons using Orders API v2
+        // PayPal Buttons - CLIENT-SIDE order creation and capture
+        // This bypasses the need for Partner/Marketplace permissions
         paypal.Buttons({
             style: {
                 layout: 'vertical',
@@ -401,52 +404,64 @@
                 height: 45
             },
             
-            // Create order on backend with custom amount
-            createOrder: async function(data, actions) {
+            // Create order CLIENT-SIDE - payment goes directly to streamer
+            createOrder: function(data, actions) {
                 hideError();
                 const amount = parseFloat(document.getElementById('amount').value) || 0;
-                const name = document.getElementById('donor-name').value.trim() || 'Anonymous';
-                const message = document.getElementById('message').value.trim();
 
                 if (amount < minAmount) {
                     showError(`Minimum donation is $${minAmount} ${currency}`);
                     return Promise.reject(new Error('Amount too low'));
                 }
 
-                const resp = await fetch(`/fuzeobs/donate/${token}/create`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ amount, name, message })
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: amount.toFixed(2),
+                            currency_code: currency
+                        },
+                        description: `Tip to ${streamer}`,
+                        payee: {
+                            email_address: businessId.includes('@') ? businessId : undefined,
+                            merchant_id: !businessId.includes('@') ? businessId : undefined
+                        }
+                    }],
+                    application_context: {
+                        brand_name: 'FuzeOBS',
+                        shipping_preference: 'NO_SHIPPING'
+                    }
                 });
-                
-                const orderData = await resp.json();
-                
-                if (orderData.error) {
-                    showError(orderData.error);
-                    return Promise.reject(new Error(orderData.error));
-                }
-                
-                return orderData.id;
             },
             
-            // Capture payment after buyer approval
-            onApprove: async function(data, actions) {
-                const resp = await fetch(`/fuzeobs/donate/${token}/capture`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ order_id: data.orderID })
-                });
-                
-                const result = await resp.json();
-                
-                if (result.success) {
+            // Capture CLIENT-SIDE then record on backend
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(async function(details) {
+                    const name = document.getElementById('donor-name').value.trim() || 'Anonymous';
+                    const message = document.getElementById('message').value.trim();
+                    const amount = parseFloat(document.getElementById('amount').value) || 0;
+                    
+                    // Record completed donation on backend
+                    try {
+                        await fetch(`/fuzeobs/donate/${token}/capture`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                order_id: data.orderID,
+                                payer_id: details.payer?.payer_id,
+                                name: name,
+                                message: message,
+                                amount: amount
+                            })
+                        });
+                    } catch (e) {
+                        console.error('Failed to record donation:', e);
+                    }
+                    
                     document.getElementById('donation-form').classList.add('hidden');
                     document.getElementById('success-message').classList.remove('hidden');
                     const recentSection = document.getElementById('recent-section');
                     if (recentSection) recentSection.classList.add('hidden');
-                } else {
-                    showError(result.error || 'Payment failed');
-                }
+                });
             },
             
             onError: function(err) {

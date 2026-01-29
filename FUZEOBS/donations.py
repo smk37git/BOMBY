@@ -308,94 +308,14 @@ def donation_page(request, token):
 @csrf_exempt
 @require_http_methods(["POST"])
 def create_donation_order(request, token):
-    """Create PayPal order with Orders API v2 - amount is passed dynamically"""
-    try:
-        ds = DonationSettings.objects.select_related('user').get(donation_token=token)
-    except DonationSettings.DoesNotExist:
-        return JsonResponse({'error': 'Not found'}, status=404)
-    
-    data = json.loads(request.body)
-    amount = Decimal(str(data.get('amount', 0)))
-    donor_name = data.get('name', 'Anonymous')[:100]
-    message = data.get('message', '')[:500]
-    currency = ds.currency
-    
-    if amount < ds.min_amount:
-        return JsonResponse({'error': f'Minimum donation is {ds.min_amount} {currency}'}, status=400)
-    
-    access_token = get_paypal_access_token()
-    if not access_token:
-        return JsonResponse({'error': 'PayPal service unavailable'}, status=503)
-    
-    # Payee - streamer receives funds directly
-    payee = {}
-    if ds.paypal_email:
-        payee['email_address'] = ds.paypal_email
-    elif ds.paypal_merchant_id:
-        payee['merchant_id'] = ds.paypal_merchant_id
-    
-    order_payload = {
-        'intent': 'CAPTURE',
-        'purchase_units': [{
-            'amount': {
-                'currency_code': currency,
-                'value': str(amount.quantize(Decimal('0.01')))
-            },
-            'payee': payee,
-            'description': f'Tip to {ds.user.username}',
-            'custom_id': f'{donor_name}|{message[:200]}',
-        }],
-        'application_context': {
-            'brand_name': 'FuzeOBS',
-            'landing_page': 'NO_PREFERENCE',
-            'user_action': 'PAY_NOW',
-            'shipping_preference': 'NO_SHIPPING',
-        }
-    }
-    
-    try:
-        resp = requests.post(
-            f'{PAYPAL_BASE}/v2/checkout/orders',
-            headers={
-                'Authorization': f'Bearer {access_token}',
-                'Content-Type': 'application/json',
-            },
-            json=order_payload,
-            timeout=30
-        )
-        
-        logger.info(f"PayPal create order response: {resp.status_code}")
-        
-        if resp.status_code in (200, 201):
-            order_data = resp.json()
-            order_id = order_data.get('id')
-            
-            donation = Donation.objects.create(
-                streamer=ds.user,
-                paypal_order_id=order_id,
-                donor_name=donor_name,
-                message=message,
-                amount=amount,
-                currency=currency,
-                status='pending',
-            )
-            
-            return JsonResponse({
-                'id': order_id,
-                'donation_id': donation.id
-            })
-        else:
-            logger.error(f"PayPal create order failed: {resp.text}")
-            return JsonResponse({'error': 'Failed to create payment'}, status=500)
-    except Exception as e:
-        logger.error(f"create_donation_order error: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
+    """Legacy endpoint - orders now created client-side"""
+    return JsonResponse({'error': 'Orders are created client-side'}, status=400)
 
 
 @csrf_exempt
 @require_http_methods(["POST"])
 def capture_donation(request, token):
-    """Capture PayPal order after approval"""
+    """Record donation after client-side PayPal capture"""
     try:
         ds = DonationSettings.objects.select_related('user').get(donation_token=token)
     except DonationSettings.DoesNotExist:
@@ -403,63 +323,32 @@ def capture_donation(request, token):
     
     data = json.loads(request.body)
     order_id = data.get('order_id')
+    donor_name = data.get('name', 'Anonymous')[:100]
+    message = data.get('message', '')[:500]
+    amount = Decimal(str(data.get('amount', 0)))
     
-    if not order_id:
-        return JsonResponse({'error': 'Missing order_id'}, status=400)
+    # Create completed donation record
+    donation = Donation.objects.create(
+        streamer=ds.user,
+        paypal_order_id=order_id or f'client_{secrets.token_hex(8)}',
+        donor_name=donor_name,
+        message=message,
+        amount=amount,
+        currency=ds.currency,
+        status='completed',
+    )
     
-    access_token = get_paypal_access_token()
-    if not access_token:
-        return JsonResponse({'error': 'PayPal service unavailable'}, status=503)
+    # Trigger alerts
+    trigger_donation_alert(ds.user.id, {
+        'type': 'donation',
+        'name': donor_name,
+        'amount': float(amount),
+        'currency': ds.currency,
+        'message': message,
+        'formatted_amount': f'{ds.currency} {amount:.2f}',
+    })
     
-    try:
-        resp = requests.post(
-            f'{PAYPAL_BASE}/v2/checkout/orders/{order_id}/capture',
-            headers={
-                'Authorization': f'Bearer {access_token}',
-                'Content-Type': 'application/json',
-            },
-            timeout=30
-        )
-        
-        logger.info(f"PayPal capture response: {resp.status_code}")
-        
-        if resp.status_code in (200, 201):
-            capture_data = resp.json()
-            status = capture_data.get('status')
-            
-            if status == 'COMPLETED':
-                try:
-                    donation = Donation.objects.get(
-                        paypal_order_id=order_id,
-                        streamer=ds.user
-                    )
-                    donation.status = 'completed'
-                    donation.save()
-                    
-                    trigger_donation_alert(ds.user.id, {
-                        'type': 'donation',
-                        'name': donation.donor_name,
-                        'amount': float(donation.amount),
-                        'currency': donation.currency,
-                        'message': donation.message,
-                        'formatted_amount': f'{donation.currency} {donation.amount:.2f}',
-                    })
-                    
-                    return JsonResponse({
-                        'success': True,
-                        'status': 'COMPLETED'
-                    })
-                except Donation.DoesNotExist:
-                    logger.error(f"Donation not found for order {order_id}")
-                    return JsonResponse({'success': True, 'status': 'COMPLETED'})
-            else:
-                return JsonResponse({'error': f'Capture status: {status}'}, status=400)
-        else:
-            logger.error(f"PayPal capture failed: {resp.text}")
-            return JsonResponse({'error': 'Failed to capture payment'}, status=500)
-    except Exception as e:
-        logger.error(f"capture_donation error: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'success': True})
 
 
 def trigger_donation_alert(user_id, data):
