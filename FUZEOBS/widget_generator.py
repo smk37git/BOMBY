@@ -73,6 +73,14 @@ body {{
     word-wrap: break-word;
     max-width: 90vw;
 }}
+.alert-message {{
+    font-size: 20px;
+    color: rgba(255,255,255,0.85);
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    margin-top: 8px;
+    word-wrap: break-word;
+    max-width: 90vw;
+}}
 
 /* Alert Animations */
 @keyframes fadeIn {{
@@ -402,6 +410,23 @@ function handleMessage(e) {{
         alert.firstChild.appendChild(textWrapper);
     }} else {{
         alert.appendChild(text);
+    }}
+    
+    // Add donation message below the main text
+    if (data.event_type === 'donation' && eventData.message && eventData.message.trim()) {{
+        const msgEl = document.createElement('div');
+        msgEl.className = 'alert-message';
+        msgEl.style.fontSize = Math.max(14, (config.font_size || 32) * 0.6) + 'px';
+        msgEl.style.fontFamily = config.font_family || 'Arial';
+        msgEl.style.color = config.text_color || '#FFFFFF';
+        msgEl.style.opacity = '0.85';
+        msgEl.textContent = '"' + eventData.message + '"';
+        
+        if (layout === 'text_over_image' && config.image_url) {{
+            alert.firstChild.lastChild.appendChild(msgEl);
+        }} else {{
+            alert.appendChild(msgEl);
+        }}
     }}
     
     if (config.sound_url) {{
