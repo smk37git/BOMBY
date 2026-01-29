@@ -26,18 +26,22 @@
             gap: 24px;
             max-width: 900px;
             width: 100%;
-            align-items: flex-start;
+            align-items: stretch;
         }
         
         .donation-container {
             flex: 1;
             max-width: 500px;
             width: 100%;
+            display: flex;
+            flex-direction: column;
         }
         
         .supporters-panel {
             width: 280px;
             flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
         }
         
         .donation-header {
@@ -63,10 +67,14 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             padding: 32px;
+            flex: 1;
         }
         
         .supporters-card {
             padding: 24px;
+            min-height: 400px;
+            flex: 1;
+            margin-top: 85px;
         }
         
         .avatar {
