@@ -18,6 +18,7 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from .models import DonationSettings, Donation
 from .views import get_user_from_token
+from ACCOUNTS.validators import contains_profanity
 
 logger = logging.getLogger(__name__)
 
@@ -92,10 +93,21 @@ def donation_settings(request):
             })
         
         data = json.loads(request.body)
+        
+        # Profanity filter for page_title and page_message
+        page_title = data.get('page_title', ds.page_title)
+        page_message = data.get('page_message', ds.page_message)
+        
+        if contains_profanity(page_title):
+            return JsonResponse({'error': 'Page title contains inappropriate language'}, status=400)
+        
+        if contains_profanity(page_message):
+            return JsonResponse({'error': 'Welcome message contains inappropriate language'}, status=400)
+        
         ds.min_amount = data.get('min_amount', ds.min_amount)
         ds.currency = data.get('currency', ds.currency)
-        ds.page_title = data.get('page_title', ds.page_title)
-        ds.page_message = data.get('page_message', ds.page_message)
+        ds.page_title = page_title
+        ds.page_message = page_message
         ds.show_recent_donations = data.get('show_recent_donations', ds.show_recent_donations)
         if 'suggested_amounts' in data:
             ds.suggested_amounts = data['suggested_amounts']
@@ -296,6 +308,7 @@ def donation_page(request, token):
         'suggested_amounts': ds.suggested_amounts,
         'currency': ds.currency,
         'recent_donations': recent_donations,
+        'show_recent_donations': ds.show_recent_donations,
         'token': token,
         'business_id': business_id,
         'paypal_client_id': PAYPAL_CLIENT_ID,

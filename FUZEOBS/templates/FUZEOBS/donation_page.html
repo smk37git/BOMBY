@@ -21,9 +21,23 @@
             padding: 20px;
         }
         
+        .page-wrapper {
+            display: flex;
+            gap: 24px;
+            max-width: 900px;
+            width: 100%;
+            align-items: flex-start;
+        }
+        
         .donation-container {
+            flex: 1;
             max-width: 500px;
             width: 100%;
+        }
+        
+        .supporters-panel {
+            width: 280px;
+            flex-shrink: 0;
         }
         
         .donation-header {
@@ -44,11 +58,15 @@
             font-size: 1.1rem;
         }
         
-        .donation-card {
+        .donation-card, .supporters-card {
             background: #0e0e0e;
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             padding: 32px;
+        }
+        
+        .supporters-card {
+            padding: 24px;
         }
         
         .avatar {
@@ -171,26 +189,27 @@
             display: none;
         }
         
-        .recent-donations {
-            margin-top: 24px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        
-        .recent-donations h3 {
+        .supporters-title {
             font-size: 12px;
             color: rgba(255, 255, 255, 0.5);
             margin-bottom: 16px;
             text-transform: uppercase;
             letter-spacing: 1px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .supporters-title i {
+            color: #ef4444;
         }
         
         .donation-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
         
@@ -200,11 +219,20 @@
         
         .donor-name {
             font-weight: 500;
+            font-size: 14px;
         }
         
         .donation-amount {
             color: #22c55e;
             font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .no-donations {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 13px;
+            text-align: center;
+            padding: 20px 0;
         }
         
         .success-view {
@@ -235,18 +263,14 @@
         
         .powered-by {
             text-align: center;
-            margin-top: 24px;
+            margin-top: 20px;
             font-size: 12px;
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.3);
         }
         
         .powered-by a {
             color: #a855f7;
             text-decoration: none;
-        }
-        
-        .powered-by a:hover {
-            text-decoration: underline;
         }
         
         .secure-badge {
@@ -267,8 +291,25 @@
         
         .hidden { display: none !important; }
         
+        @media (max-width: 768px) {
+            .page-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .supporters-panel {
+                width: 100%;
+                max-width: 500px;
+                order: 2;
+            }
+            
+            .donation-container {
+                order: 1;
+            }
+        }
+        
         @media (max-width: 480px) {
-            .donation-card {
+            .donation-card, .supporters-card {
                 padding: 24px 20px;
             }
             
@@ -279,81 +320,89 @@
     </style>
 </head>
 <body>
-    <div class="donation-container">
-        <div class="donation-header">
-            <h1>{{ page_title }}</h1>
-            <p class="streamer-name">@{{ streamer }}</p>
+    <div class="page-wrapper">
+        <div class="donation-container">
+            <div class="donation-header">
+                <h1>{{ page_title }}</h1>
+                <p class="streamer-name">@{{ streamer }}</p>
+            </div>
+            
+            <div class="donation-card">
+                <div id="donation-form">
+                    {% if profile_picture %}
+                    <img src="{{ profile_picture }}" alt="{{ streamer }}" class="avatar" style="object-fit: cover;">
+                    {% else %}
+                    <div class="avatar">{{ streamer|slice:":1"|upper }}</div>
+                    {% endif %}
+                    
+                    {% if page_message %}
+                    <p class="page-message">{{ page_message }}</p>
+                    {% endif %}
+
+                    <div id="error-message" class="error-message"></div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Your Name</label>
+                        <input type="text" id="donor-name" placeholder="Anonymous" maxlength="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-dollar-sign"></i> Amount ({{ currency }})</label>
+                        <div class="amount-buttons">
+                            {% for amt in suggested_amounts %}
+                            <button type="button" class="amount-btn" data-amount="{{ amt }}">${{ amt }}</button>
+                            {% endfor %}
+                        </div>
+                        <div class="custom-amount">
+                            <span class="currency-symbol">$</span>
+                            <input type="number" id="amount" placeholder="Custom amount" min="{{ min_amount }}" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-comment"></i> Message (Optional)</label>
+                        <textarea id="message" placeholder="Say something nice..." maxlength="500"></textarea>
+                    </div>
+
+                    <div id="paypal-button-container"></div>
+                    
+                    <div class="secure-badge">
+                        <i class="fas fa-lock"></i>
+                        <span>Secured by PayPal</span>
+                    </div>
+                </div>
+
+                <div id="success-message" class="success-view hidden">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h2>Thank You!</h2>
+                    <p>Your donation has been sent to {{ streamer }}!</p>
+                </div>
+            </div>
+
+            <div class="powered-by">
+                Powered by <a href="https://bomby.us/fuzeobs" target="_blank">FuzeOBS</a>
+            </div>
         </div>
-        
-        <div class="donation-card">
-            <div id="donation-form">
-                {% if profile_picture %}
-                <img src="{{ profile_picture }}" alt="{{ streamer }}" class="avatar" style="object-fit: cover;">
+
+        {% if show_recent_donations %}
+        <div class="supporters-panel" id="supporters-panel">
+            <div class="supporters-card">
+                <h3 class="supporters-title"><i class="fas fa-heart"></i> Recent Supporters</h3>
+                {% if recent_donations %}
+                    {% for d in recent_donations %}
+                    <div class="donation-item">
+                        <span class="donor-name">{{ d.donor_name }}</span>
+                        <span class="donation-amount">${{ d.amount }}</span>
+                    </div>
+                    {% endfor %}
                 {% else %}
-                <div class="avatar">{{ streamer|slice:":1"|upper }}</div>
+                    <p class="no-donations">Be the first to donate!</p>
                 {% endif %}
-                
-                {% if page_message %}
-                <p class="page-message">{{ page_message }}</p>
-                {% endif %}
-
-                <div id="error-message" class="error-message"></div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-user"></i> Your Name</label>
-                    <input type="text" id="donor-name" placeholder="Anonymous" maxlength="100">
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-dollar-sign"></i> Amount ({{ currency }})</label>
-                    <div class="amount-buttons">
-                        {% for amt in suggested_amounts %}
-                        <button type="button" class="amount-btn" data-amount="{{ amt }}">${{ amt }}</button>
-                        {% endfor %}
-                    </div>
-                    <div class="custom-amount">
-                        <span class="currency-symbol">$</span>
-                        <input type="number" id="amount" placeholder="Custom amount" min="{{ min_amount }}" step="0.01">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-comment"></i> Message (Optional)</label>
-                    <textarea id="message" placeholder="Say something nice..." maxlength="500"></textarea>
-                </div>
-
-                <div id="paypal-button-container"></div>
-                
-                <div class="secure-badge">
-                    <i class="fas fa-lock"></i>
-                    <span>Secured by PayPal</span>
-                </div>
             </div>
-
-            <div id="success-message" class="success-view hidden">
-                <div class="success-icon">
-                    <i class="fas fa-check"></i>
-                </div>
-                <h2>Thank You!</h2>
-                <p>Your donation has been sent to {{ streamer }}!</p>
-            </div>
-
-            {% if recent_donations %}
-            <div class="recent-donations" id="recent-section">
-                <h3><i class="fas fa-heart"></i> Recent Supporters</h3>
-                {% for d in recent_donations %}
-                <div class="donation-item">
-                    <span class="donor-name">{{ d.donor_name }}</span>
-                    <span class="donation-amount">${{ d.amount }}</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
         </div>
-
-        <div class="powered-by">
-            Powered by <a href="https://bomby.us/fuzeobs" target="_blank">FuzeOBS</a>
-        </div>
+        {% endif %}
     </div>
 
     <!-- PayPal JS SDK with merchant-id for direct payment to streamer -->
@@ -459,8 +508,8 @@
                     
                     document.getElementById('donation-form').classList.add('hidden');
                     document.getElementById('success-message').classList.remove('hidden');
-                    const recentSection = document.getElementById('recent-section');
-                    if (recentSection) recentSection.classList.add('hidden');
+                    const supportersPanel = document.getElementById('supporters-panel');
+                    if (supportersPanel) supportersPanel.classList.add('hidden');
                 });
             },
             
