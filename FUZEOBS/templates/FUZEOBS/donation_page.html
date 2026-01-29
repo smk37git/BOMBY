@@ -499,26 +499,24 @@
                     return Promise.reject(new Error('Amount too low'));
                 }
 
-                // Pre-validate name and message
+                // Pre-validate name and message for profanity
                 try {
                     const validateResp = await fetch(`/fuzeobs/donate/${token}/validate`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ name, message })
                     });
-                    const validateResult = await validateResp.json();
                     
                     if (!validateResp.ok) {
+                        const validateResult = await validateResp.json();
                         if (validateResult.field) {
                             showFieldError(validateResult.field, 'Profanity is not allowed');
-                        } else {
-                            showError(validateResult.error || 'Validation failed');
+                            return Promise.reject(new Error('Profanity detected'));
                         }
-                        return Promise.reject(new Error('Validation failed'));
                     }
                 } catch (e) {
-                    console.error('Validation error:', e);
-                    return Promise.reject(e);
+                    // If validation endpoint unavailable, allow payment to proceed
+                    console.warn('Validation skipped:', e);
                 }
 
                 return actions.order.create({
