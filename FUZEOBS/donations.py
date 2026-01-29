@@ -338,9 +338,8 @@ def capture_donation(request, token):
         status='completed',
     )
     
-    # Trigger alerts
+    # Trigger alerts to all widgets
     trigger_donation_alert(ds.user.id, {
-        'type': 'donation',
         'name': donor_name,
         'amount': float(amount),
         'currency': ds.currency,
@@ -352,55 +351,55 @@ def capture_donation(request, token):
 
 
 def trigger_donation_alert(user_id, data):
-    """Send donation alert to widgets"""
+    """Send donation alert to all widgets via their dedicated channels"""
     channel_layer = get_channel_layer()
     
+    # Standard alert format for event list and alert box
     alert_data = {
         'type': 'donation',
         'event_type': 'donation',
         'platform': 'donation',
         'event_data': {
             'username': data['name'],
-            'amount': data['formatted_amount'],
-            'raw_amount': data['amount'],
+            'amount': data['formatted_amount'],  # "USD 1.00" for display
+            'raw_amount': data['amount'],        # 1.0 for calculations
             'currency': data['currency'],
             'message': data['message'],
         },
-        'name': data['name'],
-        'amount': data['amount'],
-        'currency': data['currency'],
-        'message': data['message'],
-        'formatted_amount': data['formatted_amount'],
     }
     
-    for platform in ['twitch', 'youtube', 'kick', 'facebook', 'tiktok']:
-        async_to_sync(channel_layer.group_send)(
-            f'alerts_{user_id}_{platform}',
-            {'type': 'alert_event', 'data': alert_data}
-        )
+    # Send to donations channel ONLY (prevents duplicate events)
+    # Event list and alert box subscribe to this channel
+    async_to_sync(channel_layer.group_send)(
+        f'donations_{user_id}',
+        {'type': 'donation_event', 'data': alert_data}
+    )
     
+    # Send goal update with increment for tip goals
     async_to_sync(channel_layer.group_send)(
         f'goals_{user_id}',
         {'type': 'goal_update', 'data': {
-            'type': 'donation',
-            'amount': data['amount'],
+            'type': 'goal_update',
+            'event_type': 'donation',
+            'increment': data['amount'],
             'currency': data['currency'],
         }}
     )
     
+    # Send to labels - same format as alerts so handleEvent() works
     async_to_sync(channel_layer.group_send)(
         f'labels_{user_id}',
         {'type': 'label_update', 'data': {
-            'label_type': 'latest_donation',
-            'name': data['name'],
-            'amount': data['formatted_amount'],
-            'message': data['message'],
+            'type': 'donation',
+            'event_type': 'donation',
+            'platform': 'donation',
+            'event_data': {
+                'username': data['name'],
+                'amount': data['amount'],  # raw number for parsing
+                'formatted_amount': data['formatted_amount'],
+                'message': data['message'],
+            },
         }}
-    )
-    
-    async_to_sync(channel_layer.group_send)(
-        f'donations_{user_id}',
-        {'type': 'donation_event', 'data': alert_data}
     )
 
 

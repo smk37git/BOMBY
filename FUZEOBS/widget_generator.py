@@ -208,13 +208,21 @@ if (platform === 'tiktok') {{
 }}
 
 let ws;
+let donationWs;
 function connectWS() {{
     ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
     ws.onmessage = handleMessage;
     ws.onclose = () => setTimeout(connectWS, 3000);
     ws.onerror = () => ws.close();
 }}
+function connectDonationWS() {{
+    donationWs = new WebSocket(`wss://bomby.us/ws/fuzeobs-donations/${{userId}}/`);
+    donationWs.onmessage = handleMessage;
+    donationWs.onclose = () => setTimeout(connectDonationWS, 3000);
+    donationWs.onerror = () => donationWs.close();
+}}
 connectWS();
+connectDonationWS();
 
 const defaultConfig = {{
     enabled: true,
@@ -1430,7 +1438,7 @@ function connectWebSocket(url, handler) {{
 }}
 
 function connectGoalWebSockets() {{
-    // Always connect to goals channel for refresh signals
+    // Connect to goals channel for refresh and donation updates
     connectWebSocket(`wss://bomby.us/ws/fuzeobs-goals/${{userId}}/`, (e) => {{
         const data = JSON.parse(e.data);
         if (data.type === 'refresh') {{
@@ -1438,7 +1446,19 @@ function connectGoalWebSockets() {{
             return;
         }}
         if (data.type === 'goal_update') {{
-            currentAmount = data.current || currentAmount;
+            // Handle both direct 'current' set and 'increment' for donations
+            if (data.current !== undefined) {{
+                currentAmount = data.current;
+            }} else if (data.increment !== undefined && goalType === 'tip') {{
+                currentAmount += data.increment;
+            }}
+            render();
+            return;
+        }}
+        // Also handle donation events directly for tip goals
+        if (data.event_type === 'donation' && goalType === 'tip') {{
+            const increment = data.increment || data.event_data?.raw_amount || 0;
+            currentAmount += increment;
             render();
         }}
     }});
