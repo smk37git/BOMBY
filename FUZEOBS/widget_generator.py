@@ -247,7 +247,7 @@ const defaultConfig = {{
     tts_voice: '',
     tts_rate: 1,
     tts_volume: 80,
-    tts_template: '{{name}} donated ${{amount}} USD. {{message}}'
+    tts_template: '{{name}} donated {{amount}}. {{message}}'
 }};
 
 const defaultTemplates = {{
@@ -256,24 +256,24 @@ const defaultTemplates = {{
     'twitch-bits': '{{name}} cheered {{amount}} bits!',
     'twitch-raid': '{{name}} raided with {{viewers}} viewers!',
     'twitch-host': '{{name}} is hosting!',
-    'twitch-donation': '{{name}} donated ${{amount}} USD!',
+    'twitch-donation': '{{name}} donated {{amount}}!',
     'youtube-subscribe': '{{name}} subscribed!',
     'youtube-member': '{{name}} became a member!',
     'youtube-superchat': '{{name}} sent {{amount}}!',
-    'youtube-donation': '{{name}} donated ${{amount}} USD!',
+    'youtube-donation': '{{name}} donated {{amount}}!',
     'kick-follow': '{{name}} just followed!',
     'kick-subscribe': '{{name}} subscribed!',
     'kick-gift_sub': '{{name}} gifted {{amount}} subs!',
-    'kick-donation': '{{name}} donated ${{amount}} USD!',
+    'kick-donation': '{{name}} donated {{amount}}!',
     'facebook-follow': '{{name}} just followed!',
     'facebook-stars': '{{name}} sent {{amount}} stars!',
-    'facebook-donation': '{{name}} donated ${{amount}} USD!',
+    'facebook-donation': '{{name}} donated {{amount}}!',
     'tiktok-follow': '{{name}} just followed!',
     'tiktok-gift': '{{name}} sent {{count}}x {{gift}}!',
     'tiktok-share': '{{name}} shared the stream!',
     'tiktok-like': '{{name}} sent {{count}} likes!',
-    'tiktok-donation': '{{name}} donated ${{amount}} USD!',
-    'donation-donation': '{{name}} donated ${{amount}} USD!'
+    'tiktok-donation': '{{name}} donated {{amount}}!',
+    'donation-donation': '{{name}} donated {{amount}}!'
 }};
 
 const eventConfigs = {{}};
@@ -438,9 +438,26 @@ function handleMessage(e) {{
     
     // TTS for donations
     if (config.tts_enabled && data.event_type === 'donation') {{
-        const ttsText = (config.tts_template || '{{name}} donated ${{amount}} USD. {{message}}')
+        // Convert amount to natural speech (e.g., "$61.00" or "USD 61.00" -> "61 dollars")
+        const formatAmountForSpeech = (amt) => {{
+            if (!amt) return '';
+            const str = String(amt);
+            // Extract numeric value
+            const match = str.match(/([\\d.]+)/);
+            if (!match) return str;
+            const num = parseFloat(match[1]);
+            const dollars = Math.floor(num);
+            const cents = Math.round((num - dollars) * 100);
+            if (cents === 0) {{
+                return dollars === 1 ? '1 dollar' : dollars + ' dollars';
+            }} else {{
+                return dollars + ' dollars and ' + cents + ' cents';
+            }}
+        }};
+        
+        const ttsText = (config.tts_template || '{{name}} donated {{amount}}. {{message}}')
             .replace(/{{name}}/g, eventData.username || 'Someone')
-            .replace(/{{amount}}/g, eventData.amount || '')
+            .replace(/{{amount}}/g, formatAmountForSpeech(eventData.amount))
             .replace(/{{message}}/g, eventData.message || '');
         
         if (ttsText.trim()) {{
