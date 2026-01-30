@@ -30,104 +30,144 @@ def generate_widget_html(widget):
     else:
         raise ValueError(f"Unknown widget type: {widget_type}")
 
+
 def generate_alert_box_html(user_id, platform, config):
-    """Generate alert box HTML with event support"""
+    """Generate alert box HTML - global config like event_list"""
+    import json
+    
+    # Global settings (frontend uses global_ prefix)
+    layout = config.get('global_layout', 'image_above')
+    alert_animation = config.get('global_alert_animation', 'fade')
+    text_animation = config.get('global_text_animation', 'none')
+    font_size = config.get('global_font_size', 32)
+    font_family = config.get('global_font_family', 'Arial')
+    font_weight = config.get('global_font_weight', 'bold')
+    text_color = config.get('global_text_color', '#FFFFFF')
+    duration = config.get('global_duration', 5)
+    sound_volume = config.get('global_sound_volume', 50)
+    custom_css = config.get('custom_css', '') if config.get('custom_css_enabled', False) else ''
+    
+    # TTS
+    tts_enabled = config.get('tts_enabled', False)
+    tts_template = config.get('tts_template', '{name} donated {amount}. {message}')
+    tts_volume = config.get('tts_volume', 50)
+    tts_rate = config.get('tts_rate', 1)
+    
+    # Message templates (frontend: {event}_message)
+    message_templates = {
+        'twitch_follow': config.get('twitch_follow_message', '{name} just followed!'),
+        'twitch_subscribe': config.get('twitch_subscribe_message', '{name} subscribed!'),
+        'twitch_resub': config.get('twitch_resub_message', '{name} resubbed for {months} months!'),
+        'twitch_gift_sub': config.get('twitch_gift_sub_message', '{name} gifted {count} subs!'),
+        'twitch_bits': config.get('twitch_bits_message', '{name} cheered {amount} bits!'),
+        'twitch_raid': config.get('twitch_raid_message', '{name} raided with {viewers} viewers!'),
+        'youtube_subscribe': config.get('youtube_subscribe_message', '{name} subscribed!'),
+        'youtube_member': config.get('youtube_member_message', '{name} became a member!'),
+        'youtube_superchat': config.get('youtube_superchat_message', '{name} sent {amount}!'),
+        'kick_follow': config.get('kick_follow_message', '{name} just followed!'),
+        'kick_subscribe': config.get('kick_subscribe_message', '{name} subscribed!'),
+        'kick_gift_sub': config.get('kick_gift_sub_message', '{name} gifted {count} subs!'),
+        'facebook_follow': config.get('facebook_follow_message', '{name} just followed!'),
+        'facebook_stars': config.get('facebook_stars_message', '{name} sent {amount} stars!'),
+        'tiktok_follow': config.get('tiktok_follow_message', '{name} just followed!'),
+        'tiktok_gift': config.get('tiktok_gift_message', '{name} sent {gift}!'),
+        'tiktok_share': config.get('tiktok_share_message', '{name} shared the stream!'),
+        'tiktok_like': config.get('tiktok_like_message', '{name} sent {count} likes!'),
+        'donation_donation': config.get('donation_message', '{name} donated {amount}!'),
+    }
+    
+    # Event enabled (frontend: {event} boolean)
+    event_filters = {
+        'twitch_follow': config.get('twitch_follow', True),
+        'twitch_subscribe': config.get('twitch_subscribe', True),
+        'twitch_resub': config.get('twitch_resub', True),
+        'twitch_gift_sub': config.get('twitch_gift_sub', True),
+        'twitch_bits': config.get('twitch_bits', True),
+        'twitch_raid': config.get('twitch_raid', True),
+        'youtube_subscribe': config.get('youtube_subscribe', True),
+        'youtube_member': config.get('youtube_member', True),
+        'youtube_superchat': config.get('youtube_superchat', True),
+        'kick_follow': config.get('kick_follow', True),
+        'kick_subscribe': config.get('kick_subscribe', True),
+        'kick_gift_sub': config.get('kick_gift_sub', True),
+        'facebook_follow': config.get('facebook_follow', True),
+        'facebook_stars': config.get('facebook_stars', True),
+        'tiktok_follow': config.get('tiktok_follow', True),
+        'tiktok_gift': config.get('tiktok_gift', True),
+        'tiktok_share': config.get('tiktok_share', True),
+        'tiktok_like': config.get('tiktok_like', True),
+        'donation_donation': config.get('donation', True),
+    }
+    
+    # Per-event images (frontend: {event}_image_url)
+    event_images = {
+        'twitch_follow': config.get('twitch_follow_image_url', ''),
+        'twitch_subscribe': config.get('twitch_subscribe_image_url', ''),
+        'twitch_resub': config.get('twitch_resub_image_url', ''),
+        'twitch_gift_sub': config.get('twitch_gift_sub_image_url', ''),
+        'twitch_bits': config.get('twitch_bits_image_url', ''),
+        'twitch_raid': config.get('twitch_raid_image_url', ''),
+        'youtube_subscribe': config.get('youtube_subscribe_image_url', ''),
+        'youtube_member': config.get('youtube_member_image_url', ''),
+        'youtube_superchat': config.get('youtube_superchat_image_url', ''),
+        'kick_follow': config.get('kick_follow_image_url', ''),
+        'kick_subscribe': config.get('kick_subscribe_image_url', ''),
+        'kick_gift_sub': config.get('kick_gift_sub_image_url', ''),
+        'facebook_follow': config.get('facebook_follow_image_url', ''),
+        'facebook_stars': config.get('facebook_stars_image_url', ''),
+        'tiktok_follow': config.get('tiktok_follow_image_url', ''),
+        'tiktok_gift': config.get('tiktok_gift_image_url', ''),
+        'tiktok_share': config.get('tiktok_share_image_url', ''),
+        'tiktok_like': config.get('tiktok_like_image_url', ''),
+        'donation_donation': config.get('donation_image_url', ''),
+    }
+    
+    # Per-event sounds (frontend: {event}_sound_url)
+    event_sounds = {
+        'twitch_follow': config.get('twitch_follow_sound_url', ''),
+        'twitch_subscribe': config.get('twitch_subscribe_sound_url', ''),
+        'twitch_resub': config.get('twitch_resub_sound_url', ''),
+        'twitch_gift_sub': config.get('twitch_gift_sub_sound_url', ''),
+        'twitch_bits': config.get('twitch_bits_sound_url', ''),
+        'twitch_raid': config.get('twitch_raid_sound_url', ''),
+        'youtube_subscribe': config.get('youtube_subscribe_sound_url', ''),
+        'youtube_member': config.get('youtube_member_sound_url', ''),
+        'youtube_superchat': config.get('youtube_superchat_sound_url', ''),
+        'kick_follow': config.get('kick_follow_sound_url', ''),
+        'kick_subscribe': config.get('kick_subscribe_sound_url', ''),
+        'kick_gift_sub': config.get('kick_gift_sub_sound_url', ''),
+        'facebook_follow': config.get('facebook_follow_sound_url', ''),
+        'facebook_stars': config.get('facebook_stars_sound_url', ''),
+        'tiktok_follow': config.get('tiktok_follow_sound_url', ''),
+        'tiktok_gift': config.get('tiktok_gift_sound_url', ''),
+        'tiktok_share': config.get('tiktok_share_sound_url', ''),
+        'tiktok_like': config.get('tiktok_like_sound_url', ''),
+        'donation_donation': config.get('donation_sound_url', ''),
+    }
+    
     return f"""<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
 <style>
-body {{
-    background: transparent;
-    margin: 0;
-    overflow: hidden;
-    font-family: 'Arial', sans-serif;
-}}
-#container {{
-    position: relative;
-    width: 100%;
-    height: 100vh;
-}}
-.alert {{
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-    opacity: 0;
-    max-width: 90vw;
-    max-height: 90vh;
-}}
-.alert-image {{
-    max-width: min(600px, 70vw);
-    max-height: min(600px, 60vh);
-    width: auto;
-    height: auto;
-    object-fit: contain;
-}}
-.alert-text {{
-    font-size: 32px;
-    color: #FFFFFF;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    margin: 10px 0;
-    word-wrap: break-word;
-    max-width: 90vw;
-}}
-.alert-message {{
-    font-size: 20px;
-    color: rgba(255,255,255,0.85);
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
-    margin-top: 8px;
-    word-wrap: break-word;
-    max-width: 90vw;
-}}
+body {{ background: transparent; margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; }}
+#container {{ position: relative; width: 100%; height: 100vh; }}
+.alert {{ position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; opacity: 0; max-width: 90vw; max-height: 90vh; }}
+.alert-image {{ max-width: min(600px, 70vw); max-height: min(600px, 60vh); width: auto; height: auto; object-fit: contain; }}
+.alert-text {{ font-size: {font_size}px; font-family: {font_family}; font-weight: {font_weight}; color: {text_color}; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); margin: 10px 0; word-wrap: break-word; max-width: 90vw; }}
+.alert-message {{ font-size: {max(14, int(font_size * 0.6))}px; font-family: {font_family}; color: {text_color}; opacity: 0.85; margin-top: 8px; }}
 
-/* Alert Animations */
-@keyframes fadeIn {{
-    from {{ opacity: 0; }}
-    to {{ opacity: 1; }}
-}}
-@keyframes slideIn {{
-    from {{ transform: translate(-50%, -100%); opacity: 0; }}
-    to {{ transform: translate(-50%, -50%); opacity: 1; }}
-}}
-@keyframes bounceIn {{
-    0% {{ transform: translate(-50%, -50%) scale(0); opacity: 0; }}
-    50% {{ transform: translate(-50%, -50%) scale(1.1); }}
-    100% {{ transform: translate(-50%, -50%) scale(1); opacity: 1; }}
-}}
-@keyframes zoomIn {{
-    from {{ transform: translate(-50%, -50%) scale(0); opacity: 0; }}
-    to {{ transform: translate(-50%, -50%) scale(1); opacity: 1; }}
-}}
-@keyframes rotateIn {{
-    from {{ transform: translate(-50%, -50%) rotate(-180deg) scale(0); opacity: 0; }}
-    to {{ transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }}
-}}
-
-/* Text Animations */
-@keyframes wiggle {{
-    0%, 100% {{ transform: rotate(0deg); }}
-    25% {{ transform: rotate(-5deg); }}
-    75% {{ transform: rotate(5deg); }}
-}}
-@keyframes wave {{
-    0%, 100% {{ transform: translateY(0); }}
-    50% {{ transform: translateY(-10px); }}
-}}
-@keyframes bounce {{
-    0%, 100% {{ transform: translateY(0); }}
-    50% {{ transform: translateY(-15px); }}
-}}
-@keyframes pulse {{
-    0%, 100% {{ transform: scale(1); }}
-    50% {{ transform: scale(1.05); }}
-}}
-
-@keyframes fadeOut {{
-    from {{ opacity: 1; }}
-    to {{ opacity: 0; }}
-}}
+@keyframes fadeIn {{ from {{ opacity: 0; }} to {{ opacity: 1; }} }}
+@keyframes slideIn {{ from {{ transform: translate(-50%, -100%); opacity: 0; }} to {{ transform: translate(-50%, -50%); opacity: 1; }} }}
+@keyframes bounceIn {{ 0% {{ transform: translate(-50%, -50%) scale(0); opacity: 0; }} 50% {{ transform: translate(-50%, -50%) scale(1.1); }} 100% {{ transform: translate(-50%, -50%) scale(1); opacity: 1; }} }}
+@keyframes zoomIn {{ from {{ transform: translate(-50%, -50%) scale(0); opacity: 0; }} to {{ transform: translate(-50%, -50%) scale(1); opacity: 1; }} }}
+@keyframes rotateIn {{ from {{ transform: translate(-50%, -50%) rotate(-180deg) scale(0); opacity: 0; }} to {{ transform: translate(-50%, -50%) rotate(0deg) scale(1); opacity: 1; }} }}
+@keyframes wiggle {{ 0%, 100% {{ transform: rotate(0deg); }} 25% {{ transform: rotate(-5deg); }} 75% {{ transform: rotate(5deg); }} }}
+@keyframes wave {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-10px); }} }}
+@keyframes bounce {{ 0%, 100% {{ transform: translateY(0); }} 50% {{ transform: translateY(-15px); }} }}
+@keyframes pulse {{ 0%, 100% {{ transform: scale(1); }} 50% {{ transform: scale(1.05); }} }}
+@keyframes fadeOut {{ from {{ opacity: 1; }} to {{ opacity: 0; }} }}
+{custom_css}
 </style>
 </head>
 <body>
@@ -136,87 +176,29 @@ body {{
 <script>
 const userId = '{user_id}';
 const platform = '{platform}';
+const layout = '{layout}';
+const alertAnimation = '{alert_animation}';
+const textAnimation = '{text_animation}';
+const duration = {duration};
+const soundVolume = {sound_volume};
+const ttsEnabled = {'true' if tts_enabled else 'false'};
+const ttsTemplate = '{tts_template}';
+const ttsVolume = {tts_volume};
+const ttsRate = {tts_rate};
 
-// Start YouTube listener if platform is YouTube
-if (platform === 'youtube') {{
-    fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`)
-        .then(r => r.json())
-        .then(data => {{
-            if (data.started) {{
-                console.log('[YOUTUBE] Listener started');
-            }} else {{
-                console.log('[YOUTUBE] Not live or already running');
-            }}
-        }})
-        .catch(err => console.log('[YOUTUBE] Start failed:', err));
-    
-    // Re-check every 5 minutes in case stream starts later
-    setInterval(() => {{
-        fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`)
-            .catch(() => {{}});
-    }}, 300000);
-}}
+const messageTemplates = {json.dumps(message_templates)};
+const eventFilters = {json.dumps(event_filters)};
+const eventImages = {json.dumps(event_images)};
+const eventSounds = {json.dumps(event_sounds)};
 
-// Start Facebook listener if platform is Facebook
-if (platform === 'facebook') {{
-    fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`)
-        .then(r => r.json())
-        .then(data => {{
-            if (data.started) {{
-                console.log('[FACEBOOK] Listener started');
-            }} else {{
-                console.log('[FACEBOOK] Not active or already running');
-            }}
-        }})
-        .catch(err => console.log('[FACEBOOK] Start failed:', err));
-    
-    // Re-check every 5 minutes
-    setInterval(() => {{
-        fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`)
-            .catch(() => {{}});
-    }}, 300000);
-}}
+['youtube', 'facebook', 'kick', 'tiktok'].forEach(p => {{
+    if (platform === p || platform === 'all') {{
+        fetch(`https://bomby.us/fuzeobs/${{p}}/start/${{userId}}`).catch(() => {{}});
+        setInterval(() => fetch(`https://bomby.us/fuzeobs/${{p}}/start/${{userId}}`).catch(() => {{}}), 300000);
+    }}
+}});
 
-if (platform === 'kick') {{
-    fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`)
-        .then(r => r.json())
-        .then(data => {{
-            if (data.started) {{
-                console.log('[KICK] Listener started');
-            }} else {{
-                console.log('[KICK] Not active or already running');
-            }}
-        }})
-        .catch(err => console.log('[KICK] Start failed:', err));
-    
-    // Re-check every 5 minutes
-    setInterval(() => {{
-        fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`)
-            .catch(() => {{}});
-    }}, 300000);
-}}
-
-if (platform === 'tiktok') {{
-    fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`)
-        .then(r => r.json())
-        .then(data => {{
-            if (data.started) {{
-                console.log('[TIKTOK] Listener started');
-            }} else {{
-                console.log('[TIKTOK] Not live or already running');
-            }}
-        }})
-        .catch(err => console.log('[TIKTOK] Start failed:', err));
-    
-    // Re-check every 5 minutes
-    setInterval(() => {{
-        fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`)
-            .catch(() => {{}});
-    }}, 300000);
-}}
-
-let ws;
-let donationWs;
+let ws, donationWs;
 function connectWS() {{
     ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
     ws.onmessage = handleMessage;
@@ -232,152 +214,33 @@ function connectDonationWS() {{
 connectWS();
 connectDonationWS();
 
-const defaultConfig = {{
-    enabled: true,
-    alert_animation: 'fade',
-    font_size: 32,
-    font_weight: 'normal',
-    font_family: 'Arial',
-    text_color: '#FFFFFF',
-    message_template: '{{name}} just followed!',
-    duration: 5,
-    sound_volume: 50,
-    layout: 'image_above',
-    tts_enabled: false,
-    tts_voice: '',
-    tts_rate: 1,
-    tts_volume: 80,
-    tts_template: '{{name}} donated {{amount}}. {{message}}'
-}};
-
-const defaultTemplates = {{
-    'twitch-follow': '{{name}} just followed!',
-    'twitch-subscribe': '{{name}} subscribed!',
-    'twitch-bits': '{{name}} cheered {{amount}} bits!',
-    'twitch-raid': '{{name}} raided with {{viewers}} viewers!',
-    'twitch-host': '{{name}} is hosting!',
-    'twitch-donation': '{{name}} donated {{amount}}!',
-    'youtube-subscribe': '{{name}} subscribed!',
-    'youtube-member': '{{name}} became a member!',
-    'youtube-superchat': '{{name}} sent {{amount}}!',
-    'youtube-donation': '{{name}} donated {{amount}}!',
-    'kick-follow': '{{name}} just followed!',
-    'kick-subscribe': '{{name}} subscribed!',
-    'kick-gift_sub': '{{name}} gifted {{amount}} subs!',
-    'kick-donation': '{{name}} donated {{amount}}!',
-    'facebook-follow': '{{name}} just followed!',
-    'facebook-stars': '{{name}} sent {{amount}} stars!',
-    'facebook-donation': '{{name}} donated {{amount}}!',
-    'tiktok-follow': '{{name}} just followed!',
-    'tiktok-gift': '{{name}} sent {{count}}x {{gift}}!',
-    'tiktok-share': '{{name}} shared the stream!',
-    'tiktok-like': '{{name}} sent {{count}} likes!',
-    'tiktok-donation': '{{name}} donated {{amount}}!',
-    'donation-donation': '{{name}} donated {{amount}}!'
-}};
-
-const eventConfigs = {{}};
-let configsLoaded = false;
-
-fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/${{platform}}?t=${{Date.now()}}`)
-    .then(r => r.json())
-    .then(data => {{
-        Object.assign(eventConfigs, data.configs);
-        configsLoaded = true;
-        
-        // Inject custom CSS
-        let allCustomCss = '';
-        for (const key in data.configs) {{
-            const cfg = data.configs[key];
-            if (cfg.custom_css_enabled && cfg.custom_css) {{
-                allCustomCss += `/* ${{key}} */\\n${{cfg.custom_css}}\\n`;
-            }}
-        }}
-        if (allCustomCss) {{
-            const styleEl = document.createElement('style');
-            styleEl.id = 'custom-css';
-            styleEl.textContent = allCustomCss;
-            document.head.appendChild(styleEl);
-        }}
-    }})
-    .catch(err => {{
-        configsLoaded = true;
-    }});
-
 function handleMessage(e) {{
     const data = JSON.parse(e.data);
+    if (data.type === 'refresh') {{ window.location.reload(); return; }}
+    if (data.clear_existing) {{ document.getElementById('container').innerHTML = ''; }}
     
-    if (data.type === 'refresh') {{
-        window.location.reload();
-        return;
-    }}
-    
-    if (data.clear_existing) {{
-        document.getElementById('container').innerHTML = '';
-    }}
-    
-    const configKey = `${{data.platform}}-${{data.event_type}}`;
     const eventKey = `${{data.platform}}_${{data.event_type}}`;
-    const globalConfig = eventConfigs['_global'] || eventConfigs['global'] || {{}};
-    const eventConfig = eventConfigs[configKey] || {{}};
-    const savedConfig = {{...globalConfig, ...eventConfig}};
+    if (eventFilters[eventKey] === false) return;
     
-    // Check for event-specific image/sound URLs in global config (e.g., twitch_follow_image_url)
-    if (!savedConfig.image_url && globalConfig[`${{eventKey}}_image_url`]) {{
-        savedConfig.image_url = globalConfig[`${{eventKey}}_image_url`];
-    }}
-    if (!savedConfig.sound_url && globalConfig[`${{eventKey}}_sound_url`]) {{
-        savedConfig.sound_url = globalConfig[`${{eventKey}}_sound_url`];
-    }}
-    if (!savedConfig.message_template && globalConfig[`${{eventKey}}_message_template`]) {{
-        savedConfig.message_template = globalConfig[`${{eventKey}}_message_template`];
-    }}
-    
-    const config = {{
-        ...defaultConfig,
-        ...savedConfig,
-        message_template: savedConfig.message_template || eventConfig.message_template || defaultTemplates[configKey] || defaultConfig.message_template
-    }};
-    
-    if (!config.enabled && savedConfig.enabled === undefined) config.enabled = true;
-    if (config.enabled === false) return;
+    const imageUrl = eventImages[eventKey] || '';
+    const soundUrl = eventSounds[eventKey] || '';
+    const template = messageTemplates[eventKey] || '{{name}}!';
     
     const alert = document.createElement('div');
     alert.className = 'alert';
     
-    const layout = config.global_layout || config.layout || 'image_above';
+    if (layout === 'image_above') {{ alert.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:15px;'; }}
+    else if (layout === 'image_left') {{ alert.style.cssText = 'display:flex;flex-direction:row;align-items:center;gap:20px;'; }}
+    else if (layout === 'image_right') {{ alert.style.cssText = 'display:flex;flex-direction:row-reverse;align-items:center;gap:20px;'; }}
+    else if (layout === 'text_over_image') {{ alert.style.display = 'inline-block'; }}
     
-    if (layout === 'image_above') {{
-        alert.style.display = 'flex';
-        alert.style.flexDirection = 'column';
-        alert.style.alignItems = 'center';
-        alert.style.gap = '15px';
-    }} else if (layout === 'image_left') {{
-        alert.style.display = 'flex';
-        alert.style.flexDirection = 'row';
-        alert.style.alignItems = 'center';
-        alert.style.gap = '20px';
-    }} else if (layout === 'image_right') {{
-        alert.style.display = 'flex';
-        alert.style.flexDirection = 'row-reverse';
-        alert.style.alignItems = 'center';
-        alert.style.gap = '20px';
-    }} else if (layout === 'text_over_image') {{
-        alert.style.display = 'inline-block';
-    }}
+    alert.style.animation = `${{alertAnimation}}In 0.5s ease-out forwards`;
     
-    const animation = config.global_alert_animation || config.alert_animation || 'fade';
-    alert.style.animation = `${{animation}}In 0.5s ease-out forwards`;
-    
-    if (config.image_url) {{
+    if (imageUrl) {{
         const imgContainer = document.createElement('div');
-        if (layout === 'text_over_image') {{
-            imgContainer.style.position = 'relative';
-            imgContainer.style.display = 'inline-block';
-        }}
-        
+        if (layout === 'text_over_image') {{ imgContainer.style.cssText = 'position:relative;display:inline-block;'; }}
         const img = document.createElement('img');
-        img.src = config.image_url;
+        img.src = imageUrl;
         img.className = 'alert-image';
         img.style.display = 'block';
         imgContainer.appendChild(img);
@@ -386,117 +249,63 @@ function handleMessage(e) {{
     
     const text = document.createElement('div');
     text.className = 'alert-text';
-    text.style.fontSize = (config.global_font_size || config.font_size || 32) + 'px';
-    text.style.fontWeight = config.global_font_weight || config.font_weight || 'normal';
-    text.style.fontFamily = config.global_font_family || config.font_family || 'Arial';
-    text.style.color = config.global_text_color || config.text_color || '#FFFFFF';
-    
-    if (config.text_shadow !== false) {{
-        text.style.textShadow = '2px 2px 4px rgba(0,0,0,0.8)';
-    }}
-    
     const eventData = data.event_data || {{}};
-    let message = config.message_template || '{{name}} just followed!';
-    message = message.replace(/{{name}}/g, eventData.username || "Someone");
-    message = message.replace(/{{amount}}/g, eventData.amount || '');
-    message = message.replace(/{{viewers}}/g, eventData.viewers || '');
-    message = message.replace(/{{months}}/g, eventData.months || '');
-    message = message.replace(/{{count}}/g, eventData.count || '');
-    message = message.replace(/{{gift}}/g, eventData.gift || '');
-    message = message.replace(/{{message}}/g, eventData.message || '');
-    text.textContent = message;
+    text.textContent = template
+        .replace(/{{name}}/g, eventData.username || 'Someone')
+        .replace(/{{amount}}/g, eventData.amount || '')
+        .replace(/{{viewers}}/g, eventData.viewers || '')
+        .replace(/{{months}}/g, eventData.months || '')
+        .replace(/{{count}}/g, eventData.count || '')
+        .replace(/{{gift}}/g, eventData.gift || '')
+        .replace(/{{message}}/g, eventData.message || '');
     
-    const textAnim = config.global_text_animation || config.text_animation || 'none';
-    if (textAnim && textAnim !== 'none') {{
-        text.style.animation = `${{textAnim}} 1s ease-in-out infinite`;
-    }}
+    if (textAnimation && textAnimation !== 'none') {{ text.style.animation = `${{textAnimation}} 1s ease-in-out infinite`; }}
     
-    if (layout === 'text_over_image' && config.image_url) {{
-        const textWrapper = document.createElement('div');
-        textWrapper.style.position = 'absolute';
-        textWrapper.style.top = '50%';
-        textWrapper.style.left = '50%';
-        textWrapper.style.transform = 'translate(-50%, -50%)';
-        textWrapper.style.zIndex = '10';
-        textWrapper.style.margin = '0';
-        textWrapper.style.width = '100%';
-        textWrapper.style.padding = '0 10px';
-        textWrapper.style.boxSizing = 'border-box';
-        textWrapper.appendChild(text);
-        alert.firstChild.appendChild(textWrapper);
-    }} else {{
-        alert.appendChild(text);
-    }}
+    if (layout === 'text_over_image' && imageUrl) {{
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;width:100%;padding:0 10px;box-sizing:border-box;';
+        wrapper.appendChild(text);
+        alert.firstChild.appendChild(wrapper);
+    }} else {{ alert.appendChild(text); }}
     
-    // Add donation message below the main text
     if (data.event_type === 'donation' && eventData.message && eventData.message.trim()) {{
         const msgEl = document.createElement('div');
         msgEl.className = 'alert-message';
-        msgEl.style.fontSize = Math.max(14, (config.global_font_size || config.font_size || 32) * 0.6) + 'px';
-        msgEl.style.fontFamily = config.global_font_family || config.font_family || 'Arial';
-        msgEl.style.color = config.global_text_color || config.text_color || '#FFFFFF';
-        msgEl.style.opacity = '0.85';
         msgEl.textContent = '"' + eventData.message + '"';
-        
-        if (layout === 'text_over_image' && config.image_url) {{
-            alert.firstChild.lastChild.appendChild(msgEl);
-        }} else {{
-            alert.appendChild(msgEl);
-        }}
+        if (layout === 'text_over_image' && imageUrl) {{ alert.firstChild.lastChild.appendChild(msgEl); }}
+        else {{ alert.appendChild(msgEl); }}
     }}
     
-    if (config.sound_url) {{
+    if (soundUrl) {{
         const audio = document.getElementById('alertSound');
-        audio.src = config.sound_url;
-        audio.volume = (config.global_sound_volume || config.sound_volume || 50) / 100;
-        audio.play().catch(err => console.log('Audio play failed:', err));
+        audio.src = soundUrl;
+        audio.volume = soundVolume / 100;
+        audio.play().catch(() => {{}});
     }}
     
-    // TTS for donations
-    if (config.tts_enabled && data.event_type === 'donation') {{
-        // Convert amount to natural speech (e.g., "$61.00" or "USD 61.00" -> "61 dollars")
-        const formatAmountForSpeech = (amt) => {{
-            if (!amt) return '';
-            const str = String(amt);
-            // Extract numeric value
-            const match = str.match(/([\\d.]+)/);
-            if (!match) return str;
-            const num = parseFloat(match[1]);
-            const dollars = Math.floor(num);
-            const cents = Math.round((num - dollars) * 100);
-            if (cents === 0) {{
-                return dollars === 1 ? '1 dollar' : dollars + ' dollars';
-            }} else {{
-                return dollars + ' dollars and ' + cents + ' cents';
-            }}
+    if (ttsEnabled && data.event_type === 'donation') {{
+        const formatAmt = (a) => {{
+            if (!a) return '';
+            const m = String(a).match(/([\\d.]+)/);
+            if (!m) return a;
+            const n = parseFloat(m[1]), d = Math.floor(n), c = Math.round((n-d)*100);
+            return c === 0 ? (d === 1 ? '1 dollar' : d + ' dollars') : d + ' dollars and ' + c + ' cents';
         }};
-        
-        const ttsText = (config.tts_template || '{{name}} donated {{amount}}. {{message}}')
-            .replace(/{{name}}/g, eventData.username || 'Someone')
-            .replace(/{{amount}}/g, formatAmountForSpeech(eventData.amount))
-            .replace(/{{message}}/g, eventData.message || '');
-        
-        if (ttsText.trim()) {{
-            const utterance = new SpeechSynthesisUtterance(ttsText);
-            utterance.rate = config.tts_rate || 1;
-            utterance.volume = (config.tts_volume || 80) / 100;
-            if (config.tts_voice) {{
-                const voices = speechSynthesis.getVoices();
-                const voice = voices.find(v => v.name === config.tts_voice);
-                if (voice) utterance.voice = voice;
-            }}
-            speechSynthesis.speak(utterance);
+        const tts = ttsTemplate.replace(/{{name}}/g, eventData.username || 'Someone').replace(/{{amount}}/g, formatAmt(eventData.amount)).replace(/{{message}}/g, eventData.message || '');
+        if (tts.trim()) {{
+            const u = new SpeechSynthesisUtterance(tts);
+            u.rate = ttsRate;
+            u.volume = ttsVolume / 100;
+            speechSynthesis.speak(u);
         }}
     }}
     
     document.getElementById('container').appendChild(alert);
-    
-    const duration = (config.global_duration || config.duration || 5) * 1000;
     setTimeout(() => {{
         alert.style.animation = 'fadeOut 0.5s ease-out forwards';
         setTimeout(() => alert.remove(), 500);
-    }}, duration);
-}};
+    }}, duration * 1000);
+}}
 </script>
 </body>
 </html>"""
