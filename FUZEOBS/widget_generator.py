@@ -380,6 +380,7 @@ function handleMessage(e) {{
         }}
     }}
     
+    // Play sound
     if (config.sound_url) {{
         const audio = document.getElementById('alertSound');
         audio.src = config.sound_url;
@@ -387,13 +388,17 @@ function handleMessage(e) {{
         audio.play().catch(err => console.log('Audio play failed:', err));
     }}
     
-    // TTS for donations - enabled by default unless user explicitly disabled it
+    // Append alert to DOM first so it shows immediately
+    document.getElementById('container').appendChild(alert);
+    
+    // TTS for donations - play immediately with alert
     const isDonation = data.event_type === 'donation' || data.platform === 'donation';
-    // For donations: only disable if savedConfig explicitly has tts_enabled: false
-    // For other events: use the merged config value
     const ttsEnabled = isDonation ? (savedConfig.tts_enabled !== false) : config.tts_enabled;
     
     if (ttsEnabled && isDonation) {{
+        // Cancel any queued speech first
+        speechSynthesis.cancel();
+        
         const formatAmountForSpeech = (amt) => {{
             if (!amt) return '';
             const str = String(amt);
@@ -423,11 +428,10 @@ function handleMessage(e) {{
                 const voice = voices.find(v => v.name === config.tts_voice);
                 if (voice) utterance.voice = voice;
             }}
-            speechSynthesis.speak(utterance);
+            // Small delay to let sound start first, then TTS
+            setTimeout(() => speechSynthesis.speak(utterance), 100);
         }}
     }}
-    
-    document.getElementById('container').appendChild(alert);
     
     const duration = (config.duration || 5) * 1000;
     setTimeout(() => {{
