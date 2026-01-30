@@ -1864,8 +1864,10 @@ def fuzeobs_save_widget(request):
         widget_type = data['widget_type']
         goal_type = data.get('goal_type', '')
         
-        # All these widget types use 'all' platform - single universal URL
-        if widget_type in ('goal_bar', 'labels', 'viewer_count', 'chat_box', 'sponsor_banner', 'alert_box'):
+        # For goal_bar and labels: use 'all' platform, goal_type determines what it tracks
+        # For viewer_count, chat_box, sponsor_banner: always 'all' platform
+        # For alert_box, event_list: use specified platform
+        if widget_type in ('goal_bar', 'labels', 'viewer_count', 'chat_box', 'sponsor_banner'):
             platform = 'all'
         else:
             platform = data.get('platform', 'all')
@@ -2721,7 +2723,7 @@ def fuzeobs_save_widget_event(request):
         # Send refresh message to OBS via WebSocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            f'alerts_{user.id}_all',
+            f'alerts_{user.id}_{platform}',
             {
                 'type': 'alert_event',
                 'data': {
@@ -2774,20 +2776,10 @@ def fuzeobs_test_alert(request):
         user = request.fuzeobs_user
         
         # Build event data based on event type
-        random_amount = random.randint(1, 100)
-        
-        # Format amount based on event type - bits don't use $
-        if event_type == 'bits':
-            formatted_amount = str(random_amount)
-        elif event_type in ('donation', 'superchat', 'stars'):
-            formatted_amount = f'${random_amount:.2f}'
-        else:
-            formatted_amount = str(random_amount)
-        
         event_data = {
             'username': 'FuzeOBS',
-            'amount': formatted_amount,
-            'raw_amount': random_amount,
+            'amount': f'${random.randint(1, 100):.2f}',
+            'raw_amount': random.randint(1, 100),
             'viewers': random.randint(1, 2000),
             'count': random.randint(1, 100),
             'gift': 'Rose',
@@ -2828,9 +2820,9 @@ def fuzeobs_test_alert(request):
                     }
                 )
             else:
-                # Send to universal alerts channel for event list
+                # Send to platform-specific alerts channel for event list
                 async_to_sync(channel_layer.group_send)(
-                    f'alerts_{user.id}_all',
+                    f'alerts_{user.id}_{platform}',
                     {
                         'type': 'alert_event',
                         'data': {
@@ -2858,7 +2850,7 @@ def fuzeobs_test_alert(request):
                 )
             else:
                 async_to_sync(channel_layer.group_send)(
-                    f'alerts_{user.id}_all',
+                    f'alerts_{user.id}_{platform}',
                     {
                         'type': 'alert_event',
                         'data': {
@@ -2877,14 +2869,12 @@ def fuzeobs_test_alert(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_widget_event_configs(request, user_id, platform):
-    """Get event configurations for user's alert_box widget"""
+    """Get event configurations for user's platform-specific widgets"""
     try:
-        # Query the universal alert_box widget (platform='all')
-        widgets = WidgetConfig.objects.filter(user_id=user_id, widget_type='alert_box')
+        widgets = WidgetConfig.objects.filter(user_id=user_id, platform=platform)
         configs = {}
         
         for widget in widgets:
-            # Get events for the requested platform
             events = WidgetEvent.objects.filter(widget=widget, platform=platform, enabled=True)
             for event in events:
                 key = f"{event.platform}-{event.event_type}"
@@ -2940,10 +2930,9 @@ def fuzeobs_twitch_webhook(request):
         
         broadcaster_id = condition.get('broadcaster_user_id') or condition.get('to_broadcaster_user_id')
         try:
-            conn = PlatformConnection.objects.filter(platform='twitch', platform_user_id=broadcaster_id).first()
-            if not conn:
-                print(f'[WEBHOOK] No connection found for broadcaster {broadcaster_id}')
-                return JsonResponse({'status': 'ok'})
+            conn = PlatformConnection.objects.get(platform='twitch', platform_user_id=broadcaster_id)
+            
+            # DEBUG: print(f'[WEBHOOK] Found user: {conn.user.id}')
             
             event_map = {
                 'channel.follow': ('follow', {'username': event.get('user_name', event.get('user_login', 'Unknown'))}),

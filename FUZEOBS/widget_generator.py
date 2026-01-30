@@ -31,7 +31,7 @@ def generate_widget_html(widget):
         raise ValueError(f"Unknown widget type: {widget_type}")
 
 def generate_alert_box_html(user_id, platform, config):
-    """Generate alert box HTML - universal widget for all platforms"""
+    """Generate alert box HTML with event support"""
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -135,40 +135,100 @@ body {{
 <audio id="alertSound" preload="auto"></audio>
 <script>
 const userId = '{user_id}';
-// Query param only for preview/filtering in UI, not for routing
-const urlParams = new URLSearchParams(window.location.search);
-const filterPlatform = urlParams.get('platform') || 'all';
+const platform = '{platform}';
 
-// Start ALL platform listeners - they all send to the universal WebSocket
-function startAllListeners() {{
-    fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
-    fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}});
-    fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}});
-    fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}});
+// Start YouTube listener if platform is YouTube
+if (platform === 'youtube') {{
+    fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`)
+        .then(r => r.json())
+        .then(data => {{
+            if (data.started) {{
+                console.log('[YOUTUBE] Listener started');
+            }} else {{
+                console.log('[YOUTUBE] Not live or already running');
+            }}
+        }})
+        .catch(err => console.log('[YOUTUBE] Start failed:', err));
+    
+    // Re-check every 5 minutes in case stream starts later
+    setInterval(() => {{
+        fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`)
+            .catch(() => {{}});
+    }}, 300000);
 }}
 
-startAllListeners();
-// Re-check every 5 minutes in case streams start later
-setInterval(startAllListeners, 300000);
+// Start Facebook listener if platform is Facebook
+if (platform === 'facebook') {{
+    fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`)
+        .then(r => r.json())
+        .then(data => {{
+            if (data.started) {{
+                console.log('[FACEBOOK] Listener started');
+            }} else {{
+                console.log('[FACEBOOK] Not active or already running');
+            }}
+        }})
+        .catch(err => console.log('[FACEBOOK] Start failed:', err));
+    
+    // Re-check every 5 minutes
+    setInterval(() => {{
+        fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`)
+            .catch(() => {{}});
+    }}, 300000);
+}}
+
+if (platform === 'kick') {{
+    fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`)
+        .then(r => r.json())
+        .then(data => {{
+            if (data.started) {{
+                console.log('[KICK] Listener started');
+            }} else {{
+                console.log('[KICK] Not active or already running');
+            }}
+        }})
+        .catch(err => console.log('[KICK] Start failed:', err));
+    
+    // Re-check every 5 minutes
+    setInterval(() => {{
+        fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`)
+            .catch(() => {{}});
+    }}, 300000);
+}}
+
+if (platform === 'tiktok') {{
+    fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`)
+        .then(r => r.json())
+        .then(data => {{
+            if (data.started) {{
+                console.log('[TIKTOK] Listener started');
+            }} else {{
+                console.log('[TIKTOK] Not live or already running');
+            }}
+        }})
+        .catch(err => console.log('[TIKTOK] Start failed:', err));
+    
+    // Re-check every 5 minutes
+    setInterval(() => {{
+        fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`)
+            .catch(() => {{}});
+    }}, 300000);
+}}
 
 let ws;
 let donationWs;
-
-// Connect to UNIVERSAL WebSocket - receives alerts from ALL platforms
 function connectWS() {{
-    ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/all/`);
+    ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
     ws.onmessage = handleMessage;
     ws.onclose = () => setTimeout(connectWS, 3000);
     ws.onerror = () => ws.close();
 }}
-
 function connectDonationWS() {{
     donationWs = new WebSocket(`wss://bomby.us/ws/fuzeobs-donations/${{userId}}/`);
     donationWs.onmessage = handleMessage;
     donationWs.onclose = () => setTimeout(connectDonationWS, 3000);
     donationWs.onerror = () => donationWs.close();
 }}
-
 connectWS();
 connectDonationWS();
 
@@ -219,47 +279,36 @@ const defaultTemplates = {{
 const eventConfigs = {{}};
 let configsLoaded = false;
 
-// Load configs for ALL platforms
-async function loadAllConfigs() {{
-    const platforms = ['twitch', 'youtube', 'kick', 'facebook', 'tiktok', 'donation'];
-    for (const plat of platforms) {{
-        try {{
-            const resp = await fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/${{plat}}?t=${{Date.now()}}`);
-            if (resp.ok) {{
-                const data = await resp.json();
-                Object.assign(eventConfigs, data.configs || {{}});
-                
-                // Inject custom CSS
-                for (const key in data.configs) {{
-                    const cfg = data.configs[key];
-                    if (cfg.custom_css_enabled && cfg.custom_css) {{
-                        let styleEl = document.getElementById('custom-css-' + key);
-                        if (!styleEl) {{
-                            styleEl = document.createElement('style');
-                            styleEl.id = 'custom-css-' + key;
-                            document.head.appendChild(styleEl);
-                        }}
-                        styleEl.textContent = cfg.custom_css;
-                    }}
-                }}
+fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/${{platform}}?t=${{Date.now()}}`)
+    .then(r => r.json())
+    .then(data => {{
+        Object.assign(eventConfigs, data.configs);
+        configsLoaded = true;
+        
+        // Inject custom CSS
+        let allCustomCss = '';
+        for (const key in data.configs) {{
+            const cfg = data.configs[key];
+            if (cfg.custom_css_enabled && cfg.custom_css) {{
+                allCustomCss += `/* ${{key}} */\\n${{cfg.custom_css}}\\n`;
             }}
-        }} catch (e) {{}}
-    }}
-    configsLoaded = true;
-}}
-loadAllConfigs();
+        }}
+        if (allCustomCss) {{
+            const styleEl = document.createElement('style');
+            styleEl.id = 'custom-css';
+            styleEl.textContent = allCustomCss;
+            document.head.appendChild(styleEl);
+        }}
+    }})
+    .catch(err => {{
+        configsLoaded = true;
+    }});
 
 function handleMessage(e) {{
     const data = JSON.parse(e.data);
     
     if (data.type === 'refresh') {{
         window.location.reload();
-        return;
-    }}
-    
-    // Filter by platform if specified in URL (for preview)
-    const platform = data.platform || 'donation';
-    if (filterPlatform !== 'all' && platform !== filterPlatform) {{
         return;
     }}
     
@@ -380,7 +429,6 @@ function handleMessage(e) {{
         }}
     }}
     
-    // Play sound
     if (config.sound_url) {{
         const audio = document.getElementById('alertSound');
         audio.src = config.sound_url;
@@ -388,20 +436,13 @@ function handleMessage(e) {{
         audio.play().catch(err => console.log('Audio play failed:', err));
     }}
     
-    // Append alert to DOM first so it shows immediately
-    document.getElementById('container').appendChild(alert);
-    
-    // TTS for donations - play immediately with alert
-    const isDonation = data.event_type === 'donation' || data.platform === 'donation';
-    const ttsEnabled = isDonation ? (savedConfig.tts_enabled !== false) : config.tts_enabled;
-    
-    if (ttsEnabled && isDonation) {{
-        // Cancel any queued speech first
-        speechSynthesis.cancel();
-        
+    // TTS for donations
+    if (config.tts_enabled && data.event_type === 'donation') {{
+        // Convert amount to natural speech (e.g., "$61.00" or "USD 61.00" -> "61 dollars")
         const formatAmountForSpeech = (amt) => {{
             if (!amt) return '';
             const str = String(amt);
+            // Extract numeric value
             const match = str.match(/([\\d.]+)/);
             if (!match) return str;
             const num = parseFloat(match[1]);
@@ -428,10 +469,11 @@ function handleMessage(e) {{
                 const voice = voices.find(v => v.name === config.tts_voice);
                 if (voice) utterance.voice = voice;
             }}
-            // Small delay to let sound start first, then TTS
-            setTimeout(() => speechSynthesis.speak(utterance), 100);
+            speechSynthesis.speak(utterance);
         }}
     }}
+    
+    document.getElementById('container').appendChild(alert);
     
     const duration = (config.duration || 5) * 1000;
     setTimeout(() => {{

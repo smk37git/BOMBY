@@ -51,35 +51,29 @@ def subscribe_twitch_events(user_id, broadcaster_id, user_access_token):
             print(f'[ERROR] {resp.text}')
 
 def send_alert(user_id, event_type, platform, event_data):
-    """Send alert to universal AND platform-specific WebSocket"""
+    """Send alert to platform-specific widget WebSocket"""
     from .models import WidgetConfig
     
-    all_widgets = list(WidgetConfig.objects.filter(user_id=user_id).values('widget_type', 'enabled'))
-    print(f'[ALERT] user={user_id} type={event_type} | widgets: {all_widgets}')
-    
+    # Check if any enabled widget exists for this user/platform
     has_enabled_widget = WidgetConfig.objects.filter(
         user_id=user_id,
+        platform__in=[platform, 'all'],
         widget_type__in=['alert_box', 'event_list', 'goal_bar', 'labels'],
         enabled=True
     ).exists()
     
     if not has_enabled_widget:
-        return
+        return  # Skip if no enabled widgets
     
     channel_layer = get_channel_layer()
-    alert_data = {
-        'type': 'alert_event',
-        'data': {
-            'event_type': event_type,
-            'platform': platform,
-            'event_data': event_data
+    async_to_sync(channel_layer.group_send)(
+        f'alerts_{user_id}_{platform}',
+        {
+            'type': 'alert_event',
+            'data': {
+                'event_type': event_type,
+                'platform': platform,
+                'event_data': event_data
+            }
         }
-    }
-    
-    # Send to universal channel (alert_box)
-    async_to_sync(channel_layer.group_send)(f'alerts_{user_id}_all', alert_data)
-    
-    # Send to platform-specific channel (event_list, goal_bar, labels)
-    async_to_sync(channel_layer.group_send)(f'alerts_{user_id}_{platform}', alert_data)
-    
-    print(f'[ALERT] Sent to all + {platform}!')
+    )
