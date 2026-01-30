@@ -387,8 +387,13 @@ function handleMessage(e) {{
         audio.play().catch(err => console.log('Audio play failed:', err));
     }}
     
-    // TTS for donations
-    if (config.tts_enabled && data.event_type === 'donation') {{
+    // TTS for donations - enabled by default unless user explicitly disabled it
+    const isDonation = data.event_type === 'donation' || data.platform === 'donation';
+    // For donations: only disable if savedConfig explicitly has tts_enabled: false
+    // For other events: use the merged config value
+    const ttsEnabled = isDonation ? (savedConfig.tts_enabled !== false) : config.tts_enabled;
+    
+    if (ttsEnabled && isDonation) {{
         const formatAmountForSpeech = (amt) => {{
             if (!amt) return '';
             const str = String(amt);
