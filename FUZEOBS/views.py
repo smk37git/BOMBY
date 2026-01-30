@@ -1864,9 +1864,7 @@ def fuzeobs_save_widget(request):
         widget_type = data['widget_type']
         goal_type = data.get('goal_type', '')
         
-        # For goal_bar and labels: use 'all' platform, goal_type determines what it tracks
-        # For viewer_count, chat_box, sponsor_banner: always 'all' platform
-        # For alert_box, event_list: use specified platform
+        # All these widget types use 'all' platform - single universal URL
         if widget_type in ('goal_bar', 'labels', 'viewer_count', 'chat_box', 'sponsor_banner', 'alert_box'):
             platform = 'all'
         else:
@@ -2723,7 +2721,7 @@ def fuzeobs_save_widget_event(request):
         # Send refresh message to OBS via WebSocket
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            f'alerts_{user.id}_{platform}',
+            f'alerts_{user.id}_all',
             {
                 'type': 'alert_event',
                 'data': {
@@ -2820,9 +2818,9 @@ def fuzeobs_test_alert(request):
                     }
                 )
             else:
-                # Send to platform-specific alerts channel for event list
+                # Send to universal alerts channel for event list
                 async_to_sync(channel_layer.group_send)(
-                    f'alerts_{user.id}_{platform}',
+                    f'alerts_{user.id}_all',
                     {
                         'type': 'alert_event',
                         'data': {
@@ -2850,7 +2848,7 @@ def fuzeobs_test_alert(request):
                 )
             else:
                 async_to_sync(channel_layer.group_send)(
-                    f'alerts_{user.id}_{platform}',
+                    f'alerts_{user.id}_all',
                     {
                         'type': 'alert_event',
                         'data': {
@@ -2869,12 +2867,14 @@ def fuzeobs_test_alert(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_widget_event_configs(request, user_id, platform):
-    """Get event configurations for user's platform-specific widgets"""
+    """Get event configurations for user's alert_box widget"""
     try:
-        widgets = WidgetConfig.objects.filter(user_id=user_id, platform=platform)
+        # Query the universal alert_box widget (platform='all')
+        widgets = WidgetConfig.objects.filter(user_id=user_id, widget_type='alert_box')
         configs = {}
         
         for widget in widgets:
+            # Get events for the requested platform
             events = WidgetEvent.objects.filter(widget=widget, platform=platform, enabled=True)
             for event in events:
                 key = f"{event.platform}-{event.event_type}"
