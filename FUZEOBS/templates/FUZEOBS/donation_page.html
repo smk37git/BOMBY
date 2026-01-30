@@ -12,7 +12,7 @@
         
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #000;
+            background: linear-gradient(45deg, #000000, #151515);
             min-height: 100vh;
             color: #fff;
             display: flex;
@@ -34,7 +34,7 @@
         
         .donation-card {
             flex: 1;
-            background: rgba(255, 255, 255, 0.02);
+            background: #0e0e0e;
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             padding: 32px;
@@ -43,7 +43,7 @@
         .supporters-card {
             width: 280px;
             flex-shrink: 0;
-            background: rgba(255, 255, 255, 0.02);
+            background: #0e0e0e;
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             padding: 24px;
@@ -67,7 +67,7 @@
             font-weight: bold;
             margin: 0 auto 16px;
             background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.15);
+            border: 3px solid #fff;
             overflow: hidden;
         }
         
@@ -121,7 +121,7 @@
         .form-group textarea {
             width: 100%;
             padding: 14px 16px;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             color: #fff;
@@ -138,8 +138,8 @@
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: rgba(168, 85, 247, 0.5);
-            background: rgba(255, 255, 255, 0.05);
+            border-color: #a855f7;
+            background: rgba(255, 255, 255, 0.08);
         }
         
         .form-group input.field-error,
@@ -152,9 +152,6 @@
             color: #ef4444;
             font-size: 12px;
             margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
         
         .form-group textarea {
@@ -165,13 +162,13 @@
         .amount-buttons {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
+            gap: 8px;
             margin-bottom: 12px;
         }
         
         .amount-btn {
             padding: 12px;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
             color: #fff;
@@ -183,7 +180,7 @@
         }
         
         .amount-btn:hover {
-            background: rgba(168, 85, 247, 0.15);
+            background: rgba(168, 85, 247, 0.2);
             border-color: rgba(168, 85, 247, 0.4);
         }
         
@@ -201,7 +198,7 @@
             left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.4);
+            color: rgba(255, 255, 255, 0.5);
             font-size: 15px;
         }
         
@@ -222,8 +219,6 @@
             margin-bottom: 16px;
             font-size: 14px;
             display: none;
-            align-items: center;
-            gap: 10px;
         }
         
         .supporters-title {
@@ -262,7 +257,7 @@
         .donor-name {
             font-weight: 500;
             font-size: 14px;
-            color: rgba(255, 255, 255, 0.9);
+            color: #fff;
         }
         
         .donation-amount {
@@ -286,15 +281,14 @@
         .success-icon {
             width: 80px;
             height: 80px;
-            background: rgba(34, 197, 94, 0.15);
-            border: 2px solid rgba(34, 197, 94, 0.3);
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 24px;
             font-size: 36px;
-            color: #22c55e;
+            color: #fff;
         }
         
         .success-view h2 {
@@ -321,7 +315,7 @@
         }
         
         .secure-badge i {
-            color: #a855f7;
+            color: #22c55e;
         }
         
         .powered-by {
@@ -334,11 +328,6 @@
         .powered-by a {
             color: #a855f7;
             text-decoration: none;
-            transition: color 0.2s;
-        }
-        
-        .powered-by a:hover {
-            color: #c084fc;
         }
         
         .hidden { display: none !important; }
@@ -397,10 +386,7 @@
                         {% endif %}
                     </div>
 
-                    <div id="error-message" class="error-message">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span></span>
-                    </div>
+                    <div id="error-message" class="error-message"></div>
 
                     <div class="form-group">
                         <label><i class="fas fa-user"></i> Your Name</label>
@@ -493,8 +479,8 @@
 
         function showError(msg) {
             const el = document.getElementById('error-message');
-            el.querySelector('span').textContent = msg;
-            el.style.display = 'flex';
+            el.textContent = msg;
+            el.style.display = 'block';
         }
 
         function hideError() {
@@ -507,7 +493,7 @@
             if (input) input.classList.add('field-error');
             if (errorEl) {
                 errorEl.textContent = msg;
-                errorEl.style.display = 'flex';
+                errorEl.style.display = 'block';
             }
         }
 
