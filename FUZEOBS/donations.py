@@ -380,13 +380,20 @@ def capture_donation(request, token):
         status='completed',
     )
     
+    # Currency symbols map
+    currency_symbols = {
+        'USD': '$', 'EUR': '€', 'GBP': '£', 'CAD': 'C$', 'AUD': 'A$',
+        'JPY': '¥', 'CNY': '¥', 'KRW': '₩', 'INR': '₹', 'BRL': 'R$',
+    }
+    symbol = currency_symbols.get(ds.currency, ds.currency + ' ')
+    
     # Trigger alerts to all widgets
     trigger_donation_alert(ds.user.id, {
         'name': donor_name,
         'amount': float(amount),
         'currency': ds.currency,
         'message': message,
-        'formatted_amount': f'{ds.currency} {amount:.2f}',
+        'formatted_amount': f'{symbol}{amount:.2f}',
     })
     
     return JsonResponse({'success': True})
@@ -403,7 +410,7 @@ def trigger_donation_alert(user_id, data):
         'platform': 'donation',
         'event_data': {
             'username': data['name'],
-            'amount': data['formatted_amount'],  # "USD 1.00" for display
+            'amount': data['formatted_amount'],  # "$1.00" for display
             'raw_amount': data['amount'],        # 1.0 for calculations
             'currency': data['currency'],
             'message': data['message'],

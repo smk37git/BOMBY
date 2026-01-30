@@ -243,7 +243,7 @@ const defaultConfig = {{
     duration: 5,
     sound_volume: 50,
     layout: 'image_above',
-    tts_enabled: false,
+    tts_enabled: true,
     tts_voice: '',
     tts_rate: 1,
     tts_volume: 80,
@@ -436,16 +436,25 @@ function handleMessage(e) {{
         audio.play().catch(err => console.log('Audio play failed:', err));
     }}
     
-    // TTS for donations
-    if (config.tts_enabled && data.event_type === 'donation') {{
-        // Convert amount to natural speech (e.g., "$61.00" or "USD 61.00" -> "61 dollars")
-        const formatAmountForSpeech = (amt) => {{
+    
+    # TTS for donations, bits, superchat, stars
+    if (config.tts_enabled && ['donation', 'bits', 'superchat', 'stars'].includes(data.event_type)) {{
+        const formatAmountForSpeech = (amt, eventType) => {{
             if (!amt) return '';
             const str = String(amt);
-            // Extract numeric value
             const match = str.match(/([\\d.]+)/);
             if (!match) return str;
             const num = parseFloat(match[1]);
+            
+            // Bits and stars are whole numbers
+            if (eventType === 'bits') {{
+                return num === 1 ? '1 bit' : num + ' bits';
+            }}
+            if (eventType === 'stars') {{
+                return num === 1 ? '1 star' : num + ' stars';
+            }}
+            
+            // Dollars for donations and superchat
             const dollars = Math.floor(num);
             const cents = Math.round((num - dollars) * 100);
             if (cents === 0) {{
@@ -455,21 +464,30 @@ function handleMessage(e) {{
             }}
         }};
         
-        const ttsText = (config.tts_template || '{{name}} donated {{amount}}. {{message}}')
+        const defaultTtsTemplates = {{
+            'donation': '{{name}} donated {{amount}}. {{message}}',
+            'bits': '{{name}} cheered {{amount}}. {{message}}',
+            'superchat': '{{name}} sent a super chat of {{amount}}. {{message}}',
+            'stars': '{{name}} sent {{amount}}. {{message}}'
+        }};
+        
+        const ttsText = (config.tts_template || defaultTtsTemplates[data.event_type] || '{{name}} donated {{amount}}. {{message}}')
             .replace(/{{name}}/g, eventData.username || 'Someone')
-            .replace(/{{amount}}/g, formatAmountForSpeech(eventData.amount))
+            .replace(/{{amount}}/g, formatAmountForSpeech(eventData.amount, data.event_type))
             .replace(/{{message}}/g, eventData.message || '');
         
         if (ttsText.trim()) {{
-            const utterance = new SpeechSynthesisUtterance(ttsText);
-            utterance.rate = config.tts_rate || 1;
-            utterance.volume = (config.tts_volume || 80) / 100;
-            if (config.tts_voice) {{
-                const voices = speechSynthesis.getVoices();
-                const voice = voices.find(v => v.name === config.tts_voice);
-                if (voice) utterance.voice = voice;
-            }}
-            speechSynthesis.speak(utterance);
+            setTimeout(() => {{
+                const utterance = new SpeechSynthesisUtterance(ttsText);
+                utterance.rate = config.tts_rate || 1;
+                utterance.volume = (config.tts_volume || 80) / 100;
+                if (config.tts_voice) {{
+                    const voices = speechSynthesis.getVoices();
+                    const voice = voices.find(v => v.name === config.tts_voice);
+                    if (voice) utterance.voice = voice;
+                }}
+                speechSynthesis.speak(utterance);
+            }}, 100);
         }}
     }}
     
