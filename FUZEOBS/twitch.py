@@ -54,7 +54,10 @@ def send_alert(user_id, event_type, platform, event_data):
     """Send alert to universal widget WebSocket (alerts_{user_id}_all)"""
     from .models import WidgetConfig
     
-    # Check if any enabled alert widget exists for this user
+    # Debug: show all widgets for this user
+    all_widgets = list(WidgetConfig.objects.filter(user_id=user_id).values('widget_type', 'enabled'))
+    print(f'[ALERT] user={user_id} type={event_type} | widgets: {all_widgets}')
+    
     has_enabled_widget = WidgetConfig.objects.filter(
         user_id=user_id,
         widget_type__in=['alert_box', 'event_list', 'goal_bar', 'labels'],
@@ -62,10 +65,10 @@ def send_alert(user_id, event_type, platform, event_data):
     ).exists()
     
     if not has_enabled_widget:
-        return  # Skip if no enabled widgets
+        print(f'[ALERT] DROPPED - no enabled widgets')
+        return
     
     channel_layer = get_channel_layer()
-    # Send to universal channel - all platforms go through one WebSocket
     async_to_sync(channel_layer.group_send)(
         f'alerts_{user_id}_all',
         {
@@ -77,3 +80,4 @@ def send_alert(user_id, event_type, platform, event_data):
             }
         }
     )
+    print(f'[ALERT] Sent!')
