@@ -247,7 +247,7 @@ const defaultConfig = {{
     tts_voice: '',
     tts_rate: 1,
     tts_volume: 80,
-    tts_template: '{{name}} donated {{amount}}. {{message}}'
+    tts_template: '{{name}} donated ${{amount}} USD. {{message}}'
 }};
 
 const defaultTemplates = {{
