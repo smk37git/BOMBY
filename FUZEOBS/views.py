@@ -3346,12 +3346,13 @@ def fuzeobs_cleanup_duplicates(request):
     from django.db.models import Count
     
     deleted = 0
-    dupes = PlatformConnection.objects.values('user_id', 'platform').annotate(c=Count('id')).filter(c__gt=1)
+    # Find duplicate platform_user_id (same Twitch account linked twice)
+    dupes = PlatformConnection.objects.values('platform', 'platform_user_id').annotate(c=Count('id')).filter(c__gt=1)
     
     for d in dupes:
-        conns = list(PlatformConnection.objects.filter(user_id=d['user_id'], platform=d['platform']).order_by('-connected_at'))
+        conns = list(PlatformConnection.objects.filter(platform=d['platform'], platform_user_id=d['platform_user_id']).order_by('-connected_at'))
         for c in conns[1:]:
             c.delete()
             deleted += 1
     
-    return JsonResponse({'deleted': deleted})
+    return JsonResponse({'deleted': deleted, 'dupes_found': list(dupes)})
