@@ -1,10 +1,11 @@
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 class AlertConsumer(AsyncJsonWebsocketConsumer):
-    """Global alertbox - receives alerts from ALL platforms via single URL"""
     async def connect(self):
         self.user_id = self.scope['url_route']['kwargs']['user_id']
-        self.group_name = f'alerts_{self.user_id}'
+        # Default to 'all' if no platform specified
+        self.platform = self.scope['url_route']['kwargs'].get('platform', 'all')
+        self.group_name = f'alerts_{self.user_id}_{self.platform}'
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
     
@@ -28,6 +29,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json(event['data'])
 
 class GoalConsumer(AsyncJsonWebsocketConsumer):
+    """WebSocket consumer for goal bar updates (tips, donations, manual updates)"""
     async def connect(self):
         self.user_id = self.scope['url_route']['kwargs']['user_id']
         self.group_name = f'goals_{self.user_id}'
@@ -38,9 +40,11 @@ class GoalConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
     
     async def goal_update(self, event):
+        """Send goal update to connected clients"""
         await self.send_json(event['data'])
 
 class LabelsConsumer(AsyncJsonWebsocketConsumer):
+    """WebSocket consumer for labels widget updates"""
     async def connect(self):
         self.user_id = self.scope['url_route']['kwargs']['user_id']
         self.group_name = f'labels_{self.user_id}'
@@ -51,6 +55,7 @@ class LabelsConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
     
     async def label_update(self, event):
+        """Send label update to connected clients"""
         await self.send_json(event['data'])
 
 class ViewerCountConsumer(AsyncJsonWebsocketConsumer):
@@ -80,6 +85,7 @@ class SponsorBannerConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json(event['data'])
 
 class DonationConsumer(AsyncJsonWebsocketConsumer):
+    """WebSocket consumer for donation alerts"""
     async def connect(self):
         self.user_id = self.scope['url_route']['kwargs']['user_id']
         self.group_name = f'donations_{self.user_id}'

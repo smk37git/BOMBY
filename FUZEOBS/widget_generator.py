@@ -31,29 +31,7 @@ def generate_widget_html(widget):
         raise ValueError(f"Unknown widget type: {widget_type}")
 
 def generate_alert_box_html(user_id, platform, config):
-    """Generate alert box HTML - GLOBAL URL (all platforms in one)
-    
-    REPLACE the existing generate_alert_box_html function in widget_generator.py with this.
-    """
-    from .models import PlatformConnection
-    import json
-    
-    connected_platforms = list(
-        PlatformConnection.objects.filter(user_id=user_id).values_list('platform', flat=True)
-    )
-    connected_json = json.dumps(connected_platforms)
-    
-    # Get platforms_enabled from config (default all DISABLED - user enables in config)
-    platforms_enabled = config.get('platforms_enabled', {
-        'twitch': False,
-        'youtube': False,
-        'kick': False,
-        'facebook': False,
-        'tiktok': False,
-        'donation': False
-    })
-    platforms_enabled_json = json.dumps(platforms_enabled)
-    
+    """Generate alert box HTML - universal widget for all platforms"""
     return f"""<!DOCTYPE html>
 <html>
 <head>
@@ -157,48 +135,28 @@ body {{
 <audio id="alertSound" preload="auto"></audio>
 <script>
 const userId = '{user_id}';
-const connectedPlatforms = {connected_json};
+// Query param only for preview/filtering in UI, not for routing
+const urlParams = new URLSearchParams(window.location.search);
+const filterPlatform = urlParams.get('platform') || 'all';
 
-// Platform enable/disable config from user settings
-const platformsEnabled = {platforms_enabled_json};
-
-// Start listeners for ALL connected platforms
-function startPlatformListeners() {{
-    if (connectedPlatforms.includes('youtube') && platformsEnabled.youtube !== false) {{
-        fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`)
-            .then(r => r.json())
-            .then(data => console.log('[YOUTUBE]', data.started ? 'Started' : 'Not live'))
-            .catch(() => {{}});
-    }}
-    if (connectedPlatforms.includes('facebook') && platformsEnabled.facebook !== false) {{
-        fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`)
-            .then(r => r.json())
-            .then(data => console.log('[FACEBOOK]', data.started ? 'Started' : 'Not active'))
-            .catch(() => {{}});
-    }}
-    if (connectedPlatforms.includes('kick') && platformsEnabled.kick !== false) {{
-        fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`)
-            .then(r => r.json())
-            .then(data => console.log('[KICK]', data.started ? 'Started' : 'Not active'))
-            .catch(() => {{}});
-    }}
-    if (connectedPlatforms.includes('tiktok') && platformsEnabled.tiktok !== false) {{
-        fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`)
-            .then(r => r.json())
-            .then(data => console.log('[TIKTOK]', data.started ? 'Started' : 'Not live'))
-            .catch(() => {{}});
-    }}
+// Start ALL platform listeners - they all send to the universal WebSocket
+function startAllListeners() {{
+    fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
+    fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}});
+    fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}});
+    fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}});
 }}
 
-startPlatformListeners();
-setInterval(startPlatformListeners, 300000);
+startAllListeners();
+// Re-check every 5 minutes in case streams start later
+setInterval(startAllListeners, 300000);
 
 let ws;
 let donationWs;
 
-// GLOBAL WebSocket - receives alerts from ALL platforms
+// Connect to UNIVERSAL WebSocket - receives alerts from ALL platforms
 function connectWS() {{
-    ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/`);
+    ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/all/`);
     ws.onmessage = handleMessage;
     ws.onclose = () => setTimeout(connectWS, 3000);
     ws.onerror = () => ws.close();
@@ -260,37 +218,36 @@ const defaultTemplates = {{
 
 const eventConfigs = {{}};
 let configsLoaded = false;
-let serverPlatformsEnabled = null;
 
-// Fetch configs for ALL platforms (global alertbox)
-fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/all?t=${{Date.now()}}`)
-    .then(r => r.json())
-    .then(data => {{
-        Object.assign(eventConfigs, data.configs);
-        if (data.global_config && data.global_config.platforms_enabled) {{
-            serverPlatformsEnabled = data.global_config.platforms_enabled;
-        }}
-        configsLoaded = true;
-        
-        // Inject custom CSS
-        let allCustomCss = '';
-        for (const key in data.configs) {{
-            const cfg = data.configs[key];
-            if (cfg.custom_css_enabled && cfg.custom_css) {{
-                allCustomCss += `/* ${{key}} */\\n${{cfg.custom_css}}\\n`;
+// Load configs for ALL platforms
+async function loadAllConfigs() {{
+    const platforms = ['twitch', 'youtube', 'kick', 'facebook', 'tiktok', 'donation'];
+    for (const plat of platforms) {{
+        try {{
+            const resp = await fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/${{plat}}?t=${{Date.now()}}`);
+            if (resp.ok) {{
+                const data = await resp.json();
+                Object.assign(eventConfigs, data.configs || {{}});
+                
+                // Inject custom CSS
+                for (const key in data.configs) {{
+                    const cfg = data.configs[key];
+                    if (cfg.custom_css_enabled && cfg.custom_css) {{
+                        let styleEl = document.getElementById('custom-css-' + key);
+                        if (!styleEl) {{
+                            styleEl = document.createElement('style');
+                            styleEl.id = 'custom-css-' + key;
+                            document.head.appendChild(styleEl);
+                        }}
+                        styleEl.textContent = cfg.custom_css;
+                    }}
+                }}
             }}
-        }}
-        if (allCustomCss) {{
-            const styleEl = document.createElement('style');
-            styleEl.id = 'custom-css';
-            styleEl.textContent = allCustomCss;
-            document.head.appendChild(styleEl);
-        }}
-    }})
-    .catch(err => {{
-        console.log('[CONFIG] Load error:', err);
-        configsLoaded = true;
-    }});
+        }} catch (e) {{}}
+    }}
+    configsLoaded = true;
+}}
+loadAllConfigs();
 
 function handleMessage(e) {{
     const data = JSON.parse(e.data);
@@ -300,21 +257,17 @@ function handleMessage(e) {{
         return;
     }}
     
+    // Filter by platform if specified in URL (for preview)
+    const platform = data.platform || 'donation';
+    if (filterPlatform !== 'all' && platform !== filterPlatform) {{
+        return;
+    }}
+    
     if (data.clear_existing) {{
         document.getElementById('container').innerHTML = '';
     }}
     
-    const platform = data.platform || 'donation';
-    const eventType = data.event_type;
-    
-    // Check if this platform is enabled (check server config first, then embedded config)
-    const enabledConfig = serverPlatformsEnabled || platformsEnabled;
-    if (enabledConfig[platform] === false) {{
-        console.log(`[ALERT] Platform ${{platform}} is disabled, skipping`);
-        return;
-    }}
-    
-    const configKey = `${{platform}}-${{eventType}}`;
+    const configKey = `${{data.platform}}-${{data.event_type}}`;
     const savedConfig = eventConfigs[configKey] || {{}};
     const config = {{
         ...defaultConfig,
@@ -411,7 +364,7 @@ function handleMessage(e) {{
     }}
     
     // Add donation message below the main text
-    if (eventType === 'donation' && eventData.message && eventData.message.trim()) {{
+    if (data.event_type === 'donation' && eventData.message && eventData.message.trim()) {{
         const msgEl = document.createElement('div');
         msgEl.className = 'alert-message';
         msgEl.style.fontSize = Math.max(14, (config.font_size || 32) * 0.6) + 'px';
@@ -427,7 +380,6 @@ function handleMessage(e) {{
         }}
     }}
     
-    // === SOUND + TTS: Start BOTH immediately when alert appears ===
     if (config.sound_url) {{
         const audio = document.getElementById('alertSound');
         audio.src = config.sound_url;
@@ -435,8 +387,8 @@ function handleMessage(e) {{
         audio.play().catch(err => console.log('Audio play failed:', err));
     }}
     
-    // TTS starts IMMEDIATELY with alert (not waiting for sound)
-    if (config.tts_enabled && eventType === 'donation') {{
+    // TTS for donations
+    if (config.tts_enabled && data.event_type === 'donation') {{
         const formatAmountForSpeech = (amt) => {{
             if (!amt) return '';
             const str = String(amt);
@@ -458,18 +410,14 @@ function handleMessage(e) {{
             .replace(/{{message}}/g, eventData.message || '');
         
         if (ttsText.trim()) {{
-            speechSynthesis.cancel();
-            
             const utterance = new SpeechSynthesisUtterance(ttsText);
             utterance.rate = config.tts_rate || 1;
             utterance.volume = (config.tts_volume || 80) / 100;
-            
             if (config.tts_voice) {{
                 const voices = speechSynthesis.getVoices();
                 const voice = voices.find(v => v.name === config.tts_voice);
                 if (voice) utterance.voice = voice;
             }}
-            
             speechSynthesis.speak(utterance);
         }}
     }}
@@ -482,12 +430,6 @@ function handleMessage(e) {{
         setTimeout(() => alert.remove(), 500);
     }}, duration);
 }};
-
-// Preload voices for TTS
-if (typeof speechSynthesis !== 'undefined') {{
-    speechSynthesis.getVoices();
-    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
-}}
 </script>
 </body>
 </html>"""

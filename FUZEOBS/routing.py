@@ -1,12 +1,13 @@
-from django.urls import re_path
+from django.urls import path
 from . import consumers
 
 websocket_urlpatterns = [
-    re_path(r'ws/fuzeobs-alerts/(?P<user_id>\d+)/$', consumers.AlertConsumer.as_asgi()),
-    re_path(r'ws/fuzeobs-donations/(?P<user_id>\d+)/$', consumers.DonationConsumer.as_asgi()),
-    re_path(r'ws/fuzeobs-chat/(?P<user_id>\d+)/$', consumers.ChatConsumer.as_asgi()),
-    re_path(r'ws/fuzeobs-goals/(?P<user_id>\d+)/$', consumers.GoalConsumer.as_asgi()),
-    re_path(r'ws/fuzeobs-labels/(?P<user_id>\d+)/$', consumers.LabelsConsumer.as_asgi()),
-    re_path(r'ws/fuzeobs-viewers/(?P<user_id>\d+)/$', consumers.ViewerCountConsumer.as_asgi()),
-    re_path(r'ws/fuzeobs-sponsor/(?P<user_id>\d+)/$', consumers.SponsorBannerConsumer.as_asgi()),
+    path('ws/fuzeobs-alerts/<int:user_id>/', consumers.AlertConsumer.as_asgi()),
+    path('ws/fuzeobs-alerts/<int:user_id>/<str:platform>/', consumers.AlertConsumer.as_asgi()),
+    path('ws/fuzeobs-chat/<int:user_id>/', consumers.ChatConsumer.as_asgi()),
+    path('ws/fuzeobs-goals/<int:user_id>/', consumers.GoalConsumer.as_asgi()),
+    path('ws/fuzeobs-labels/<int:user_id>/', consumers.LabelsConsumer.as_asgi()),
+    path('ws/fuzeobs-viewers/<int:user_id>/', consumers.ViewerCountConsumer.as_asgi()),
+    path('ws/fuzeobs-sponsor/<int:user_id>/', consumers.SponsorBannerConsumer.as_asgi()),
+    path('ws/fuzeobs-donations/<int:user_id>/', consumers.DonationConsumer.as_asgi()),
 ]
