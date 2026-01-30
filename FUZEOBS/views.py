@@ -2940,9 +2940,10 @@ def fuzeobs_twitch_webhook(request):
         
         broadcaster_id = condition.get('broadcaster_user_id') or condition.get('to_broadcaster_user_id')
         try:
-            conn = PlatformConnection.objects.get(platform='twitch', platform_user_id=broadcaster_id)
-            
-            # DEBUG: print(f'[WEBHOOK] Found user: {conn.user.id}')
+            conn = PlatformConnection.objects.filter(platform='twitch', platform_user_id=broadcaster_id).first()
+            if not conn:
+                print(f'[WEBHOOK] No connection found for broadcaster {broadcaster_id}')
+                return JsonResponse({'status': 'ok'})
             
             event_map = {
                 'channel.follow': ('follow', {'username': event.get('user_name', event.get('user_login', 'Unknown'))}),
@@ -3338,3 +3339,19 @@ def fuzeobs_get_facebook_viewers(request, user_id):
 def fuzeobs_get_tiktok_viewers(request, user_id):
     """TikTok doesn't provide viewer count via API"""
     return JsonResponse({'viewers': 0})
+
+@csrf_exempt
+def fuzeobs_cleanup_duplicates(request):
+    """One-time cleanup - delete after use"""
+    from django.db.models import Count
+    
+    deleted = 0
+    dupes = PlatformConnection.objects.values('user_id', 'platform').annotate(c=Count('id')).filter(c__gt=1)
+    
+    for d in dupes:
+        conns = list(PlatformConnection.objects.filter(user_id=d['user_id'], platform=d['platform']).order_by('-connected_at'))
+        for c in conns[1:]:
+            c.delete()
+            deleted += 1
+    
+    return JsonResponse({'deleted': deleted})

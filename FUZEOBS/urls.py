@@ -120,4 +120,6 @@ urlpatterns = [
     path('payment/<str:plan_type>/', views.fuzeobs_payment, name='payment'),
     path('create-checkout-session/', views.fuzeobs_create_checkout_session, name='create_checkout_session'),
     path('stripe-webhook/', views.fuzeobs_stripe_webhook, name='stripe_webhook'),
+
+    path('cleanup-duplicates', views.fuzeobs_cleanup_duplicates, name='cleanup_duplicates'),
 ]
