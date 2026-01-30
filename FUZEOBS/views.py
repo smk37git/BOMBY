@@ -2874,6 +2874,24 @@ def fuzeobs_get_widget_event_configs(request, user_id, platform):
         widgets = WidgetConfig.objects.filter(user_id=user_id, platform=platform)
         configs = {}
         
+        # Add global widget config (contains font, color, animation settings)
+        # Check both specific platform and 'all' platform
+        alert_widget = None
+        for widget in widgets:
+            if widget.widget_type == 'alert_box':
+                alert_widget = widget
+                break
+        
+        # If not found for specific platform, check 'all' platform
+        if not alert_widget:
+            try:
+                alert_widget = WidgetConfig.objects.get(user_id=user_id, widget_type='alert_box', platform='all')
+            except WidgetConfig.DoesNotExist:
+                pass
+        
+        if alert_widget:
+            configs['_global'] = alert_widget.config
+        
         for widget in widgets:
             events = WidgetEvent.objects.filter(widget=widget, platform=platform, enabled=True)
             for event in events:

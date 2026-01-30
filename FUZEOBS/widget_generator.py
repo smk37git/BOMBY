@@ -317,11 +317,26 @@ function handleMessage(e) {{
     }}
     
     const configKey = `${{data.platform}}-${{data.event_type}}`;
-    const savedConfig = eventConfigs[configKey] || {{}};
+    const eventKey = `${{data.platform}}_${{data.event_type}}`;
+    const globalConfig = eventConfigs['_global'] || eventConfigs['global'] || {{}};
+    const eventConfig = eventConfigs[configKey] || {{}};
+    const savedConfig = {{...globalConfig, ...eventConfig}};
+    
+    // Check for event-specific image/sound URLs in global config (e.g., twitch_follow_image_url)
+    if (!savedConfig.image_url && globalConfig[`${{eventKey}}_image_url`]) {{
+        savedConfig.image_url = globalConfig[`${{eventKey}}_image_url`];
+    }}
+    if (!savedConfig.sound_url && globalConfig[`${{eventKey}}_sound_url`]) {{
+        savedConfig.sound_url = globalConfig[`${{eventKey}}_sound_url`];
+    }}
+    if (!savedConfig.message_template && globalConfig[`${{eventKey}}_message_template`]) {{
+        savedConfig.message_template = globalConfig[`${{eventKey}}_message_template`];
+    }}
+    
     const config = {{
         ...defaultConfig,
         ...savedConfig,
-        message_template: savedConfig.message_template || defaultTemplates[configKey] || defaultConfig.message_template
+        message_template: savedConfig.message_template || eventConfig.message_template || defaultTemplates[configKey] || defaultConfig.message_template
     }};
     
     if (!config.enabled && savedConfig.enabled === undefined) config.enabled = true;
