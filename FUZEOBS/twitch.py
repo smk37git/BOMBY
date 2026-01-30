@@ -51,23 +51,21 @@ def subscribe_twitch_events(user_id, broadcaster_id, user_access_token):
             print(f'[ERROR] {resp.text}')
 
 def send_alert(user_id, event_type, platform, event_data):
-    """Send alert to platform-specific widget WebSocket"""
+    """Send alert to global alerts WebSocket"""
     from .models import WidgetConfig
     
-    # Check if any enabled widget exists for this user/platform
     has_enabled_widget = WidgetConfig.objects.filter(
         user_id=user_id,
-        platform__in=[platform, 'all'],
         widget_type__in=['alert_box', 'event_list', 'goal_bar', 'labels'],
         enabled=True
     ).exists()
     
     if not has_enabled_widget:
-        return  # Skip if no enabled widgets
+        return
     
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
-        f'alerts_{user_id}_{platform}',
+        f'alerts_{user_id}',
         {
             'type': 'alert_event',
             'data': {

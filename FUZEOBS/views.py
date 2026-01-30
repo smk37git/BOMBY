@@ -2865,30 +2865,111 @@ def fuzeobs_test_alert(request):
         return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    
+
 @csrf_exempt
-@require_http_methods(["GET"])
+@xframe_options_exempt
 def fuzeobs_get_widget_event_configs(request, user_id, platform):
-    """Get event configurations for user's platform-specific widgets"""
+    """Get event configurations - supports 'all' for global alertbox"""
     try:
-        widgets = WidgetConfig.objects.filter(user_id=user_id, platform=platform)
         configs = {}
+        global_config = None
         
-        for widget in widgets:
-            events = WidgetEvent.objects.filter(widget=widget, platform=platform, enabled=True)
-            for event in events:
-                key = f"{event.platform}-{event.event_type}"
-                configs[key] = event.config
-                configs[key]['enabled'] = True
+        if platform == 'all':
+            # Global alertbox: return configs for ALL platforms
+            events = WidgetEvent.objects.filter(
+                widget__user_id=user_id,
+                widget__widget_type='alert_box',
+                enabled=True
+            )
+            
+            # Get global config (platform enable/disable settings)
+            try:
+                global_widget = WidgetConfig.objects.get(
+                    user_id=user_id,
+                    widget_type='alert_box',
+                    platform='all'
+                )
+                global_config = global_widget.config or {}
+            except WidgetConfig.DoesNotExist:
+                global_config = {
+                    'platforms_enabled': {
+                        'twitch': False,
+                        'youtube': False,
+                        'kick': False,
+                        'facebook': False,
+                        'tiktok': False,
+                        'donation': False
+                    }
+                }
+        else:
+            # Legacy: platform-specific
+            events = WidgetEvent.objects.filter(
+                widget__user_id=user_id,
+                widget__widget_type='alert_box',
+                widget__platform=platform,
+                enabled=True
+            )
         
-        response = JsonResponse({'configs': configs})
+        for event in events:
+            key = f"{event.platform}-{event.event_type}"
+            configs[key] = event.config.copy() if event.config else {}
+            configs[key]['enabled'] = event.enabled
+        
+        response_data = {'configs': configs}
+        if global_config is not None:
+            response_data['global_config'] = global_config
+        
+        response = JsonResponse(response_data)
         response['Access-Control-Allow-Origin'] = '*'
         response['Cache-Control'] = 'no-cache'
         return response
     except Exception as e:
-        response = JsonResponse({'configs': {}})
+        print(f'[EVENT CONFIG] Error: {e}')
+        response = JsonResponse({'configs': {}, 'error': str(e)})
         response['Access-Control-Allow-Origin'] = '*'
         return response
+    
+@csrf_exempt
+def fuzeobs_save_global_widget_config(request, widget_id):
+    """Save global widget config (platform enable/disable)"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith('Bearer '):
+        return JsonResponse({'error': 'Unauthorized'}, status=401)
+    
+    token = auth_header.replace('Bearer ', '')
+    user = get_user_from_token(token)
+    if not user:
+        return JsonResponse({'error': 'Invalid token'}, status=401)
+    
+    try:
+        data = json.loads(request.body)
+        
+        # Get or create the global alert_box widget
+        widget, created = WidgetConfig.objects.get_or_create(
+            user=user,
+            widget_type='alert_box',
+            platform='all',
+            defaults={'name': 'Global Alert Box', 'config': {}}
+        )
+        
+        # Update config with platforms_enabled
+        if 'platforms_enabled' in data:
+            widget.config['platforms_enabled'] = data['platforms_enabled']
+            widget.save()
+        
+        # Trigger refresh on all connected widget instances
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            f'alerts_{user.id}',
+            {'type': 'alert_event', 'data': {'type': 'refresh'}}
+        )
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
     
 # =========== TWITCH ALERTS ===========
 @csrf_exempt

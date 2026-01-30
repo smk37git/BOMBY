@@ -70,6 +70,7 @@ urlpatterns = [
     path('media/<int:media_id>/delete', views.fuzeobs_delete_media, name='delete_media'),
 
     # Widget Event Configuration
+    path('widgets/global-config/<int:widget_id>', views.fuzeobs_save_global_widget_config, name='save_global_widget_config'),
     path('widgets/<int:widget_id>/events', views.fuzeobs_get_widget_events, name='get_widget_events'),
     path('widgets/events/save', views.fuzeobs_save_widget_event, name='save_widget_event'),
     path('widgets/events/<int:event_id>/delete', views.fuzeobs_delete_widget_event, name='delete_widget_event'),
