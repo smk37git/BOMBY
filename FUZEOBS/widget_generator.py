@@ -256,24 +256,24 @@ const defaultTemplates = {{
     'twitch-bits': '{{name}} cheered {{amount}} bits!',
     'twitch-raid': '{{name}} raided with {{viewers}} viewers!',
     'twitch-host': '{{name}} is hosting!',
-    'twitch-donation': '{{name}} donated {{amount}}!',
+    'twitch-donation': '{{name}} donated ${{amount}} USD!',
     'youtube-subscribe': '{{name}} subscribed!',
     'youtube-member': '{{name}} became a member!',
     'youtube-superchat': '{{name}} sent {{amount}}!',
-    'youtube-donation': '{{name}} donated {{amount}}!',
+    'youtube-donation': '{{name}} donated ${{amount}} USD!',
     'kick-follow': '{{name}} just followed!',
     'kick-subscribe': '{{name}} subscribed!',
     'kick-gift_sub': '{{name}} gifted {{amount}} subs!',
-    'kick-donation': '{{name}} donated {{amount}}!',
+    'kick-donation': '{{name}} donated ${{amount}} USD!',
     'facebook-follow': '{{name}} just followed!',
     'facebook-stars': '{{name}} sent {{amount}} stars!',
-    'facebook-donation': '{{name}} donated {{amount}}!',
+    'facebook-donation': '{{name}} donated ${{amount}} USD!',
     'tiktok-follow': '{{name}} just followed!',
     'tiktok-gift': '{{name}} sent {{count}}x {{gift}}!',
     'tiktok-share': '{{name}} shared the stream!',
     'tiktok-like': '{{name}} sent {{count}} likes!',
-    'tiktok-donation': '{{name}} donated {{amount}}!',
-    'donation-donation': '{{name}} donated {{amount}}!'
+    'tiktok-donation': '{{name}} donated ${{amount}} USD!',
+    'donation-donation': '{{name}} donated ${{amount}} USD!'
 }};
 
 const eventConfigs = {{}};
@@ -438,7 +438,7 @@ function handleMessage(e) {{
     
     // TTS for donations
     if (config.tts_enabled && data.event_type === 'donation') {{
-        const ttsText = (config.tts_template || '{{name}} donated {{amount}}. {{message}}')
+        const ttsText = (config.tts_template || '{{name}} donated ${{amount}} USD. {{message}}')
             .replace(/{{name}}/g, eventData.username || 'Someone')
             .replace(/{{amount}}/g, eventData.amount || '')
             .replace(/{{message}}/g, eventData.message || '');
