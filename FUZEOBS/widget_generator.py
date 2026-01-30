@@ -437,7 +437,7 @@ function handleMessage(e) {{
     }}
     
     
-    # TTS for donations, bits, superchat, stars
+    // TTS for donations, bits, superchat, stars
     if (config.tts_enabled && ['donation', 'bits', 'superchat', 'stars'].includes(data.event_type)) {{
         const formatAmountForSpeech = (amt, eventType) => {{
             if (!amt) return '';
