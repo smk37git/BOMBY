@@ -2771,13 +2771,15 @@ def fuzeobs_test_alert(request):
         data = json.loads(request.body)
         event_type = data.get('event_type')
         platform = data.get('platform')
+        widget_type = data.get('widget_type', 'alert_box')
         
         user = request.fuzeobs_user
         
         # Build event data based on event type
         event_data = {
             'username': 'FuzeOBS',
-            'amount': random.randint(1, 2000),
+            'amount': f'${random.randint(1, 100):.2f}',
+            'raw_amount': random.randint(1, 100),
             'viewers': random.randint(1, 2000),
             'count': random.randint(1, 100),
             'gift': 'Rose',
@@ -2785,20 +2787,80 @@ def fuzeobs_test_alert(request):
             'months': random.randint(1, 24),
         }
         
-        # Send test alert via WebSocket
         channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f'alerts_{user.id}_{platform}',
-            {
-                'type': 'alert_event',
-                'data': {
-                    'platform': platform,
-                    'event_type': event_type,
-                    'event_data': event_data,
-                    'clear_existing': True
+        
+        # Route to correct channel based on widget_type
+        if widget_type == 'labels':
+            # Send to labels channel
+            async_to_sync(channel_layer.group_send)(
+                f'labels_{user.id}',
+                {
+                    'type': 'label_update',
+                    'data': {
+                        'type': event_type,
+                        'event_type': event_type,
+                        'platform': platform,
+                        'event_data': event_data,
+                    }
                 }
-            }
-        )
+            )
+        elif widget_type == 'event_list':
+            # Send to donations channel for event list (it listens there)
+            if platform == 'donation' or event_type == 'donation':
+                async_to_sync(channel_layer.group_send)(
+                    f'donations_{user.id}',
+                    {
+                        'type': 'donation_event',
+                        'data': {
+                            'type': 'donation',
+                            'event_type': 'donation',
+                            'platform': 'donation',
+                            'event_data': event_data,
+                        }
+                    }
+                )
+            else:
+                # Send to platform-specific alerts channel for event list
+                async_to_sync(channel_layer.group_send)(
+                    f'alerts_{user.id}_{platform}',
+                    {
+                        'type': 'alert_event',
+                        'data': {
+                            'platform': platform,
+                            'event_type': event_type,
+                            'event_data': event_data,
+                        }
+                    }
+                )
+        else:
+            # Default: send to alertbox channel
+            # For donations, also send to donations channel
+            if platform == 'donation' or event_type == 'donation':
+                async_to_sync(channel_layer.group_send)(
+                    f'donations_{user.id}',
+                    {
+                        'type': 'donation_event',
+                        'data': {
+                            'type': 'donation',
+                            'event_type': 'donation',
+                            'platform': 'donation',
+                            'event_data': event_data,
+                        }
+                    }
+                )
+            else:
+                async_to_sync(channel_layer.group_send)(
+                    f'alerts_{user.id}_{platform}',
+                    {
+                        'type': 'alert_event',
+                        'data': {
+                            'platform': platform,
+                            'event_type': event_type,
+                            'event_data': event_data,
+                            'clear_existing': True
+                        }
+                    }
+                )
         
         return JsonResponse({'success': True})
     except Exception as e:
