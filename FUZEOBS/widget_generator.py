@@ -913,6 +913,7 @@ def generate_event_list_html(user_id, config, connected_platforms):
             .event.kick {{ background: linear-gradient({grad_dir}, rgba(83,252,24,0.5) 0%, rgba(83,252,24,0.2) 60%, transparent 100%); --platform-color: #53FC18; }}
             .event.facebook {{ background: linear-gradient({grad_dir}, rgba(24,119,242,0.5) 0%, rgba(24,119,242,0.2) 60%, transparent 100%); --platform-color: #1877F2; }}
             .event.tiktok {{ background: linear-gradient({grad_dir}, rgba(254,40,88,0.5) 0%, rgba(254,40,88,0.2) 60%, transparent 100%); --platform-color: #FE2858; }}
+            .event.donation {{ background: linear-gradient({grad_dir}, rgba(46,204,113,0.5) 0%, rgba(46,204,113,0.2) 60%, transparent 100%); --platform-color: #2ECC71; }}
         ''',
         'bomby': f'''
             .event {{ padding: 10px 14px; {margin_dir}: 8px; background: rgba(0,0,0,0.8); border: 2px solid {theme_color}; border-radius: 6px; }}
