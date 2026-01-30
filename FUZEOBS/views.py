@@ -1920,12 +1920,20 @@ def fuzeobs_save_widget(request):
                     f'alerts_{user.id}_{platform}',
                     {'type': 'alert_event', 'data': {'type': 'refresh'}}
                 )
+                async_to_sync(channel_layer.group_send)(
+                    f'alerts_{user.id}_all',
+                    {'type': 'alert_event', 'data': {'type': 'refresh'}}
+                )
             elif widget_type == 'event_list':
                 for plat in ['twitch', 'youtube', 'kick', 'facebook', 'tiktok']:
                     async_to_sync(channel_layer.group_send)(
                         f'alerts_{user.id}_{plat}',
                         {'type': 'alert_event', 'data': {'type': 'refresh'}}
                     )
+                async_to_sync(channel_layer.group_send)(
+                    f'alerts_{user.id}_all',
+                    {'type': 'alert_event', 'data': {'type': 'refresh'}}
+                )
             elif widget_type == 'goal_bar':
                 async_to_sync(channel_layer.group_send)(
                     f'goals_{user.id}',
@@ -2731,6 +2739,15 @@ def fuzeobs_save_widget_event(request):
                 }
             }
         )
+        async_to_sync(channel_layer.group_send)(
+            f'alerts_{user.id}_all',
+            {
+                'type': 'alert_event',
+                'data': {
+                    'type': 'refresh'
+                }
+            }
+        )
         
         return JsonResponse({
             'success': True,
@@ -2789,9 +2806,28 @@ def fuzeobs_test_alert(request):
         
         channel_layer = get_channel_layer()
         
+        alert_payload = {
+            'type': 'alert_event',
+            'data': {
+                'platform': platform,
+                'event_type': event_type,
+                'event_data': event_data,
+                'clear_existing': True
+            }
+        }
+        
+        donation_payload = {
+            'type': 'donation_event',
+            'data': {
+                'type': 'donation',
+                'event_type': 'donation',
+                'platform': 'donation',
+                'event_data': event_data,
+            }
+        }
+        
         # Route to correct channel based on widget_type
         if widget_type == 'labels':
-            # Send to labels channel
             async_to_sync(channel_layer.group_send)(
                 f'labels_{user.id}',
                 {
@@ -2805,67 +2841,35 @@ def fuzeobs_test_alert(request):
                 }
             )
         elif widget_type == 'event_list':
-            # Send to donations channel for event list (it listens there)
             if platform == 'donation' or event_type == 'donation':
-                async_to_sync(channel_layer.group_send)(
-                    f'donations_{user.id}',
-                    {
-                        'type': 'donation_event',
-                        'data': {
-                            'type': 'donation',
-                            'event_type': 'donation',
-                            'platform': 'donation',
-                            'event_data': event_data,
-                        }
-                    }
-                )
+                async_to_sync(channel_layer.group_send)(f'donations_{user.id}', donation_payload)
             else:
-                # Send to platform-specific alerts channel for event list
-                async_to_sync(channel_layer.group_send)(
-                    f'alerts_{user.id}_{platform}',
-                    {
-                        'type': 'alert_event',
-                        'data': {
-                            'platform': platform,
-                            'event_type': event_type,
-                            'event_data': event_data,
-                        }
-                    }
-                )
+                # Send to platform-specific and 'all' channel
+                async_to_sync(channel_layer.group_send)(f'alerts_{user.id}_{platform}', alert_payload)
+                async_to_sync(channel_layer.group_send)(f'alerts_{user.id}_all', alert_payload)
         else:
-            # Default: send to alertbox channel
-            # For donations, also send to donations channel
+            # Default: alert_box
             if platform == 'donation' or event_type == 'donation':
-                async_to_sync(channel_layer.group_send)(
-                    f'donations_{user.id}',
-                    {
-                        'type': 'donation_event',
-                        'data': {
-                            'type': 'donation',
-                            'event_type': 'donation',
-                            'platform': 'donation',
-                            'event_data': event_data,
-                        }
+                # Send to donations channel and alerts_all for alertbox
+                async_to_sync(channel_layer.group_send)(f'donations_{user.id}', donation_payload)
+                async_to_sync(channel_layer.group_send)(f'alerts_{user.id}_all', {
+                    'type': 'alert_event',
+                    'data': {
+                        'platform': 'donation',
+                        'event_type': 'donation',
+                        'event_data': event_data,
+                        'clear_existing': True
                     }
-                )
+                })
             else:
-                async_to_sync(channel_layer.group_send)(
-                    f'alerts_{user.id}_{platform}',
-                    {
-                        'type': 'alert_event',
-                        'data': {
-                            'platform': platform,
-                            'event_type': event_type,
-                            'event_data': event_data,
-                            'clear_existing': True
-                        }
-                    }
-                )
+                # Send to platform-specific and 'all' channel
+                async_to_sync(channel_layer.group_send)(f'alerts_{user.id}_{platform}', alert_payload)
+                async_to_sync(channel_layer.group_send)(f'alerts_{user.id}_all', alert_payload)
         
         return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    
+
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_widget_event_configs(request, user_id, platform):
@@ -2873,24 +2877,6 @@ def fuzeobs_get_widget_event_configs(request, user_id, platform):
     try:
         widgets = WidgetConfig.objects.filter(user_id=user_id, platform=platform)
         configs = {}
-        
-        # Add global widget config (contains font, color, animation settings)
-        # Check both specific platform and 'all' platform
-        alert_widget = None
-        for widget in widgets:
-            if widget.widget_type == 'alert_box':
-                alert_widget = widget
-                break
-        
-        # If not found for specific platform, check 'all' platform
-        if not alert_widget:
-            try:
-                alert_widget = WidgetConfig.objects.get(user_id=user_id, widget_type='alert_box', platform='all')
-            except WidgetConfig.DoesNotExist:
-                pass
-        
-        if alert_widget:
-            configs['_global'] = alert_widget.config
         
         for widget in widgets:
             events = WidgetEvent.objects.filter(widget=widget, platform=platform, enabled=True)
