@@ -4,29 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ page_title }} - {{ streamer }}</title>
+    <title>BOMBY | {{ page_title }}</title>
     <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background: #0a0a0a;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
             min-height: 100vh;
             color: #fff;
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            padding: 24px;
+            align-items: center;
+            padding: 40px 20px;
         }
         
         .donation-container {
-            max-width: 880px;
+            max-width: 900px;
             width: 100%;
         }
         
@@ -38,80 +34,71 @@
         
         .donation-card {
             flex: 1;
-            max-width: 520px;
-            background: linear-gradient(180deg, #141414 0%, #0f0f0f 100%);
-            border: 1px solid #222;
-            border-radius: 20px;
-            padding: 40px;
-            position: relative;
-            overflow: hidden;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 32px;
         }
         
-        .donation-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 200px;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.5), transparent);
+        .supporters-card {
+            width: 280px;
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 24px;
         }
         
         .donation-header {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
+            padding-bottom: 28px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
         
         .avatar {
-            width: 88px;
-            height: 88px;
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 36px;
-            font-weight: 700;
-            margin: 0 auto 20px;
-            border: 3px solid #333;
-            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            font-size: 32px;
+            font-weight: bold;
+            margin: 0 auto 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            overflow: hidden;
         }
         
         .avatar img {
             width: 100%;
             height: 100%;
-            border-radius: 50%;
             object-fit: cover;
         }
         
         .streamer-name {
-            font-size: 14px;
             color: #a855f7;
             font-weight: 600;
+            font-size: 14px;
             margin-bottom: 8px;
-            letter-spacing: 0.5px;
         }
         
         .donation-header h1 {
             font-size: 28px;
             font-weight: 700;
             margin-bottom: 12px;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #fff 0%, #ccc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #fff;
         }
         
         .page-message {
-            color: #888;
-            font-size: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
             line-height: 1.6;
         }
         
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
         
         .form-group label {
@@ -119,46 +106,40 @@
             align-items: center;
             gap: 8px;
             font-size: 11px;
-            color: #666;
+            color: rgba(255, 255, 255, 0.5);
             margin-bottom: 10px;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             font-weight: 600;
         }
         
         .form-group label i {
             font-size: 12px;
-            color: #555;
         }
         
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 16px 18px;
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
-            border-radius: 12px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
             color: #fff;
             font-size: 15px;
             font-family: inherit;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
         
         .form-group input::placeholder,
         .form-group textarea::placeholder {
-            color: #444;
-        }
-        
-        .form-group input:hover,
-        .form-group textarea:hover {
-            border-color: #383838;
+            color: rgba(255, 255, 255, 0.3);
         }
         
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #a855f7;
-            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+            border-color: rgba(168, 85, 247, 0.5);
+            background: rgba(255, 255, 255, 0.05);
         }
         
         .form-group input.field-error,
@@ -178,42 +159,37 @@
         
         .form-group textarea {
             resize: vertical;
-            min-height: 100px;
-        }
-        
-        .amount-section {
-            margin-bottom: 24px;
+            min-height: 80px;
         }
         
         .amount-buttons {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
-            margin-bottom: 14px;
+            margin-bottom: 12px;
         }
         
         .amount-btn {
-            padding: 14px 8px;
-            background: #0a0a0a;
-            border: 1px solid #2a2a2a;
-            border-radius: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
             color: #fff;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             font-family: inherit;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.2s;
         }
         
         .amount-btn:hover {
-            border-color: #a855f7;
-            background: rgba(168, 85, 247, 0.08);
+            background: rgba(168, 85, 247, 0.15);
+            border-color: rgba(168, 85, 247, 0.4);
         }
         
         .amount-btn.active {
-            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
             border-color: transparent;
-            box-shadow: 0 4px 20px rgba(168, 85, 247, 0.3);
         }
         
         .custom-amount {
@@ -222,86 +198,56 @@
         
         .currency-symbol {
             position: absolute;
-            left: 18px;
+            left: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: #555;
+            color: rgba(255, 255, 255, 0.4);
             font-size: 15px;
-            font-weight: 500;
         }
         
         .custom-amount input {
-            padding-left: 36px;
+            padding-left: 32px;
         }
         
         #paypal-button-container {
-            margin-top: 28px;
+            margin-top: 24px;
         }
         
         .error-message {
             background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            color: #f87171;
-            padding: 14px 18px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
             font-size: 14px;
             display: none;
             align-items: center;
             gap: 10px;
         }
         
-        .error-message i {
-            font-size: 16px;
-        }
-        
-        .secure-badge {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 20px;
-            color: #555;
-            font-size: 12px;
-        }
-        
-        .secure-badge i {
-            color: #22c55e;
-        }
-        
-        /* Supporters Card */
-        .supporters-card {
-            width: 280px;
-            flex-shrink: 0;
-            background: linear-gradient(180deg, #141414 0%, #0f0f0f 100%);
-            border: 1px solid #222;
-            border-radius: 16px;
-            padding: 24px;
-        }
-        
         .supporters-title {
             font-size: 11px;
-            color: #666;
-            margin-bottom: 18px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 20px;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             font-weight: 600;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         
         .supporters-title i {
-            color: #f43f5e;
-            font-size: 14px;
+            color: #ef4444;
         }
         
         .donation-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 0;
-            border-bottom: 1px solid #1a1a1a;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
         
         .donation-item:last-child {
@@ -315,8 +261,8 @@
         
         .donor-name {
             font-weight: 500;
-            color: #ccc;
             font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
         }
         
         .donation-amount {
@@ -326,191 +272,193 @@
         }
         
         .no-donations {
-            color: #555;
-            font-size: 14px;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 13px;
             text-align: center;
-            padding: 12px 0;
+            padding: 20px 0;
         }
         
-        /* Success View */
         .success-view {
             text-align: center;
             padding: 40px 20px;
         }
         
-        .success-view.hidden {
-            display: none;
-        }
-        
         .success-icon {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            background: rgba(34, 197, 94, 0.15);
+            border: 2px solid rgba(34, 197, 94, 0.3);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 24px;
             font-size: 36px;
-            box-shadow: 0 8px 32px rgba(34, 197, 94, 0.3);
+            color: #22c55e;
         }
         
         .success-view h2 {
             font-size: 28px;
             margin-bottom: 12px;
-            font-weight: 700;
+            color: #fff;
         }
         
         .success-view p {
-            color: #888;
+            color: rgba(255, 255, 255, 0.6);
             font-size: 16px;
         }
         
-        .hidden {
-            display: none !important;
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .secure-badge i {
+            color: #a855f7;
         }
         
         .powered-by {
             text-align: center;
             margin-top: 24px;
-            color: #444;
             font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
         }
         
         .powered-by a {
-            color: #666;
+            color: #a855f7;
             text-decoration: none;
-            font-weight: 600;
             transition: color 0.2s;
         }
         
         .powered-by a:hover {
-            color: #a855f7;
+            color: #c084fc;
         }
         
-        /* Mobile */
+        .hidden { display: none !important; }
+        
         @media (max-width: 768px) {
+            body {
+                padding: 20px 16px;
+            }
+            
             .panels-wrapper {
                 flex-direction: column;
             }
             
             .donation-card {
-                max-width: 100%;
+                width: 100%;
             }
             
             .supporters-card {
                 width: 100%;
             }
-        }
-        
-        @media (max-width: 540px) {
-            body {
-                padding: 16px;
-            }
-            
-            .donation-card {
-                padding: 28px 24px;
-                border-radius: 16px;
-            }
             
             .donation-header h1 {
                 font-size: 24px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .donation-card,
+            .supporters-card {
+                padding: 24px 20px;
             }
             
             .amount-buttons {
                 grid-template-columns: repeat(2, 1fr);
             }
-            
-            .avatar {
-                width: 72px;
-                height: 72px;
-                font-size: 28px;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="donation-container">
+    <div class="donation-container">   
         <div class="panels-wrapper">
-        <div class="donation-card">
-            <div id="donation-form">
-                <div class="donation-header">
-                    <div class="avatar">
-                        {% if profile_picture %}
-                            <img src="{{ profile_picture }}" alt="{{ streamer }}">
-                        {% else %}
-                            {{ streamer|slice:":1"|upper }}
+            <div class="donation-card">
+                <div id="donation-form">
+                    <div class="donation-header">
+                        <div class="avatar">
+                            {% if profile_picture %}
+                                <img src="{{ profile_picture }}" alt="{{ streamer }}">
+                            {% else %}
+                                {{ streamer|slice:":1"|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="streamer-name">@{{ streamer }}</div>
+                        <h1>{{ page_title }}</h1>
+                        {% if page_message %}
+                        <p class="page-message">{{ page_message }}</p>
                         {% endif %}
                     </div>
-                    <div class="streamer-name">@{{ streamer }}</div>
-                    <h1>{{ page_title }}</h1>
-                    <p class="page-message">{{ page_message }}</p>
-                </div>
-                
-                <div id="error-message" class="error-message">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span></span>
-                </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-user"></i> Your Name</label>
-                    <input type="text" id="donor-name" placeholder="Anonymous" maxlength="100">
-                    <div id="name-error" class="field-error-msg" style="display: none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
-                </div>
-                
-                <div class="amount-section">
-                    <div class="form-group" style="margin-bottom: 12px;">
+
+                    <div id="error-message" class="error-message">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Your Name</label>
+                        <input type="text" id="donor-name" placeholder="Anonymous" maxlength="100">
+                        <div id="name-error" class="field-error-msg" style="display: none;"></div>
+                    </div>
+
+                    <div class="form-group">
                         <label><i class="fas fa-dollar-sign"></i> Amount ({{ currency }})</label>
+                        <div class="amount-buttons">
+                            {% for amt in suggested_amounts %}
+                            <button type="button" class="amount-btn" data-amount="{{ amt }}">${{ amt|floatformat:0 }}</button>
+                            {% endfor %}
+                        </div>
+                        <div class="custom-amount">
+                            <span class="currency-symbol">$</span>
+                            <input type="number" id="amount" placeholder="Custom amount" min="{{ min_amount }}" step="0.01">
+                        </div>
                     </div>
-                    <div class="amount-buttons">
-                        {% for amount in suggested_amounts %}
-                        <button type="button" class="amount-btn" data-amount="{{ amount }}">${{ amount|floatformat:0 }}</button>
-                        {% endfor %}
+
+                    <div class="form-group">
+                        <label><i class="fas fa-comment"></i> Message (Optional)</label>
+                        <textarea id="message" placeholder="Say something nice..." maxlength="500"></textarea>
+                        <div id="message-error" class="field-error-msg" style="display: none;"></div>
                     </div>
-                    <div class="custom-amount">
-                        <span class="currency-symbol">$</span>
-                        <input type="number" id="amount" placeholder="Custom amount" min="{{ min_amount }}" step="0.01">
+
+                    <div id="paypal-button-container"></div>
+                    
+                    <div class="secure-badge">
+                        <i class="fas fa-lock"></i>
+                        <span>Secured by PayPal</span>
                     </div>
-                </div>
-                
-                <div class="form-group">
-                    <label><i class="fas fa-comment"></i> Message (Optional)</label>
-                    <textarea id="message" placeholder="Say something nice..." maxlength="500"></textarea>
-                    <div id="message-error" class="field-error-msg" style="display: none;"><i class="fas fa-exclamation-circle"></i> <span></span></div>
                 </div>
 
-                <div id="paypal-button-container"></div>
-                
-                <div class="secure-badge">
-                    <i class="fas fa-lock"></i>
-                    <span>Secured by PayPal</span>
+                <div id="success-message" class="success-view hidden">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h2>Thank You!</h2>
+                    <p>Your donation has been sent to {{ streamer }}!</p>
                 </div>
             </div>
 
-            <div id="success-message" class="success-view hidden">
-                <div class="success-icon">
-                    <i class="fas fa-check"></i>
-                </div>
-                <h2>Thank You!</h2>
-                <p>Your donation has been sent to {{ streamer }}!</p>
+            {% if show_recent_donations %}
+            <div class="supporters-card">
+                <h3 class="supporters-title"><i class="fas fa-heart"></i> Recent Supporters</h3>
+                {% if recent_donations %}
+                    {% for d in recent_donations %}
+                    <div class="donation-item">
+                        <span class="donor-name">{{ d.donor_name }}</span>
+                        <span class="donation-amount">${{ d.amount|floatformat:2 }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="no-donations">Be the first to donate!</p>
+                {% endif %}
             </div>
-        </div>
-
-        {% if show_recent_donations %}
-        <div class="supporters-card">
-            <h3 class="supporters-title"><i class="fas fa-heart"></i> Recent Supporters</h3>
-            {% if recent_donations %}
-                {% for d in recent_donations %}
-                <div class="donation-item">
-                    <span class="donor-name">{{ d.donor_name }}</span>
-                    <span class="donation-amount">${{ d.amount|floatformat:2 }}</span>
-                </div>
-                {% endfor %}
-            {% else %}
-                <p class="no-donations">Be the first to donate!</p>
             {% endif %}
-        </div>
-        {% endif %}
         </div>
 
         <div class="powered-by">
@@ -558,7 +506,7 @@
             const errorEl = document.getElementById(field === 'name' ? 'name-error' : 'message-error');
             if (input) input.classList.add('field-error');
             if (errorEl) {
-                errorEl.querySelector('span').textContent = msg;
+                errorEl.textContent = msg;
                 errorEl.style.display = 'flex';
             }
         }
@@ -577,9 +525,9 @@
             style: {
                 layout: 'vertical',
                 color: 'blue',
-                shape: 'pill',
+                shape: 'rect',
                 label: 'paypal',
-                height: 50
+                height: 45
             },
             
             createOrder: async function(data, actions) {
