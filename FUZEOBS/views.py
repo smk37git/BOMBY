@@ -2776,10 +2776,20 @@ def fuzeobs_test_alert(request):
         user = request.fuzeobs_user
         
         # Build event data based on event type
+        random_amount = random.randint(1, 100)
+        
+        # Format amount based on event type
+        if event_type == 'bits':
+            formatted_amount = str(random.randint(100, 5000))  # bits are just numbers
+        elif event_type == 'stars':
+            formatted_amount = str(random.randint(10, 500))  # stars are just numbers
+        else:
+            formatted_amount = f'${random_amount:.2f}'  # donations/superchat use $
+        
         event_data = {
             'username': 'FuzeOBS',
-            'amount': f'${random.randint(1, 100):.2f}',
-            'raw_amount': random.randint(1, 100),
+            'amount': formatted_amount,
+            'raw_amount': random_amount,
             'viewers': random.randint(1, 2000),
             'count': random.randint(1, 100),
             'gift': 'Rose',

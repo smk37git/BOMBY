@@ -232,6 +232,16 @@ function connectDonationWS() {{
 connectWS();
 connectDonationWS();
 
+// Preload TTS voices
+let ttsVoices = [];
+function loadVoices() {{
+    ttsVoices = speechSynthesis.getVoices();
+}}
+loadVoices();
+if (speechSynthesis.onvoiceschanged !== undefined) {{
+    speechSynthesis.onvoiceschanged = loadVoices;
+}}
+
 const defaultConfig = {{
     enabled: true,
     alert_animation: 'fade',
@@ -477,17 +487,14 @@ function handleMessage(e) {{
             .replace(/{{message}}/g, eventData.message || '');
         
         if (ttsText.trim()) {{
-            setTimeout(() => {{
-                const utterance = new SpeechSynthesisUtterance(ttsText);
-                utterance.rate = config.tts_rate || 1;
-                utterance.volume = (config.tts_volume || 80) / 100;
-                if (config.tts_voice) {{
-                    const voices = speechSynthesis.getVoices();
-                    const voice = voices.find(v => v.name === config.tts_voice);
-                    if (voice) utterance.voice = voice;
-                }}
-                speechSynthesis.speak(utterance);
-            }}, 100);
+            const utterance = new SpeechSynthesisUtterance(ttsText);
+            utterance.rate = config.tts_rate || 1;
+            utterance.volume = (config.tts_volume || 80) / 100;
+            if (config.tts_voice && ttsVoices.length > 0) {{
+                const voice = ttsVoices.find(v => v.name === config.tts_voice);
+                if (voice) utterance.voice = voice;
+            }}
+            speechSynthesis.speak(utterance);
         }}
     }}
     
