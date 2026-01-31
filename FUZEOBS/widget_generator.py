@@ -487,6 +487,9 @@ function handleMessage(e) {{
             .replace(/{{message}}/g, eventData.message || '');
         
         if (ttsText.trim()) {{
+            // Cancel any pending/speaking utterances to prevent queue buildup
+            speechSynthesis.cancel();
+            
             const utterance = new SpeechSynthesisUtterance(ttsText);
             utterance.rate = config.tts_rate || 1;
             utterance.volume = (config.tts_volume || 80) / 100;
