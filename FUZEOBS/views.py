@@ -2879,13 +2879,23 @@ def fuzeobs_test_alert(request):
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_widget_event_configs(request, user_id, platform):
-    """Get event configurations for user's platform-specific widgets"""
+    """Get event configurations for user's widgets - supports 'all' platform"""
     try:
-        widgets = WidgetConfig.objects.filter(user_id=user_id, platform=platform)
+        if platform == 'all':
+            # For 'all' platform, get events from all alert_box widgets for this user
+            widgets = WidgetConfig.objects.filter(user_id=user_id, widget_type='alert_box')
+        else:
+            widgets = WidgetConfig.objects.filter(user_id=user_id, platform=platform)
+        
         configs = {}
         
         for widget in widgets:
-            events = WidgetEvent.objects.filter(widget=widget, platform=platform, enabled=True)
+            if platform == 'all':
+                # Get events for all platforms
+                events = WidgetEvent.objects.filter(widget=widget, enabled=True)
+            else:
+                events = WidgetEvent.objects.filter(widget=widget, platform=platform, enabled=True)
+            
             for event in events:
                 key = f"{event.platform}-{event.event_type}"
                 configs[key] = event.config
