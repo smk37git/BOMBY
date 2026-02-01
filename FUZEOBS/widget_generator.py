@@ -2095,7 +2095,7 @@ function updateDisplay() {{
 }}
 
 async function pollTwitch() {{
-    if (!config.show_twitch || !connectedPlatforms.includes('twitch')) return;
+    if (config.show_twitch === false || !connectedPlatforms.includes('twitch')) return;
     try {{
         const resp = await fetch(`https://bomby.us/fuzeobs/viewers/twitch/${{userId}}`);
         if (resp.ok) {{
@@ -2107,7 +2107,7 @@ async function pollTwitch() {{
 }}
 
 async function pollYouTube() {{
-    if (!config.show_youtube || !connectedPlatforms.includes('youtube')) return;
+    if (config.show_youtube === false || !connectedPlatforms.includes('youtube')) return;
     try {{
         const resp = await fetch(`https://bomby.us/fuzeobs/viewers/youtube/${{userId}}`);
         if (resp.ok) {{
@@ -2119,7 +2119,7 @@ async function pollYouTube() {{
 }}
 
 async function pollKick() {{
-    if (!config.show_kick || !connectedPlatforms.includes('kick')) return;
+    if (config.show_kick === false || !connectedPlatforms.includes('kick')) return;
     try {{
         const resp = await fetch(`https://bomby.us/fuzeobs/viewers/kick/${{userId}}`);
         if (resp.ok) {{
@@ -2131,7 +2131,7 @@ async function pollKick() {{
 }}
 
 async function pollFacebook() {{
-    if (!config.show_facebook || !connectedPlatforms.includes('facebook')) return;
+    if (config.show_facebook === false || !connectedPlatforms.includes('facebook')) return;
     try {{
         const resp = await fetch(`https://bomby.us/fuzeobs/viewers/facebook/${{userId}}`);
         if (resp.ok) {{
@@ -2143,7 +2143,7 @@ async function pollFacebook() {{
 }}
 
 async function pollTiktok() {{
-    if (!config.show_tiktok || !connectedPlatforms.includes('tiktok')) return;
+    if (config.show_tiktok === false || !connectedPlatforms.includes('tiktok')) return;
     try {{
         const resp = await fetch(`https://bomby.us/fuzeobs/viewers/tiktok/${{userId}}`);
         if (resp.ok) {{
