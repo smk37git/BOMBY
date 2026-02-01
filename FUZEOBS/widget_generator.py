@@ -484,6 +484,7 @@ function handleMessage(e) {{
     
     const duration = (alertConfig.duration || 5) * 1000;
     setTimeout(() => {{
+        speechSynthesis.cancel();
         alert.style.animation = 'fadeOut 0.5s ease-out forwards';
         setTimeout(() => alert.remove(), 500);
     }}, duration);
@@ -1520,10 +1521,24 @@ function connectGoalWebSockets() {{
         }}
     }});
     
+    // Connect to donations channel for tip goals
+    if (goalType === 'tip') {{
+        connectWebSocket(`wss://bomby.us/ws/fuzeobs-donations/${{userId}}/`, (e) => {{
+            const data = JSON.parse(e.data);
+            if (data.event_type === 'donation') {{
+                const increment = data.event_data?.raw_amount || 0;
+                if (increment > 0) {{
+                    currentAmount += increment;
+                    render();
+                }}
+            }}
+        }});
+    }}
+    
     // Connect to platform alerts for events
     const platforms = GOAL_PLATFORMS[goalType] || [];
     platforms.forEach(platform => {{
-        if (platform === 'all') return; // Already handled above
+        if (platform === 'all') return;
         if (connectedPlatforms.includes(platform)) {{
             connectWebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`, (e) => {{
                 const data = JSON.parse(e.data);
@@ -1865,9 +1880,12 @@ function connectWebSockets() {{
     // Always connect to labels channel for refresh signals
     connectWebSocket(`wss://bomby.us/ws/fuzeobs-labels/${{userId}}/`);
     
-    // Connect to platform alerts for events (unless already using 'all')
     const platforms = LABEL_PLATFORMS[labelType] || [];
-    if (!platforms.includes('all')) {{
+    if (platforms.includes('all')) {{
+        // Connect to donations channel for donation-related labels
+        connectWebSocket(`wss://bomby.us/ws/fuzeobs-donations/${{userId}}/`);
+    }} else {{
+        // Connect to platform alerts for other events
         platforms.forEach(platform => {{
             if (connectedPlatforms.includes(platform)) {{
                 connectWebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
