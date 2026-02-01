@@ -37,6 +37,10 @@ from .twitch_chat import start_twitch_chat
 from .kick_chat import start_kick_chat
 from .facebook_chat import start_facebook_chat
 from .utils.email_utils import send_fuzeobs_invoice_email
+from .views_helpers import (
+    get_client_ip, activate_fuzeobs_user, update_active_session,
+    cleanup_old_sessions, send_widget_refresh
+)
 
 # Website Imports
 from django.shortcuts import redirect
@@ -59,35 +63,6 @@ import stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 User = get_user_model()
-# ====== HELPER FUNCTIONS =======
-def get_client_ip(request):
-    """Get real client IP, handling proxies correctly"""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        return x_forwarded_for.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR', 'unknown')
-
-# ====== SEND ANALYTIC DATA =======
-
-def activate_fuzeobs_user(user):
-    if not user.fuzeobs_activated:
-        user.fuzeobs_activated = True
-        user.fuzeobs_first_login = timezone.now()
-    user.fuzeobs_last_active = timezone.now()
-    user.fuzeobs_total_sessions += 1
-    user.save()
-
-def update_active_session(user, session_id, ip_address=None):
-    from .models import ActiveSession
-    ActiveSession.objects.update_or_create(
-        session_id=session_id,
-        defaults={'user': user, 'ip_address': ip_address, 'last_ping': timezone.now(), 'is_anonymous': False}
-    )
-
-def cleanup_old_sessions():
-    from .models import ActiveSession
-    threshold = timezone.now() - timedelta(minutes=5)
-    ActiveSession.objects.filter(last_ping__lt=threshold).delete()
 
 # ====== VERSION / UPDATES ======
 
@@ -1002,37 +977,6 @@ def fuzeobs_update_profile(request, profile_id):
         return JsonResponse({'error': 'Not found'}, status=404)
     
 # ====== WEBSITE VIEWS =======
-
-def activate_fuzeobs_user(user):
-    """Mark user as FuzeOBS user on first app login"""
-    from .models import ActiveSession
-    if not user.fuzeobs_activated:
-        user.fuzeobs_activated = True
-        user.fuzeobs_first_login = timezone.now()
-    user.fuzeobs_last_active = timezone.now()
-    user.fuzeobs_total_sessions += 1
-    user.save()
-
-def update_active_session(user, session_id, ip_address=None):
-    """Update or create active session"""
-    from .models import ActiveSession
-    ActiveSession.objects.update_or_create(
-        session_id=session_id,
-        defaults={
-            'user': user, 
-            'ip_address': ip_address, 
-            'last_ping': timezone.now(),
-            'is_anonymous': False
-        }
-    )
-
-def cleanup_old_sessions():
-    """Remove sessions inactive for 5+ minutes"""
-    from .models import ActiveSession
-    threshold = timezone.now() - timedelta(minutes=5)
-    ActiveSession.objects.filter(last_ping__lt=threshold).delete()
-
-# ====== WEBSITE VIEWS =======
 def fuzeobs_view(request):
     # Track page view
     from .models import FuzeOBSPageView
@@ -1909,43 +1853,7 @@ def fuzeobs_save_widget(request):
             widget.save()
             
             # Send refresh to widget in OBS
-            channel_layer = get_channel_layer()
-            if widget_type == 'chat_box':
-                async_to_sync(channel_layer.group_send)(
-                    f'chat_{user.id}',
-                    {'type': 'chat_message', 'data': {'type': 'refresh'}}
-                )
-            elif widget_type == 'alert_box':
-                async_to_sync(channel_layer.group_send)(
-                    f'alerts_{user.id}_{platform}',
-                    {'type': 'alert_event', 'data': {'type': 'refresh'}}
-                )
-            elif widget_type == 'event_list':
-                for plat in ['twitch', 'youtube', 'kick', 'facebook', 'tiktok']:
-                    async_to_sync(channel_layer.group_send)(
-                        f'alerts_{user.id}_{plat}',
-                        {'type': 'alert_event', 'data': {'type': 'refresh'}}
-                    )
-            elif widget_type == 'goal_bar':
-                async_to_sync(channel_layer.group_send)(
-                    f'goals_{user.id}',
-                    {'type': 'goal_update', 'data': {'type': 'refresh'}}
-                )
-            elif widget_type == 'labels':
-                async_to_sync(channel_layer.group_send)(
-                    f'labels_{user.id}',
-                    {'type': 'label_update', 'data': {'type': 'refresh'}}
-                )
-            elif widget_type == 'viewer_count':
-                async_to_sync(channel_layer.group_send)(
-                    f'viewers_{user.id}',
-                    {'type': 'viewer_update', 'data': {'type': 'refresh'}}
-                )
-            elif widget_type == 'sponsor_banner':
-                async_to_sync(channel_layer.group_send)(
-                    f'sponsor_{user.id}',
-                    {'type': 'sponsor_update', 'data': {'type': 'refresh'}}
-                )
+            send_widget_refresh(user.id, widget_type, platform)
         else:
             # Auto-create default event configs for alert_box
             if widget_type == 'alert_box':
@@ -3194,157 +3102,19 @@ def fuzeobs_save_label_data(request, user_id):
         return JsonResponse({'error': str(e)}, status=500)
     
 # =========== VIEWER COUNT ===========
-@csrf_exempt
-@require_http_methods(["GET"])
-def fuzeobs_get_twitch_viewers(request, user_id):
-    """Get Twitch viewer count for user's stream"""
-    try:
-        conn = PlatformConnection.objects.get(user_id=user_id, platform='twitch')
-        
-        # Get app access token
-        from .twitch import get_app_access_token
-        app_token = get_app_access_token()
-        
-        # Get stream info
-        resp = requests.get(
-            'https://api.twitch.tv/helix/streams',
-            params={'user_login': conn.platform_username},
-            headers={
-                'Authorization': f'Bearer {app_token}',
-                'Client-Id': settings.TWITCH_CLIENT_ID
-            },
-            timeout=5
-        )
-        
-        if resp.status_code == 200:
-            data = resp.json()
-            streams = data.get('data', [])
-            if streams:
-                viewers = streams[0].get('viewer_count', 0)
-                return JsonResponse({'viewers': viewers})
-        
-        return JsonResponse({'viewers': 0})
-    except PlatformConnection.DoesNotExist:
-        return JsonResponse({'viewers': 0})
-    except Exception as e:
-        print(f'[VIEWER] Twitch error: {e}')
-        return JsonResponse({'viewers': 0})
+# Factory pattern - replaces 5 identical functions
+def _viewer_endpoint(platform: str):
+    """Factory for viewer count endpoints"""
+    from .views_helpers import get_platform_viewer_count
+    
+    @csrf_exempt
+    @require_http_methods(["GET"])
+    def endpoint(request, user_id):
+        return JsonResponse({'viewers': get_platform_viewer_count(user_id, platform)})
+    return endpoint
 
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def fuzeobs_get_youtube_viewers(request, user_id):
-    """Get YouTube viewer count for user's live stream"""
-    try:
-        conn = PlatformConnection.objects.get(user_id=user_id, platform='youtube')
-        
-        # Check for active broadcast
-        resp = requests.get(
-            'https://www.googleapis.com/youtube/v3/liveBroadcasts',
-            params={
-                'part': 'snippet,status',
-                'broadcastType': 'all',
-                'mine': 'true',
-                'maxResults': 5
-            },
-            headers={'Authorization': f'Bearer {conn.access_token}'},
-            timeout=10
-        )
-        
-        if resp.status_code == 200:
-            broadcasts = resp.json().get('items', [])
-            for broadcast in broadcasts:
-                if broadcast.get('status', {}).get('lifeCycleStatus') == 'live':
-                    video_id = broadcast['id']
-                    
-                    # Get concurrent viewers
-                    video_resp = requests.get(
-                        'https://www.googleapis.com/youtube/v3/videos',
-                        params={
-                            'part': 'liveStreamingDetails',
-                            'id': video_id
-                        },
-                        headers={'Authorization': f'Bearer {conn.access_token}'},
-                        timeout=10
-                    )
-                    
-                    if video_resp.status_code == 200:
-                        videos = video_resp.json().get('items', [])
-                        if videos:
-                            viewers = videos[0].get('liveStreamingDetails', {}).get('concurrentViewers', 0)
-                            return JsonResponse({'viewers': int(viewers)})
-        
-        return JsonResponse({'viewers': 0})
-    except PlatformConnection.DoesNotExist:
-        return JsonResponse({'viewers': 0})
-    except Exception as e:
-        print(f'[VIEWER] YouTube error: {e}')
-        return JsonResponse({'viewers': 0})
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def fuzeobs_get_kick_viewers(request, user_id):
-    """Get Kick viewer count for user's stream"""
-    try:
-        conn = PlatformConnection.objects.get(user_id=user_id, platform='kick')
-        
-        resp = requests.get(
-            f'https://kick.com/api/v2/channels/{conn.platform_username}',
-            headers={'User-Agent': 'FuzeOBS/1.0'},
-            timeout=5
-        )
-        
-        if resp.status_code == 200:
-            data = resp.json()
-            livestream = data.get('livestream')
-            if livestream:
-                viewers = livestream.get('viewer_count', 0)
-                return JsonResponse({'viewers': viewers})
-        
-        return JsonResponse({'viewers': 0})
-    except PlatformConnection.DoesNotExist:
-        return JsonResponse({'viewers': 0})
-    except Exception as e:
-        print(f'[VIEWER] Kick error: {e}')
-        return JsonResponse({'viewers': 0})
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def fuzeobs_get_facebook_viewers(request, user_id):
-    """Get Facebook viewer count for user's live stream"""
-    try:
-        conn = PlatformConnection.objects.get(user_id=user_id, platform='facebook')
-        
-        # Get live videos
-        resp = requests.get(
-            f'https://graph.facebook.com/v18.0/{conn.platform_user_id}/live_videos',
-            params={
-                'access_token': conn.access_token,
-                'fields': 'id,status,live_views',
-                'limit': 1
-            },
-            timeout=5
-        )
-        
-        if resp.status_code == 200:
-            videos = resp.json().get('data', [])
-            for video in videos:
-                if video.get('status') == 'LIVE':
-                    viewers = video.get('live_views', 0)
-                    return JsonResponse({'viewers': viewers})
-        
-        return JsonResponse({'viewers': 0})
-    except PlatformConnection.DoesNotExist:
-        return JsonResponse({'viewers': 0})
-    except Exception as e:
-        print(f'[VIEWER] Facebook error: {e}')
-        return JsonResponse({'viewers': 0})
-
-
-@csrf_exempt
-@require_http_methods(["GET"])
-def fuzeobs_get_tiktok_viewers(request, user_id):
-    """TikTok doesn't provide viewer count via API"""
-    return JsonResponse({'viewers': 0})
+fuzeobs_get_twitch_viewers = _viewer_endpoint('twitch')
+fuzeobs_get_youtube_viewers = _viewer_endpoint('youtube')
+fuzeobs_get_kick_viewers = _viewer_endpoint('kick')
+fuzeobs_get_facebook_viewers = _viewer_endpoint('facebook')
+fuzeobs_get_tiktok_viewers = _viewer_endpoint('tiktok')
