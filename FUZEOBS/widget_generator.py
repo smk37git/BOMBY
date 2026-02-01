@@ -469,14 +469,17 @@ function handleMessage(e) {{
         
         if (ttsText.trim()) {{
             speechSynthesis.cancel();
-            const utterance = new SpeechSynthesisUtterance(ttsText);
-            utterance.rate = alertConfig.tts_rate || 1;
-            utterance.volume = (alertConfig.tts_volume || 80) / 100;
-            if (alertConfig.tts_voice && ttsVoices.length > 0) {{
-                const voice = ttsVoices.find(v => v.name === alertConfig.tts_voice);
-                if (voice) utterance.voice = voice;
-            }}
-            speechSynthesis.speak(utterance);
+            speechSynthesis.resume(); // Chrome fix: reset after cancel
+            setTimeout(() => {{
+                const utterance = new SpeechSynthesisUtterance(ttsText);
+                utterance.rate = alertConfig.tts_rate || 1;
+                utterance.volume = (alertConfig.tts_volume || 80) / 100;
+                if (alertConfig.tts_voice && ttsVoices.length > 0) {{
+                    const voice = ttsVoices.find(v => v.name === alertConfig.tts_voice);
+                    if (voice) utterance.voice = voice;
+                }}
+                speechSynthesis.speak(utterance);
+            }}, 50);
         }}
     }}
     
