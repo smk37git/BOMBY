@@ -2750,6 +2750,34 @@ def fuzeobs_test_alert(request):
                         }
                     }
                 )
+        elif widget_type == 'goal_bar':
+            # Send to goals channel
+            # For donation goals, also send to donations channel
+            if platform == 'donation' or event_type == 'donation':
+                async_to_sync(channel_layer.group_send)(
+                    f'donations_{user.id}',
+                    {
+                        'type': 'donation_event',
+                        'data': {
+                            'type': 'donation',
+                            'event_type': 'donation',
+                            'platform': 'donation',
+                            'event_data': event_data,
+                        }
+                    }
+                )
+            async_to_sync(channel_layer.group_send)(
+                f'goals_{user.id}',
+                {
+                    'type': 'goal_update',
+                    'data': {
+                        'type': event_type,
+                        'event_type': event_type,
+                        'platform': platform,
+                        'event_data': event_data,
+                    }
+                }
+            )
         else:
             # Default: send to alertbox channel
             # For donations, also send to donations channel
