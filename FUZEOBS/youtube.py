@@ -33,6 +33,9 @@ class YouTubePoller(BasePlatformPoller):
         
         token = conn.access_token
         
+        # ALWAYS check subscribers
+        self._check_subscribers(conn, token)
+        
         # Check if live
         resp = requests.get(
             'https://www.googleapis.com/youtube/v3/liveBroadcasts',
@@ -40,6 +43,11 @@ class YouTubePoller(BasePlatformPoller):
             headers={'Authorization': f'Bearer {token}'},
             timeout=10
         )
+        
+        if resp.status_code == 401:
+            print(f'[YOUTUBE] Token expired, needs refresh')
+            # Don't stop polling
+            return True
         
         if resp.status_code != 200:
             print(f'[YOUTUBE] API error {resp.status_code}')
@@ -64,9 +72,6 @@ class YouTubePoller(BasePlatformPoller):
         
         # Fetch and broadcast viewer count
         self._check_viewer_count(conn, token, active_broadcast['id'])
-        
-        # Check subscribers periodically
-        self._check_subscribers(conn, token)
         
         # Poll live chat
         self._poll_chat(conn, token, live_chat_id)
@@ -104,7 +109,7 @@ class YouTubePoller(BasePlatformPoller):
         try:
             resp = requests.get(
                 'https://www.googleapis.com/youtube/v3/subscriptions',
-                params={'part': 'snippet', 'myRecentSubscribers': 'true', 'maxResults': 50},
+                params={'part': 'subscriberSnippet', 'myRecentSubscribers': 'true', 'maxResults': 50},
                 headers={'Authorization': f'Bearer {token}'},
                 timeout=10
             )
@@ -114,19 +119,23 @@ class YouTubePoller(BasePlatformPoller):
                 return
             
             sub_data = resp.json()
+            print(f'[YOUTUBE] Subscriber check: found {len(sub_data.get("items", []))} recent subscribers')
             known_subs = set(conn.metadata.get('yt_subscribers', []))
             current_subs = {
-                item['snippet']['resourceId']['channelId']
+                item['subscriberSnippet']['channelId']
                 for item in sub_data.get('items', [])
+                if 'subscriberSnippet' in item
             }
             
             new_subs = current_subs - known_subs
             if new_subs:
                 for item in sub_data.get('items', []):
-                    channel_id = item['snippet']['resourceId']['channelId']
+                    if 'subscriberSnippet' not in item:
+                        continue
+                    channel_id = item['subscriberSnippet']['channelId']
                     if channel_id in new_subs:
-                        self.send_alert('subscribe', {'username': item['snippet']['title']})
-                        print(f'[YOUTUBE] New sub: {item["snippet"]["title"]}')
+                        self.send_alert('subscribe', {'username': item['subscriberSnippet']['title']})
+                        print(f'[YOUTUBE] ✓ New sub: {item["subscriberSnippet"]["title"]}')
                 
                 conn.metadata['yt_subscribers'] = list(current_subs)
                 conn.save()
