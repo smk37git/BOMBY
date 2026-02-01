@@ -6,6 +6,7 @@ from asgiref.sync import async_to_sync
 from .polling_base import Poller, BasePlatformPoller, start_poller
 from .twitch import send_alert
 from .models import PlatformConnection, WidgetConfig
+from .views_helpers import broadcast_viewer_count
 
 yt_poller = Poller('YOUTUBE')
 
@@ -21,6 +22,7 @@ class YouTubePoller(BasePlatformPoller):
             'consecutive_not_live': 0,
             'subscriber_check_counter': 0,
             'processed_chat_ids': set(),
+            'last_viewers': 0,
         }
         self.channel_layer = get_channel_layer()
     
@@ -60,6 +62,9 @@ class YouTubePoller(BasePlatformPoller):
         self._last_state['consecutive_not_live'] = 0
         live_chat_id = active_broadcast['snippet']['liveChatId']
         
+        # Fetch and broadcast viewer count
+        self._check_viewer_count(conn, token, active_broadcast['id'])
+        
         # Check subscribers periodically
         self._check_subscribers(conn, token)
         
@@ -68,6 +73,25 @@ class YouTubePoller(BasePlatformPoller):
         
         self.reset_errors()
         return True
+    
+    def _check_viewer_count(self, conn, token, video_id):
+        """Fetch viewer count and broadcast if changed"""
+        try:
+            resp = requests.get(
+                'https://www.googleapis.com/youtube/v3/videos',
+                params={'part': 'liveStreamingDetails', 'id': video_id},
+                headers={'Authorization': f'Bearer {token}'},
+                timeout=5
+            )
+            if resp.status_code == 200:
+                videos = resp.json().get('items', [])
+                if videos:
+                    viewers = int(videos[0].get('liveStreamingDetails', {}).get('concurrentViewers', 0))
+                    if viewers != self._last_state.get('last_viewers', 0):
+                        self._last_state['last_viewers'] = viewers
+                        broadcast_viewer_count(self.user_id, 'youtube', viewers)
+        except Exception as e:
+            print(f'[YOUTUBE] Viewer count error: {e}')
     
     def _check_subscribers(self, conn, token):
         """Check for new subscribers every 6 polls (~60 seconds)"""

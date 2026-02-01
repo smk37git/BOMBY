@@ -1,5 +1,6 @@
 """Kick platform listener"""
 from .polling_base import Poller, BasePlatformPoller, start_poller, safe_request
+from .views_helpers import broadcast_viewer_count
 
 kick_poller = Poller('KICK')
 
@@ -11,7 +12,7 @@ class KickPoller(BasePlatformPoller):
     def __init__(self, poller, user_id, key):
         super().__init__(poller, user_id, key)
         self.channel_slug = key
-        self._last_state = {'followers': None, 'subs': None}
+        self._last_state = {'followers': None, 'subs': None, 'viewers': 0}
     
     def poll(self) -> bool:
         resp = safe_request(
@@ -34,9 +35,16 @@ class KickPoller(BasePlatformPoller):
         followers = data.get('followers_count', 0)
         subs = data.get('subscribers_count', 0)
         
+        # Broadcast viewer count if live
+        livestream = data.get('livestream')
+        viewers = livestream.get('viewer_count', 0) if livestream else 0
+        if viewers != self._last_state.get('viewers', 0):
+            self._last_state['viewers'] = viewers
+            broadcast_viewer_count(self.user_id, 'kick', viewers)
+        
         # Initialize on first poll
         if self._last_state['followers'] is None:
-            self._last_state = {'followers': followers, 'subs': subs}
+            self._last_state = {'followers': followers, 'subs': subs, 'viewers': viewers}
             print(f'[KICK] Initialized - Followers: {followers}, Subs: {subs}')
         else:
             # Check for changes

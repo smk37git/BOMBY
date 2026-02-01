@@ -2030,11 +2030,11 @@ const viewers = {{
 }};
 
 const POLL_INTERVALS = {{
-    twitch: 30000,
-    youtube: 60000,
-    kick: 15000,
-    facebook: 30000,
-    tiktok: 30000
+    twitch: 60000,
+    youtube: 90000,
+    kick: 45000,
+    facebook: 60000,
+    tiktok: 60000
 }};
 
 function applyStyles() {{

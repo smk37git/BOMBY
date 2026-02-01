@@ -3,6 +3,7 @@ import re
 import requests
 from .polling_base import Poller, BasePlatformPoller, start_poller, safe_request
 from .models import PlatformConnection
+from .views_helpers import broadcast_viewer_count
 
 fb_poller = Poller('FACEBOOK')
 
@@ -17,7 +18,8 @@ class FacebookPoller(BasePlatformPoller):
         self._last_state = {
             'followers': None,
             'processed_comments': set(),
-            'live_video_id': None
+            'live_video_id': None,
+            'last_viewers': 0
         }
     
     def poll(self) -> bool:
@@ -36,7 +38,7 @@ class FacebookPoller(BasePlatformPoller):
     def _check_live_stream(self, token: str):
         resp = safe_request(
             f'https://graph.facebook.com/v18.0/{self.page_id}/live_videos',
-            params={'access_token': token, 'fields': 'id,status', 'limit': 1},
+            params={'access_token': token, 'fields': 'id,status,live_views', 'limit': 1},
             timeout=3
         )
         
@@ -50,9 +52,15 @@ class FacebookPoller(BasePlatformPoller):
             self._last_state['live_video_id'] = None
             return
         
-        live_video_id = active_streams[0]['id']
+        live_video = active_streams[0]
+        live_video_id = live_video['id']
         self._last_state['live_video_id'] = live_video_id
-        print(f'[FACEBOOK] Live stream detected: {live_video_id}')
+        
+        # Broadcast viewer count if changed
+        viewers = live_video.get('live_views', 0)
+        if viewers != self._last_state.get('last_viewers', 0):
+            self._last_state['last_viewers'] = viewers
+            broadcast_viewer_count(self.user_id, 'facebook', viewers)
         
         # Poll comments for Stars
         self._poll_live_comments(token, live_video_id)

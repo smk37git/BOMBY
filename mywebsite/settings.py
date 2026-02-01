@@ -72,11 +72,50 @@ INSTALLED_APPS = [
 
 ASGI_APPLICATION = 'mywebsite.asgi.application'
 
+# =============================================================================
+# REDIS CONFIGURATION
+# =============================================================================
+REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+
+# Channel Layers
 CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL],
+            'capacity': 1500,  # Max messages per channel
+            'expiry': 10,  # Message expiry in seconds
+        },
+    }
+} if os.environ.get('REDIS_URL') else {
+    # Fallback to in-memory for local development without Redis
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer'
     }
 }
+
+# Cache Configuration
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': REDIS_URL,
+        'OPTIONS': {
+            'db': '1',
+        },
+        'KEY_PREFIX': 'fuzeobs',
+        'TIMEOUT': 300,  # Default 5 min timeout
+    }
+} if os.environ.get('REDIS_URL') else {
+    # Fallback to local memory cache for development
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'fuzeobs-cache',
+    }
+}
+
+# =============================================================================
+# END REDIS CONFIGURATION
+# =============================================================================
 
 AUTHENTICATION_BACKENDS = [
     # Existing backend
@@ -174,13 +213,6 @@ if DEBUG and not os.environ.get('DB_HOST'):
             'NAME': BASE_DIR / 'db.sqlite3',
         }
     }
-
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'fuzeobs-cache',
-    }
-}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
