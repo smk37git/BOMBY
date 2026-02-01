@@ -13,16 +13,18 @@ yt_poller = Poller('YOUTUBE')
 
 class YouTubePoller(BasePlatformPoller):
     PLATFORM = 'youtube'
-    POLL_INTERVAL = 10.0
+    POLL_INTERVAL = 10.0  # Chat/subscriber polling when live
     MAX_ERRORS = 10
     
     def __init__(self, poller, user_id, key):
         super().__init__(poller, user_id, key)
         self._last_state = {
-            'consecutive_not_live': 0,
             'subscriber_check_counter': 0,
+            'broadcast_check_counter': 0,
             'processed_chat_ids': set(),
             'last_viewers': 0,
+            'live_chat_id': None,
+            'video_id': None,
         }
         self.channel_layer = get_channel_layer()
     
@@ -33,54 +35,59 @@ class YouTubePoller(BasePlatformPoller):
         
         token = conn.access_token
         
-        # ALWAYS check subscribers (even when not live)
-        self._check_subscribers(conn, token)
-        
-        # Check if live
-        resp = requests.get(
-            'https://www.googleapis.com/youtube/v3/liveBroadcasts',
-            params={'part': 'snippet,contentDetails', 'broadcastType': 'all', 'mine': 'true', 'maxResults': 5},
-            headers={'Authorization': f'Bearer {token}'},
-            timeout=10
+        # Only check broadcast status every 60 polls (~10 min) or if we don't have a chat ID
+        # This saves 100 quota units per skipped check
+        need_broadcast_check = (
+            not self._last_state['live_chat_id'] or 
+            self._last_state['broadcast_check_counter'] >= 60
         )
         
-        if resp.status_code == 401:
-            print(f'[YOUTUBE] Token expired, needs refresh')
-            # Don't stop polling - subscriber check still works with refresh
-            return True
-        
-        if resp.status_code != 200:
-            print(f'[YOUTUBE] API error {resp.status_code}')
-            self._last_state['consecutive_not_live'] += 1
-            if self._last_state['consecutive_not_live'] >= 5:
+        if need_broadcast_check:
+            self._last_state['broadcast_check_counter'] = 0
+            
+            resp = requests.get(
+                'https://www.googleapis.com/youtube/v3/liveBroadcasts',
+                params={'part': 'snippet', 'broadcastStatus': 'active', 'maxResults': 1},
+                headers={'Authorization': f'Bearer {token}'},
+                timeout=10
+            )
+            
+            if resp.status_code in (401, 403):
                 return False
-            return True
-        
-        # Find active broadcast
-        items = resp.json().get('items', [])
-        active_broadcast = next((item for item in items if 'liveChatId' in item['snippet']), None)
-        
-        if not active_broadcast:
-            self._last_state['consecutive_not_live'] += 1
-            print(f'[YOUTUBE] No active broadcast ({self._last_state["consecutive_not_live"]}/10)')
-            if self._last_state['consecutive_not_live'] >= 10:
+            
+            if resp.status_code != 200:
                 return False
-            return True
+            
+            items = resp.json().get('items', [])
+            active = next((i for i in items if 'liveChatId' in i.get('snippet', {})), None)
+            
+            if not active:
+                self._last_state['live_chat_id'] = None
+                return False  # Not live
+            
+            self._last_state['live_chat_id'] = active['snippet']['liveChatId']
+            self._last_state['video_id'] = active['id']
         
-        self._last_state['consecutive_not_live'] = 0
-        live_chat_id = active_broadcast['snippet']['liveChatId']
+        self._last_state['broadcast_check_counter'] += 1
         
-        # Fetch and broadcast viewer count
-        self._check_viewer_count(conn, token, active_broadcast['id'])
+        # Poll chat - if this fails with 403/404, stream likely ended
+        if not self._poll_chat(conn, token, self._last_state['live_chat_id']):
+            self._last_state['live_chat_id'] = None  # Force recheck
+            return True  # Keep alive, will recheck broadcast next poll
         
-        # Poll live chat
-        self._poll_chat(conn, token, live_chat_id)
+        # Subscriber check every 6 polls (~1 min) - costs only 1 unit
+        self._check_subscribers(conn, token)
+        
+        # Viewer count every 30 polls (~5 min) - costs 1 unit
+        if self._last_state['broadcast_check_counter'] % 30 == 0:
+            self._check_viewer_count(conn, token, self._last_state['video_id'])
         
         self.reset_errors()
         return True
     
     def _check_viewer_count(self, conn, token, video_id):
-        """Fetch viewer count and broadcast if changed"""
+        if not video_id:
+            return
         try:
             resp = requests.get(
                 'https://www.googleapis.com/youtube/v3/videos',
@@ -95,13 +102,13 @@ class YouTubePoller(BasePlatformPoller):
                     if viewers != self._last_state.get('last_viewers', 0):
                         self._last_state['last_viewers'] = viewers
                         broadcast_viewer_count(self.user_id, 'youtube', viewers)
-        except Exception as e:
-            print(f'[YOUTUBE] Viewer count error: {e}')
+        except Exception:
+            pass
     
     def _check_subscribers(self, conn, token):
-        """Check for new subscribers every 2 polls (~20 seconds) for testing"""
+        """Check subscribers every 30 polls (~5 min)"""
         self._last_state['subscriber_check_counter'] += 1
-        if self._last_state['subscriber_check_counter'] < 2:
+        if self._last_state['subscriber_check_counter'] < 30:
             return
         
         self._last_state['subscriber_check_counter'] = 0
@@ -115,12 +122,12 @@ class YouTubePoller(BasePlatformPoller):
             )
             
             if resp.status_code != 200:
-                print(f'[YOUTUBE] Subscription API error {resp.status_code}: {resp.text}')
                 return
             
             sub_data = resp.json()
-            print(f'[YOUTUBE] Subscriber check: found {len(sub_data.get("items", []))} recent subscribers')
-            print(f'[YOUTUBE] Raw response: {sub_data}')
+            items = sub_data.get("items", [])
+            if items:
+                print(f'[YOUTUBE] Subscriber check: found {len(items)} recent subscribers')
             known_subs = set(conn.metadata.get('yt_subscribers', []))
             current_subs = {
                 item['subscriberSnippet']['channelId']
@@ -141,11 +148,11 @@ class YouTubePoller(BasePlatformPoller):
                 conn.metadata['yt_subscribers'] = list(current_subs)
                 conn.save()
                 
-        except Exception as e:
-            print(f'[YOUTUBE] Subscriber check failed: {e}')
+        except Exception:
+            pass  # Silent fail
     
     def _poll_chat(self, conn, token, live_chat_id):
-        """Poll live chat for messages and events"""
+        """Poll live chat - returns False if stream ended"""
         page_token = conn.metadata.get('yt_page_token')
         params = {
             'liveChatId': live_chat_id,
@@ -162,9 +169,11 @@ class YouTubePoller(BasePlatformPoller):
             timeout=10
         )
         
+        if resp.status_code in (403, 404):
+            return False  # Chat ended = stream ended
+        
         if resp.status_code != 200:
-            print(f'[YOUTUBE] Chat API error {resp.status_code}')
-            return
+            return True  # Other error, keep trying
         
         data = resp.json()
         chat_enabled = WidgetConfig.objects.filter(
@@ -207,7 +216,8 @@ class YouTubePoller(BasePlatformPoller):
         conn.save()
         
         new_interval = data.get('pollingIntervalMillis', 5000) / 1000
-        self.POLL_INTERVAL = new_interval
+        self.POLL_INTERVAL = max(new_interval, 5.0)  # Minimum 5s
+        return True
     
     def _send_chat_message(self, msg):
         """Send chat message to WebSocket"""
