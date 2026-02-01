@@ -33,7 +33,7 @@ class YouTubePoller(BasePlatformPoller):
         
         token = conn.access_token
         
-        # ALWAYS check subscribers
+        # ALWAYS check subscribers (even when not live)
         self._check_subscribers(conn, token)
         
         # Check if live
@@ -46,7 +46,7 @@ class YouTubePoller(BasePlatformPoller):
         
         if resp.status_code == 401:
             print(f'[YOUTUBE] Token expired, needs refresh')
-            # Don't stop polling
+            # Don't stop polling - subscriber check still works with refresh
             return True
         
         if resp.status_code != 200:
@@ -99,9 +99,9 @@ class YouTubePoller(BasePlatformPoller):
             print(f'[YOUTUBE] Viewer count error: {e}')
     
     def _check_subscribers(self, conn, token):
-        """Check for new subscribers every 6 polls (~60 seconds)"""
+        """Check for new subscribers every 2 polls (~20 seconds) for testing"""
         self._last_state['subscriber_check_counter'] += 1
-        if self._last_state['subscriber_check_counter'] < 6:
+        if self._last_state['subscriber_check_counter'] < 2:
             return
         
         self._last_state['subscriber_check_counter'] = 0
@@ -115,11 +115,12 @@ class YouTubePoller(BasePlatformPoller):
             )
             
             if resp.status_code != 200:
-                print(f'[YOUTUBE] Subscription API error {resp.status_code}')
+                print(f'[YOUTUBE] Subscription API error {resp.status_code}: {resp.text}')
                 return
             
             sub_data = resp.json()
             print(f'[YOUTUBE] Subscriber check: found {len(sub_data.get("items", []))} recent subscribers')
+            print(f'[YOUTUBE] Raw response: {sub_data}')
             known_subs = set(conn.metadata.get('yt_subscribers', []))
             current_subs = {
                 item['subscriberSnippet']['channelId']
