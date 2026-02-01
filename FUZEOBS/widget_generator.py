@@ -186,7 +186,6 @@ function connectWS() {{
     if (config.show_tiktok && connectedPlatforms.includes('tiktok')) {{
         connections.push(createWS(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/tiktok/`));
     }}
-    // Donations WebSocket
     if (config.show_donations) {{
         connections.push(createWS(`wss://bomby.us/ws/fuzeobs-donations/${{userId}}/`));
     }}
@@ -264,14 +263,11 @@ const defaultTemplates = {{
 const eventConfigs = {{}};
 let configsLoaded = false;
 
-// Fetch event configs for ALL platforms
 fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/all?t=${{Date.now()}}`)
     .then(r => r.json())
     .then(data => {{
         Object.assign(eventConfigs, data.configs);
         configsLoaded = true;
-        
-        // Inject custom CSS
         let allCustomCss = '';
         for (const key in data.configs) {{
             const cfg = data.configs[key];
@@ -286,9 +282,11 @@ fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/all?t=${{Date.
             document.head.appendChild(styleEl);
         }}
     }})
-    .catch(err => {{
-        configsLoaded = true;
-    }});
+    .catch(() => {{ configsLoaded = true; }});
+
+// === ALERT QUEUE SYSTEM ===
+const alertQueue = [];
+let isProcessing = false;
 
 function handleMessage(e) {{
     const data = JSON.parse(e.data);
@@ -307,8 +305,21 @@ function handleMessage(e) {{
     }}
     
     if (data.clear_existing) {{
+        alertQueue.length = 0;
         document.getElementById('container').innerHTML = '';
+        isProcessing = false;
     }}
+    
+    // Add to queue
+    alertQueue.push(data);
+    processQueue();
+}}
+
+function processQueue() {{
+    if (isProcessing || alertQueue.length === 0) return;
+    
+    isProcessing = true;
+    const data = alertQueue.shift();
     
     const configKey = `${{data.platform}}-${{data.event_type}}`;
     const savedConfig = eventConfigs[configKey] || {{}};
@@ -319,7 +330,11 @@ function handleMessage(e) {{
     }};
     
     if (!alertConfig.enabled && savedConfig.enabled === undefined) alertConfig.enabled = true;
-    if (alertConfig.enabled === false) return;
+    if (alertConfig.enabled === false) {{
+        isProcessing = false;
+        processQueue();
+        return;
+    }}
     
     const alert = document.createElement('div');
     alert.className = 'alert';
@@ -354,7 +369,6 @@ function handleMessage(e) {{
             imgContainer.style.position = 'relative';
             imgContainer.style.display = 'inline-block';
         }}
-        
         const img = document.createElement('img');
         img.src = alertConfig.image_url;
         img.className = 'alert-image';
@@ -406,7 +420,7 @@ function handleMessage(e) {{
         alert.appendChild(text);
     }}
     
-    // Add donation message below the main text
+    // Donation message
     if (data.event_type === 'donation' && eventData.message && eventData.message.trim()) {{
         const msgEl = document.createElement('div');
         msgEl.className = 'alert-message';
@@ -423,14 +437,20 @@ function handleMessage(e) {{
         }}
     }}
     
+    document.getElementById('container').appendChild(alert);
+    
+    // Play sound
     if (alertConfig.sound_url) {{
         const audio = document.getElementById('alertSound');
         audio.src = alertConfig.sound_url;
         audio.volume = (alertConfig.sound_volume || 50) / 100;
-        audio.play().catch(err => console.log('Audio play failed:', err));
+        audio.play().catch(() => {{}});
     }}
     
-    // TTS for donations, bits, superchat, stars
+    // TTS handling
+    let ttsFinished = true;
+    let ttsDuration = 0;
+    
     if (alertConfig.tts_enabled && ['donation', 'bits', 'superchat', 'stars'].includes(data.event_type)) {{
         const formatAmountForSpeech = (amt, eventType) => {{
             if (!amt) return '';
@@ -439,20 +459,13 @@ function handleMessage(e) {{
             if (!match) return str;
             const num = parseFloat(match[1]);
             
-            if (eventType === 'bits') {{
-                return num === 1 ? '1 bit' : num + ' bits';
-            }}
-            if (eventType === 'stars') {{
-                return num === 1 ? '1 star' : num + ' stars';
-            }}
+            if (eventType === 'bits') return num === 1 ? '1 bit' : num + ' bits';
+            if (eventType === 'stars') return num === 1 ? '1 star' : num + ' stars';
             
             const dollars = Math.floor(num);
             const cents = Math.round((num - dollars) * 100);
-            if (cents === 0) {{
-                return dollars === 1 ? '1 dollar' : dollars + ' dollars';
-            }} else {{
-                return dollars + ' dollars and ' + cents + ' cents';
-            }}
+            if (cents === 0) return dollars === 1 ? '1 dollar' : dollars + ' dollars';
+            return dollars + ' dollars and ' + cents + ' cents';
         }};
         
         const defaultTtsTemplates = {{
@@ -468,28 +481,43 @@ function handleMessage(e) {{
             .replace(/{{message}}/g, eventData.message || '');
         
         if (ttsText.trim()) {{
-            speechSynthesis.cancel();
-            speechSynthesis.resume(); // Chrome fix: reset after cancel
-            setTimeout(() => {{
-                const utterance = new SpeechSynthesisUtterance(ttsText);
-                utterance.rate = alertConfig.tts_rate || 1;
-                utterance.volume = (alertConfig.tts_volume || 80) / 100;
-                if (alertConfig.tts_voice && ttsVoices.length > 0) {{
-                    const voice = ttsVoices.find(v => v.name === alertConfig.tts_voice);
-                    if (voice) utterance.voice = voice;
-                }}
-                speechSynthesis.speak(utterance);
-            }}, 50);
+            ttsFinished = false;
+            const utterance = new SpeechSynthesisUtterance(ttsText);
+            utterance.rate = alertConfig.tts_rate || 1;
+            utterance.volume = (alertConfig.tts_volume || 80) / 100;
+            if (alertConfig.tts_voice && ttsVoices.length > 0) {{
+                const voice = ttsVoices.find(v => v.name === alertConfig.tts_voice);
+                if (voice) utterance.voice = voice;
+            }}
+            utterance.onend = () => {{ ttsFinished = true; }};
+            utterance.onerror = () => {{ ttsFinished = true; }};
+            speechSynthesis.speak(utterance);
+            
+            // Estimate TTS duration as fallback (150 words per minute)
+            const wordCount = ttsText.split(/\\s+/).length;
+            ttsDuration = Math.max(2000, (wordCount / 150) * 60 * 1000 / (alertConfig.tts_rate || 1));
         }}
     }}
     
-    document.getElementById('container').appendChild(alert);
+    const alertDuration = (alertConfig.duration || 5) * 1000;
     
-    const duration = (alertConfig.duration || 5) * 1000;
+    // Wait for alert duration, then fade out
     setTimeout(() => {{
         alert.style.animation = 'fadeOut 0.5s ease-out forwards';
-        setTimeout(() => alert.remove(), 500);
-    }}, duration);
+        setTimeout(() => {{
+            alert.remove();
+            // Wait for TTS to finish before next alert
+            const checkTts = () => {{
+                if (ttsFinished || !speechSynthesis.speaking) {{
+                    isProcessing = false;
+                    processQueue();
+                }} else {{
+                    setTimeout(checkTts, 100);
+                }}
+            }};
+            checkTts();
+        }}, 500);
+    }}, alertDuration);
 }};
 </script>
 </body>
