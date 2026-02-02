@@ -66,7 +66,7 @@ User = get_user_model()
 
 # ====== VERSION / UPDATES ======
 
-FUZEOBS_VERSION = '0.9.19'
+FUZEOBS_VERSION = '0.9.20'
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
