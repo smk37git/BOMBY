@@ -447,11 +447,13 @@ function processQueue() {{
         audio.play().catch(() => {{}});
     }}
     
-    // TTS handling
+    // TTS handling - disabled if ?notts=1 parameter present (for FuzeOBS preview)
+    const urlParams = new URLSearchParams(window.location.search);
+    const ttsDisabled = urlParams.get('notts') === '1';
     let ttsFinished = true;
     let ttsDuration = 0;
     
-    if (alertConfig.tts_enabled && ['donation', 'bits', 'superchat', 'stars'].includes(data.event_type)) {{
+    if (!ttsDisabled && alertConfig.tts_enabled && ['donation', 'bits', 'superchat', 'stars'].includes(data.event_type)) {{
         const formatAmountForSpeech = (amt, eventType) => {{
             if (!amt) return '';
             const str = String(amt);
