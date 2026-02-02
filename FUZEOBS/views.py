@@ -2346,6 +2346,7 @@ def get_platform_username(platform, access_token):
             return data['data'][0]['login'], data['data'][0]['id']
     
     elif platform == 'youtube':
+        # First try the channels API
         response = requests.get(
             'https://www.googleapis.com/youtube/v3/channels',
             params={'part': 'snippet', 'mine': 'true'},
@@ -2355,6 +2356,16 @@ def get_platform_username(platform, access_token):
             data = response.json()
             if data.get('items'):
                 return data['items'][0]['snippet']['title'], data['items'][0]['id']
+        
+        # Fallback to userinfo (no quota cost)
+        userinfo_resp = requests.get(
+            'https://www.googleapis.com/oauth2/v3/userinfo',
+            headers={'Authorization': f'Bearer {access_token}'}
+        )
+        if userinfo_resp.status_code == 200:
+            userinfo = userinfo_resp.json()
+            return userinfo.get('name', 'YouTube User'), userinfo.get('sub', '')
+        
         return 'YouTube User', ''
     
     elif platform == 'kick':
