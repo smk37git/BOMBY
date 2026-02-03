@@ -58,9 +58,6 @@
             <div class="metric-label">Donations</div>
             {% if donation_settings and donation_settings.enabled %}
                 <div class="metric-value" style="color: #4ade80;">Enabled</div>
-                <div class="metric-subtext">
-                    <a href="{{ donation_url }}" target="_blank" style="color: #60a5fa; text-decoration: none;">View Page →</a>
-                </div>
             {% elif donation_settings %}
                 <div class="metric-value" style="color: #f59e0b;">Disabled</div>
             {% else %}
@@ -86,9 +83,9 @@
                     <td>Status</td>
                     <td>
                         {% if donation_settings.enabled %}
-                            <span style="color: #4ade80;">✓ Enabled</span>
+                            <span style="color: #4ade80;">Enabled</span>
                         {% else %}
-                            <span style="color: #f59e0b;">○ Disabled</span>
+                            <span style="color: #f59e0b;">Disabled</span>
                         {% endif %}
                     </td>
                 </tr>
