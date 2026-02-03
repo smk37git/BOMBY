@@ -14,7 +14,7 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
-from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription
+from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription, DonationSettings
 from decimal import Decimal
 from google.cloud import storage
 import hmac
@@ -1468,6 +1468,14 @@ def fuzeobs_user_detail(request, user_id):
     )
     media_size_mb = round((media_stats['total_size'] or 0) / (1024 * 1024), 2)
     
+    # Donation settings
+    try:
+        donation_settings = DonationSettings.objects.get(user=view_user)
+        donation_url = request.build_absolute_uri(f'/fuzeobs/donate/{donation_settings.donation_token}')
+    except DonationSettings.DoesNotExist:
+        donation_settings = None
+        donation_url = None
+    
     context = {
         'view_user': view_user,
         'ai_usage': ai_usage,
@@ -1479,6 +1487,8 @@ def fuzeobs_user_detail(request, user_id):
         'widgets': widgets,
         'media_files': media_stats['total_files'] or 0,
         'media_size_mb': media_size_mb,
+        'donation_settings': donation_settings,
+        'donation_url': donation_url,
     }
     
     return render(request, 'FUZEOBS/user_detail.html', context)
