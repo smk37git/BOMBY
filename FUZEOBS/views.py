@@ -1811,7 +1811,7 @@ def fuzeobs_save_widget(request):
         # For goal_bar and labels: use 'all' platform, goal_type determines what it tracks
         # For viewer_count, chat_box, sponsor_banner: always 'all' platform
         # For alert_box, event_list: use specified platform
-        if widget_type in ('goal_bar', 'labels', 'viewer_count', 'chat_box', 'sponsor_banner'):
+        if widget_type in ('viewer_count', 'chat_box', 'sponsor_banner'):
             platform = 'all'
         else:
             platform = data.get('platform', 'all')
