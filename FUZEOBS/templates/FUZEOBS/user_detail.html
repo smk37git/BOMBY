@@ -56,19 +56,26 @@
         </div>
         <div class="metric-card">
             <div class="metric-label">Donations</div>
-            <div class="metric-value">{% if donation_settings %}Enabled{% else %}Not Set Up{% endif %}</div>
-            {% if donation_settings %}
-            <div class="metric-subtext">
-                <a href="{{ donation_url }}" target="_blank" style="color: #4ade80; text-decoration: none;">View Page →</a>
-            </div>
+            {% if donation_settings and donation_settings.paypal_email %}
+                {% if donation_settings.enabled %}
+                <div class="metric-value" style="color: #4ade80;">Enabled</div>
+                {% else %}
+                <div class="metric-value" style="color: #f59e0b;">Disabled</div>
+                {% endif %}
+                <div class="metric-subtext">
+                    <a href="{{ donation_url }}" target="_blank" style="color: #60a5fa; text-decoration: none;">View Page →</a>
+                </div>
+            {% else %}
+                <div class="metric-value" style="color: #666;">Not Set Up</div>
+                <div class="metric-subtext">PayPal not connected</div>
             {% endif %}
         </div>
     </div>
 
-    {% if donation_settings %}
+    {% if donation_settings and donation_settings.paypal_email %}
     <div class="analytics-section">
         <div class="section-header">
-            <h3>Donation Page</h3>
+            <h3>Donation Settings</h3>
         </div>
         <table class="product-table">
             <thead>
@@ -79,31 +86,33 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>PayPal Connected</td>
-                    <td>{% if donation_settings.paypal_email %}<span style="color: #4ade80;">✓</span> {{ donation_settings.paypal_email }}{% else %}<span style="color: #f87171;">✗</span> Not connected{% endif %}</td>
+                    <td>Status</td>
+                    <td>
+                        {% if donation_settings.enabled %}
+                            <span style="color: #4ade80;">✓ Enabled</span>
+                        {% else %}
+                            <span style="color: #f59e0b;">○ Disabled</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>PayPal Account</td>
+                    <td><span style="color: #4ade80;">✓</span> {{ donation_settings.paypal_email }}</td>
                 </tr>
                 <tr>
                     <td>Page Title</td>
                     <td>{{ donation_settings.page_title }}</td>
                 </tr>
                 <tr>
-                    <td>Currency</td>
-                    <td>{{ donation_settings.currency }}</td>
-                </tr>
-                <tr>
-                    <td>Min Amount</td>
-                    <td>{{ donation_settings.min_amount }}</td>
+                    <td>Currency / Min</td>
+                    <td>{{ donation_settings.currency }} / {{ donation_settings.min_amount }}</td>
                 </tr>
                 <tr>
                     <td>Suggested Amounts</td>
                     <td>{{ donation_settings.suggested_amounts|join:", " }}</td>
                 </tr>
                 <tr>
-                    <td>Show Recent Donations</td>
-                    <td>{% if donation_settings.show_recent_donations %}<span style="color: #4ade80;">✓</span>{% else %}<span style="color: #f87171;">✗</span>{% endif %}</td>
-                </tr>
-                <tr>
-                    <td>Donation Page URL</td>
+                    <td>Donation Page</td>
                     <td><a href="{{ donation_url }}" target="_blank" style="color: #60a5fa;">{{ donation_url }}</a></td>
                 </tr>
             </tbody>

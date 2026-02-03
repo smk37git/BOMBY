@@ -14,7 +14,7 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
-from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription, DonationSettings
+from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription, DonationSettings, DonationSettings
 from decimal import Decimal
 from google.cloud import storage
 import hmac

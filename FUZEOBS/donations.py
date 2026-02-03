@@ -90,6 +90,7 @@ def donation_settings(request):
                 'page_message': ds.page_message,
                 'show_recent_donations': ds.show_recent_donations,
                 'total_received': float(total),
+                'enabled': ds.enabled,
             })
         
         data = json.loads(request.body)
@@ -109,6 +110,7 @@ def donation_settings(request):
         ds.page_title = page_title
         ds.page_message = page_message
         ds.show_recent_donations = data.get('show_recent_donations', ds.show_recent_donations)
+        ds.enabled = data.get('enabled', ds.enabled)
         if 'suggested_amounts' in data:
             ds.suggested_amounts = data['suggested_amounts']
         ds.save()
@@ -282,6 +284,9 @@ def donation_page(request, token):
         ds = DonationSettings.objects.select_related('user').get(donation_token=token)
     except DonationSettings.DoesNotExist:
         return HttpResponse('Donation page not found', status=404)
+    
+    if not ds.enabled:
+        return HttpResponse('Donations are currently disabled', status=404)
     
     business_id = ds.paypal_email or ds.paypal_merchant_id
     if not business_id:
