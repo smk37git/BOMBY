@@ -283,14 +283,14 @@ def donation_page(request, token):
     try:
         ds = DonationSettings.objects.select_related('user').get(donation_token=token)
     except DonationSettings.DoesNotExist:
-        return HttpResponse('Donation page not found', status=404)
+        return render(request, 'FUZEOBS/donation_disabled.html')
     
     if not ds.enabled:
-        return HttpResponse('Donations are currently disabled', status=404)
+        return render(request, 'FUZEOBS/donation_disabled.html')
     
     business_id = ds.paypal_email or ds.paypal_merchant_id
     if not business_id:
-        return HttpResponse('Donations not configured', status=404)
+        return render(request, 'FUZEOBS/donation_disabled.html')
     
     recent_donations = []
     if ds.show_recent_donations:

@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donations Unavailable - FuzeOBS</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="stylesheet" href="{% static 'css/fuzeobs_callback.css' %}">
+</head>
+<body>
+    <div class="callback-container">
+        <div class="callback-icon error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+        </div>
+        
+        <h1 class="callback-title">Donations Unavailable</h1>
+        
+        <p class="callback-message">This streamer's donation page is currently disabled.</p>
+        
+        <div class="callback-badge">DONATIONS PAUSED</div>
+        
+        <p class="callback-hint">Please check back later or contact the streamer directly.</p>
+    </div>
+</body>
+</html>
