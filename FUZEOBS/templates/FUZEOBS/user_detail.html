@@ -56,23 +56,20 @@
         </div>
         <div class="metric-card">
             <div class="metric-label">Donations</div>
-            {% if donation_settings and donation_settings.paypal_email %}
-                {% if donation_settings.enabled %}
+            {% if donation_settings and donation_settings.enabled %}
                 <div class="metric-value" style="color: #4ade80;">Enabled</div>
-                {% else %}
-                <div class="metric-value" style="color: #f59e0b;">Disabled</div>
-                {% endif %}
                 <div class="metric-subtext">
                     <a href="{{ donation_url }}" target="_blank" style="color: #60a5fa; text-decoration: none;">View Page →</a>
                 </div>
+            {% elif donation_settings %}
+                <div class="metric-value" style="color: #f59e0b;">Disabled</div>
             {% else %}
                 <div class="metric-value" style="color: #666;">Not Set Up</div>
-                <div class="metric-subtext">PayPal not connected</div>
             {% endif %}
         </div>
     </div>
 
-    {% if donation_settings and donation_settings.paypal_email %}
+    {% if donation_settings %}
     <div class="analytics-section">
         <div class="section-header">
             <h3>Donation Settings</h3>
@@ -96,20 +93,12 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>PayPal Account</td>
-                    <td><span style="color: #4ade80;">✓</span> {{ donation_settings.paypal_email }}</td>
-                </tr>
-                <tr>
                     <td>Page Title</td>
                     <td>{{ donation_settings.page_title }}</td>
                 </tr>
                 <tr>
                     <td>Currency / Min</td>
                     <td>{{ donation_settings.currency }} / {{ donation_settings.min_amount }}</td>
-                </tr>
-                <tr>
-                    <td>Suggested Amounts</td>
-                    <td>{{ donation_settings.suggested_amounts|join:", " }}</td>
                 </tr>
                 <tr>
                     <td>Donation Page</td>
