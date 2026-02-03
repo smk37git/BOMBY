@@ -1815,9 +1815,18 @@ function getLabelValue() {{
 function render(animate = false) {{
     const animClass = animate && config.animation && config.animation !== 'none' ? `anim-${{config.animation}}` : '';
     let iconHtml = '';
-    if (config.show_platform_icon && sessionData.latest_follower.platform) {{
-        const platform = sessionData.latest_follower.platform;
-        if (PLATFORM_ICONS[platform]) {{
+    if (config.show_platform_icon) {{
+        // Get platform from URL param (set by preview/config) or from relevant session data
+        const urlPlatform = urlParams.get('platform');
+        let platform = urlPlatform;
+        
+        // If no URL param, try to get from session data based on label type
+        if (!platform) {{
+            if (sessionData.latest_follower.platform) platform = sessionData.latest_follower.platform;
+            else if (sessionData.latest_subscriber.platform) platform = sessionData.latest_subscriber.platform;
+        }}
+        
+        if (platform && PLATFORM_ICONS[platform]) {{
             iconHtml = `<img class="platform-icon" src="${{PLATFORM_ICONS[platform]}}" alt="${{platform}}" />`;
         }}
     }}
