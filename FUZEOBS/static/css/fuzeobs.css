@@ -705,7 +705,8 @@
    Reviews Carousel Section
    =========================================== */
 .reviews-section {
-    padding: 100px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 50px 0;
     overflow: hidden;
 }
 
