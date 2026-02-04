@@ -16,13 +16,10 @@
 <div class="analytics-container">
     <div class="analytics-header">
         <h2>Review Management</h2>
-        <a href="#" class="btn-secondary" id="addReviewBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Add Review
-        </a>
+        <div class="time-filter">
+            <a href="{% url 'FUZEOBS:analytics' %}">Analytics</a>
+            <a href="#" class="active" id="addReviewBtn">+ Add Review</a>
+        </div>
     </div>
 
     <div class="metrics-grid">
@@ -38,11 +35,6 @@
             <div class="metric-label">Average Rating</div>
             <div class="metric-value">{{ avg_rating|floatformat:1 }}/5</div>
         </div>
-        <a href="{% url 'FUZEOBS:analytics' %}" class="metric-card metric-card-link">
-            <div class="metric-label">Back to</div>
-            <div class="metric-value" style="font-size: 24px;">Analytics</div>
-            <div class="metric-subtext">&larr; Dashboard</div>
-        </a>
     </div>
 
     <div class="analytics-section">
@@ -133,7 +125,7 @@
             </div>
             <div class="form-group">
                 <label>Review</label>
-                <textarea id="createReview" required maxlength="300" rows="4" placeholder="Write review..."></textarea>
+                <textarea id="createReview" required maxlength="300" rows="3" placeholder="Write review..."></textarea>
                 <span class="char-count"><span id="charCount">0</span>/300</span>
             </div>
             <div class="form-group">
@@ -143,8 +135,8 @@
                 </label>
             </div>
             <div class="modal-actions">
-                <button type="button" id="cancelModalBtn" class="btn-secondary">Cancel</button>
-                <button type="submit" class="btn-secondary" style="background: #fff; color: #000;">Create Review</button>
+                <button type="button" id="cancelModalBtn" class="modal-btn">Cancel</button>
+                <button type="submit" class="modal-btn modal-btn-primary">Create Review</button>
             </div>
         </form>
     </div>

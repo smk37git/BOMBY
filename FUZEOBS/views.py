@@ -270,7 +270,7 @@ def fuzeobs_login(request):
                 'email': user.email,
                 'username': user.username,
                 'tier': user.fuzeobs_tier,
-                'profile_picture': user.profile_picture.url if user.profile_picture else None
+                'profile_picture': f'https://bomby.us{user.profile_picture.url}' if user.profile_picture else None
             })
         else:
             # Failed login - increment attempts
@@ -406,7 +406,7 @@ def fuzeobs_verify(request):
             'tier': user.fuzeobs_tier,
             'email': user.email,
             'username': user.username,
-            'profile_picture': user.profile_picture.url if user.profile_picture else None,
+            'profile_picture': f'https://bomby.us{user.profile_picture.url}' if user.profile_picture else None,
             'reachable': True
         }
         

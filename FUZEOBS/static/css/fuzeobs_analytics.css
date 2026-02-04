@@ -846,6 +846,7 @@
     border-color: #fff;
 }
 
+/* Clickable metric card link */
 a.metric-card-link {
     display: block;
     text-decoration: none;
@@ -855,7 +856,7 @@ a.metric-card-link {
 }
 
 a.metric-card-link:hover {
-    border-color: rgba(255, 255, 255, 0.5);
+    border-color: rgba(255, 255, 255, 0.3);
     background: rgba(255, 255, 255, 0.08);
 }
 
