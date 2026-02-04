@@ -780,23 +780,25 @@
 
 .review-card-info {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
 }
 
 .review-card-name {
     font-weight: 600;
-    font-size: 15px;
+    font-size: 17px;
     color: #fff;
 }
 
-/* Platform Icons - matching site style */
+/* Platform Icons - muted colors */
 .review-card-platform {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 22px;
+    height: 22px;
+    opacity: 0.5;
 }
 
 .review-card-platform.platform-twitch { color: #9146ff; }
@@ -829,16 +831,16 @@
 
 .review-read-more {
     display: inline-block;
-    color: #a855f7;
+    color: rgba(255, 255, 255, 0.4);
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 400;
     cursor: pointer;
     margin-top: 10px;
     transition: color 0.2s;
 }
 
 .review-read-more:hover {
-    color: #c084fc;
+    color: rgba(255, 255, 255, 0.7);
 }
 
 /* Review Modal */
@@ -921,8 +923,9 @@
 
 .review-modal-info {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
 }
 
 .review-modal-name {
@@ -936,6 +939,7 @@
     align-items: center;
     width: 24px;
     height: 24px;
+    opacity: 0.5;
 }
 
 .review-modal-platform.platform-twitch { color: #9146ff; }
