@@ -741,6 +741,7 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     transition: border-color 0.3s, background 0.3s;
+    cursor: pointer;
 }
 
 .review-card:hover {
@@ -789,21 +790,22 @@
     color: #fff;
 }
 
-.review-card-platform {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    padding: 3px 8px;
-    border-radius: 4px;
-    width: fit-content;
+/* Platform Icon Badges */
+.review-card-platform-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.review-card-platform.platform-twitch { background: #9146ff; color: #fff; }
-.review-card-platform.platform-youtube { background: #ff0000; color: #fff; }
-.review-card-platform.platform-kick { background: #53fc18; color: #000; }
-.review-card-platform.platform-tiktok { background: #ff0050; color: #fff; }
-.review-card-platform.platform-facebook { background: #1877f2; color: #fff; }
-.review-card-platform.platform-other { background: rgba(255,255,255,0.15); color: #fff; }
+.review-card-platform-icon.platform-twitch { background: #9146ff; color: #fff; }
+.review-card-platform-icon.platform-youtube { background: #ff0000; color: #fff; }
+.review-card-platform-icon.platform-kick { background: #53fc18; color: #000; }
+.review-card-platform-icon.platform-tiktok { background: #ff0050; color: #fff; }
+.review-card-platform-icon.platform-facebook { background: #1877f2; color: #fff; }
+.review-card-platform-icon.platform-other { background: rgba(255,255,255,0.15); color: #fff; }
 
 .review-card-stars {
     display: flex;
@@ -823,6 +825,150 @@
     font-size: 14px;
     line-height: 1.6;
     color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+
+.review-read-more {
+    background: none;
+    border: none;
+    color: #a855f7;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+    margin-top: 8px;
+}
+
+.review-read-more:hover {
+    text-decoration: underline;
+}
+
+/* Review Modal */
+.review-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.review-modal-content {
+    background: #0d0d0d;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    max-width: 500px;
+    width: 100%;
+    padding: 28px;
+    position: relative;
+}
+
+.review-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 20px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.review-modal-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.review-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.review-modal-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.review-modal-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.review-modal-avatar.placeholder {
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.review-modal-avatar.placeholder span {
+    font-weight: 700;
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.review-modal-info {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.review-modal-name {
+    font-weight: 600;
+    font-size: 18px;
+    color: #fff;
+}
+
+.review-modal-platform {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.review-modal-platform.platform-twitch { background: #9146ff; color: #fff; }
+.review-modal-platform.platform-youtube { background: #ff0000; color: #fff; }
+.review-modal-platform.platform-kick { background: #53fc18; color: #000; }
+.review-modal-platform.platform-tiktok { background: #ff0050; color: #fff; }
+.review-modal-platform.platform-facebook { background: #1877f2; color: #fff; }
+.review-modal-platform.platform-other { background: rgba(255,255,255,0.15); color: #fff; }
+
+.review-modal-stars {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+}
+
+.review-modal-stars .star {
+    font-size: 20px;
+    color: #ffcc00;
+}
+
+.review-modal-stars .star:not(.filled) {
+    color: rgba(255, 255, 255, 0.15);
+}
+
+.review-modal-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.8);
     margin: 0;
 }
 

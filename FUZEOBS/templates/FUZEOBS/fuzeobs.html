@@ -463,7 +463,7 @@
             <div class="reviews-carousel-wrapper">
                 <div class="reviews-carousel" id="reviewsCarousel">
                     {% for review in featured_reviews %}
-                    <div class="review-card">
+                    <div class="review-card" data-full-review="{{ review.review|escapejs }}" data-username="{{ review.user.username }}" data-rating="{{ review.rating }}" data-platform="{{ review.platform }}" {% if review.user.profile_picture %}data-avatar="{{ review.user.profile_picture.url }}"{% endif %}>
                         <div class="review-card-header">
                             {% if review.user.profile_picture %}
                             <img src="{{ review.user.profile_picture.url }}" class="review-card-avatar" alt="{{ review.user.username }}">
@@ -472,7 +472,21 @@
                             {% endif %}
                             <div class="review-card-info">
                                 <span class="review-card-name">{{ review.user.username }}</span>
-                                <span class="review-card-platform platform-{{ review.platform }}">{{ review.platform|upper }}</span>
+                                <span class="review-card-platform-icon platform-{{ review.platform }}">
+                                    {% if review.platform == 'twitch' %}
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
+                                    {% elif review.platform == 'youtube' %}
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                                    {% elif review.platform == 'kick' %}
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M1.143 0v24h8.57v-7.714L12 14l5.143 10h6.857l-8.571-14L22.286 0h-6.857l-5.714 7.714V0z"/></svg>
+                                    {% elif review.platform == 'tiktok' %}
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+                                    {% elif review.platform == 'facebook' %}
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                    {% else %}
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                                    {% endif %}
+                                </span>
                             </div>
                         </div>
                         <div class="review-card-stars">
@@ -480,7 +494,10 @@
                             <span class="star {% if forloop.counter <= review.rating %}filled{% endif %}">&#9733;</span>
                             {% endfor %}
                         </div>
-                        <p class="review-card-text">{{ review.review }}</p>
+                        <p class="review-card-text">{{ review.review|truncatechars:120 }}</p>
+                        {% if review.review|length > 120 %}
+                        <button class="review-read-more">Read more</button>
+                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
@@ -490,6 +507,22 @@
             {% endif %}
         </div>
     </section>
+
+    <!-- Review Modal -->
+    <div id="reviewModal" class="review-modal-overlay" style="display: none;">
+        <div class="review-modal-content">
+            <button class="review-modal-close" id="reviewModalClose">&times;</button>
+            <div class="review-modal-header">
+                <div class="review-modal-avatar" id="reviewModalAvatar"></div>
+                <div class="review-modal-info">
+                    <span class="review-modal-name" id="reviewModalName"></span>
+                    <span class="review-modal-platform" id="reviewModalPlatform"></span>
+                </div>
+            </div>
+            <div class="review-modal-stars" id="reviewModalStars"></div>
+            <p class="review-modal-text" id="reviewModalText"></p>
+        </div>
+    </div>
 
     <!-- Video Tutorial Section -->
     <section class="video-section">
@@ -650,6 +683,75 @@ if (typeof gsap === 'undefined') {
         requestAnimationFrame(animate);
     }
     animate();
+})();
+
+// Review Modal
+(function() {
+    const modal = document.getElementById('reviewModal');
+    const closeBtn = document.getElementById('reviewModalClose');
+    if (!modal) return;
+    
+    function openReviewModal(card) {
+        const fullReview = card.dataset.fullReview;
+        const username = card.dataset.username;
+        const rating = parseInt(card.dataset.rating);
+        const platform = card.dataset.platform;
+        const avatar = card.dataset.avatar;
+        
+        // Set avatar
+        const avatarEl = document.getElementById('reviewModalAvatar');
+        if (avatar) {
+            avatarEl.innerHTML = '<img src="' + avatar + '" alt="">';
+        } else {
+            avatarEl.innerHTML = '<span>' + username.charAt(0).toUpperCase() + '</span>';
+            avatarEl.classList.add('placeholder');
+        }
+        
+        // Set name and platform icon
+        document.getElementById('reviewModalName').textContent = username;
+        const platformEl = document.getElementById('reviewModalPlatform');
+        platformEl.className = 'review-modal-platform platform-' + platform;
+        const platformIcons = {
+            twitch: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>',
+            youtube: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>',
+            kick: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M1.143 0v24h8.57v-7.714L12 14l5.143 10h6.857l-8.571-14L22.286 0h-6.857l-5.714 7.714V0z"/></svg>',
+            tiktok: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>',
+            facebook: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>',
+            other: '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>'
+        };
+        platformEl.innerHTML = platformIcons[platform] || platformIcons.other;
+        
+        // Set stars
+        let starsHtml = '';
+        for (let i = 1; i <= 5; i++) {
+            starsHtml += '<span class="star ' + (i <= rating ? 'filled' : '') + '">&#9733;</span>';
+        }
+        document.getElementById('reviewModalStars').innerHTML = starsHtml;
+        
+        // Set text
+        document.getElementById('reviewModalText').textContent = fullReview;
+        
+        modal.style.display = 'flex';
+    }
+    
+    // Click handlers for read more buttons and cards
+    document.querySelectorAll('.review-card').forEach(card => {
+        const readMore = card.querySelector('.review-read-more');
+        if (readMore) {
+            readMore.addEventListener('click', (e) => {
+                e.stopPropagation();
+                openReviewModal(card);
+            });
+        }
+        // Also allow clicking the card itself
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', () => openReviewModal(card));
+    });
+    
+    closeBtn.addEventListener('click', () => modal.style.display = 'none');
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+    });
 })();
 </script>
 {% endblock %}
