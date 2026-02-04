@@ -456,7 +456,7 @@
         <div class="container">
             <div class="section-header" style="text-align: center; margin-bottom: 60px;">
                 <span class="section-label">REVIEWS</span>
-                <h2 class="section-title">What Streamers Are Saying</h2>
+                <h2 style="font-size: clamp(28px, 4vw, 42px); font-weight: 700; margin-top: 12px;">What Streamers Are Saying</h2>
             </div>
             
             {% if featured_reviews %}
@@ -471,7 +471,8 @@
                             <div class="review-card-avatar-placeholder">{{ review.user.username|slice:":1"|upper }}</div>
                             {% endif %}
                             <div class="review-card-info">
-                                <span class="review-card-name">@{{ review.user.username }}</span>
+                                <span class="review-card-name">{{ review.user.username }}</span>
+                                <span class="review-card-separator"></span>
                                 <div class="review-card-platform platform-{{ review.platform }}">
                                     {% if review.platform == 'twitch' %}
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>
@@ -516,6 +517,7 @@
                 <div class="review-modal-avatar" id="reviewModalAvatar"></div>
                 <div class="review-modal-info">
                     <span class="review-modal-name" id="reviewModalName"></span>
+                    <span class="review-modal-separator"></span>
                     <div class="review-modal-platform" id="reviewModalPlatform"></div>
                 </div>
             </div>

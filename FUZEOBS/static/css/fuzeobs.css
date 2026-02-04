@@ -761,7 +761,7 @@
     height: 44px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.35);
 }
 
 .review-card-avatar-placeholder {
@@ -769,7 +769,7 @@
     height: 44px;
     border-radius: 50%;
     background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -782,13 +782,25 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .review-card-name {
     font-weight: 600;
     font-size: 17px;
     color: #fff;
+}
+
+.review-card-name::before {
+    content: '@';
+    position: relative;
+    top: -1px;
+}
+
+.review-card-separator {
+    width: 1px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.25);
 }
 
 /* Platform Icons - muted colors */
@@ -901,7 +913,7 @@
     width: 56px;
     height: 56px;
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.35);
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -925,13 +937,25 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+}
+
+.review-modal-separator {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.25);
 }
 
 .review-modal-name {
     font-weight: 600;
     font-size: 18px;
     color: #fff;
+}
+
+.review-modal-name::before {
+    content: '@';
+    position: relative;
+    top: -1px;
 }
 
 .review-modal-platform {
