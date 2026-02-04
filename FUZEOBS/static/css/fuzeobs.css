@@ -803,14 +803,13 @@
     background: #fff;
 }
 
-/* Platform Icons - muted colors */
+/* Platform Icons */
 .review-card-platform {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 22px;
     height: 22px;
-    opacity: 0.5;
 }
 
 .review-card-platform.platform-twitch { color: #9146ff; }
@@ -956,6 +955,7 @@
     content: '@';
     position: relative;
     top: -1px;
+    right: 3px;
 }
 
 .review-modal-platform {
