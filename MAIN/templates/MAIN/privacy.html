@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Privacy Policy | BOMBY{% endblock %}
-{% block description %}Privacy Policy for BOMBY - Learn how we collect, use, and protect your personal information.{% endblock %}
+{% block description %}Privacy Policy for BOMBY - Learn how we collect, use, and protect your personal information across our website and FuzeOBS software.{% endblock %}
 {% block og_title %}Privacy Policy - BOMBY{% endblock %}
 {% block og_description %}Privacy Policy for BOMBY - How we handle your data and protect your privacy.{% endblock %}
 {% block og_url %}https://bomby.us/privacy/{% endblock %}
@@ -54,6 +54,13 @@
 
 .legal-container h2:first-of-type {
     margin-top: 0;
+}
+
+.legal-container h3 {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 1.15rem;
+    margin-top: 20px;
+    margin-bottom: 10px;
 }
 
 .legal-container p, .legal-container li {
@@ -122,72 +129,133 @@
         </div>
 
         <div class="legal-container">
-            <p class="last-updated">Last Updated: November 24, 2025</p>
+            <p class="last-updated">Last Updated: February 3, 2026</p>
 
             <h2>1. Introduction</h2>
-            <p>BOMBY ("we," "our," or "us") operates bomby.us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or use our services.</p>
+            <p>BOMBY ("we," "our," or "us") operates bomby.us and the FuzeOBS desktop application. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website, use FuzeOBS software, or use our services.</p>
 
             <h2>2. Information We Collect</h2>
-            <p><strong>Information you provide directly:</strong></p>
+
+            <h3>Information You Provide Directly</h3>
             <ul>
                 <li>Account information: username, email address, password</li>
                 <li>Profile information: bio, profile picture</li>
                 <li>Social media links: YouTube, Twitch, GitHub, Twitter/X, Kick, Instagram</li>
                 <li>Contact form submissions: name, email, subject, message</li>
-                <li>Order and payment information (processed through PayPal)</li>
+                <li>Order and payment information (processed through Stripe and PayPal)</li>
+                <li>Donation page content: page title, messages, suggested amounts</li>
+                <li>Widget configurations and settings</li>
             </ul>
             
-            <p><strong>Information collected automatically:</strong></p>
+            <h3>Information Collected by FuzeOBS Desktop Application</h3>
+            <p>When you use FuzeOBS, we collect:</p>
+            <ul>
+                <li><strong>System Hardware Information:</strong> CPU model, core count, and specifications; GPU model, VRAM, and encoder capabilities; RAM amount and speed; Operating system type and version; Display resolution. This information is used to generate optimized OBS settings for your specific hardware.</li>
+                <li><strong>Platform Connection Data:</strong> OAuth tokens for connected platforms (Twitch, YouTube, Kick, Facebook, TikTok); Platform usernames and channel information; Connection status and metadata</li>
+                <li><strong>AI Conversation Data:</strong> Messages sent to our AI assistant; AI responses and recommendations; Usage patterns for AI features</li>
+                <li><strong>Widget and Configuration Data:</strong> Widget settings and customizations; OBS profile configurations; Streaming preferences</li>
+                <li><strong>Session Data:</strong> Login status; Session identifiers; Last active timestamps</li>
+            </ul>
+
+            <h3>Information Collected Automatically (Website)</h3>
             <ul>
                 <li>Device information and browser type</li>
-                <li>IP address and location data</li>
+                <li>IP address and approximate location data</li>
                 <li>Pages visited and interactions on our site</li>
                 <li>Cookies and similar tracking technologies</li>
             </ul>
 
-            <p><strong>Information from third parties:</strong></p>
+            <h3>Information from Third Parties</h3>
             <ul>
                 <li>Google OAuth: basic profile information (name, email, profile picture) when you sign in with Google</li>
+                <li>Streaming platforms: channel information, viewer counts, chat data, follower/subscriber events when you connect platforms to FuzeOBS</li>
             </ul>
 
             <h2>3. How We Use Your Information</h2>
-            <p>We use your information to:</p>
+            
+            <h3>Website Services</h3>
             <ul>
                 <li>Create and manage your account</li>
-                <li>Provide our streaming setup and web development services</li>
+                <li>Provide streaming setup and web development services</li>
                 <li>Process payments and fulfill orders</li>
                 <li>Display your profile on the promotional wall</li>
                 <li>Communicate with you about orders and services</li>
                 <li>Respond to contact form inquiries</li>
-                <li>Send service-related notifications</li>
-                <li>Improve our website and services</li>
-                <li>Analyze site usage and performance</li>
             </ul>
 
-            <h2>4. Third-Party Services</h2>
+            <h3>FuzeOBS Application</h3>
+            <ul>
+                <li>Generate optimized OBS settings based on your hardware</li>
+                <li>Provide AI-powered streaming assistance and recommendations</li>
+                <li>Manage widget configurations and stream overlays</li>
+                <li>Connect to and receive events from streaming platforms</li>
+                <li>Process donations and display alerts</li>
+                <li>Authenticate your subscription tier and provide appropriate features</li>
+                <li>Improve our AI models and optimization algorithms</li>
+                <li>Diagnose technical issues and provide support</li>
+            </ul>
+
+            <h3>Analytics and Improvement</h3>
+            <ul>
+                <li>Analyze usage patterns to improve our services</li>
+                <li>Monitor service performance and reliability</li>
+                <li>Track AI usage for billing and rate limiting purposes</li>
+                <li>Develop new features based on user needs</li>
+            </ul>
+
+            <h2>4. Data Storage and Security</h2>
+            
+            <h3>Where Your Data is Stored</h3>
+            <ul>
+                <li><strong>Account credentials:</strong> Securely stored on our servers using industry-standard encryption</li>
+                <li><strong>Platform OAuth tokens:</strong> Encrypted and stored in our database; used only to communicate with connected platforms on your behalf</li>
+                <li><strong>Session data:</strong> Stored locally on your device using secure system keyring (Windows Credential Manager, macOS Keychain, or Linux Secret Service)</li>
+                <li><strong>AI conversations:</strong> Logged on our servers for service improvement; may be retained for analytics purposes</li>
+            </ul>
+
+            <h3>Security Measures</h3>
+            <ul>
+                <li>Encrypted data transmission (HTTPS/TLS)</li>
+                <li>Secure password hashing</li>
+                <li>OAuth token encryption at rest</li>
+                <li>Regular security updates</li>
+                <li>Access controls and authentication</li>
+            </ul>
+            <p>However, no method of transmission over the internet or electronic storage is 100% secure. We cannot guarantee absolute security.</p>
+
+            <h2>5. Third-Party Services</h2>
             <p>We use the following third-party services that may collect information:</p>
             
-            <p><strong>Google Services:</strong></p>
+            <h3>Payment Processing</h3>
+            <ul>
+                <li><strong>Stripe:</strong> Processes payments for BOMBY Store purchases and FuzeOBS subscriptions. Stripe handles all payment card data; we do not store credit card information directly.</li>
+                <li><strong>PayPal:</strong> Processes donations through FuzeOBS donation pages. When streamers connect PayPal, donation payments are processed through PayPal's systems.</li>
+            </ul>
+            
+            <h3>Authentication</h3>
             <ul>
                 <li>Google OAuth for account authentication</li>
+            </ul>
+
+            <h3>Analytics and Advertising</h3>
+            <ul>
                 <li>Google Analytics (gtag.js) for website analytics</li>
                 <li>Google Ads conversion tracking</li>
-            </ul>
-            
-            <p><strong>PayPal:</strong></p>
-            <ul>
-                <li>Payment processing for purchases</li>
-                <li>PayPal handles all payment card data; we do not store credit card information</li>
-            </ul>
-            
-            <p><strong>Meta (Facebook):</strong></p>
-            <ul>
                 <li>Facebook Pixel for analytics and advertising</li>
             </ul>
             
-            <p>Each of these services has its own privacy policy governing the use of your data.</p>
+            <h3>Streaming Platform APIs</h3>
+            <ul>
+                <li>Twitch API: for stream events, chat, and channel data</li>
+                <li>YouTube Data API: for live stream events, chat, and channel data</li>
+                <li>Kick API: for channel and stream data</li>
+                <li>Facebook Graph API: for live video and page data</li>
+                <li>TikTok Live API: for stream events and chat</li>
+            </ul>
+            
+            <p>Each of these services has its own privacy policy governing the use of your data. We encourage you to review them.</p>
 
-            <h2>5. Cookies and Tracking</h2>
+            <h2>6. Cookies and Tracking</h2>
             <p>We use cookies and similar technologies to:</p>
             <ul>
                 <li>Keep you signed in to your account</li>
@@ -197,23 +265,15 @@
             </ul>
             <p>You can control cookies through your browser settings. Disabling cookies may affect site functionality.</p>
 
-            <h2>6. Data Sharing</h2>
+            <h2>7. Data Sharing</h2>
             <p>We do not sell your personal information. We may share data with:</p>
             <ul>
-                <li>Service providers who assist in operating our website</li>
-                <li>Payment processors (PayPal) to complete transactions</li>
+                <li>Service providers who assist in operating our website and services</li>
+                <li>Payment processors (Stripe, PayPal) to complete transactions</li>
                 <li>Analytics providers to improve our services</li>
-                <li>Law enforcement when required by law</li>
+                <li>Streaming platforms when you authorize connections</li>
+                <li>Law enforcement when required by law or to protect our rights</li>
             </ul>
-
-            <h2>7. Data Security</h2>
-            <p>We implement security measures to protect your information, including:</p>
-            <ul>
-                <li>Encrypted data transmission (HTTPS)</li>
-                <li>Secure password hashing</li>
-                <li>Regular security updates</li>
-            </ul>
-            <p>However, no method of transmission over the internet is 100% secure.</p>
 
             <h2>8. Your Rights</h2>
             <p>You have the right to:</p>
@@ -221,24 +281,36 @@
                 <li>Access your personal data</li>
                 <li>Correct inaccurate information</li>
                 <li>Request deletion of your account and data</li>
+                <li>Disconnect streaming platforms at any time</li>
                 <li>Opt out of marketing communications</li>
                 <li>Export your data</li>
+                <li>Revoke OAuth permissions through each platform's settings</li>
             </ul>
-            <p>To exercise these rights, contact us at sebetvbusiness@gmail.com.</p>
+            <p>To exercise these rights, contact us at sebetvbusiness@gmail.com or use the account management features within FuzeOBS.</p>
 
             <h2>9. Data Retention</h2>
-            <p>We retain your information for as long as your account is active or as needed to provide services. Order records may be kept for accounting and legal purposes.</p>
+            <ul>
+                <li><strong>Account data:</strong> Retained as long as your account is active</li>
+                <li><strong>AI conversation logs:</strong> May be retained for service improvement and analytics</li>
+                <li><strong>Platform OAuth tokens:</strong> Retained until you disconnect the platform or delete your account</li>
+                <li><strong>Transaction records:</strong> Kept for accounting and legal purposes as required by law</li>
+                <li><strong>Analytics data:</strong> Aggregated and anonymized data may be retained indefinitely</li>
+            </ul>
+            <p>When you delete your account, we will delete or anonymize your personal data within 30 days, except where retention is required by law.</p>
 
             <h2>10. Children's Privacy</h2>
-            <p>Our services are not intended for children under 13. We do not knowingly collect information from children under 13. If you believe a child has provided us information, please contact us.</p>
+            <p>Our services are not intended for children under 13. We do not knowingly collect information from children under 13. If you believe a child has provided us information, please contact us immediately and we will delete it.</p>
 
             <h2>11. International Users</h2>
-            <p>BOMBY is operated from the United States. If you access our site from outside the US, your information may be transferred to and processed in the United States.</p>
+            <p>BOMBY is operated from the United States. If you access our site or use FuzeOBS from outside the US, your information may be transferred to and processed in the United States, where data protection laws may differ from those in your jurisdiction.</p>
 
-            <h2>12. Changes to This Policy</h2>
-            <p>We may update this Privacy Policy periodically. We will notify users of significant changes by posting a notice on our website.</p>
+            <h2>12. California Privacy Rights</h2>
+            <p>California residents have additional rights under the California Consumer Privacy Act (CCPA), including the right to know what personal information we collect, request deletion, and opt out of the sale of personal information (we do not sell personal information).</p>
 
-            <h2>13. Contact Us</h2>
+            <h2>13. Changes to This Policy</h2>
+            <p>We may update this Privacy Policy periodically. We will notify users of significant changes by posting a notice on our website or through the FuzeOBS application. Your continued use of our services after changes constitutes acceptance of the updated policy.</p>
+
+            <h2>14. Contact Us</h2>
             <p>For questions about this Privacy Policy or your data:</p>
             <ul>
                 <li>Email: sebetvbusiness@gmail.com</li>

@@ -2,9 +2,9 @@
 {% load static %}
 
 {% block title %}Terms of Service | BOMBY{% endblock %}
-{% block description %}Terms of Service for BOMBY - Read our terms and conditions for using our streaming setup services and website.{% endblock %}
+{% block description %}Terms of Service for BOMBY - Read our terms and conditions for using our streaming setup services, FuzeOBS software, and website.{% endblock %}
 {% block og_title %}Terms of Service - BOMBY{% endblock %}
-{% block og_description %}Terms of Service for BOMBY streaming setup services and website.{% endblock %}
+{% block og_description %}Terms of Service for BOMBY streaming setup services, FuzeOBS software, and website.{% endblock %}
 {% block og_url %}https://bomby.us/terms/{% endblock %}
 
 {% block extra_css %}
@@ -54,6 +54,13 @@
 
 .legal-container h2:first-of-type {
     margin-top: 0;
+}
+
+.legal-container h3 {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 1.15rem;
+    margin-top: 20px;
+    margin-bottom: 10px;
 }
 
 .legal-container p, .legal-container li {
@@ -122,13 +129,15 @@
         </div>
 
         <div class="legal-container">
-            <p class="last-updated">Last Updated: November 24, 2025</p>
+            <p class="last-updated">Last Updated: February 3, 2026</p>
 
             <h2>1. Acceptance of Terms</h2>
-            <p>By accessing and using BOMBY (bomby.us), you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our website or services.</p>
+            <p>By accessing and using BOMBY (bomby.us), downloading or installing FuzeOBS software, or using any of our services, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our website, software, or services.</p>
 
             <h2>2. Description of Services</h2>
             <p>BOMBY provides the following services:</p>
+            
+            <h3>Web Services</h3>
             <ul>
                 <li>Stream setup and configuration services (Basic, Standard, and Premium packages)</li>
                 <li>OBS configuration and optimization</li>
@@ -138,56 +147,164 @@
                 <li>Promotional wall for registered users to showcase their channels</li>
             </ul>
 
+            <h3>FuzeOBS Desktop Application</h3>
+            <ul>
+                <li>Automated system detection and hardware analysis</li>
+                <li>AI-powered OBS settings optimization</li>
+                <li>Stream widget generation and management (alerts, chat boxes, goals, labels, viewer counts, sponsor banners)</li>
+                <li>Multi-platform streaming support (Twitch, YouTube, Kick, Facebook, TikTok)</li>
+                <li>Real-time performance benchmarking</li>
+                <li>Donation page creation and management</li>
+            </ul>
+
             <h2>3. User Accounts</h2>
             <p>To access certain features, you must create an account. You agree to:</p>
             <ul>
                 <li>Provide accurate and complete information during registration</li>
                 <li>Maintain the security of your account credentials</li>
+                <li>Not share your account with others or allow multiple users to access a single account</li>
                 <li>Notify us immediately of any unauthorized access</li>
                 <li>Be responsible for all activities under your account</li>
             </ul>
             <p>You may also register using Google OAuth. By doing so, you authorize us to access basic profile information from your Google account.</p>
 
-            <h2>4. Payments and Refunds</h2>
-            <p>Payments are processed through PayPal. By making a purchase, you agree to PayPal's terms of service. All prices are displayed in USD.</p>
-            <p>Refund requests are handled on a case-by-case basis. If you are unsatisfied with a service, please contact us within 7 days of purchase. Digital services that have been fully delivered are generally non-refundable.</p>
-
-            <h2>5. User Content</h2>
-            <p>By submitting content to BOMBY (including profile information, bio, and social links), you grant us a non-exclusive license to display this content on our platform. You are responsible for ensuring you have the right to share any content you post.</p>
-            <p>You agree not to post content that:</p>
+            <h2>4. FuzeOBS Software License</h2>
+            <p>Subject to your compliance with these Terms, BOMBY grants you a limited, non-exclusive, non-transferable, revocable license to download, install, and use FuzeOBS for personal or commercial streaming purposes.</p>
+            
+            <h3>You may:</h3>
             <ul>
-                <li>Is unlawful, harmful, or offensive</li>
-                <li>Infringes on intellectual property rights</li>
-                <li>Contains malware or harmful code</li>
+                <li>Install FuzeOBS on devices you own or control</li>
+                <li>Use FuzeOBS for personal streaming and content creation</li>
+                <li>Use generated widgets and configurations in your streams</li>
+            </ul>
+
+            <h3>You may NOT:</h3>
+            <ul>
+                <li>Reverse engineer, decompile, disassemble, or attempt to derive the source code of FuzeOBS</li>
+                <li>Modify, adapt, translate, or create derivative works based on the software</li>
+                <li>Remove, alter, or obscure any copyright, trademark, or proprietary notices</li>
+                <li>Distribute, sublicense, lease, rent, or lend the software to third parties</li>
+                <li>Use the software to develop competing products or services</li>
+                <li>Circumvent or attempt to circumvent any technological protection measures or subscription tier limitations</li>
+                <li>Use automated tools, bots, or scripts to interact with FuzeOBS or its services</li>
+                <li>Exploit bugs, glitches, or vulnerabilities for unintended purposes</li>
+            </ul>
+
+            <h2>5. Subscription Tiers and Features</h2>
+            <p>FuzeOBS offers the following subscription tiers:</p>
+            <ul>
+                <li><strong>Free:</strong> Basic features with limited AI assistance (5 messages per day)</li>
+                <li><strong>Pro ($7.50/month):</strong> Advanced features, unlimited AI assistance, 3 profile slots</li>
+                <li><strong>Lifetime ($45 one-time):</strong> All Pro features permanently, 5 profile slots</li>
+            </ul>
+            <p>Features and pricing are subject to change. We will notify existing subscribers of any changes that affect their current subscription.</p>
+
+            <h2>6. Payments and Refunds</h2>
+            <h3>Payment Processing</h3>
+            <p>Payments for BOMBY services and FuzeOBS subscriptions are processed through Stripe. Donations received through FuzeOBS donation pages are processed through PayPal. By making a purchase, you agree to the respective payment processor's terms of service.</p>
+            
+            <h3>Subscription Billing</h3>
+            <p>Pro subscriptions are billed monthly. You may cancel at any time, and your access will continue until the end of your current billing period. No partial refunds are provided for unused portions of a billing cycle.</p>
+
+            <h3>Refund Policy</h3>
+            <p>Refund requests are handled on a case-by-case basis. If you are unsatisfied with a service or purchase, please contact us within 7 days. Digital services and software licenses that have been delivered or activated are generally non-refundable, but we will consider each request individually.</p>
+
+            <h2>7. Platform Connections and Third-Party Services</h2>
+            <p>FuzeOBS integrates with third-party streaming platforms including Twitch, YouTube, Kick, Facebook, and TikTok. By connecting these platforms:</p>
+            <ul>
+                <li>You authorize FuzeOBS to access your platform data as permitted by OAuth scopes</li>
+                <li>You agree to comply with each platform's Terms of Service and Community Guidelines</li>
+                <li>You acknowledge that platform availability and API access may change without notice</li>
+                <li>You understand that BOMBY is not responsible for actions taken by third-party platforms</li>
+            </ul>
+            <p>We are not affiliated with, endorsed by, or officially connected to Twitch, YouTube, Google, Meta, TikTok, or Kick.</p>
+
+            <h2>8. User Content</h2>
+            <p>By submitting content to BOMBY or through FuzeOBS (including profile information, widget configurations, donation page content, and social links), you grant us a non-exclusive license to display and process this content as necessary to provide our services. You are responsible for ensuring you have the right to share any content you post.</p>
+            <p>You agree not to post or transmit content that:</p>
+            <ul>
+                <li>Is unlawful, harmful, threatening, abusive, harassing, defamatory, or offensive</li>
+                <li>Infringes on intellectual property rights of others</li>
+                <li>Contains malware, viruses, or harmful code</li>
                 <li>Violates the privacy of others</li>
+                <li>Promotes illegal activities or violence</li>
+                <li>Contains sexually explicit material involving minors</li>
+                <li>Is designed to harass, stalk, or harm other users</li>
             </ul>
 
-            <h2>6. Promotional Wall</h2>
-            <p>The promotional wall allows users to showcase their streaming channels. We reserve the right to remove any profiles that violate these terms or contain inappropriate content.</p>
-
-            <h2>7. Intellectual Property</h2>
-            <p>All content on BOMBY, including but not limited to logos, designs, text, and graphics, is owned by BOMBY unless otherwise stated. You may not reproduce, distribute, or create derivative works without permission.</p>
-            <p>Custom work created for clients (overlays, configurations, etc.) becomes the property of the client upon full payment.</p>
-
-            <h2>8. Limitation of Liability</h2>
-            <p>BOMBY is provided "as is" without warranties of any kind. We are not liable for any indirect, incidental, or consequential damages arising from your use of our services.</p>
-
-            <h2>9. Third-Party Services</h2>
-            <p>Our website integrates with third-party services including:</p>
+            <h2>9. Prohibited Conduct</h2>
+            <p>When using BOMBY services or FuzeOBS, you agree NOT to:</p>
             <ul>
-                <li>Google (OAuth authentication, Analytics)</li>
-                <li>PayPal (payment processing)</li>
-                <li>Meta/Facebook (analytics pixel)</li>
+                <li>Use the services for any illegal purpose or in violation of any laws</li>
+                <li>Attempt to gain unauthorized access to our systems, servers, or other users' accounts</li>
+                <li>Use bots, scripts, or automated tools to interact with our services without authorization</li>
+                <li>Interfere with or disrupt the integrity or performance of our services</li>
+                <li>Attempt to bypass, circumvent, or disable any security features or subscription limitations</li>
+                <li>Impersonate any person or entity or misrepresent your affiliation</li>
+                <li>Harvest or collect user information without consent</li>
+                <li>Use FuzeOBS widgets or services to facilitate harassment, hate speech, or abuse on streaming platforms</li>
+                <li>Resell, redistribute, or commercially exploit access to FuzeOBS or its features</li>
+                <li>Share account credentials or subscription benefits with others</li>
             </ul>
-            <p>Your use of these services is subject to their respective terms and privacy policies.</p>
 
-            <h2>10. Termination</h2>
-            <p>We reserve the right to terminate or suspend your account at any time for violations of these terms. You may also delete your account by contacting us.</p>
+            <h2>10. Account Termination</h2>
+            <p>We reserve the right to suspend or terminate your account and access to our services at any time, with or without notice, for conduct that we believe:</p>
+            <ul>
+                <li>Violates these Terms of Service</li>
+                <li>Is harmful to other users, third parties, or our business interests</li>
+                <li>Involves fraudulent, abusive, or illegal activity</li>
+                <li>Involves attempting to bypass subscription tier limitations or payment requirements</li>
+                <li>Involves reverse engineering, hacking, or exploiting our software</li>
+                <li>Involves sharing accounts or reselling access</li>
+                <li>Involves using our services to harass or harm others</li>
+                <li>Involves automated abuse or excessive use that impacts service availability</li>
+            </ul>
+            <p>Upon termination, your right to use FuzeOBS and access your account will immediately cease. We are not obligated to provide refunds for terminated accounts.</p>
 
-            <h2>11. Changes to Terms</h2>
-            <p>We may update these terms at any time. Continued use of BOMBY after changes constitutes acceptance of the new terms.</p>
+            <h2>11. Intellectual Property</h2>
+            <p>All content on BOMBY and within FuzeOBS, including but not limited to logos, designs, text, graphics, software code, and user interface elements, is owned by BOMBY unless otherwise stated. You may not reproduce, distribute, or create derivative works without permission.</p>
+            <p>Custom work created for clients (overlays, configurations, etc.) through our freelance services becomes the property of the client upon full payment.</p>
+            <p>Widget configurations and settings you create using FuzeOBS remain yours to use, but the underlying widget technology and software remain our property.</p>
 
-            <h2>12. Contact Information</h2>
+            <h2>12. Disclaimer of Warranties</h2>
+            <p>BOMBY AND FUZEOBS ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.</p>
+            <p>We do not warrant that:</p>
+            <ul>
+                <li>The services will be uninterrupted, timely, secure, or error-free</li>
+                <li>The results obtained from using the services will be accurate or reliable</li>
+                <li>The quality of any products, services, information, or other material obtained will meet your expectations</li>
+                <li>Any errors in the software will be corrected</li>
+            </ul>
+
+            <h2>13. Limitation of Liability</h2>
+            <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, BOMBY AND ITS OFFICERS, DIRECTORS, EMPLOYEES, AND AGENTS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO:</p>
+            <ul>
+                <li>Loss of profits, data, or goodwill</li>
+                <li>Service interruption or computer damage</li>
+                <li>Cost of substitute services</li>
+                <li>Any damages arising from your use of or inability to use our services</li>
+            </ul>
+            <p>Our total liability for any claims arising from these Terms or your use of our services shall not exceed the amount you paid to us in the twelve (12) months preceding the claim.</p>
+
+            <h2>14. Indemnification</h2>
+            <p>You agree to indemnify, defend, and hold harmless BOMBY and its officers, directors, employees, and agents from any claims, damages, losses, liabilities, and expenses (including attorney's fees) arising from:</p>
+            <ul>
+                <li>Your use of our services</li>
+                <li>Your violation of these Terms</li>
+                <li>Your violation of any rights of third parties</li>
+                <li>Any content you submit or transmit through our services</li>
+            </ul>
+
+            <h2>15. Governing Law</h2>
+            <p>These Terms shall be governed by and construed in accordance with the laws of the United States and the State of Missouri, without regard to conflict of law principles.</p>
+
+            <h2>16. Changes to Terms</h2>
+            <p>We may update these terms at any time. We will notify users of significant changes by posting a notice on our website or through the FuzeOBS application. Continued use of BOMBY or FuzeOBS after changes constitutes acceptance of the new terms.</p>
+
+            <h2>17. Severability</h2>
+            <p>If any provision of these Terms is found to be unenforceable or invalid, that provision shall be limited or eliminated to the minimum extent necessary, and the remaining provisions shall remain in full force and effect.</p>
+
+            <h2>18. Contact Information</h2>
             <p>For questions about these Terms of Service, please contact us at:</p>
             <ul>
                 <li>Email: sebetvbusiness@gmail.com</li>
