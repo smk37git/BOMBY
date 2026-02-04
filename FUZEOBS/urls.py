@@ -120,4 +120,12 @@ urlpatterns = [
     path('payment/<str:plan_type>/', views.fuzeobs_payment, name='payment'),
     path('create-checkout-session/', views.fuzeobs_create_checkout_session, name='create_checkout_session'),
     path('stripe-webhook/', views.fuzeobs_stripe_webhook, name='stripe_webhook'),
+
+    # Reviews
+    path('reviews/submit', views.fuzeobs_submit_review, name='submit_review'),
+    path('reviews/featured', views.fuzeobs_get_featured_reviews, name='featured_reviews'),
+    path('reviews/admin', views.fuzeobs_reviews_admin, name='reviews_admin'),
+    path('reviews/toggle-featured', views.fuzeobs_toggle_review_featured, name='toggle_review_featured'),
+    path('reviews/delete', views.fuzeobs_delete_review, name='delete_review'),
+    path('reviews/create-admin', views.fuzeobs_create_review_admin, name='create_review_admin'),
 ]

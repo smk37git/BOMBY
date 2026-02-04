@@ -14,7 +14,7 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
-from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription, DonationSettings, DonationSettings
+from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription, DonationSettings, FuzeOBSReview
 from decimal import Decimal
 from google.cloud import storage
 import hmac
@@ -979,7 +979,7 @@ def fuzeobs_update_profile(request, profile_id):
 # ====== WEBSITE VIEWS =======
 def fuzeobs_view(request):
     # Track page view
-    from .models import FuzeOBSPageView
+    from .models import FuzeOBSPageView, FuzeOBSReview
     try:
         session_id = request.session.session_key or ''
         if not session_id:
@@ -993,8 +993,12 @@ def fuzeobs_view(request):
     except:
         pass
     
+    # Get featured reviews
+    featured_reviews = FuzeOBSReview.objects.filter(featured=True).select_related('user')[:20]
+    
     return render(request, 'FUZEOBS/fuzeobs.html', {
-        'fuzeobs_version': FUZEOBS_VERSION
+        'fuzeobs_version': FUZEOBS_VERSION,
+        'featured_reviews': featured_reviews,
     })
 
 @staff_member_required
@@ -3167,3 +3171,185 @@ fuzeobs_get_youtube_viewers = _viewer_endpoint('youtube')
 fuzeobs_get_kick_viewers = _viewer_endpoint('kick')
 fuzeobs_get_facebook_viewers = _viewer_endpoint('facebook')
 fuzeobs_get_tiktok_viewers = _viewer_endpoint('tiktok')
+
+# ====== REVIEWS ======
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def fuzeobs_submit_review(request):
+    """Submit a review (requires auth)"""
+    auth_header = request.headers.get('Authorization', '')
+    if not auth_header.startswith('Bearer '):
+        return JsonResponse({'success': False, 'error': 'Authentication required'}, status=401)
+    
+    token = auth_header.split(' ')[1]
+    auth = SecureAuth(settings.SECRET_KEY)
+    result = auth.verify_token(token)
+    
+    if not result.get('valid'):
+        return JsonResponse({'success': False, 'error': 'Invalid token'}, status=401)
+    
+    try:
+        user = User.objects.get(id=result['user_id'])
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+    
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    
+    platform = data.get('platform', '').lower()
+    rating = data.get('rating')
+    review_text = data.get('review', '').strip()
+    
+    # Validation
+    if platform not in ['twitch', 'youtube', 'kick', 'tiktok', 'facebook', 'other']:
+        return JsonResponse({'success': False, 'error': 'Invalid platform'}, status=400)
+    
+    if not isinstance(rating, int) or rating < 1 or rating > 5:
+        return JsonResponse({'success': False, 'error': 'Rating must be 1-5'}, status=400)
+    
+    if not review_text or len(review_text) > 300:
+        return JsonResponse({'success': False, 'error': 'Review must be 1-300 characters'}, status=400)
+    
+    # Check if user already has a review
+    from .models import FuzeOBSReview
+    existing = FuzeOBSReview.objects.filter(user=user).first()
+    if existing:
+        # Update existing review
+        existing.platform = platform
+        existing.rating = rating
+        existing.review = review_text
+        existing.save()
+        return JsonResponse({'success': True, 'message': 'Review updated'})
+    
+    # Create new review
+    FuzeOBSReview.objects.create(
+        user=user,
+        platform=platform,
+        rating=rating,
+        review=review_text
+    )
+    
+    return JsonResponse({'success': True, 'message': 'Review submitted'})
+
+
+@require_http_methods(["GET"])
+def fuzeobs_get_featured_reviews(request):
+    """Get featured reviews for landing page (public)"""
+    from .models import FuzeOBSReview
+    
+    reviews = FuzeOBSReview.objects.filter(featured=True).select_related('user')[:20]
+    
+    return JsonResponse({
+        'success': True,
+        'reviews': [{
+            'username': r.user.username,
+            'platform': r.platform,
+            'rating': r.rating,
+            'review': r.review,
+            'profile_picture': r.user.profile_picture.url if r.user.profile_picture else None,
+            'created_at': r.created_at.isoformat()
+        } for r in reviews]
+    })
+
+
+# ====== REVIEWS ADMIN ======
+
+@staff_member_required
+def fuzeobs_reviews_admin(request):
+    """Admin page for managing reviews"""
+    from .models import FuzeOBSReview
+    
+    reviews = FuzeOBSReview.objects.select_related('user').all()
+    featured_count = reviews.filter(featured=True).count()
+    
+    return render(request, 'FUZEOBS/fuzeobs_reviews.html', {
+        'reviews': reviews,
+        'total_reviews': reviews.count(),
+        'featured_count': featured_count,
+        'avg_rating': reviews.aggregate(Avg('rating'))['rating__avg'] or 0,
+    })
+
+
+@staff_member_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def fuzeobs_toggle_review_featured(request):
+    """Toggle featured status of a review"""
+    from .models import FuzeOBSReview
+    
+    try:
+        data = json.loads(request.body)
+        review_id = data.get('review_id')
+        featured = data.get('featured', False)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    
+    try:
+        review = FuzeOBSReview.objects.get(id=review_id)
+        review.featured = featured
+        review.save()
+        return JsonResponse({'success': True})
+    except FuzeOBSReview.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
+
+
+@staff_member_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def fuzeobs_delete_review(request):
+    """Delete a review"""
+    from .models import FuzeOBSReview
+    
+    try:
+        data = json.loads(request.body)
+        review_id = data.get('review_id')
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    
+    try:
+        review = FuzeOBSReview.objects.get(id=review_id)
+        review.delete()
+        return JsonResponse({'success': True})
+    except FuzeOBSReview.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
+
+
+@staff_member_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def fuzeobs_create_review_admin(request):
+    """Admin: Create a review manually"""
+    from .models import FuzeOBSReview
+    
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+    
+    username = data.get('username')
+    platform = data.get('platform', '').lower()
+    rating = data.get('rating')
+    review_text = data.get('review', '').strip()
+    featured = data.get('featured', False)
+    
+    try:
+        user = User.objects.get(username=username)
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+    
+    # Check for existing review
+    if FuzeOBSReview.objects.filter(user=user).exists():
+        return JsonResponse({'success': False, 'error': 'User already has a review'}, status=400)
+    
+    FuzeOBSReview.objects.create(
+        user=user,
+        platform=platform,
+        rating=rating,
+        review=review_text,
+        featured=featured
+    )
+    
+    return JsonResponse({'success': True})

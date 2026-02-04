@@ -355,3 +355,29 @@ class FuzeOBSPageView(models.Model):
         indexes = [
             models.Index(fields=['page', 'timestamp']),
         ]
+
+class FuzeOBSReview(models.Model):
+    """User reviews for FuzeOBS"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    platform = models.CharField(max_length=20, choices=[
+        ('twitch', 'Twitch'),
+        ('youtube', 'YouTube'),
+        ('kick', 'Kick'),
+        ('tiktok', 'TikTok'),
+        ('facebook', 'Facebook'),
+        ('other', 'Other'),
+    ])
+    rating = models.IntegerField()  # 1-5 stars
+    review = models.TextField(max_length=300)
+    featured = models.BooleanField(default=False)  # Show on landing page
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        # One review per user
+        constraints = [
+            models.UniqueConstraint(fields=['user'], name='unique_user_review')
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.rating}★"

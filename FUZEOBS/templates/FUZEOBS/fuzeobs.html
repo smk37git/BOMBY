@@ -451,6 +451,46 @@
         </div>
     </section>
 
+    <!-- Reviews Section -->
+    <section class="reviews-section">
+        <div class="container">
+            <div class="section-header" style="text-align: center; margin-bottom: 60px;">
+                <span class="section-label">REVIEWS</span>
+                <h2 style="font-size: clamp(28px, 4vw, 42px); font-weight: 700; margin-top: 12px;">What Streamers Are Saying</h2>
+            </div>
+            
+            {% if featured_reviews %}
+            <div class="reviews-carousel-wrapper">
+                <div class="reviews-carousel" id="reviewsCarousel">
+                    {% for review in featured_reviews %}
+                    <div class="review-card">
+                        <div class="review-card-header">
+                            {% if review.user.profile_picture %}
+                            <img src="{{ review.user.profile_picture.url }}" class="review-card-avatar" alt="{{ review.user.username }}">
+                            {% else %}
+                            <div class="review-card-avatar-placeholder">{{ review.user.username|slice:":1"|upper }}</div>
+                            {% endif %}
+                            <div class="review-card-info">
+                                <span class="review-card-name">{{ review.user.username }}</span>
+                                <span class="review-card-platform platform-{{ review.platform }}">{{ review.platform|upper }}</span>
+                            </div>
+                        </div>
+                        <div class="review-card-stars">
+                            {% for i in "12345" %}
+                            <span class="star {% if forloop.counter <= review.rating %}filled{% endif %}">&#9733;</span>
+                            {% endfor %}
+                        </div>
+                        <p class="review-card-text">{{ review.review }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            <p style="text-align: center; color: rgba(255,255,255,0.5);">No reviews yet</p>
+            {% endif %}
+        </div>
+    </section>
+
     <!-- Video Tutorial Section -->
     <section class="video-section">
         <div class="container">
@@ -584,6 +624,32 @@ if (typeof gsap === 'undefined') {
     } else {
         init();
     }
+})();
+
+// Reviews Carousel Auto-scroll
+(function() {
+    const carousel = document.getElementById('reviewsCarousel');
+    if (!carousel || carousel.children.length === 0) return;
+    
+    const items = Array.from(carousel.children);
+    items.forEach(item => carousel.appendChild(item.cloneNode(true)));
+    
+    let scrollPos = 0;
+    const speed = 0.5;
+    let isPaused = false;
+    
+    carousel.addEventListener('mouseenter', () => isPaused = true);
+    carousel.addEventListener('mouseleave', () => isPaused = false);
+    
+    function animate() {
+        if (!isPaused) {
+            scrollPos += speed;
+            if (scrollPos >= carousel.scrollWidth / 2) scrollPos = 0;
+            carousel.style.transform = `translateX(-${scrollPos}px)`;
+        }
+        requestAnimationFrame(animate);
+    }
+    animate();
 })();
 </script>
 {% endblock %}
