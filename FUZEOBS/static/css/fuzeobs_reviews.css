@@ -113,6 +113,26 @@
     color: #000;
 }
 
+/* Edit Button */
+.btn-edit {
+    padding: 8px 12px;
+    background: rgba(168, 85, 247, 0.1);
+    color: #a855f7;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 6px;
+}
+
+.btn-edit:hover {
+    background: #a855f7;
+    color: #000;
+}
+
 .btn-sm {
     padding: 6px 10px;
 }

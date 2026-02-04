@@ -127,6 +127,7 @@ urlpatterns = [
     path('reviews/admin', views.fuzeobs_reviews_admin, name='reviews_admin'),
     path('reviews/toggle-featured', views.fuzeobs_toggle_review_featured, name='toggle_review_featured'),
     path('reviews/delete', views.fuzeobs_delete_review, name='delete_review'),
+    path('reviews/edit-admin', views.edit_review_admin, name='edit_review_admin'),
     path('reviews/create-admin', views.fuzeobs_create_review_admin, name='create_review_admin'),
     path('reviews/my-review', views.my_review, name='my_review'),
 ]

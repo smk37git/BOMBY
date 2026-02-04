@@ -800,7 +800,7 @@
 .review-card-separator {
     width: 1px;
     height: 18px;
-    background: rgba(255, 255, 255, 0.25);
+    background: #fff;
 }
 
 /* Platform Icons - muted colors */

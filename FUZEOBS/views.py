@@ -3362,6 +3362,22 @@ def fuzeobs_create_review_admin(request):
     return JsonResponse({'success': True})
 
 @csrf_exempt
+@require_http_methods(["POST"])
+@staff_member_required
+def edit_review_admin(request):
+    data = json.loads(request.body)
+    try:
+        review = FuzeOBSReview.objects.get(id=data['review_id'])
+        review.platform = data.get('platform', review.platform)
+        review.rating = data.get('rating', review.rating)
+        review.review = data.get('review', review.review)
+        review.featured = data.get('featured', review.featured)
+        review.save()
+        return JsonResponse({'success': True})
+    except FuzeOBSReview.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
+
+@csrf_exempt
 @require_http_methods(["GET"])
 def my_review(request):
     token = request.headers.get('Authorization', '').replace('Bearer ', '')
