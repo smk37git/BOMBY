@@ -68,4 +68,4 @@ gcs-credentials.json
 
 # Local Docker
 docker-compose.yml
-ACCOUNTS/static/validators/*.csv
+ACCOUNTS/static/validators/profanity.csv
