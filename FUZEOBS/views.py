@@ -3191,8 +3191,7 @@ def fuzeobs_submit_review(request):
         return JsonResponse({'success': False, 'error': 'Authentication required'}, status=401)
     
     token = auth_header.split(' ')[1]
-    auth = SecureAuth(settings.SECRET_KEY)
-    result = auth.verify_token(token)
+    result = auth_manager.verify_token(token)
     
     if not result.get('valid'):
         return JsonResponse({'success': False, 'error': 'Invalid token'}, status=401)
