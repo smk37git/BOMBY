@@ -3360,3 +3360,32 @@ def fuzeobs_create_review_admin(request):
     )
     
     return JsonResponse({'success': True})
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def my_review(request):
+    token = request.headers.get('Authorization', '').replace('Bearer ', '')
+    if not token:
+        return JsonResponse({'success': False, 'error': 'Not authenticated'}, status=401)
+    
+    result = auth_manager.verify_token(token)
+    if not result.get('valid'):
+        return JsonResponse({'success': False, 'error': 'Invalid token'}, status=401)
+    
+    try:
+        user = User.objects.get(id=result['user_id'])
+        review = FuzeOBSReview.objects.filter(user=user).first()
+        if review:
+            return JsonResponse({
+                'success': True,
+                'review': {
+                    'platform': review.platform,
+                    'rating': review.rating,
+                    'review': review.review,
+                    'featured': review.featured,
+                }
+            })
+        else:
+            return JsonResponse({'success': True, 'review': None})
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
