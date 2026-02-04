@@ -13,11 +13,6 @@
 <h1 class="user_management-title">FuzeOBS Analytics Dashboard</h1>
 
 <div class="analytics-container">
-    <div class="analytics-nav">
-        <a href="{% url 'FUZEOBS:analytics' %}" class="nav-tab active">Analytics</a>
-        <a href="{% url 'FUZEOBS:reviews_admin' %}" class="nav-tab">Reviews</a>
-    </div>
-
     <div class="analytics-header">
         <h2>Performance Dashboard</h2>
         <div class="time-filter">
@@ -66,12 +61,17 @@
                 <div class="metric-value">{{ pricing_views }}</div>
                 <div class="metric-subtext">/fuzeobs/pricing/</div>
             </div>
+            <a href="{% url 'FUZEOBS:reviews_admin' %}" class="metric-card metric-card-link">
+                <div class="metric-label">Reviews</div>
+                <div class="metric-value">{{ total_reviews|default:0 }}</div>
+                <div class="metric-subtext">{{ featured_reviews|default:0 }} featured &rarr;</div>
+            </a>
         </div>
     </div>
 
     <div class="analytics-section">
         <div class="section-header">
-            <h3>AI Usage & Cost Analysis</h3>
+            <h3>AI Usage &amp; Cost Analysis</h3>
         </div>
         <div class="metrics-grid">
             <div class="metric-card">
@@ -154,7 +154,7 @@
                     <td><span class="tier-{{ u.user__fuzeobs_tier }}">{{ u.user__fuzeobs_tier|upper }}</span></td>
                     <td>{{ u.total_requests }}</td>
                     <td>${{ u.total_cost|floatformat:4 }}</td>
-                    <td><a href="{% url 'FUZEOBS:user_detail' u.user__id %}" class="view-link">View Details →</a></td>
+                    <td><a href="{% url 'FUZEOBS:user_detail' u.user__id %}" class="view-link">View Details &rarr;</a></td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -202,19 +202,19 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const downloadsData = JSON.parse('{{ downloads_json|escapejs }}');
-    const downloadsTotal = downloadsData.reduce((sum, d) => sum + d.count, 0);
-    const downloadsChart = document.getElementById('downloadsPieChart');
+    var downloadsData = JSON.parse('{{ downloads_json|escapejs }}');
+    var downloadsTotal = downloadsData.reduce(function(sum, d) { return sum + d.count; }, 0);
+    var downloadsChart = document.getElementById('downloadsPieChart');
     
     if (downloadsTotal > 0 && downloadsChart) {
-        let gradientStr = 'conic-gradient(';
-        let cumulative = 0;
-        const colors = {'windows': '#3b82f6', 'mac': '#9ca3af', 'linux': '#22c55e'};
+        var gradientStr = 'conic-gradient(';
+        var cumulative = 0;
+        var colors = {'windows': '#3b82f6', 'mac': '#9ca3af', 'linux': '#22c55e'};
         
-        downloadsData.forEach((d, i) => {
-            const percent = (d.count / downloadsTotal * 100);
-            const color = colors[d.platform] || '#999';
-            gradientStr += `${color} ${cumulative}% ${cumulative + percent}%`;
+        downloadsData.forEach(function(d, i) {
+            var percent = (d.count / downloadsTotal * 100);
+            var color = colors[d.platform] || '#999';
+            gradientStr += color + ' ' + cumulative + '% ' + (cumulative + percent) + '%';
             cumulative += percent;
             if (i < downloadsData.length - 1) gradientStr += ', ';
         });
@@ -223,25 +223,25 @@ document.addEventListener('DOMContentLoaded', function() {
         downloadsChart.style.background = gradientStr;
     }
     
-    const tiersData = JSON.parse('{{ tier_distribution_json|escapejs }}');
-    const tiersTotal = tiersData.reduce((sum, t) => sum + t.count, 0);
-    const tiersChart = document.getElementById('tiersPieChart');
+    var tiersData = JSON.parse('{{ tier_distribution_json|escapejs }}');
+    var tiersTotal = tiersData.reduce(function(sum, t) { return sum + t.count; }, 0);
+    var tiersChart = document.getElementById('tiersPieChart');
     
     if (tiersTotal > 0 && tiersChart) {
-        let gradientStr = 'conic-gradient(';
-        let cumulative = 0;
-        const colors = {'free': '#f87171', 'pro': '#9724fb', 'lifetime': '#4ade80'};
+        var gradientStr2 = 'conic-gradient(';
+        var cumulative2 = 0;
+        var colors2 = {'free': '#f87171', 'pro': '#9724fb', 'lifetime': '#4ade80'};
         
-        tiersData.forEach((t, i) => {
-            const percent = (t.count / tiersTotal * 100);
-            const color = colors[t.tier] || '#999';
-            gradientStr += `${color} ${cumulative}% ${cumulative + percent}%`;
-            cumulative += percent;
-            if (i < tiersData.length - 1) gradientStr += ', ';
+        tiersData.forEach(function(t, i) {
+            var percent = (t.count / tiersTotal * 100);
+            var color = colors2[t.tier] || '#999';
+            gradientStr2 += color + ' ' + cumulative2 + '% ' + (cumulative2 + percent) + '%';
+            cumulative2 += percent;
+            if (i < tiersData.length - 1) gradientStr2 += ', ';
         });
         
-        gradientStr += ')';
-        tiersChart.style.background = gradientStr;
+        gradientStr2 += ')';
+        tiersChart.style.background = gradientStr2;
     }
 });
 </script>

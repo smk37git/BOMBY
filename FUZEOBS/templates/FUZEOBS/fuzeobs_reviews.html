@@ -14,19 +14,15 @@
 <h1 class="user_management-title">FuzeOBS Reviews</h1>
 
 <div class="analytics-container">
-    <div class="analytics-nav">
-        <a href="{% url 'FUZEOBS:analytics' %}" class="nav-tab">Analytics</a>
-        <a href="{% url 'FUZEOBS:reviews_admin' %}" class="nav-tab active">Reviews</a>
-    </div>
-
     <div class="analytics-header">
         <h2>Review Management</h2>
-        <button class="btn-primary" onclick="openCreateModal()">
+        <a href="#" class="btn-secondary" id="addReviewBtn">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
             Add Review
-        </button>
+        </a>
     </div>
 
     <div class="metrics-grid">
@@ -42,6 +38,11 @@
             <div class="metric-label">Average Rating</div>
             <div class="metric-value">{{ avg_rating|floatformat:1 }}/5</div>
         </div>
+        <a href="{% url 'FUZEOBS:analytics' %}" class="metric-card metric-card-link">
+            <div class="metric-label">Back to</div>
+            <div class="metric-value" style="font-size: 24px;">Analytics</div>
+            <div class="metric-subtext">&larr; Dashboard</div>
+        </a>
     </div>
 
     <div class="analytics-section">
@@ -78,15 +79,16 @@
                     <td class="review-text">{{ review.review|truncatechars:80 }}</td>
                     <td>
                         <label class="toggle-switch">
-                            <input type="checkbox" {% if review.featured %}checked{% endif %} data-review-id="{{ review.id }}" onchange="toggleFeatured(this.dataset.reviewId, this.checked)">
+                            <input type="checkbox" {% if review.featured %}checked{% endif %} data-review-id="{{ review.id }}" class="toggle-featured">
                             <span class="toggle-slider"></span>
                         </label>
                     </td>
                     <td>{{ review.created_at|date:"M d, Y" }}</td>
                     <td>
-                        <button class="btn-danger btn-sm" data-review-id="{{ review.id }}" onclick="deleteReview(this.dataset.reviewId)">
+                        <button class="btn-danger btn-sm delete-review-btn" data-review-id="{{ review.id }}">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                             </svg>
                         </button>
                     </td>
@@ -106,7 +108,7 @@
     <div class="modal-content">
         <div class="modal-header">
             <h3>Add Review</h3>
-            <button onclick="closeCreateModal()" class="modal-close">&times;</button>
+            <button id="closeModalBtn" class="modal-close">&times;</button>
         </div>
         <form id="createReviewForm">
             <div class="form-group">
@@ -141,134 +143,167 @@
                 </label>
             </div>
             <div class="modal-actions">
-                <button type="button" onclick="closeCreateModal()" class="btn-secondary">Cancel</button>
-                <button type="submit" class="btn-primary">Create Review</button>
+                <button type="button" id="cancelModalBtn" class="btn-secondary">Cancel</button>
+                <button type="submit" class="btn-secondary" style="background: #fff; color: #000;">Create Review</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
+(function() {
+    var toggleFeaturedUrl = '{% url "FUZEOBS:toggle_review_featured" %}';
+    var deleteReviewUrl = '{% url "FUZEOBS:delete_review" %}';
+    var createReviewUrl = '{% url "FUZEOBS:create_review_admin" %}';
+    
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
             }
         }
+        return cookieValue;
     }
-    return cookieValue;
-}
 
-async function toggleFeatured(reviewId, featured) {
-    try {
-        const res = await fetch('{% url "FUZEOBS:toggle_review_featured" %}', {
+    function toggleFeatured(reviewId, featured) {
+        fetch(toggleFeaturedUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify({ review_id: reviewId, featured: featured })
+        }).then(function(res) {
+            if (!res.ok) {
+                alert('Failed to update');
+                location.reload();
+            }
+        }).catch(function() {
+            alert('Failed to update');
+            location.reload();
         });
-        if (!res.ok) throw new Error('Failed');
-    } catch (e) {
-        alert('Failed to update');
-        location.reload();
     }
-}
 
-async function deleteReview(reviewId) {
-    if (!confirm('Delete this review?')) return;
-    
-    try {
-        const res = await fetch('{% url "FUZEOBS:delete_review" %}', {
+    function deleteReview(reviewId) {
+        if (!confirm('Delete this review?')) return;
+        
+        fetch(deleteReviewUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify({ review_id: reviewId })
+        }).then(function(res) {
+            if (res.ok) {
+                var row = document.getElementById('review-' + reviewId);
+                if (row) row.remove();
+            } else {
+                alert('Failed to delete');
+            }
+        }).catch(function() {
+            alert('Failed to delete');
         });
-        if (res.ok) {
-            document.getElementById('review-' + reviewId).remove();
-        } else {
-            throw new Error('Failed');
+    }
+
+    function openCreateModal() {
+        document.getElementById('createModal').style.display = 'flex';
+    }
+
+    function closeCreateModal() {
+        document.getElementById('createModal').style.display = 'none';
+        document.getElementById('createReviewForm').reset();
+        setRating(5);
+    }
+
+    function setRating(rating) {
+        document.getElementById('createRating').value = rating;
+        var btns = document.querySelectorAll('.star-btn');
+        for (var i = 0; i < btns.length; i++) {
+            if (i < rating) {
+                btns[i].classList.add('active');
+            } else {
+                btns[i].classList.remove('active');
+            }
         }
-    } catch (e) {
-        alert('Failed to delete');
     }
-}
 
-function openCreateModal() {
-    document.getElementById('createModal').style.display = 'flex';
-}
+    // Build star buttons
+    var container = document.getElementById('starInput');
+    for (var i = 1; i <= 5; i++) {
+        (function(rating) {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'star-btn';
+            btn.innerHTML = '&#9733;';
+            btn.addEventListener('click', function() { setRating(rating); });
+            container.appendChild(btn);
+        })(i);
+    }
 
-function closeCreateModal() {
-    document.getElementById('createModal').style.display = 'none';
-    document.getElementById('createReviewForm').reset();
-    setRating(5);
-}
-
-function setRating(rating) {
-    document.getElementById('createRating').value = rating;
-    document.querySelectorAll('.star-btn').forEach((btn, i) => {
-        btn.classList.toggle('active', i < rating);
+    // Event listeners
+    document.getElementById('addReviewBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        openCreateModal();
     });
-}
-
-// Build star buttons via JS to avoid encoding issues
-(function() {
-    const container = document.getElementById('starInput');
-    for (let i = 1; i <= 5; i++) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'star-btn';
-        btn.dataset.rating = i;
-        btn.innerHTML = '&#9733;';
-        btn.onclick = function() { setRating(i); };
-        container.appendChild(btn);
-    }
-})();
-
-document.getElementById('createReview').addEventListener('input', function() {
-    document.getElementById('charCount').textContent = this.value.length;
-});
-
-document.getElementById('createReviewForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
     
-    const data = {
-        username: document.getElementById('createUsername').value,
-        platform: document.getElementById('createPlatform').value,
-        rating: parseInt(document.getElementById('createRating').value),
-        review: document.getElementById('createReview').value,
-        featured: document.getElementById('createFeatured').checked
-    };
-    
-    try {
-        const res = await fetch('{% url "FUZEOBS:create_review_admin" %}', {
+    document.getElementById('closeModalBtn').addEventListener('click', closeCreateModal);
+    document.getElementById('cancelModalBtn').addEventListener('click', closeCreateModal);
+
+    document.querySelectorAll('.toggle-featured').forEach(function(el) {
+        el.addEventListener('change', function() {
+            toggleFeatured(this.dataset.reviewId, this.checked);
+        });
+    });
+
+    document.querySelectorAll('.delete-review-btn').forEach(function(el) {
+        el.addEventListener('click', function() {
+            deleteReview(this.dataset.reviewId);
+        });
+    });
+
+    document.getElementById('createReview').addEventListener('input', function() {
+        document.getElementById('charCount').textContent = this.value.length;
+    });
+
+    document.getElementById('createReviewForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        var data = {
+            username: document.getElementById('createUsername').value,
+            platform: document.getElementById('createPlatform').value,
+            rating: parseInt(document.getElementById('createRating').value),
+            review: document.getElementById('createReview').value,
+            featured: document.getElementById('createFeatured').checked
+        };
+        
+        fetch(createReviewUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify(data)
+        }).then(function(res) {
+            return res.json();
+        }).then(function(result) {
+            if (result.success) {
+                location.reload();
+            } else {
+                alert(result.error || 'Failed to create review');
+            }
+        }).catch(function() {
+            alert('Failed to create review');
         });
-        const result = await res.json();
-        if (result.success) {
-            location.reload();
-        } else {
-            alert(result.error || 'Failed to create review');
-        }
-    } catch (e) {
-        alert('Failed to create review');
-    }
-});
+    });
 
-setRating(5);
+    setRating(5);
+})();
 </script>
 {% endblock %}

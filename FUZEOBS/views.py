@@ -269,7 +269,8 @@ def fuzeobs_login(request):
                 'token': token,
                 'email': user.email,
                 'username': user.username,
-                'tier': user.fuzeobs_tier
+                'tier': user.fuzeobs_tier,
+                'profile_picture': user.profile_picture.url if user.profile_picture else None
             })
         else:
             # Failed login - increment attempts
@@ -405,6 +406,7 @@ def fuzeobs_verify(request):
             'tier': user.fuzeobs_tier,
             'email': user.email,
             'username': user.username,
+            'profile_picture': user.profile_picture.url if user.profile_picture else None,
             'reachable': True
         }
         
@@ -1647,6 +1649,10 @@ def fuzeobs_analytics_view(request):
     landing_views = FuzeOBSPageView.objects.filter(page='landing', timestamp__gte=date_from).values('session_id').distinct().count()
     pricing_views = FuzeOBSPageView.objects.filter(page='pricing', timestamp__gte=date_from).values('session_id').distinct().count()
     
+    # Review counts
+    total_reviews = FuzeOBSReview.objects.count()
+    featured_reviews = FuzeOBSReview.objects.filter(featured=True).count()
+    
     context = {
         'days': days,
         'total_users': total_users,
@@ -1684,6 +1690,8 @@ def fuzeobs_analytics_view(request):
         'dau_json': json.dumps(dau_data),
         'landing_views': landing_views,
         'pricing_views': pricing_views,
+        'total_reviews': total_reviews,
+        'featured_reviews': featured_reviews,
     }
     
     return render(request, 'FUZEOBS/fuzeobs_analytics.html', context)

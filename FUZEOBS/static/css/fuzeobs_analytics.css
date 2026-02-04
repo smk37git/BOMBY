@@ -845,3 +845,20 @@
     color: #000;
     border-color: #fff;
 }
+
+a.metric-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+a.metric-card-link:hover {
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+a.metric-card-link .metric-subtext {
+    color: #a855f7;
+}
