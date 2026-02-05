@@ -335,17 +335,17 @@ CSP_SCRIPT_SRC = (
     "'unsafe-eval'",
     "https://*.paypal.com", 
     "https://*.paypalobjects.com",
-    "https://*.google.com"
+    "https://*.google.com",
+    "https://challenges.cloudflare.com",
 )
-CSP_STYLE_SRC = (
-    "'self'", 
-    "'unsafe-inline'",
-    "https://cdnjs.cloudflare.com",
-    "https://*.paypal.com", 
-    "https://*.paypalobjects.com",
-    "https://unpkg.com",
-    "https://maxcdn.bootstrapcdn.com"
+
+CSP_FRAME_SRC = (
+    "'self'",
+    "https://*.paypal.com",
+    "https://*.google.com",
+    "https://challenges.cloudflare.com",
 )
+
 CSP_CONNECT_SRC = (
     "'self'",
     "https://*.paypal.com",
@@ -356,8 +356,10 @@ CSP_CONNECT_SRC = (
     "https://*.google.com",
     "https://www.google.com",
     "https://browser-intake-us5-datadoghq.com",
-    "https://*.qualtrics.com"
+    "https://*.qualtrics.com",
+    "https://challenges.cloudflare.com",
 )
+
 CSP_FRAME_SRC = (
     "'self'",
     "https://*.paypal.com",
