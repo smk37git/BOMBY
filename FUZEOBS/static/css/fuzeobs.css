@@ -981,7 +981,7 @@
 .review-modal-platform.platform-kick { color: #53fc18; }
 .review-modal-platform.platform-tiktok { color: #ff0050; }
 .review-modal-platform.platform-facebook { color: #1877f2; }
-.review-modal-platform.platform-other { color: rgba(255,255,255,0.5); }
+.review-modal-platform.platform-other { color: rgb(239, 239, 239); }
 
 .review-modal-stars {
     display: flex;
