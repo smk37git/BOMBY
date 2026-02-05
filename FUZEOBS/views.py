@@ -2129,7 +2129,7 @@ def fuzeobs_tiktok_exchange(request):
             return JsonResponse({'error': 'Invalid state'}, status=400)
         
         config = PLATFORM_OAUTH_CONFIG['tiktok']
-        redirect_uri = 'http://localhost:5000/tiktok-callback'
+        redirect_uri = 'http://localhost:5050/tiktok-callback'
         
         token_data = {
             'client_key': config['client_id'],
