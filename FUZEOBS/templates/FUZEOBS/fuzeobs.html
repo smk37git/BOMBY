@@ -661,30 +661,12 @@ if (typeof gsap === 'undefined') {
     }
 })();
 
-// Reviews Carousel Auto-scroll
+// Reviews Carousel - clone items for seamless loop
 (function() {
     const carousel = document.getElementById('reviewsCarousel');
     if (!carousel || carousel.children.length === 0) return;
-    
     const items = Array.from(carousel.children);
     items.forEach(item => carousel.appendChild(item.cloneNode(true)));
-    
-    let scrollPos = 0;
-    const speed = 1;
-    let isPaused = false;
-    
-    carousel.addEventListener('mouseenter', () => isPaused = true);
-    carousel.addEventListener('mouseleave', () => isPaused = false);
-    
-    function animate() {
-        if (!isPaused) {
-            scrollPos += speed;
-            if (scrollPos >= carousel.scrollWidth / 2) scrollPos -= carousel.scrollWidth / 2;
-            carousel.style.transform = `translate3d(-${scrollPos}px, 0, 0)`;
-        }
-        requestAnimationFrame(animate);
-    }
-    animate();
 })();
 
 // Review Modal

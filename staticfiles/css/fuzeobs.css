@@ -702,6 +702,310 @@
 .btn-outline:hover { background: rgba(255, 255, 255, 0.1); }
 
 /* ===========================================
+   Reviews Carousel Section
+   =========================================== */
+.reviews-section {
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 50px 0;
+    overflow: hidden;
+}
+
+.reviews-section .section-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.reviews-section .section-title {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 700;
+    margin-top: 12px;
+}
+
+.reviews-carousel-wrapper {
+    width: 100%;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+.reviews-carousel {
+    display: flex;
+    gap: 24px;
+    animation: carousel-scroll 30s linear infinite;
+}
+
+.reviews-carousel:hover {
+    animation-play-state: paused;
+}
+
+@keyframes carousel-scroll {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-50%, 0, 0); }
+}
+
+.review-card {
+    flex-shrink: 0;
+    width: 320px;
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    transition: border-color 0.3s, background 0.3s;
+    cursor: pointer;
+}
+
+.review-card:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.review-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.review-card-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+}
+
+.review-card-avatar-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.review-card-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.review-card-name {
+    font-weight: 600;
+    font-size: 17px;
+    color: #fff;
+}
+
+.review-card-name::before {
+    content: '@';
+    position: relative;
+    top: -1px;
+}
+
+.review-card-separator {
+    width: 1px;
+    height: 18px;
+    background: #fff;
+}
+
+/* Platform Icons */
+.review-card-platform {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+}
+
+.review-card-platform.platform-twitch { color: #9146ff; }
+.review-card-platform.platform-youtube { color: #ff0000; }
+.review-card-platform.platform-kick { color: #53fc18; }
+.review-card-platform.platform-tiktok { color: #ff0050; }
+.review-card-platform.platform-facebook { color: #1877f2; }
+.review-card-platform.platform-other { color: rgba(255,255,255,0.5); }
+
+.review-card-stars {
+    display: flex;
+    gap: 2px;
+    margin-bottom: 14px;
+}
+
+.review-card-stars .star {
+    color: #ffcc00;
+}
+
+.review-card-stars .star:not(.filled) {
+    color: rgba(255, 255, 255, 0.15);
+}
+
+.review-card-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+
+.review-read-more {
+    display: inline-block;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 13px;
+    font-weight: 400;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: color 0.2s;
+}
+
+.review-read-more:hover {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Review Modal */
+.review-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.review-modal-content {
+    background: #111;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    max-width: 480px;
+    width: 100%;
+    padding: 28px;
+    position: relative;
+}
+
+.review-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 22px;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.2s;
+}
+
+.review-modal-close:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.review-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.review-modal-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+}
+
+.review-modal-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.review-modal-avatar span {
+    font-weight: 700;
+    font-size: 22px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.review-modal-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.review-modal-separator {
+    width: 1px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.review-modal-name {
+    font-weight: 600;
+    font-size: 18px;
+    color: #fff;
+}
+
+.review-modal-name::before {
+    content: '@';
+    position: relative;
+    top: -1px;
+    right: 3px;
+}
+
+.review-modal-platform {
+    display: flex;
+    align-items: center;
+    width: 24px;
+    height: 24px;
+    opacity: 0.5;
+}
+
+.review-modal-platform.platform-twitch { color: #9146ff; }
+.review-modal-platform.platform-youtube { color: #ff0000; }
+.review-modal-platform.platform-kick { color: #53fc18; }
+.review-modal-platform.platform-tiktok { color: #ff0050; }
+.review-modal-platform.platform-facebook { color: #1877f2; }
+.review-modal-platform.platform-other { color: rgba(255,255,255,0.5); }
+
+.review-modal-stars {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 16px;
+}
+
+.review-modal-stars .star {
+    font-size: 20px;
+    color: #ffcc00;
+}
+
+.review-modal-stars .star:not(.filled) {
+    color: rgba(255, 255, 255, 0.15);
+}
+
+.review-modal-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+}
+
+/* ===========================================
    Responsive - Large Screens (1440px+)
    =========================================== */
 @media (min-width: 1440px) {
@@ -800,6 +1104,15 @@
   .custom-cta { padding: 50px 16px; }
   
   .section-header { margin-bottom: 40px; }
+
+  .reviews-section {
+        padding: 60px 0;
+    }
+    
+    .review-card {
+        width: 280px;
+        padding: 20px;
+    }
 }
 
 /* ===========================================

@@ -731,10 +731,16 @@
 .reviews-carousel {
     display: flex;
     gap: 24px;
-    will-change: transform;
-    transform: translate3d(0, 0, 0);
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
+    animation: carousel-scroll 30s linear infinite;
+}
+
+.reviews-carousel:hover {
+    animation-play-state: paused;
+}
+
+@keyframes carousel-scroll {
+    0% { transform: translate3d(0, 0, 0); }
+    100% { transform: translate3d(-50%, 0, 0); }
 }
 
 .review-card {
@@ -799,6 +805,7 @@
     content: '@';
     position: relative;
     top: -1px;
+    right: 3px;
 }
 
 .review-card-separator {
