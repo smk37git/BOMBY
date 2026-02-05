@@ -23,12 +23,13 @@ p {
 }
 
 .container {
-    max-width: 1200px;
+    width: 90%;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 0 2rem;
 }
 
-/* Button Styles from store_item.css */
+/* Button Styles */
 .hero-btn, .action-btn {
     display: inline-block;
     padding: 0.8rem 2rem;
@@ -57,14 +58,15 @@ p {
     background-color: rgba(158, 51, 230, 0.1);
 }
 
-/* Hero Section */
+/* ===== HERO SECTION ===== */
 .hero-section {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-
-    padding: 0 2rem;
+    justify-content: center;
+    gap: 4vw;
+    padding: 0 5vw;
     min-height: 50vh;
+    width: 100%;
 }
 
 .desktop-buttons {
@@ -76,21 +78,26 @@ p {
     display: none !important;
 }
 
+/* KEY FIX: flex: 1 + min-width: 0 allows content to shrink properly */
 .hero-content {
-    max-width: 600px;
+    flex: 1 1 0;
+    min-width: 0;
 }
 
+/* Fluid title: scales with viewport, never too big or too small */
 .hero-title {
-    font-size: 5rem;
+    font-size: clamp(4rem, 7vw, 12rem);
     line-height: 1;
     font-weight: 900;
     margin-bottom: 1rem;
+    white-space: nowrap;
 }
 
 .hero-subtitle {
-    font-size: 1.2rem;
+    font-size: clamp(1.1rem, 1.5vw, 2.5rem);
     opacity: 0.8;
     margin-bottom: 2rem;
+    white-space: nowrap;
 }
 
 .hero-buttons {
@@ -98,11 +105,13 @@ p {
     gap: 1rem;
 }
 
+/* KEY FIX: video can shrink, uses vw sizing */
 .hero-video {
-    flex: 0 0 40%;
+    flex: 0 1 auto;
     display: flex;
     justify-content: center;
     align-items: center;
+    min-width: 0;
 }
 
 .video-container video {
@@ -111,9 +120,10 @@ p {
     object-fit: cover;
 }
 
+/* Fluid video container: 28vw scales with zoom */
 .video-container-bomby {
-    width: 500px;
-    height: 500px;
+    width: clamp(300px, 33vw, 800px);
+    height: clamp(300px, 33vw, 800px);
     border-radius: 15px;
     overflow: hidden;
     margin-bottom: 25px;
@@ -129,9 +139,10 @@ p {
     object-fit: cover;
 }
 
-/* Info Section with Eye Animation */
+/* ===== INFO SECTION ===== */
 .info-section {
     padding: 5rem 0;
+    width: 100%;
 }
 
 .info-row {
@@ -142,6 +153,7 @@ p {
 
 .eye-animation {
     flex: 1;
+    min-width: 0;
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.8s ease, transform 0.8s ease;
@@ -181,11 +193,12 @@ p {
 
 .eye-caption h3 {
     margin: 0;
-    font-size: 1.2rem;
+    font-size: clamp(1rem, 1.1vw, 1.5rem);
 }
 
 .welcome-content {
     flex: 1;
+    min-width: 0;
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.8s ease, transform 0.8s ease;
@@ -197,8 +210,12 @@ p {
 }
 
 .welcome-content h2 {
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 3vw, 5rem);
     margin-bottom: 1.5rem;
+}
+
+.welcome-content p {
+    font-size: clamp(1rem, 1.1vw, 1.5rem);
 }
 
 .welcome-buttons {
@@ -207,16 +224,19 @@ p {
     margin-top: 2rem;
 }
 
-/* Services Section */
+/* ===== SERVICES SECTION ===== */
 .services-section {
     position: relative;
     text-align: center;
+    width: 90%;
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 .section-title {
     display: inline-block;
     text-align: center;
-    font-size: 2.5rem;
+    font-size: clamp(2rem, 2.5vw, 4rem);
     margin-bottom: 0.5rem;
 }
 
@@ -226,12 +246,11 @@ p {
     width: 100%;
     margin: 0 auto 3rem;
     display: block;
-    width: 100%;
 }
 
 .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
 }
 
@@ -242,7 +261,6 @@ p {
     text-align: center;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
     opacity: 0;
     transform: translateY(20px);
     transition: opacity 0.8s ease, transform 0.8s ease;
@@ -272,19 +290,22 @@ p {
 }
 
 .service-card h3 {
-    font-size: 1.5rem;
+    font-size: clamp(1.4rem, 1.5vw, 2.2rem);
     margin-bottom: 1rem;
 }
 
 .service-card p {
     color: rgba(255, 255, 255, 0.8);
+    font-size: clamp(0.95rem, 1vw, 1.3rem);
 }
 
-/* CTA Section */
+/* ===== CTA SECTION ===== */
 .cta-section {
     padding: 5rem 0;
     text-align: center;
-    margin: 3rem 2rem;
+    width: 90%;
+    max-width: 1600px;
+    margin: 3rem auto;
     border-radius: 10px;
     opacity: 0;
     transform: translateY(20px);
@@ -297,7 +318,7 @@ p {
 }
 
 .cta-section h2 {
-    font-size: 2.5rem;
+    font-size: clamp(1.8rem, 2.5vw, 3.5rem);
     margin-bottom: 1rem;
 }
 
@@ -306,6 +327,7 @@ p {
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 2rem;
+    font-size: clamp(0.9rem, 1vw, 1.3rem);
 }
 
 .cta-section .action-btn {
@@ -313,287 +335,7 @@ p {
     font-size: 1.1rem;
 }
 
-@media (min-width: 1440px) {
-    .hero-section {
-        padding: 5rem 10rem;
-    }
-
-    .hero-content {
-        padding: 5rem 2rem;
-    }
-
-    .hero-title {
-        font-size: 12rem;
-    }
-
-    .hero-subtitle {
-        font-size: 2.5rem;
-        white-space: nowrap;
-    }
-
-    .video-container-bomby {
-        height: 750px;
-        width: 750px;
-    }
-
-    .info-section {
-        padding: 10rem 0;
-    }
-}
-
-@media screen and (min-width: 1920px) and (max-width: 1921px) {
-    .hero-btn, .action-btn {
-        display: inline-block;
-        padding: 0.8rem 2rem;
-        background: linear-gradient(45deg, #9e33e6, #505ed7);
-        color: white;
-        text-decoration: none;
-        border-radius: 8px;
-        font-size: 30px;
-        font-weight: bold;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        white-space: nowrap;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    }
-    
-    .hero-btn:hover, .action-btn:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(160, 74, 226, 0.4);
-    }
-    
-    .action-btn.secondary {
-        background: transparent;
-        border: 2px solid #9e33e6;
-    }
-    
-    .action-btn.secondary:hover {
-        background-color: rgba(158, 51, 230, 0.1);
-    }
-
-    .hero-section {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 6rem;
-        min-height: 50vh;
-    }
-
-    .hero-content {
-        max-width: 1000px;
-    }
-    
-    .hero-title {
-        font-size: 10rem;
-        line-height: 1;
-        font-weight: 900;
-    }
-
-    .hero-subtitle {
-        font-size: 2rem;
-        opacity: 0.8;
-        margin-bottom: 2rem;
-    }
-
-    .video-container-bomby {
-        width: 700px;
-        height: 700px;
-        border-radius: 15px;
-        overflow: hidden;
-        background: transparent;
-    }
-
-    .info-section {
-        margin-top: 100px;
-        padding: 1rem;
-        margin: 0 auto !important;
-    }
-
-    .info-row {
-        margin: 0 -100px;
-        align-items: center;
-        gap: 4rem;
-    }
-
-    .container {
-        max-width: 1500px;
-    }
-    
-    .eye-animation {
-        flex: 1;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-    
-    .eye-animation.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
-    .eye-container {
-        margin: 175px auto;
-        height: 350px;
-        width: 500px;
-        position: relative;
-        border-radius: 10px;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        border: 2px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    .eye-container video {
-        width: 100%;
-        display: block;
-    }
-
-    .eye-caption {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        padding: 1rem;
-        text-align: center;
-    }
-    
-    .eye-caption h3 {
-        margin: 0;
-        font-size: 1.2rem;
-    }
-
-    .welcome-content {
-        flex: 1;
-        padding: 0 5rem;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-    
-    .welcome-content.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
-    .welcome-content h2 {
-        font-size: 5rem;
-        white-space: nowrap;
-        margin-bottom: 1.5rem;
-    }
-
-    .welcome-content p {
-        font-size: 1.5rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .services-section {
-        position: relative;
-        text-align: center;
-    }
-    
-    .section-title {
-        display: inline-block;
-        text-align: center;
-        font-size: 5rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .divider {
-        height: 3px;
-        background-color: rgb(136, 0, 255);
-        width: 100%;
-        margin: 0 auto 3rem;
-        display: block;
-        width: 100%;
-    }
-    
-    .services-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(450px, 3fr));
-        gap: 2rem;
-    }
-    
-    .service-card {
-        background-color: #0a0a0a;
-        border-radius: 10px;
-        padding: 2rem;
-        text-align: center;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-    
-    .service-card.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
-    .service-card:hover {
-        transform: translateY(-10px) scale(1.02);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
-        border-color: rgba(255, 255, 255, 0.3);
-    }
-    
-    .service-icon {
-        width: 70px;
-        height: 70px;
-        background: linear-gradient(90deg, #9e33e6, #505ed7);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1.5rem;
-        font-size: 1.8rem;
-    }
-    
-    .service-card h3 {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-    }
-    
-    .service-card p {
-        font-size: 1.2rem;
-        color: rgba(255, 255, 255, 0.8);
-    }
-    
-    /* CTA Section */
-    .cta-section {
-        padding: 5rem 0;
-        text-align: center;
-        margin: 3rem 2rem;
-        border-radius: 10px;
-        opacity: 0;
-        transform: translateY(20px);
-        transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-    
-    .cta-section.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    
-    .cta-section h2 {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-    }
-    
-    .cta-section p {
-        font-size: 1.2rem;
-        max-width: 600px;
-        margin-left: auto;
-        margin-right: auto;
-        margin-bottom: 2rem;
-    }
-    
-    .cta-section .action-btn {
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-    }
-}
-
+/* ===== MOBILE ===== */
 @media (max-width: 768px) {
     html, body, main {
         overflow-x: hidden !important;
@@ -609,16 +351,25 @@ p {
         text-align: center;
     }
 
-    .hero-subtitle {
-        font-size: 1.1rem;
+    .hero-content {
+        max-width: 100%;
+        margin-bottom: 3rem;
     }
 
-     /* Hide desktop buttons on mobile */
-     .desktop-buttons {
+    .hero-title {
+        font-size: 3.5rem;
+        white-space: normal;
+    }
+
+    .hero-subtitle {
+        font-size: 1.1rem;
+        white-space: normal;
+    }
+
+    .desktop-buttons {
         display: none;
     }
-    
-    /* Show mobile buttons on mobile */
+
     .mobile-buttons {
         display: flex !important;
         flex-direction: column;
@@ -627,36 +378,31 @@ p {
         margin-top: 75px;
         width: 100%;
     }
-    
+
     .mobile-buttons .hero-btn {
         width: 100%;
         text-align: center;
     }
-    
+
     .hero-video {
         display: flex;
         flex-direction: column;
         align-items: center;
     }
-    
-    .hero-content {
-        margin-bottom: 3rem;
-    }
-    
+
     .hero-buttons {
         justify-content: center;
     }
 
     .video-container-bomby {
-        background: transparent;
-        max-width: 300px;
-        max-height: 300px;
+        width: 300px;
+        height: 300px;
         margin-top: -40px !important;
         background: #0a0a0a;
         border: 2px solid rgba(255, 255, 255, 0.1);
         margin: 0 auto;
     }
-    
+
     .video-container {
         width: 350px;
         height: 350px;
@@ -677,25 +423,36 @@ p {
     .info-section {
         margin-top: -100px;
     }
-    
+
     .info-row {
         flex-direction: column-reverse;
         gap: 1rem;
     }
-    
+
     .welcome-content {
         text-align: center;
         margin-bottom: 3rem;
     }
-    
+
+    .welcome-content h2 {
+        font-size: 2rem;
+    }
+
     .welcome-buttons {
         justify-content: center;
     }
-    
+
     .services-grid {
         grid-template-columns: 1fr;
         max-width: 400px;
         margin: 0 auto;
+    }
+
+    .services-section,
+    .cta-section,
+    .container {
+        width: 100%;
+        padding: 0 1rem;
     }
 }
 
@@ -703,18 +460,18 @@ p {
     .hero-title {
         font-size: 3rem;
     }
-    
+
     .hero-buttons, .welcome-buttons {
         flex-direction: column;
         width: 100%;
     }
-    
+
     .hero-btn, .action-btn {
         width: 100%;
         margin-bottom: 1rem;
         text-align: center;
     }
-    
+
     .video-container {
         width: 280px;
         height: 280px;
