@@ -41,6 +41,8 @@ def contact(request):
             'response': turnstile_response,
         }
         verify_result = requests.post(verify_url, data=verify_data).json()
+        print(f"Turnstile response token: {turnstile_response}")
+        print(f"Verify result: {verify_result}")
         
         if not verify_result.get('success'):
             messages.error(request, 'CAPTCHA verification failed. Please try again.')
