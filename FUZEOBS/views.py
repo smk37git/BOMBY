@@ -66,14 +66,14 @@ User = get_user_model()
 
 # ====== VERSION / UPDATES ======
 
-FUZEOBS_VERSION = '0.10.0'
+FUZEOBS_VERSION = '0.10.1'
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
     return JsonResponse({
         'version': FUZEOBS_VERSION,
         'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'App touch ups + webcam detection fix',
+        'changelog': 'MacOS WORKING!',
         'mandatory': False
     })
 
