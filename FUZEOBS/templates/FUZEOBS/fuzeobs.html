@@ -679,8 +679,8 @@ if (typeof gsap === 'undefined') {
     function animate() {
         if (!isPaused) {
             scrollPos += speed;
-            if (scrollPos >= carousel.scrollWidth / 2) scrollPos = 0;
-            carousel.style.transform = `translateX(-${scrollPos}px)`;
+            if (scrollPos >= carousel.scrollWidth / 2) scrollPos -= carousel.scrollWidth / 2;
+            carousel.style.transform = `translate3d(-${scrollPos}px, 0, 0)`;
         }
         requestAnimationFrame(animate);
     }
