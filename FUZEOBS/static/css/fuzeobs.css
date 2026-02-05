@@ -974,7 +974,6 @@
     align-items: center;
     width: 24px;
     height: 24px;
-    opacity: 0.5;
 }
 
 .review-modal-platform.platform-twitch { color: #9146ff; }
