@@ -66,14 +66,21 @@ User = get_user_model()
 
 # ====== VERSION / UPDATES ======
 
-FUZEOBS_VERSION = '0.10.1'
+FUZEOBS_VERSION = '0.10.2'
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
+    platform = request.GET.get('platform', 'windows')
+    
+    urls = {
+        'windows': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
+        'darwin': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.dmg',
+    }
+    
     return JsonResponse({
         'version': FUZEOBS_VERSION,
-        'download_url': 'https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe',
-        'changelog': 'MacOS WORKING!',
+        'download_url': urls.get(platform, urls['windows']),
+        'changelog': 'MacOS Improvements',
         'mandatory': False
     })
 
