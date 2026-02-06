@@ -66,7 +66,7 @@ User = get_user_model()
 
 # ====== VERSION / UPDATES ======
 
-FUZEOBS_VERSION = '0.10.2'
+FUZEOBS_VERSION = '0.10.3'
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
@@ -80,7 +80,7 @@ def fuzeobs_check_update(request):
     return JsonResponse({
         'version': FUZEOBS_VERSION,
         'download_url': urls.get(platform, urls['windows']),
-        'changelog': 'MacOS Improvements',
+        'changelog': 'MacOS Improvements 2',
         'mandatory': False
     })
 
