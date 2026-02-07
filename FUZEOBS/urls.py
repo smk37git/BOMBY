@@ -11,6 +11,7 @@ app_name = 'FUZEOBS'
 
 urlpatterns = [
     path('check-update', views.fuzeobs_check_update, name='check_update'),
+    path('patch-notes', views.fuzeobs_patch_notes, name='patch_notes'),
     path('signup', views.fuzeobs_signup, name='signup'),
     path('login', views.fuzeobs_login, name='login'),
     path('google-auth/init', views.fuzeobs_google_auth_init, name='google_auth_init'),

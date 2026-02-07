@@ -85,6 +85,24 @@ def fuzeobs_check_update(request):
         'mandatory': False
     })
 
+
+FUZEOBS_PATCH_NOTES = {
+    'version': FUZEOBS_VERSION,
+    'changelog': 'Welcome screen, daily streaming tips, and improved widget configuration.',
+    'notes': [
+        '- Added welcome screen with streaming tip of the day',
+        '- Improved widget configuration and platform connections',
+        '- Performance monitoring and benchmarking tools',
+        '- AI assistant for OBS troubleshooting and setup help',
+        '- Bug fixes and stability improvements',
+    ]
+}
+
+@require_http_methods(["GET"])
+def fuzeobs_patch_notes(request):
+    return JsonResponse(FUZEOBS_PATCH_NOTES)
+
+
 class SecureAuth:
     def __init__(self, secret_key: str):
         self.secret_key = secret_key.encode()
