@@ -1988,7 +1988,7 @@ def payment_page(request, product_id):
     response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
 
-@login_required
+# Line 1991 - REMOVE @login_required
 def create_checkout_session(request):
     """Create Stripe Checkout Session for embedded checkout"""
     if request.method != 'POST':
@@ -1998,7 +1998,11 @@ def create_checkout_session(request):
         data = json.loads(request.body)
         product_id = data.get('product_id')
         is_donation = data.get('is_donation', False)
-        amount = data.get('amount')  # For donations
+        amount = data.get('amount')
+        
+        # Require login for product purchases, but NOT donations
+        if not is_donation and not request.user.is_authenticated:
+            return JsonResponse({'error': 'Login required to purchase products'}, status=401)
         
         if is_donation:
             # Donation checkout
@@ -2024,10 +2028,9 @@ def create_checkout_session(request):
                 'user_id': str(request.user.id) if request.user.is_authenticated else '',
             }
         else:
-            # Product checkout
+            # Product checkout (user is guaranteed authenticated here)
             product = get_object_or_404(Product, id=product_id, is_active=True)
             
-            # Check for discount
             discount_applied = request.session.get('discount_applied', False)
             final_price = float(product.price)
             
@@ -2068,7 +2071,6 @@ def create_checkout_session(request):
                 'discount_code_id': str(request.session.get('discount_code_id', '')),
             }
         
-        # Create Stripe Checkout Session with embedded mode
         checkout_session = stripe.checkout.Session.create(
             ui_mode='embedded',
             line_items=line_items,
