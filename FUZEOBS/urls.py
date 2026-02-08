@@ -6,6 +6,7 @@ from .donations import (
     capture_donation, donation_history, validate_donation,
     clear_donation_history
 )
+from .recaps import fuzeobs_recaps as recaps_view, fuzeobs_recaps_refresh as recaps_refresh_view
 
 app_name = 'FUZEOBS'
 
@@ -134,5 +135,6 @@ urlpatterns = [
 
     # Welcome Page
     path('countdown', views.fuzeobs_countdown, name='countdown'),
-    path('countdown/import', views.fuzeobs_countdown_import, name='countdown_import'),
+    path('recaps', recaps_view, name='recaps'),
+    path('recaps/refresh', recaps_refresh_view, name='recaps_refresh'),
 ]
