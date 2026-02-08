@@ -131,4 +131,7 @@ urlpatterns = [
     path('reviews/edit-admin', views.edit_review_admin, name='edit_review_admin'),
     path('reviews/create-admin', views.fuzeobs_create_review_admin, name='create_review_admin'),
     path('reviews/my-review', views.my_review, name='my_review'),
+
+    # Welcome Page
+    path('countdown', views.fuzeobs_countdown, name='countdown'),
 ]

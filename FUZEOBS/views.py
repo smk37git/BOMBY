@@ -14,7 +14,7 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
-from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription, DonationSettings, FuzeOBSReview
+from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription, DonationSettings, FuzeOBSReview, StreamCountdown
 from decimal import Decimal
 from google.cloud import storage
 import hmac
@@ -3431,3 +3431,56 @@ def my_review(request):
             return JsonResponse({'success': True, 'review': None})
     except User.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+
+@csrf_exempt
+@require_tier('free')
+def fuzeobs_countdown(request):
+    user = request.fuzeobs_user
+    
+    if request.method == 'GET':
+        try:
+            countdown = StreamCountdown.objects.get(user=user)
+            return JsonResponse({
+                'success': True,
+                'countdown': {
+                    'title': countdown.title,
+                    'scheduled_at': countdown.scheduled_at.isoformat(),
+                    'platforms': countdown.platforms,
+                }
+            })
+        except StreamCountdown.DoesNotExist:
+            return JsonResponse({'success': True, 'countdown': None})
+    
+    elif request.method == 'POST':
+        data = json.loads(request.body)
+        scheduled_at = data.get('scheduled_at')
+        if not scheduled_at:
+            return JsonResponse({'error': 'scheduled_at required'}, status=400)
+        
+        from django.utils.dateparse import parse_datetime
+        dt = parse_datetime(scheduled_at)
+        if not dt:
+            return JsonResponse({'error': 'Invalid datetime'}, status=400)
+        
+        countdown, _ = StreamCountdown.objects.update_or_create(
+            user=user,
+            defaults={
+                'title': data.get('title', ''),
+                'scheduled_at': dt,
+                'platforms': data.get('platforms', []),
+            }
+        )
+        return JsonResponse({
+            'success': True,
+            'countdown': {
+                'title': countdown.title,
+                'scheduled_at': countdown.scheduled_at.isoformat(),
+                'platforms': countdown.platforms,
+            }
+        })
+    
+    elif request.method == 'DELETE':
+        StreamCountdown.objects.filter(user=user).delete()
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
