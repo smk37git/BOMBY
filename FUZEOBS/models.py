@@ -395,19 +395,3 @@ class StreamCountdown(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - countdown"
-
-class StreamRecap(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    platform = models.CharField(max_length=20)
-    title = models.CharField(max_length=300, default='Untitled')
-    date = models.CharField(max_length=50, blank=True)
-    duration = models.CharField(max_length=20, blank=True)
-    views = models.IntegerField(default=0)
-    vod_url = models.URLField(blank=True, max_length=500)
-    clips = models.IntegerField(default=0)
-    stream_id = models.CharField(max_length=100, blank=True)
-    fetched_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-date']
-        indexes = [models.Index(fields=['user', 'platform'])]
