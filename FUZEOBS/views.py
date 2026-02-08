@@ -3436,51 +3436,197 @@ def my_review(request):
 @require_tier('free')
 def fuzeobs_countdown(request):
     user = request.fuzeobs_user
-    
+
     if request.method == 'GET':
         try:
-            countdown = StreamCountdown.objects.get(user=user)
-            return JsonResponse({
-                'success': True,
-                'countdown': {
-                    'title': countdown.title,
-                    'scheduled_at': countdown.scheduled_at.isoformat(),
-                    'platforms': countdown.platforms,
+            c = StreamCountdown.objects.get(user=user)
+            result = {'success': True, 'countdown': None, 'schedule': None}
+            if c.scheduled_at:
+                result['countdown'] = {
+                    'title': c.title,
+                    'scheduled_at': c.scheduled_at.isoformat(),
+                    'platforms': c.platforms,
                 }
-            })
+            if c.schedule_days:
+                result['schedule'] = {
+                    'title': c.title,
+                    'days': c.schedule_days,
+                    'time': c.schedule_time,
+                    'platforms': c.platforms,
+                }
+            return JsonResponse(result)
         except StreamCountdown.DoesNotExist:
-            return JsonResponse({'success': True, 'countdown': None})
-    
+            return JsonResponse({'success': True, 'countdown': None, 'schedule': None})
+
     elif request.method == 'POST':
         data = json.loads(request.body)
-        scheduled_at = data.get('scheduled_at')
-        if not scheduled_at:
-            return JsonResponse({'error': 'scheduled_at required'}, status=400)
-        
-        from django.utils.dateparse import parse_datetime
-        dt = parse_datetime(scheduled_at)
-        if not dt:
-            return JsonResponse({'error': 'Invalid datetime'}, status=400)
-        
-        countdown, _ = StreamCountdown.objects.update_or_create(
-            user=user,
-            defaults={
-                'title': data.get('title', ''),
-                'scheduled_at': dt,
-                'platforms': data.get('platforms', []),
+        defaults = {
+            'title': data.get('title', ''),
+            'platforms': data.get('platforms', []),
+        }
+
+        # Recurring schedule
+        if data.get('schedule_days'):
+            defaults['schedule_days'] = data['schedule_days']
+            defaults['schedule_time'] = data.get('schedule_time', '')
+            defaults['scheduled_at'] = None
+        # One-time countdown
+        elif data.get('scheduled_at'):
+            from django.utils.dateparse import parse_datetime
+            dt = parse_datetime(data['scheduled_at'])
+            if not dt:
+                return JsonResponse({'error': 'Invalid datetime'}, status=400)
+            defaults['scheduled_at'] = dt
+            defaults['schedule_days'] = []
+            defaults['schedule_time'] = ''
+        else:
+            return JsonResponse({'error': 'scheduled_at or schedule_days required'}, status=400)
+
+        c, _ = StreamCountdown.objects.update_or_create(user=user, defaults=defaults)
+
+        result = {'success': True, 'countdown': None, 'schedule': None}
+        if c.scheduled_at:
+            result['countdown'] = {
+                'title': c.title,
+                'scheduled_at': c.scheduled_at.isoformat(),
+                'platforms': c.platforms,
             }
-        )
-        return JsonResponse({
-            'success': True,
-            'countdown': {
-                'title': countdown.title,
-                'scheduled_at': countdown.scheduled_at.isoformat(),
-                'platforms': countdown.platforms,
+        if c.schedule_days:
+            result['schedule'] = {
+                'title': c.title,
+                'days': c.schedule_days,
+                'time': c.schedule_time,
+                'platforms': c.platforms,
             }
-        })
-    
+        return JsonResponse(result)
+
     elif request.method == 'DELETE':
         StreamCountdown.objects.filter(user=user).delete()
         return JsonResponse({'success': True})
-    
+
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+@require_tier('free')
+def fuzeobs_countdown_import(request):
+    """Import stream schedule from connected platforms (Twitch, YouTube)"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+    user = request.fuzeobs_user
+    imported_days = set()
+    imported_time = None
+    imported_title = ''
+    imported_platforms = []
+
+    # ---- Twitch Schedule ----
+    try:
+        twitch_conn = PlatformConnection.objects.get(user=user, platform='twitch')
+        from .twitch import get_app_access_token
+        app_token = get_app_access_token()
+
+        resp = requests.get(
+            'https://api.twitch.tv/helix/schedule',
+            params={'broadcaster_id': twitch_conn.platform_user_id},
+            headers={
+                'Authorization': f'Bearer {app_token}',
+                'Client-Id': settings.TWITCH_CLIENT_ID
+            },
+            timeout=10
+        )
+
+        if resp.status_code == 200:
+            schedule_data = resp.json().get('data', {})
+            segments = schedule_data.get('segments', [])
+
+            for seg in segments[:20]:  # limit
+                if not seg.get('is_recurring', False):
+                    continue
+                start = seg.get('start_time', '')
+                if start:
+                    from datetime import datetime as dt_class
+                    try:
+                        parsed = dt_class.fromisoformat(start.replace('Z', '+00:00'))
+                        # Convert to local weekday (JS: 0=Sun, Python weekday: 0=Mon)
+                        py_weekday = parsed.weekday()  # 0=Mon
+                        js_weekday = (py_weekday + 1) % 7  # 0=Sun
+                        imported_days.add(js_weekday)
+                        if imported_time is None:
+                            imported_time = parsed.strftime('%H:%M')
+                            imported_title = seg.get('title', '')
+                    except (ValueError, TypeError):
+                        pass
+
+            if imported_days:
+                imported_platforms.append('twitch')
+
+    except PlatformConnection.DoesNotExist:
+        pass
+    except Exception as e:
+        print(f'[COUNTDOWN] Twitch import error: {e}')
+
+    # ---- YouTube Scheduled Broadcasts ----
+    try:
+        yt_conn = PlatformConnection.objects.get(user=user, platform='youtube')
+        resp = requests.get(
+            'https://www.googleapis.com/youtube/v3/liveBroadcasts',
+            params={
+                'part': 'snippet,status',
+                'broadcastStatus': 'upcoming',
+                'maxResults': 10,
+            },
+            headers={'Authorization': f'Bearer {yt_conn.access_token}'},
+            timeout=10
+        )
+
+        if resp.status_code == 200:
+            items = resp.json().get('items', [])
+            for item in items:
+                start = item.get('snippet', {}).get('scheduledStartTime', '')
+                if start:
+                    from datetime import datetime as dt_class
+                    try:
+                        parsed = dt_class.fromisoformat(start.replace('Z', '+00:00'))
+                        py_weekday = parsed.weekday()
+                        js_weekday = (py_weekday + 1) % 7
+                        imported_days.add(js_weekday)
+                        if imported_time is None:
+                            imported_time = parsed.strftime('%H:%M')
+                            imported_title = item.get('snippet', {}).get('title', '')
+                    except (ValueError, TypeError):
+                        pass
+
+            if 'youtube' not in imported_platforms and items:
+                imported_platforms.append('youtube')
+
+    except PlatformConnection.DoesNotExist:
+        pass
+    except Exception as e:
+        print(f'[COUNTDOWN] YouTube import error: {e}')
+
+    if not imported_days:
+        return JsonResponse({'success': False, 'error': 'No schedule found on connected platforms'})
+
+    # Save
+    c, _ = StreamCountdown.objects.update_or_create(
+        user=user,
+        defaults={
+            'title': imported_title or '',
+            'scheduled_at': None,
+            'schedule_days': sorted(list(imported_days)),
+            'schedule_time': imported_time or '18:00',
+            'platforms': imported_platforms,
+        }
+    )
+
+    return JsonResponse({
+        'success': True,
+        'countdown': None,
+        'schedule': {
+            'title': c.title,
+            'days': c.schedule_days,
+            'time': c.schedule_time,
+            'platforms': c.platforms,
+        }
+    })

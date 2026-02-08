@@ -385,10 +385,13 @@ class FuzeOBSReview(models.Model):
 class StreamCountdown(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     title = models.CharField(max_length=200, blank=True, default='')
-    scheduled_at = models.DateTimeField()
-    platforms = models.JSONField(default=list)  # ['twitch', 'youtube', etc.]
+    scheduled_at = models.DateTimeField(null=True, blank=True)  # one-time countdown
+    platforms = models.JSONField(default=list)
+    # Recurring schedule
+    schedule_days = models.JSONField(default=list, blank=True)  # [0,1,3,5] = Sun,Mon,Wed,Fri
+    schedule_time = models.CharField(max_length=5, blank=True, default='')  # "18:00"
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
-        return f"{self.user.username} - {self.scheduled_at}"
+        return f"{self.user.username} - countdown"

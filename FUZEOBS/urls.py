@@ -134,4 +134,5 @@ urlpatterns = [
 
     # Welcome Page
     path('countdown', views.fuzeobs_countdown, name='countdown'),
+    path('countdown/import', views.fuzeobs_countdown_import, name='countdown_import'),
 ]
