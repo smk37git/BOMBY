@@ -384,9 +384,18 @@ def _fetch_kick_recaps(conn):
 
         for v in items[:10]:
             livestream = v.get('livestream') or {}
-            duration_seconds = livestream.get('duration', 0) or v.get('duration', 0)
+
+            # Kick returns duration in MILLISECONDS, not seconds
+            duration_ms = livestream.get('duration', 0) or v.get('duration', 0)
+            duration_seconds = int(duration_ms / 1000) if duration_ms > 0 else 0
+
             cats = livestream.get('categories') or v.get('categories') or []
             category = cats[0].get('name', '') if cats else ''
+
+            # UUID for VOD URL — try multiple keys
+            video_uuid = v.get('uuid', '') or v.get('slug', '') or livestream.get('slug', '')
+            if not video_uuid:
+                print(f'[RECAPS] Kick video missing uuid/slug, keys: {list(v.keys())}')
 
             recaps.append({
                 'platform': 'kick',
@@ -396,7 +405,7 @@ def _fetch_kick_recaps(conn):
                 'views': v.get('views', v.get('live_stream_view_count', 0)),
                 'peak_viewers': livestream.get('viewer_count', 0) or v.get('viewer_count', 0),
                 'category': category,
-                'vod_url': f"https://kick.com/{conn.platform_username}/videos/{v.get('uuid', '')}",
+                'vod_url': f"https://kick.com/{conn.platform_username}/videos/{video_uuid}" if video_uuid else f"https://kick.com/{conn.platform_username}",
                 'clips': 0,
                 'stream_id': str(v.get('id', '')),
             })
