@@ -383,6 +383,12 @@ def _fetch_kick_recaps(conn):
         items = data if isinstance(data, list) else data.get('data', [])
 
         for v in items[:10]:
+            # DEBUG: Log first video object to find correct UUID field
+            if items.index(v) == 0:
+                import json
+                print(f'[RECAPS] Kick first video keys: {list(v.keys())}')
+                print(f'[RECAPS] Kick first video data: {json.dumps(v, default=str)[:1000]}')
+
             livestream = v.get('livestream') or {}
 
             # Kick returns duration in MILLISECONDS, not seconds
