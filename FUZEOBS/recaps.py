@@ -383,25 +383,20 @@ def _fetch_kick_recaps(conn):
         items = data if isinstance(data, list) else data.get('data', [])
 
         for v in items[:10]:
-            # DEBUG: Log first video object to find correct UUID field
-            if items.index(v) == 0:
-                import json
-                print(f'[RECAPS] Kick first video keys: {list(v.keys())}')
-                print(f'[RECAPS] Kick first video data: {json.dumps(v, default=str)[:1000]}')
-
             livestream = v.get('livestream') or {}
+            video_obj = v.get('video') or {}
 
             # Kick returns duration in MILLISECONDS, not seconds
             duration_ms = livestream.get('duration', 0) or v.get('duration', 0)
             duration_seconds = int(duration_ms / 1000) if duration_ms > 0 else 0
 
-            cats = livestream.get('categories') or v.get('categories') or []
+            cats = v.get('categories') or livestream.get('categories') or []
             category = cats[0].get('name', '') if cats else ''
 
-            # UUID for VOD URL — try multiple keys
-            video_uuid = v.get('uuid', '') or v.get('slug', '') or livestream.get('slug', '')
+            # UUID lives inside the nested 'video' object
+            video_uuid = video_obj.get('uuid', '') or v.get('slug', '')
             if not video_uuid:
-                print(f'[RECAPS] Kick video missing uuid/slug, keys: {list(v.keys())}')
+                print(f'[RECAPS] Kick video missing uuid, video_obj keys: {list(video_obj.keys())}')
 
             recaps.append({
                 'platform': 'kick',
@@ -409,7 +404,7 @@ def _fetch_kick_recaps(conn):
                 'date': v.get('created_at', v.get('start_time', '')),
                 'duration': _seconds_to_duration(duration_seconds),
                 'views': v.get('views', v.get('live_stream_view_count', 0)),
-                'peak_viewers': livestream.get('viewer_count', 0) or v.get('viewer_count', 0),
+                'peak_viewers': v.get('viewer_count', 0),
                 'category': category,
                 'vod_url': f"https://kick.com/{conn.platform_username}/videos/{video_uuid}" if video_uuid else f"https://kick.com/{conn.platform_username}",
                 'clips': 0,
