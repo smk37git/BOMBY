@@ -14,7 +14,7 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
-from .models import *
+from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription, DonationSettings, FuzeOBSReview, StreamCountdown, CollabPost, CollabInterest
 from decimal import Decimal
 from google.cloud import storage
 import hmac
@@ -3506,6 +3506,14 @@ def fuzeobs_countdown(request):
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+
+# ============ COLLAB FINDER ============
+def _get_profile_pic_url(user):
+    """Get full profile picture URL"""
+    if hasattr(user, 'profile_picture') and user.profile_picture:
+        return f'https://bomby.us{user.profile_picture.url}'
+    return None
+
 @csrf_exempt
 @require_tier('free')
 def collab_posts(request):
@@ -3513,7 +3521,6 @@ def collab_posts(request):
     user = request.fuzeobs_user
     
     if request.method == 'GET':
-        # Filters
         category = request.GET.get('category', '')
         platform = request.GET.get('platform', '')
         status_filter = request.GET.get('status', 'open')
@@ -3525,7 +3532,6 @@ def collab_posts(request):
         if platform:
             posts = posts.filter(platforms__contains=[platform])
         
-        # Check which posts the current user is interested in
         user_interests = set(
             CollabInterest.objects.filter(user=user).values_list('post_id', flat=True)
         )
@@ -3547,7 +3553,7 @@ def collab_posts(request):
                 'is_interested': post.id in user_interests,
                 'is_owner': post.user_id == user.id,
                 'username': post.user.username,
-                'profile_picture': post.user.profile_picture.url if hasattr(post.user, 'profile_picture') and post.user.profile_picture else None,
+                'profile_picture': _get_profile_pic_url(post.user),
                 'created_at': post.created_at.isoformat(),
             })
         
@@ -3567,11 +3573,10 @@ def collab_posts(request):
         collab_size = data.get('collab_size', 'duo')
         availability = data.get('availability', '').strip()
         
-        # Validation
-        if not title or len(title) > 100:
-            return JsonResponse({'success': False, 'error': 'Title required (max 100 chars)'}, status=400)
-        if not description or len(description) > 1000:
-            return JsonResponse({'success': False, 'error': 'Description required (max 1000 chars)'}, status=400)
+        if not title or len(title) > 50:
+            return JsonResponse({'success': False, 'error': 'Title required (max 50 chars)'}, status=400)
+        if not description or len(description) > 200:
+            return JsonResponse({'success': False, 'error': 'Description required (max 200 chars)'}, status=400)
         
         valid_categories = [c[0] for c in CollabPost.CATEGORY_CHOICES]
         if category not in valid_categories:
@@ -3586,10 +3591,8 @@ def collab_posts(request):
         if collab_size not in valid_sizes:
             collab_size = 'duo'
         
-        # Limit tags
         tags = [t.strip()[:30] for t in tags[:5] if t.strip()]
         
-        # Limit active posts per user (max 3)
         active_count = CollabPost.objects.filter(user=user, status='open').count()
         if active_count >= 3:
             return JsonResponse({'success': False, 'error': 'Max 3 active posts allowed'}, status=400)
@@ -3609,11 +3612,10 @@ def collab_posts(request):
     
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
-
 @csrf_exempt
 @require_tier('free')
 def collab_post_detail(request, post_id):
-    """Update status (PUT) or delete (DELETE) own post"""
+    """Update post (PUT) or delete (DELETE) own post"""
     user = request.fuzeobs_user
     
     try:
@@ -3626,19 +3628,45 @@ def collab_post_detail(request, post_id):
     
     if request.method == 'PUT':
         data = json.loads(request.body)
-        new_status = data.get('status', '')
-        if new_status in ['open', 'filled', 'closed']:
+        
+        new_status = data.get('status')
+        if new_status and new_status in ['open', 'filled', 'closed']:
             post.status = new_status
-            post.save()
-            return JsonResponse({'success': True})
-        return JsonResponse({'success': False, 'error': 'Invalid status'}, status=400)
+        
+        if 'title' in data:
+            title = data['title'].strip()
+            if title and len(title) <= 50:
+                post.title = title
+        if 'description' in data:
+            desc = data['description'].strip()
+            if desc and len(desc) <= 200:
+                post.description = desc
+        if 'category' in data:
+            valid_categories = [c[0] for c in CollabPost.CATEGORY_CHOICES]
+            if data['category'] in valid_categories:
+                post.category = data['category']
+        if 'platforms' in data:
+            valid_platforms = ['twitch', 'youtube', 'kick', 'facebook', 'tiktok']
+            platforms = [p for p in data['platforms'] if p in valid_platforms]
+            if platforms:
+                post.platforms = platforms
+        if 'tags' in data:
+            post.tags = [t.strip()[:30] for t in data['tags'][:5] if t.strip()]
+        if 'collab_size' in data:
+            valid_sizes = [s[0] for s in CollabPost.SIZE_CHOICES]
+            if data['collab_size'] in valid_sizes:
+                post.collab_size = data['collab_size']
+        if 'availability' in data:
+            post.availability = data['availability'].strip()[:200]
+        
+        post.save()
+        return JsonResponse({'success': True})
     
     elif request.method == 'DELETE':
         post.delete()
         return JsonResponse({'success': True})
     
     return JsonResponse({'error': 'Method not allowed'}, status=405)
-
 
 @csrf_exempt
 @require_tier('free')
@@ -3666,7 +3694,6 @@ def collab_interest(request, post_id):
         post.save()
         return JsonResponse({'success': True, 'interested': True, 'count': post.interested_count})
 
-
 @csrf_exempt
 @require_tier('free')
 def collab_my_posts(request):
@@ -3676,12 +3703,11 @@ def collab_my_posts(request):
     posts = CollabPost.objects.filter(user=user)
     results = []
     for post in posts:
-        # Get interested users
         interested_users = []
         for interest in CollabInterest.objects.select_related('user').filter(post=post):
             interested_users.append({
                 'username': interest.user.username,
-                'profile_picture': interest.user.profile_picture.url if hasattr(interest.user, 'profile_picture') and interest.user.profile_picture else None,
+                'profile_picture': _get_profile_pic_url(interest.user),
                 'created_at': interest.created_at.isoformat(),
             })
         

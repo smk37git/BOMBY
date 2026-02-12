@@ -422,8 +422,8 @@ class CollabPost(models.Model):
     ]
     
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='collab_posts')
-    title = models.CharField(max_length=100)
-    description = models.TextField(max_length=1000)
+    title = models.CharField(max_length=50)
+    description = models.TextField(max_length=200)
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
     platforms = models.JSONField(default=list)  # ['twitch', 'youtube', ...]
     tags = models.JSONField(default=list, blank=True)  # ['FPS', 'Just Chatting', ...]
@@ -444,7 +444,6 @@ class CollabPost(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.title}"
-
 
 class CollabInterest(models.Model):
     """Track users interested in a collab post"""
