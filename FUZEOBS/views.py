@@ -14,7 +14,7 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
-from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription, DonationSettings, FuzeOBSReview, StreamCountdown
+from .models import *
 from decimal import Decimal
 from google.cloud import storage
 import hmac
@@ -3505,3 +3505,199 @@ def fuzeobs_countdown(request):
         return JsonResponse({'success': True})
 
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+@require_tier('free')
+def collab_posts(request):
+    """List collab posts (GET) or create one (POST)"""
+    user = request.fuzeobs_user
+    
+    if request.method == 'GET':
+        # Filters
+        category = request.GET.get('category', '')
+        platform = request.GET.get('platform', '')
+        status_filter = request.GET.get('status', 'open')
+        
+        posts = CollabPost.objects.select_related('user').filter(status=status_filter)
+        
+        if category:
+            posts = posts.filter(category=category)
+        if platform:
+            posts = posts.filter(platforms__contains=[platform])
+        
+        # Check which posts the current user is interested in
+        user_interests = set(
+            CollabInterest.objects.filter(user=user).values_list('post_id', flat=True)
+        )
+        
+        results = []
+        for post in posts[:50]:
+            results.append({
+                'id': post.id,
+                'title': post.title,
+                'description': post.description[:150] + ('...' if len(post.description) > 150 else ''),
+                'full_description': post.description,
+                'category': post.category,
+                'platforms': post.platforms,
+                'tags': post.tags,
+                'collab_size': post.collab_size,
+                'availability': post.availability,
+                'status': post.status,
+                'interested_count': post.interested_count,
+                'is_interested': post.id in user_interests,
+                'is_owner': post.user_id == user.id,
+                'username': post.user.username,
+                'profile_picture': post.user.profile_picture.url if hasattr(post.user, 'profile_picture') and post.user.profile_picture else None,
+                'created_at': post.created_at.isoformat(),
+            })
+        
+        return JsonResponse({'success': True, 'posts': results})
+    
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+        
+        title = data.get('title', '').strip()
+        description = data.get('description', '').strip()
+        category = data.get('category', '')
+        platforms = data.get('platforms', [])
+        tags = data.get('tags', [])
+        collab_size = data.get('collab_size', 'duo')
+        availability = data.get('availability', '').strip()
+        
+        # Validation
+        if not title or len(title) > 100:
+            return JsonResponse({'success': False, 'error': 'Title required (max 100 chars)'}, status=400)
+        if not description or len(description) > 1000:
+            return JsonResponse({'success': False, 'error': 'Description required (max 1000 chars)'}, status=400)
+        
+        valid_categories = [c[0] for c in CollabPost.CATEGORY_CHOICES]
+        if category not in valid_categories:
+            return JsonResponse({'success': False, 'error': 'Invalid category'}, status=400)
+        
+        valid_platforms = ['twitch', 'youtube', 'kick', 'facebook', 'tiktok']
+        platforms = [p for p in platforms if p in valid_platforms]
+        if not platforms:
+            return JsonResponse({'success': False, 'error': 'At least one platform required'}, status=400)
+        
+        valid_sizes = [s[0] for s in CollabPost.SIZE_CHOICES]
+        if collab_size not in valid_sizes:
+            collab_size = 'duo'
+        
+        # Limit tags
+        tags = [t.strip()[:30] for t in tags[:5] if t.strip()]
+        
+        # Limit active posts per user (max 3)
+        active_count = CollabPost.objects.filter(user=user, status='open').count()
+        if active_count >= 3:
+            return JsonResponse({'success': False, 'error': 'Max 3 active posts allowed'}, status=400)
+        
+        post = CollabPost.objects.create(
+            user=user,
+            title=title,
+            description=description,
+            category=category,
+            platforms=platforms,
+            tags=tags,
+            collab_size=collab_size,
+            availability=availability,
+        )
+        
+        return JsonResponse({'success': True, 'post_id': post.id})
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+@require_tier('free')
+def collab_post_detail(request, post_id):
+    """Update status (PUT) or delete (DELETE) own post"""
+    user = request.fuzeobs_user
+    
+    try:
+        post = CollabPost.objects.get(id=post_id)
+    except CollabPost.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Post not found'}, status=404)
+    
+    if post.user_id != user.id:
+        return JsonResponse({'success': False, 'error': 'Not your post'}, status=403)
+    
+    if request.method == 'PUT':
+        data = json.loads(request.body)
+        new_status = data.get('status', '')
+        if new_status in ['open', 'filled', 'closed']:
+            post.status = new_status
+            post.save()
+            return JsonResponse({'success': True})
+        return JsonResponse({'success': False, 'error': 'Invalid status'}, status=400)
+    
+    elif request.method == 'DELETE':
+        post.delete()
+        return JsonResponse({'success': True})
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+@csrf_exempt
+@require_tier('free')
+def collab_interest(request, post_id):
+    """Toggle interest on a collab post (POST)"""
+    user = request.fuzeobs_user
+    
+    try:
+        post = CollabPost.objects.get(id=post_id)
+    except CollabPost.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Post not found'}, status=404)
+    
+    if post.user_id == user.id:
+        return JsonResponse({'success': False, 'error': 'Cannot express interest in your own post'}, status=400)
+    
+    existing = CollabInterest.objects.filter(post=post, user=user).first()
+    if existing:
+        existing.delete()
+        post.interested_count = max(0, post.interested_count - 1)
+        post.save()
+        return JsonResponse({'success': True, 'interested': False, 'count': post.interested_count})
+    else:
+        CollabInterest.objects.create(post=post, user=user)
+        post.interested_count += 1
+        post.save()
+        return JsonResponse({'success': True, 'interested': True, 'count': post.interested_count})
+
+
+@csrf_exempt
+@require_tier('free')
+def collab_my_posts(request):
+    """Get current user's collab posts"""
+    user = request.fuzeobs_user
+    
+    posts = CollabPost.objects.filter(user=user)
+    results = []
+    for post in posts:
+        # Get interested users
+        interested_users = []
+        for interest in CollabInterest.objects.select_related('user').filter(post=post):
+            interested_users.append({
+                'username': interest.user.username,
+                'profile_picture': interest.user.profile_picture.url if hasattr(interest.user, 'profile_picture') and interest.user.profile_picture else None,
+                'created_at': interest.created_at.isoformat(),
+            })
+        
+        results.append({
+            'id': post.id,
+            'title': post.title,
+            'description': post.description,
+            'category': post.category,
+            'platforms': post.platforms,
+            'tags': post.tags,
+            'collab_size': post.collab_size,
+            'availability': post.availability,
+            'status': post.status,
+            'interested_count': post.interested_count,
+            'interested_users': interested_users,
+            'created_at': post.created_at.isoformat(),
+        })
+    
+    return JsonResponse({'success': True, 'posts': results})

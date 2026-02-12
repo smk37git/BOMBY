@@ -137,4 +137,10 @@ urlpatterns = [
     path('countdown', views.fuzeobs_countdown, name='countdown'),
     path('recaps', recaps_view, name='recaps'),
     path('recaps/refresh', recaps_refresh_view, name='recaps_refresh'),
+
+    # Collab Finder
+    path('collab/posts', views.collab_posts, name='collab_posts'),
+    path('collab/posts/<int:post_id>', views.collab_post_detail, name='collab_post_detail'),
+    path('collab/posts/<int:post_id>/interest', views.collab_interest, name='collab_interest'),
+    path('collab/my-posts', views.collab_my_posts, name='collab_my_posts'),
 ]

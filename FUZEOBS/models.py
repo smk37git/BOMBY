@@ -395,3 +395,65 @@ class StreamCountdown(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - countdown"
+
+class CollabPost(models.Model):
+    CATEGORY_CHOICES = [
+        ('duo', 'Duo Queue'),
+        ('group', 'Group Stream'),
+        ('podcast', 'Podcast / Talk Show'),
+        ('tournament', 'Tournament'),
+        ('charity', 'Charity Event'),
+        ('creative', 'Creative Collab'),
+        ('irl', 'IRL Stream'),
+        ('other', 'Other'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('filled', 'Filled'),
+        ('closed', 'Closed'),
+    ]
+    
+    SIZE_CHOICES = [
+        ('duo', 'Duo (2)'),
+        ('small', 'Small Group (3-5)'),
+        ('large', 'Large Group (6+)'),
+        ('any', 'Any Size'),
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='collab_posts')
+    title = models.CharField(max_length=100)
+    description = models.TextField(max_length=1000)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    platforms = models.JSONField(default=list)  # ['twitch', 'youtube', ...]
+    tags = models.JSONField(default=list, blank=True)  # ['FPS', 'Just Chatting', ...]
+    collab_size = models.CharField(max_length=10, choices=SIZE_CHOICES, default='duo')
+    availability = models.CharField(max_length=200, blank=True, default='')  # free text timezone/schedule
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
+    interested_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['category']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+
+
+class CollabInterest(models.Model):
+    """Track users interested in a collab post"""
+    post = models.ForeignKey(CollabPost, on_delete=models.CASCADE, related_name='interests')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='collab_interests')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['post', 'user']
+        indexes = [
+            models.Index(fields=['post', 'user']),
+        ]
