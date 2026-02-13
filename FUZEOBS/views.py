@@ -3527,16 +3527,8 @@ def collab_posts(request):
     user = request.fuzeobs_user
     
     if request.method == 'GET':
-        category = request.GET.get('category', '')
-        platform = request.GET.get('platform', '')
         status_filter = request.GET.get('status', 'open')
-        
         posts = CollabPost.objects.select_related('user').filter(status=status_filter)
-        
-        if category:
-            posts = posts.filter(category=category)
-        if platform:
-            posts = posts.filter(platforms__contains=[platform])
         
         user_interests = set(
             CollabInterest.objects.filter(user=user).values_list('post_id', flat=True)
