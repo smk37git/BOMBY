@@ -3247,6 +3247,11 @@ def fuzeobs_submit_review(request):
     if not review_text or len(review_text) > 300:
         return JsonResponse({'success': False, 'error': 'Review must be 1-300 characters'}, status=400)
     
+    # Profanity check
+    from ACCOUNTS.validators import contains_profanity
+    if contains_profanity(review_text):
+        return JsonResponse({'success': False, 'error': 'Review contains inappropriate language'}, status=400)
+    
     # Check if user already has a review
     from .models import FuzeOBSReview
     existing = FuzeOBSReview.objects.filter(user=user).first()
@@ -3765,6 +3770,10 @@ def collab_send_message(request):
     
     if len(content) > 500:
         return JsonResponse({'success': False, 'error': 'Message too long (max 500 chars)'}, status=400)
+    
+    from ACCOUNTS.validators import contains_profanity
+    if contains_profanity(content):
+        return JsonResponse({'success': False, 'error': 'Message contains inappropriate language'}, status=400)
     
     try:
         recipient = User.objects.get(username=target_username)
