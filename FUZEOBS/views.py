@@ -3594,6 +3594,15 @@ def collab_posts(request):
         
         tags = [t.strip()[:30] for t in tags[:5] if t.strip()]
         
+        # Profanity check
+        from ACCOUNTS.validators import contains_profanity
+        for field_name, field_val in [('Title', title), ('Description', description), ('Availability', availability)]:
+            if field_val and contains_profanity(field_val):
+                return JsonResponse({'success': False, 'error': f'{field_name} contains inappropriate language'}, status=400)
+        for tag in tags:
+            if contains_profanity(tag):
+                return JsonResponse({'success': False, 'error': 'Tags contain inappropriate language'}, status=400)
+        
         active_count = CollabPost.objects.filter(user=user, status='open').count()
         if active_count >= 3:
             return JsonResponse({'success': False, 'error': 'Max 3 active posts allowed'}, status=400)
@@ -3659,6 +3668,15 @@ def collab_post_detail(request, post_id):
                 post.collab_size = data['collab_size']
         if 'availability' in data:
             post.availability = data['availability'].strip()[:200]
+        
+        # Profanity check on all text fields
+        from ACCOUNTS.validators import contains_profanity
+        for field_name, field_val in [('Title', post.title), ('Description', post.description), ('Availability', post.availability)]:
+            if field_val and contains_profanity(field_val):
+                return JsonResponse({'success': False, 'error': f'{field_name} contains inappropriate language'}, status=400)
+        for tag in post.tags:
+            if contains_profanity(tag):
+                return JsonResponse({'success': False, 'error': 'Tags contain inappropriate language'}, status=400)
         
         post.save()
         return JsonResponse({'success': True})
