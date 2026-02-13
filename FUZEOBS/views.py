@@ -3707,6 +3707,7 @@ def collab_my_posts(request):
         interested_users = []
         for interest in CollabInterest.objects.select_related('user').filter(post=post):
             interested_users.append({
+                'user_id': interest.user.id,
                 'username': interest.user.username,
                 'profile_picture': _get_profile_pic_url(interest.user),
                 'created_at': interest.created_at.isoformat(),
