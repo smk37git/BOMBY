@@ -1,0 +1,28 @@
+from django.db import migrations, models
+import django.db.models.deletion
+
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('STORE', '0019_qrcoderedirect_qrcodeclick'),
+        ('ACCOUNTS', '0004_fix_sqlite_columns'),
+    ]
+
+    operations = [
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.RemoveField(model_name='user', name='fuzeobs_active'),
+                migrations.RemoveField(model_name='user', name='fuzeobs_lifetime'),
+                migrations.RemoveField(model_name='user', name='fuzeobs_subscription_end'),
+                migrations.RemoveField(model_name='user', name='fuzeobs_subscription_id'),
+                migrations.RemoveField(model_name='user', name='stripe_customer_id'),
+                migrations.AddField(
+                    model_name='message',
+                    name='related_order',
+                    field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, to='STORE.order'),
+                ),
+            ],
+            database_operations=[],
+        ),
+    ]
