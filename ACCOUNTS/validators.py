@@ -9,7 +9,7 @@ def load_banned_words():
     Load banned words from a CSV file
     """
     banned_words = []
-    csv_path = os.path.join(settings.BASE_DIR, 'ACCOUNTS/static/validators/profanity.csv')
+    csv_path = os.path.join(os.path.dirname(__file__), 'static', 'validators', 'profanity.csv')
     
     try:
         with open(csv_path, 'r', encoding='utf-8') as file:
