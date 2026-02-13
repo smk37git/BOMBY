@@ -15,6 +15,7 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_http_methods
 from .models import FuzeOBSProfile, DownloadTracking, AIUsage, UserActivity, TierChange, ActiveSession, PlatformConnection, MediaLibrary, WidgetConfig, WidgetEvent, LabelSessionData, FuzeOBSPurchase, FuzeOBSSubscription, DonationSettings, FuzeOBSReview, StreamCountdown, CollabPost, CollabInterest
+from ACCOUNTS.models import Conversation, Message
 from decimal import Decimal
 from google.cloud import storage
 import hmac
@@ -3727,3 +3728,53 @@ def collab_my_posts(request):
         })
     
     return JsonResponse({'success': True, 'posts': results})
+
+@csrf_exempt
+@require_tier('free')
+def collab_send_message(request):
+    """Send a message to a user from collab finder"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    user = request.fuzeobs_user
+    data = json.loads(request.body)
+    target_username = data.get('username', '').strip()
+    content = data.get('message', '').strip()
+    
+    if not target_username or not content:
+        return JsonResponse({'success': False, 'error': 'Username and message required'}, status=400)
+    
+    if len(content) > 500:
+        return JsonResponse({'success': False, 'error': 'Message too long (max 500 chars)'}, status=400)
+    
+    try:
+        recipient = User.objects.get(username=target_username)
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+    
+    if recipient.id == user.id:
+        return JsonResponse({'success': False, 'error': 'Cannot message yourself'}, status=400)
+    
+    # Find or create conversation
+    conversation = Conversation.objects.filter(
+        participants=user
+    ).filter(
+        participants=recipient
+    ).first()
+    
+    if not conversation:
+        conversation = Conversation.objects.create()
+        conversation.participants.add(user, recipient)
+    
+    # Create message
+    message = Message.objects.create(
+        sender=user,
+        recipient=recipient,
+        content=content,
+        conversation=conversation
+    )
+    
+    conversation.last_message = message
+    conversation.save()
+    
+    return JsonResponse({'success': True, 'message_id': message.id})
