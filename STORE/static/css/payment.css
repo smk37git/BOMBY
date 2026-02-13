@@ -733,6 +733,8 @@
 
     .purchase-btn {
         font-size: 2rem;
+        white-space: normal;
+        word-wrap: break-word;
     }
 
     .donation-form label {
