@@ -12,6 +12,7 @@ from .leaderboard import (
     fuzeobs_leaderboard_optin,
     fuzeobs_leaderboard_optout,
     fuzeobs_leaderboard_sync,
+    fuzeobs_leaderboard_cron_sync,
 )
 
 app_name = 'FUZEOBS'
@@ -155,5 +156,6 @@ urlpatterns = [
     path('leaderboard/opt-in', fuzeobs_leaderboard_optin, name='leaderboard_optin'),
     path('leaderboard/opt-out', fuzeobs_leaderboard_optout, name='leaderboard_optout'),
     path('leaderboard/sync', fuzeobs_leaderboard_sync, name='leaderboard_sync'),
+    path('leaderboard/cron-sync', fuzeobs_leaderboard_cron_sync, name='leaderboard_cron_sync'),
     path('leaderboard/<str:period>', fuzeobs_leaderboard, name='leaderboard'),
 ]

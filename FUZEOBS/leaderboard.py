@@ -1,4 +1,4 @@
-"""Leaderboard"""
+"""Leaderboard - ranks users by stream hours from connected platforms"""
 import os
 import re
 import time
@@ -270,14 +270,13 @@ def _sync_user_hours(user):
 # ============ VIEWS ============
 
 @csrf_exempt
-def fuzeobs_leaderboard(request, period='all'):
+def fuzeobs_leaderboard(request):
     """GET - get leaderboard rankings"""
     user = _get_user(request)
     if not user:
         return JsonResponse({'error': 'Invalid token'}, status=401)
     
-    if period not in ('week', 'month', 'all'):
-        period = 'all'
+    period = request.GET.get('period', 'all')  # 'week', 'month', 'all'
     
     # Cache key per period
     cache_key = f'leaderboard:{period}'
@@ -303,9 +302,9 @@ def fuzeobs_leaderboard(request, period='all'):
     
     entries = (
         LeaderboardEntry.objects
-        .filter(opted_in=True, **{f'{minutes_field}__gt': 0})
+        .filter(opted_in=True)
         .select_related('user')
-        .order_by(order_field)[:50]
+        .order_by(order_field, 'user__username')[:50]
     )
     
     leaderboard = []
@@ -477,3 +476,44 @@ def fuzeobs_leaderboard_sync(request):
         'weekly_minutes': weekly,
         'monthly_minutes': monthly,
     })
+
+
+@csrf_exempt
+def fuzeobs_leaderboard_cron_sync(request):
+    """Called by Cloud Scheduler every 24h to sync all opted-in users"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST only'}, status=405)
+
+    cron_secret = request.headers.get('X-Cron-Secret', '')
+    expected = os.environ.get('CRON_SECRET', '')
+    if not expected or not hmac.compare_digest(cron_secret, expected):
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+
+    entries = LeaderboardEntry.objects.filter(opted_in=True).select_related('user')
+    synced = 0
+    errors = 0
+
+    for entry in entries:
+        try:
+            current_rank = (
+                LeaderboardEntry.objects
+                .filter(opted_in=True, total_stream_minutes__gt=entry.total_stream_minutes)
+                .count() + 1
+            )
+            entry.previous_rank = current_rank
+
+            total, weekly, monthly = _sync_user_hours(entry.user)
+            entry.total_stream_minutes = total
+            entry.weekly_stream_minutes = weekly
+            entry.monthly_stream_minutes = monthly
+            entry.last_synced = timezone.now()
+            entry.save()
+            synced += 1
+        except Exception as e:
+            print(f'[LEADERBOARD CRON] Error {entry.user.username}: {e}')
+            errors += 1
+
+    for period in ('week', 'month', 'all'):
+        cache.delete(f'leaderboard:{period}')
+
+    return JsonResponse({'success': True, 'synced': synced, 'errors': errors})
