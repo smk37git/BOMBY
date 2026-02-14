@@ -545,30 +545,40 @@ def _fetch_twitch_followers(conn):
     from .twitch import get_app_access_token
     try:
         app_token = get_app_access_token()
-        headers = {
+        app_headers = {
             'Authorization': f'Bearer {app_token}',
             'Client-Id': settings.TWITCH_CLIENT_ID,
         }
-        # Resolve broadcaster_id
+        # Resolve broadcaster_id (app token is fine for this)
         user_resp = requests.get(
             'https://api.twitch.tv/helix/users',
             params={'login': conn.platform_username},
-            headers=headers, timeout=5,
+            headers=app_headers, timeout=5,
         )
         if user_resp.status_code != 200:
+            print(f'[FOLLOWERS] Twitch user lookup failed: {user_resp.status_code}')
             return 0
         users = user_resp.json().get('data', [])
         if not users:
             return 0
         bid = users[0]['id']
 
+        # Use USER token for followers (requires moderator:read:followers scope)
+        user_headers = {
+            'Authorization': f'Bearer {conn.access_token}',
+            'Client-Id': settings.TWITCH_CLIENT_ID,
+        }
         resp = requests.get(
             'https://api.twitch.tv/helix/channels/followers',
             params={'broadcaster_id': bid, 'first': 1},
-            headers=headers, timeout=5,
+            headers=user_headers, timeout=5,
         )
         if resp.status_code == 200:
-            return resp.json().get('total', 0)
+            total = resp.json().get('total', 0)
+            print(f'[FOLLOWERS] Twitch {conn.platform_username}: {total}')
+            return total
+        else:
+            print(f'[FOLLOWERS] Twitch followers API returned {resp.status_code}: {resp.text[:200]}')
     except Exception as e:
         print(f'[FOLLOWERS] Twitch error: {e}')
     return 0
@@ -599,7 +609,11 @@ def _fetch_kick_followers(conn):
             timeout=5,
         )
         if resp.status_code == 200:
-            return resp.json().get('followers_count', 0)
+            count = resp.json().get('followers_count', 0)
+            print(f'[FOLLOWERS] Kick {conn.platform_username}: {count}')
+            return count
+        else:
+            print(f'[FOLLOWERS] Kick API returned {resp.status_code}')
     except Exception as e:
         print(f'[FOLLOWERS] Kick error: {e}')
     return 0
