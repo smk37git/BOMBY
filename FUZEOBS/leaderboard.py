@@ -462,6 +462,7 @@ def fuzeobs_leaderboard_sync(request):
         .count() + 1
     )
     entry.previous_rank = current_rank
+    entry.save(update_fields=['previous_rank'])
     
     total, weekly, monthly = _sync_user_hours(user)
     entry.total_stream_minutes = total
@@ -496,6 +497,18 @@ def fuzeobs_leaderboard_cron_sync(request):
     synced = 0
     errors = 0
 
+    # Snapshot current ranks BEFORE syncing new hours
+    ranked_entries = (
+        LeaderboardEntry.objects
+        .filter(opted_in=True)
+        .order_by('-total_stream_minutes', 'user__username')
+    )
+    for rank, entry in enumerate(ranked_entries, 1):
+        if entry.previous_rank != rank:
+            entry.previous_rank = rank
+            entry.save(update_fields=['previous_rank'])
+
+    # Now sync hours (ranks will shift based on new data)
     for entry in entries:
         try:
             total, weekly, monthly = _sync_user_hours(entry.user)
@@ -508,17 +521,6 @@ def fuzeobs_leaderboard_cron_sync(request):
         except Exception as e:
             print(f'[LEADERBOARD CRON] Error {entry.user.username}: {e}')
             errors += 1
-
-    # After syncing all hours, set previous_rank based on actual display order
-    all_entries = (
-        LeaderboardEntry.objects
-        .filter(opted_in=True)
-        .order_by('-total_stream_minutes', 'user__username')
-    )
-    for rank, entry in enumerate(all_entries, 1):
-        if entry.previous_rank != rank:
-            entry.previous_rank = rank
-            entry.save(update_fields=['previous_rank'])
 
     for period in ('week', 'month', 'all'):
         cache.delete(f'leaderboard:{period}')
