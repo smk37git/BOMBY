@@ -456,3 +456,32 @@ class CollabInterest(models.Model):
         indexes = [
             models.Index(fields=['post', 'user']),
         ]
+
+class LeaderboardEntry(models.Model):
+    """Tracks user leaderboard stats - opt-in only"""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='leaderboard_entry')
+    opted_in = models.BooleanField(default=True)
+    
+    # Cached hours (in minutes for precision)
+    total_stream_minutes = models.IntegerField(default=0)
+    weekly_stream_minutes = models.IntegerField(default=0)
+    monthly_stream_minutes = models.IntegerField(default=0)
+    
+    # Rank tracking
+    previous_rank = models.IntegerField(default=0)  # rank from last sync
+    
+    # Timestamps
+    last_synced = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['-total_stream_minutes']),
+            models.Index(fields=['-weekly_stream_minutes']),
+            models.Index(fields=['-monthly_stream_minutes']),
+            models.Index(fields=['opted_in']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.total_stream_minutes}min"
