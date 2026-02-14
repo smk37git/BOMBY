@@ -16,6 +16,29 @@ from django.conf import settings
 
 from .models import PlatformConnection, LeaderboardEntry
 
+
+def _parse_date_aware(date_str):
+    """Parse various date formats into timezone-aware datetime. Returns None on failure."""
+    if not date_str:
+        return None
+    try:
+        clean = date_str.strip().replace(' ', 'T').replace('Z', '+00:00')
+        dt = datetime.fromisoformat(clean)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt
+    except Exception:
+        pass
+    # Fallback: try common formats
+    for fmt in ('%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S.%f'):
+        try:
+            dt = datetime.strptime(date_str.replace('Z', '').split('+')[0], fmt)
+            return dt.replace(tzinfo=timezone.utc)
+        except Exception:
+            continue
+    print(f'[LEADERBOARD] Could not parse date: {date_str}')
+    return None
+
 User = get_user_model()
 
 
@@ -109,14 +132,12 @@ def _fetch_twitch_hours(conn):
             total += mins
             created = v.get('created_at', '')
             if created:
-                try:
-                    dt = datetime.fromisoformat(created.replace('Z', '+00:00'))
+                dt = _parse_date_aware(created)
+                if dt:
                     if dt >= week_ago:
                         weekly += mins
                     if dt >= month_ago:
                         monthly += mins
-                except Exception:
-                    pass
         
         return total, weekly, monthly
     except Exception as e:
@@ -169,11 +190,11 @@ def _fetch_youtube_hours(conn):
             end = live_details.get('actualEndTime', '')
             
             if start and end:
-                try:
-                    start_dt = datetime.fromisoformat(start.replace('Z', '+00:00'))
-                    end_dt = datetime.fromisoformat(end.replace('Z', '+00:00'))
+                start_dt = _parse_date_aware(start)
+                end_dt = _parse_date_aware(end)
+                if start_dt and end_dt:
                     mins = int((end_dt - start_dt).total_seconds()) // 60
-                except Exception:
+                else:
                     mins = _duration_to_minutes(v.get('contentDetails', {}).get('duration', ''))
             else:
                 mins = _duration_to_minutes(v.get('contentDetails', {}).get('duration', ''))
@@ -182,14 +203,12 @@ def _fetch_youtube_hours(conn):
             
             pub_date = v.get('snippet', {}).get('publishedAt', '')
             if pub_date:
-                try:
-                    dt = datetime.fromisoformat(pub_date.replace('Z', '+00:00'))
+                dt = _parse_date_aware(pub_date)
+                if dt:
                     if dt >= week_ago:
                         weekly += mins
                     if dt >= month_ago:
                         monthly += mins
-                except Exception:
-                    pass
         
         return total, weekly, monthly
     except Exception as e:
@@ -225,19 +244,14 @@ def _fetch_kick_hours(conn):
             
             created = v.get('created_at', v.get('start_time', ''))
             if created:
-                try:
-                    # Normalize: replace space with T, strip Z
-                    clean = created.strip().replace(' ', 'T').replace('Z', '+00:00')
-                    dt = datetime.fromisoformat(clean)
-                    if dt.tzinfo is None:
-                        dt = dt.replace(tzinfo=timezone.utc)
+                dt = _parse_date_aware(created)
+                if dt:
                     if dt >= week_ago:
                         weekly += mins
                     if dt >= month_ago:
                         monthly += mins
-                except Exception as e:
-                    print(f'[LEADERBOARD] Kick date parse error: {created} -> {e}')
         
+        print(f'[LEADERBOARD] Kick totals: total={total}, weekly={weekly}, monthly={monthly}')
         return total, weekly, monthly
     except Exception as e:
         print(f'[LEADERBOARD] Kick error: {e}')
