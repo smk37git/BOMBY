@@ -537,6 +537,7 @@ def fuzeobs_recaps_refresh(request):
 
     from django.core.cache import cache
     cache.set(f'recaps:{user.id}', recaps, 300)
+    cache.delete(f'followers:{user.id}')
 
     return JsonResponse({'success': True, 'recaps': recaps})
 
