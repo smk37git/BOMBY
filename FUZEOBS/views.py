@@ -427,6 +427,25 @@ def fuzeobs_verify(request):
         if session_id:
             update_active_session(user, session_id, get_client_ip(request))
         
+        # Check if 3-month plan has expired
+        if user.fuzeobs_tier == 'pro':
+            try:
+                sub = FuzeOBSSubscription.objects.get(user=user, is_active=True)
+                if sub.expires_at and sub.expires_at <= timezone.now():
+                    user.fuzeobs_tier = 'free'
+                    user.save()
+                    sub.is_active = False
+                    sub.plan_type = 'free'
+                    sub.save()
+                    TierChange.objects.create(
+                        user=user,
+                        from_tier='pro',
+                        to_tier='free',
+                        reason='3month_expired'
+                    )
+            except FuzeOBSSubscription.DoesNotExist:
+                pass
+        
         response_data = {
             'valid': True,
             'authenticated': True,
@@ -1286,6 +1305,12 @@ FUZEOBS_PLANS = {
         'stripe_price_id': settings.FUZEOBS_STRIPE_PRICE_MONTHLY,
         'mode': 'subscription',
     },
+    '3month': {
+        'name': 'Pro (3-Month)',
+        'price': '20.00',
+        'stripe_price_id': settings.FUZEOBS_STRIPE_PRICE_3MONTH,
+        'mode': 'payment',
+    },
     'lifetime': {
         'name': 'Lifetime',
         'price': '45.00',
@@ -1464,6 +1489,20 @@ def fuzeobs_payment_success(request):
                         'is_active': True
                     }
                 )
+            
+            # Save 3-month plan with expiration
+            if plan_type == '3month':
+                from datetime import timedelta
+                FuzeOBSSubscription.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        'plan_type': 'pro',
+                        'stripe_customer_id': session.customer or '',
+                        'stripe_subscription_id': '',
+                        'is_active': True,
+                        'expires_at': timezone.now() + timedelta(days=90),
+                    }
+                )
         except User.DoesNotExist:
             pass
         
@@ -1535,7 +1574,7 @@ def fuzeobs_stripe_webhook(request):
                     reason='stripe_webhook'
                 )
                 
-                amount = Decimal('45.00') if plan_type == 'lifetime' else Decimal('7.50')
+                amount = Decimal(FUZEOBS_PLANS.get(plan_type, {}).get('price', '7.50'))
                 purchase = FuzeOBSPurchase.objects.create(
                     user=user,
                     plan_type=plan_type,
@@ -1557,6 +1596,19 @@ def fuzeobs_stripe_webhook(request):
                             'stripe_customer_id': session.get('customer'),
                             'stripe_subscription_id': session.get('subscription'),
                             'is_active': True
+                        }
+                    )
+                
+                if plan_type == '3month':
+                    from datetime import timedelta
+                    FuzeOBSSubscription.objects.update_or_create(
+                        user=user,
+                        defaults={
+                            'plan_type': 'pro',
+                            'stripe_customer_id': session.get('customer', ''),
+                            'stripe_subscription_id': '',
+                            'is_active': True,
+                            'expires_at': timezone.now() + timedelta(days=90),
                         }
                     )
             except User.DoesNotExist:

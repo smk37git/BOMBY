@@ -49,7 +49,9 @@
         </div>
         
         <p class="fuzeobs-success-subtitle">
-            {% if plan_type == 'pro' %}
+            {% if plan_type == '3month' %}
+            Your 3-month Pro access is now active. Open FuzeOBS and sign in to access all Pro features.
+            {% elif plan_type == 'pro' %}
             Your Pro subscription is now active. Open FuzeOBS and sign in to access all Pro features.
             {% else %}
             Your Lifetime license is now active. Open FuzeOBS and sign in to unlock all features.

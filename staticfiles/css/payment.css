@@ -137,6 +137,12 @@
     text-align: center;
     border: none;
     cursor: pointer;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.checkout-nav {
+    margin-bottom: 15px;
 }
 
 .purchase-btn:hover {
@@ -727,6 +733,8 @@
 
     .purchase-btn {
         font-size: 2rem;
+        white-space: normal;
+        word-wrap: break-word;
     }
 
     .donation-form label {
@@ -818,7 +826,6 @@
 
     .purchase-btn {
         font-size: 0.8rem;
-        white-space: nowrap;
         border: none;
     }
 
