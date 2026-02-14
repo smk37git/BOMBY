@@ -251,6 +251,7 @@ def _fetch_youtube_recaps(conn):
     """Fetch recent YouTube completed live streams"""
     recaps = []
     try:
+        token = _ensure_youtube_token(conn)
         search_params = {
             'part': 'snippet',
             'type': 'video',
@@ -266,7 +267,7 @@ def _fetch_youtube_recaps(conn):
         resp = requests.get(
             'https://www.googleapis.com/youtube/v3/search',
             params=search_params,
-            headers={'Authorization': f'Bearer {conn.access_token}'},
+            headers={'Authorization': f'Bearer {token}'},
             timeout=10,
         )
         if resp.status_code != 200 and 'channelId' in search_params:
@@ -275,7 +276,7 @@ def _fetch_youtube_recaps(conn):
             resp = requests.get(
                 'https://www.googleapis.com/youtube/v3/search',
                 params=search_params,
-                headers={'Authorization': f'Bearer {conn.access_token}'},
+                headers={'Authorization': f'Bearer {token}'},
                 timeout=10,
             )
         if resp.status_code != 200:
@@ -299,7 +300,7 @@ def _fetch_youtube_recaps(conn):
                 'part': 'contentDetails,statistics,liveStreamingDetails',
                 'id': ','.join(video_ids),
             },
-            headers={'Authorization': f'Bearer {conn.access_token}'},
+            headers={'Authorization': f'Bearer {token}'},
             timeout=10,
         )
 
@@ -539,46 +540,64 @@ def fuzeobs_recaps_refresh(request):
 
     return JsonResponse({'success': True, 'recaps': recaps})
 
+# ============ TOKEN REFRESH ============
+
+def _ensure_youtube_token(conn):
+    """Refresh YouTube access token if expired. Returns valid access_token."""
+    from django.utils import timezone
+    from datetime import timedelta
+    if conn.expires_at and conn.expires_at > timezone.now():
+        return conn.access_token
+    if not conn.refresh_token:
+        return conn.access_token
+    try:
+        resp = requests.post('https://oauth2.googleapis.com/token', data={
+            'client_id': os.environ.get('YOUTUBE_CLIENT_ID', ''),
+            'client_secret': os.environ.get('YOUTUBE_CLIENT_SECRET', ''),
+            'refresh_token': conn.refresh_token,
+            'grant_type': 'refresh_token',
+        }, timeout=10)
+        if resp.status_code == 200:
+            data = resp.json()
+            conn.access_token = data['access_token']
+            conn.expires_at = timezone.now() + timedelta(seconds=data.get('expires_in', 3600))
+            conn.save(update_fields=['access_token', 'expires_at'])
+            return conn.access_token
+    except Exception:
+        pass
+    return conn.access_token
+
+
 # ============ FOLLOWER COUNTS ============
 
 def _fetch_twitch_followers(conn):
     from .twitch import get_app_access_token
     try:
         app_token = get_app_access_token()
-        app_headers = {
+        headers = {
             'Authorization': f'Bearer {app_token}',
             'Client-Id': settings.TWITCH_CLIENT_ID,
         }
-        # Resolve broadcaster_id (app token is fine for this)
+        # Resolve broadcaster_id
         user_resp = requests.get(
             'https://api.twitch.tv/helix/users',
             params={'login': conn.platform_username},
-            headers=app_headers, timeout=5,
+            headers=headers, timeout=5,
         )
         if user_resp.status_code != 200:
-            print(f'[FOLLOWERS] Twitch user lookup failed: {user_resp.status_code}')
             return 0
         users = user_resp.json().get('data', [])
         if not users:
             return 0
         bid = users[0]['id']
 
-        # Use USER token for followers (requires moderator:read:followers scope)
-        user_headers = {
-            'Authorization': f'Bearer {conn.access_token}',
-            'Client-Id': settings.TWITCH_CLIENT_ID,
-        }
         resp = requests.get(
             'https://api.twitch.tv/helix/channels/followers',
             params={'broadcaster_id': bid, 'first': 1},
-            headers=user_headers, timeout=5,
+            headers=headers, timeout=5,
         )
         if resp.status_code == 200:
-            total = resp.json().get('total', 0)
-            print(f'[FOLLOWERS] Twitch {conn.platform_username}: {total}')
-            return total
-        else:
-            print(f'[FOLLOWERS] Twitch followers API returned {resp.status_code}: {resp.text[:200]}')
+            return resp.json().get('total', 0)
     except Exception as e:
         print(f'[FOLLOWERS] Twitch error: {e}')
     return 0
@@ -586,10 +605,11 @@ def _fetch_twitch_followers(conn):
 
 def _fetch_youtube_followers(conn):
     try:
+        token = _ensure_youtube_token(conn)
         resp = requests.get(
             'https://www.googleapis.com/youtube/v3/channels',
             params={'part': 'statistics', 'mine': 'true'},
-            headers={'Authorization': f'Bearer {conn.access_token}'},
+            headers={'Authorization': f'Bearer {token}'},
             timeout=5,
         )
         if resp.status_code == 200:
@@ -609,11 +629,7 @@ def _fetch_kick_followers(conn):
             timeout=5,
         )
         if resp.status_code == 200:
-            count = resp.json().get('followers_count', 0)
-            print(f'[FOLLOWERS] Kick {conn.platform_username}: {count}')
-            return count
-        else:
-            print(f'[FOLLOWERS] Kick API returned {resp.status_code}')
+            return resp.json().get('followers_count', 0)
     except Exception as e:
         print(f'[FOLLOWERS] Kick error: {e}')
     return 0
