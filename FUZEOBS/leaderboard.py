@@ -226,18 +226,17 @@ def _fetch_kick_hours(conn):
             created = v.get('created_at', v.get('start_time', ''))
             if created:
                 try:
-                    clean = created.replace('Z', '+00:00')
+                    # Normalize: replace space with T, strip Z
+                    clean = created.strip().replace(' ', 'T').replace('Z', '+00:00')
                     dt = datetime.fromisoformat(clean)
-                    # If naive datetime, make it UTC-aware
                     if dt.tzinfo is None:
-                        from django.utils.timezone import utc
-                        dt = dt.replace(tzinfo=utc)
+                        dt = dt.replace(tzinfo=timezone.utc)
                     if dt >= week_ago:
                         weekly += mins
                     if dt >= month_ago:
                         monthly += mins
-                except Exception:
-                    pass
+                except Exception as e:
+                    print(f'[LEADERBOARD] Kick date parse error: {created} -> {e}')
         
         return total, weekly, monthly
     except Exception as e:
