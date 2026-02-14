@@ -1,4 +1,4 @@
-"""Leaderboard - ranks users by stream hours from connected platforms"""
+"""Leaderboard"""
 import os
 import re
 import time
@@ -270,13 +270,14 @@ def _sync_user_hours(user):
 # ============ VIEWS ============
 
 @csrf_exempt
-def fuzeobs_leaderboard(request):
+def fuzeobs_leaderboard(request, period='all'):
     """GET - get leaderboard rankings"""
     user = _get_user(request)
     if not user:
         return JsonResponse({'error': 'Invalid token'}, status=401)
     
-    period = request.GET.get('period', 'all')  # 'week', 'month', 'all'
+    if period not in ('week', 'month', 'all'):
+        period = 'all'
     
     # Cache key per period
     cache_key = f'leaderboard:{period}'

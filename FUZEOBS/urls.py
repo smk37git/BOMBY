@@ -7,6 +7,12 @@ from .donations import (
     clear_donation_history
 )
 from .recaps import fuzeobs_recaps as recaps_view, fuzeobs_recaps_refresh as recaps_refresh_view
+from .leaderboard import (
+    fuzeobs_leaderboard,
+    fuzeobs_leaderboard_optin,
+    fuzeobs_leaderboard_optout,
+    fuzeobs_leaderboard_sync,
+)
 
 app_name = 'FUZEOBS'
 
@@ -144,4 +150,10 @@ urlpatterns = [
     path('collab/posts/<int:post_id>/interest', views.collab_interest, name='collab_interest'),
     path('collab/my-posts', views.collab_my_posts, name='collab_my_posts'),
     path('collab/message', views.collab_send_message, name='collab_send_message'),
+
+    # Leaderboard
+    path('leaderboard/opt-in', fuzeobs_leaderboard_optin, name='leaderboard_optin'),
+    path('leaderboard/opt-out', fuzeobs_leaderboard_optout, name='leaderboard_optout'),
+    path('leaderboard/sync', fuzeobs_leaderboard_sync, name='leaderboard_sync'),
+    path('leaderboard/<str:period>', fuzeobs_leaderboard, name='leaderboard'),
 ]
