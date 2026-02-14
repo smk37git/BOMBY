@@ -5,7 +5,7 @@ import time
 import hmac
 import hashlib
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone as dt_tz
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -25,19 +25,19 @@ def _parse_date_aware(date_str):
         clean = date_str.strip().replace(' ', 'T').replace('Z', '+00:00')
         dt = datetime.fromisoformat(clean)
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=timezone.utc)
+            dt = dt.replace(tzinfo=dt_tz.utc)
         return dt
     except Exception:
         pass
-    # Fallback: try common formats
     for fmt in ('%Y-%m-%dT%H:%M:%S', '%Y-%m-%d %H:%M:%S', '%Y-%m-%dT%H:%M:%S.%f'):
         try:
             dt = datetime.strptime(date_str.replace('Z', '').split('+')[0], fmt)
-            return dt.replace(tzinfo=timezone.utc)
+            return dt.replace(tzinfo=dt_tz.utc)
         except Exception:
             continue
     print(f'[LEADERBOARD] Could not parse date: {date_str}')
     return None
+
 
 User = get_user_model()
 
@@ -251,7 +251,6 @@ def _fetch_kick_hours(conn):
                     if dt >= month_ago:
                         monthly += mins
         
-        print(f'[LEADERBOARD] Kick totals: total={total}, weekly={weekly}, monthly={monthly}')
         return total, weekly, monthly
     except Exception as e:
         print(f'[LEADERBOARD] Kick error: {e}')
