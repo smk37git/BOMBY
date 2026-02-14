@@ -2381,6 +2381,7 @@ def store_analytics(request):
     # Donation metrics
     total_donations = current_donations.count()
     donation_amount = current_donations.aggregate(sum=Sum('amount'))['sum'] or 0
+    donation_avg = round(donation_amount / total_donations, 2) if total_donations > 0 else 0
     
     # Previous period donation metrics
     prev_donation_count = previous_donations.count()
@@ -2488,6 +2489,7 @@ def store_analytics(request):
         'revenue_trend_abs': round(revenue_trend_abs, 1),
         'total_donations': total_donations,
         'donation_amount': round(donation_amount, 2),
+        'donation_avg': donation_avg,
         'donation_count_trend': round(donation_count_trend, 1),
         'donation_amount_trend': round(donation_amount_trend, 1),
         'donation_count_trend_abs': round(donation_count_trend_abs, 1),

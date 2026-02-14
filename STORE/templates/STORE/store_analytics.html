@@ -138,7 +138,7 @@
             <div class="donation-metric">
                 <div class="donation-metric-label">Avg. Donation Amount</div>
                 <div class="donation-metric-value">
-                    ${% if total_donations > 0 %}{{ donation_amount|floatformat:2|default:0|stringformat:"f"|slice:":10" }}{% else %}0.00{% endif %}
+                    ${% if total_donations > 0 %}{{ donation_avg }}{% else %}0.00{% endif %}
                 </div>
                 <div class="donation-metric-subtext">
                     {% if total_donations > 0 %}
