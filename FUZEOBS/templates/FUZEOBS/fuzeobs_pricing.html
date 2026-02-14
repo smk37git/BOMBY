@@ -87,10 +87,6 @@
                 <span class="pricing-period">/month</span>
             </div>
             <ul class="pricing-list">
-                <li class="included">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                    Everything in Free
-                </li>
                 <li class="included highlight">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                     Advanced Setup Generation
@@ -107,6 +103,10 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                     3 Profile Slots
                 </li>
+                <li class="included">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Most Intelligent AI Model
+                </li>
                 <li class="included highlight">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                     Unlimited AI Assistance
@@ -116,6 +116,7 @@
                     Priority Support
                 </li>
             </ul>
+            <p style="text-align:center;font-size:0.8rem;color:rgba(255,255,255,0.5);margin:0 0 20px;"><i class="fas fa-tag" style="color:#00c853;margin-right:4px;"></i> Or get 3 months for $20 &mdash; save $2.50</p>
             {% if current_plan == 'free' %}
             <a href="{% url 'FUZEOBS:payment' 'pro' %}" class="pricing-btn pricing-btn-primary">Subscribe to Pro</a>
             {% elif current_plan == 'pro' %}
@@ -150,13 +151,21 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                     5 Profile Slots
                 </li>
-                <li class="included highlight">
+                <li class="included">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                    No Recurring Fees
+                    Most Intelligent AI Model
                 </li>
                 <li class="included">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                    Future Updates Included
+                    Unlimited AI Assistance
+                </li>
+                <li class="included">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    Priority Support
+                </li>
+                <li class="included highlight">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    No Recurring Fees
                 </li>
             </ul>
             {% if current_plan == 'lifetime' %}
