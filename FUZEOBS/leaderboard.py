@@ -209,7 +209,7 @@ def _fetch_kick_hours(conn):
             return 0, 0, 0
         
         data = resp.json()
-        items = data if isinstance(data, list) else data.get('data', [])
+        items = data if isinstance(data, list) else (data.get('data') or data.get('value', []))
         
         now = timezone.now()
         week_ago = now - timedelta(days=7)
@@ -217,8 +217,8 @@ def _fetch_kick_hours(conn):
         
         total = weekly = monthly = 0
         for v in items:
-            livestream = v.get('livestream') or {}
-            duration_ms = livestream.get('duration', 0) or v.get('duration', 0)
+            # Kick returns duration in milliseconds at top level
+            duration_ms = v.get('duration', 0) or 0
             mins = int(duration_ms / 1000) // 60 if duration_ms > 0 else 0
             
             total += mins
@@ -226,7 +226,12 @@ def _fetch_kick_hours(conn):
             created = v.get('created_at', v.get('start_time', ''))
             if created:
                 try:
-                    dt = datetime.fromisoformat(created.replace('Z', '+00:00'))
+                    clean = created.replace('Z', '+00:00')
+                    dt = datetime.fromisoformat(clean)
+                    # If naive datetime, make it UTC-aware
+                    if dt.tzinfo is None:
+                        from django.utils.timezone import utc
+                        dt = dt.replace(tzinfo=utc)
                     if dt >= week_ago:
                         weekly += mins
                     if dt >= month_ago:

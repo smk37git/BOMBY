@@ -380,7 +380,7 @@ def _fetch_kick_recaps(conn):
             return recaps
 
         data = resp.json()
-        items = data if isinstance(data, list) else data.get('data', [])
+        items = data if isinstance(data, list) else (data.get('data') or data.get('value', []))
 
         for v in items[:10]:
             livestream = v.get('livestream') or {}
