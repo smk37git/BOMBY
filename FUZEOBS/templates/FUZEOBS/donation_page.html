@@ -524,6 +524,11 @@
                 const message = document.getElementById('message').value.trim();
                 const amount = parseFloat(document.getElementById('amount').value) || 0;
 
+                if (!amount || amount <= 0) {
+                    showError('Please enter a donation amount.');
+                    return Promise.reject(new Error('No amount'));
+                }
+
                 if (amount < minAmount) {
                     showError(`Minimum donation is $${minAmount} ${currency}`);
                     return Promise.reject(new Error('Amount too low'));
@@ -608,7 +613,12 @@
             
             onError: function(err) {
                 console.error('PayPal error:', err);
-                showError('Payment could not be processed. Please try again.');
+                const amount = parseFloat(document.getElementById('amount').value) || 0;
+                if (!amount || amount <= 0) {
+                    showError('Please enter a donation amount before proceeding.');
+                } else {
+                    showError('Something went wrong with PayPal. Please try again.');
+                }
             },
             
             onCancel: function() {}
