@@ -780,7 +780,7 @@ User Accounts:
 
 FuzeOBS Tabs - Detailed Guide:
 
-Tab 00 - Welcome Tab (Home):
+Welcome Tab (Home):
 - Streaming Tip of the Day: Random rotating tips about streaming with categories (Audio, Video, Growth, Engagement, etc.). Click SHUFFLE for a new tip.
 - Platform Connections: Connect/disconnect streaming platforms (Twitch, YouTube, Kick, Facebook, TikTok). Shows X/5 connected. Required for widgets, leaderboard, and recaps.
 - Go Live Checklist: Per-platform pre-stream checklist. Check off items before going live. Different steps for each platform.
@@ -2723,15 +2723,37 @@ def fuzeobs_get_media(request):
     if user.fuzeobs_tier in ['pro', 'lifetime']:
         max_size = 100 * 1024 * 1024  # 100MB
     
+    DEFAULT_MEDIA = [
+        {
+            'id': 'default-image',
+            'name': 'Default Alert Image',
+            'type': 'image',
+            'url': 'https://storage.googleapis.com/fuzeobs-public/media/defaults/default-alert.gif',
+            'size': 0,
+            'is_default': True,
+        },
+        {
+            'id': 'default-sound',
+            'name': 'Default Alert Sound',
+            'type': 'sound',
+            'url': 'https://storage.googleapis.com/fuzeobs-public/media/defaults/default-alert.mp3',
+            'size': 0,
+            'is_default': True,
+        },
+    ]
+    
+    user_media = [{
+        'id': m.id,
+        'name': m.name,
+        'type': m.media_type,
+        'url': m.file_url,
+        'size': m.file_size,
+        'is_default': False,
+        'uploaded_at': m.uploaded_at.isoformat()
+    } for m in media]
+    
     return JsonResponse({
-        'media': [{
-            'id': m.id,
-            'name': m.name,
-            'type': m.media_type,
-            'url': m.file_url,
-            'size': m.file_size,
-            'uploaded_at': m.uploaded_at.isoformat()
-        } for m in media],
+        'media': DEFAULT_MEDIA + user_media,
         'total_size': total_size,
         'max_size': max_size
     })
