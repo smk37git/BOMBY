@@ -538,3 +538,128 @@ def fuzeobs_recaps_refresh(request):
     cache.set(f'recaps:{user.id}', recaps, 300)
 
     return JsonResponse({'success': True, 'recaps': recaps})
+
+# ============ FOLLOWER COUNTS ============
+
+def _fetch_twitch_followers(conn):
+    from .twitch import get_app_access_token
+    try:
+        app_token = get_app_access_token()
+        headers = {
+            'Authorization': f'Bearer {app_token}',
+            'Client-Id': settings.TWITCH_CLIENT_ID,
+        }
+        # Resolve broadcaster_id
+        user_resp = requests.get(
+            'https://api.twitch.tv/helix/users',
+            params={'login': conn.platform_username},
+            headers=headers, timeout=5,
+        )
+        if user_resp.status_code != 200:
+            return 0
+        users = user_resp.json().get('data', [])
+        if not users:
+            return 0
+        bid = users[0]['id']
+
+        resp = requests.get(
+            'https://api.twitch.tv/helix/channels/followers',
+            params={'broadcaster_id': bid, 'first': 1},
+            headers=headers, timeout=5,
+        )
+        if resp.status_code == 200:
+            return resp.json().get('total', 0)
+    except Exception as e:
+        print(f'[FOLLOWERS] Twitch error: {e}')
+    return 0
+
+
+def _fetch_youtube_followers(conn):
+    try:
+        resp = requests.get(
+            'https://www.googleapis.com/youtube/v3/channels',
+            params={'part': 'statistics', 'mine': 'true'},
+            headers={'Authorization': f'Bearer {conn.access_token}'},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            items = resp.json().get('items', [])
+            if items:
+                return int(items[0].get('statistics', {}).get('subscriberCount', 0))
+    except Exception as e:
+        print(f'[FOLLOWERS] YouTube error: {e}')
+    return 0
+
+
+def _fetch_kick_followers(conn):
+    try:
+        resp = requests.get(
+            f'https://kick.com/api/v2/channels/{conn.platform_username}',
+            headers={'User-Agent': 'FuzeOBS/1.0'},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            return resp.json().get('followers_count', 0)
+    except Exception as e:
+        print(f'[FOLLOWERS] Kick error: {e}')
+    return 0
+
+
+def _fetch_facebook_followers(conn):
+    try:
+        resp = requests.get(
+            f'https://graph.facebook.com/v18.0/{conn.platform_user_id}',
+            params={'access_token': conn.access_token, 'fields': 'followers_count'},
+            timeout=5,
+        )
+        if resp.status_code == 200:
+            return resp.json().get('followers_count', 0)
+    except Exception as e:
+        print(f'[FOLLOWERS] Facebook error: {e}')
+    return 0
+
+
+def _fetch_tiktok_followers(conn):
+    # TikTok doesn't expose follower count via public API
+    return 0
+
+
+FOLLOWER_FETCHERS = {
+    'twitch': _fetch_twitch_followers,
+    'youtube': _fetch_youtube_followers,
+    'kick': _fetch_kick_followers,
+    'facebook': _fetch_facebook_followers,
+    'tiktok': _fetch_tiktok_followers,
+}
+
+
+@csrf_exempt
+def fuzeobs_followers(request):
+    """GET - return follower counts per platform (cached 5 min)"""
+    user = _get_user(request)
+    if not user:
+        return JsonResponse({'error': 'Invalid token'}, status=401)
+
+    from django.core.cache import cache
+    cache_key = f'followers:{user.id}'
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return JsonResponse({'success': True, 'followers': cached})
+
+    connections = PlatformConnection.objects.filter(user=user)
+    followers = {}
+    total = 0
+
+    for conn in connections:
+        fetcher = FOLLOWER_FETCHERS.get(conn.platform)
+        if fetcher:
+            try:
+                count = fetcher(conn)
+                followers[conn.platform] = count
+                total += count
+            except Exception:
+                followers[conn.platform] = 0
+
+    result = {'total': total, 'platforms': followers}
+    cache.set(cache_key, result, 300)
+    return JsonResponse({'success': True, 'followers': result})

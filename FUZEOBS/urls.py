@@ -7,6 +7,7 @@ from .donations import (
     clear_donation_history
 )
 from .recaps import fuzeobs_recaps as recaps_view, fuzeobs_recaps_refresh as recaps_refresh_view
+from .recaps import fuzeobs_followers as followers_view
 from .leaderboard import (
     fuzeobs_leaderboard,
     fuzeobs_leaderboard_optin,
@@ -143,6 +144,7 @@ urlpatterns = [
     # Welcome Page
     path('countdown', views.fuzeobs_countdown, name='countdown'),
     path('recaps', recaps_view, name='recaps'),
+    path('followers', followers_view, name='followers'),
     path('recaps/refresh', recaps_refresh_view, name='recaps_refresh'),
 
     # Collab Finder
