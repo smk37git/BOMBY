@@ -498,13 +498,6 @@ def fuzeobs_leaderboard_cron_sync(request):
 
     for entry in entries:
         try:
-            current_rank = (
-                LeaderboardEntry.objects
-                .filter(opted_in=True, total_stream_minutes__gt=entry.total_stream_minutes)
-                .count() + 1
-            )
-            entry.previous_rank = current_rank
-
             total, weekly, monthly = _sync_user_hours(entry.user)
             entry.total_stream_minutes = total
             entry.weekly_stream_minutes = weekly
@@ -515,6 +508,17 @@ def fuzeobs_leaderboard_cron_sync(request):
         except Exception as e:
             print(f'[LEADERBOARD CRON] Error {entry.user.username}: {e}')
             errors += 1
+
+    # After syncing all hours, set previous_rank based on actual display order
+    all_entries = (
+        LeaderboardEntry.objects
+        .filter(opted_in=True)
+        .order_by('-total_stream_minutes', 'user__username')
+    )
+    for rank, entry in enumerate(all_entries, 1):
+        if entry.previous_rank != rank:
+            entry.previous_rank = rank
+            entry.save(update_fields=['previous_rank'])
 
     for period in ('week', 'month', 'all'):
         cache.delete(f'leaderboard:{period}')
