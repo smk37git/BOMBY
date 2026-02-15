@@ -685,8 +685,9 @@ if (typeof gsap === 'undefined') {
     // Scroll distance = one set of originals (in px), convert to % of total width
     const totalWidth = setsNeeded * setWidth;
     const scrollPct = (setWidth / totalWidth) * 100;
-    // Speed: ~50px per second feels good on all screens
-    const duration = setWidth / 50;
+    // Speed: faster on mobile since fewer cards make slow feel sluggish
+    const speed = viewportWidth < 768 ? 80 : 50;
+    const duration = setWidth / speed;
 
     carousel.style.setProperty('--scroll-distance', '-' + scrollPct + '%');
     carousel.style.setProperty('--scroll-duration', duration + 's');
