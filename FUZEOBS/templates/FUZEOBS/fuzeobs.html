@@ -177,9 +177,9 @@
         <div class="review-modal-content">
             <button class="review-modal-close" id="reviewModalClose">&times;</button>
             <div class="review-modal-header">
-                <div class="review-modal-avatar" id="reviewModalAvatar"></div>
+                <a class="review-modal-avatar" id="reviewModalAvatar" href="#" target="_blank"></a>
                 <div class="review-modal-info">
-                    <span class="review-modal-name" id="reviewModalName"></span>
+                    <a class="review-modal-name" id="reviewModalName" href="#" target="_blank"></a>
                     <span class="review-modal-separator"></span>
                     <div class="review-modal-platform" id="reviewModalPlatform"></div>
                 </div>
@@ -665,12 +665,32 @@ if (typeof gsap === 'undefined') {
     }
 })();
 
-// Reviews Carousel - clone items for seamless loop
+// Reviews Carousel - dynamically clone to fill screen, consistent speed
 (function() {
     const carousel = document.getElementById('reviewsCarousel');
     if (!carousel || carousel.children.length === 0) return;
+
+    const gap = 24;
     const items = Array.from(carousel.children);
-    items.forEach(item => carousel.appendChild(item.cloneNode(true)));
+    const cardWidth = 320 + gap; // card width + gap
+    const setWidth = items.length * cardWidth;
+    const viewportWidth = window.innerWidth;
+
+    // Clone enough sets so one full set can scroll off while remaining cards fill the screen
+    const setsNeeded = Math.max(2, Math.ceil((viewportWidth * 2) / setWidth) + 1);
+    for (let s = 1; s < setsNeeded; s++) {
+        items.forEach(item => carousel.appendChild(item.cloneNode(true)));
+    }
+
+    // Scroll distance = one set of originals (in px), convert to % of total width
+    const totalWidth = setsNeeded * setWidth;
+    const scrollPct = (setWidth / totalWidth) * 100;
+    // Speed: ~50px per second feels good on all screens
+    const duration = setWidth / 50;
+
+    carousel.style.setProperty('--scroll-distance', '-' + scrollPct + '%');
+    carousel.style.setProperty('--scroll-duration', duration + 's');
+    carousel.classList.add('scrolling');
 })();
 
 // Review Modal
@@ -697,6 +717,8 @@ if (typeof gsap === 'undefined') {
         
         // Set avatar
         const avatarEl = document.getElementById('reviewModalAvatar');
+        const profileUrl = '/accounts/profile/' + username + '/';
+        avatarEl.href = profileUrl;
         if (avatar) {
             avatarEl.innerHTML = '<img src="' + avatar + '" alt="">';
         } else {
@@ -704,7 +726,9 @@ if (typeof gsap === 'undefined') {
         }
         
         // Set name and platform icon
-        document.getElementById('reviewModalName').textContent = username;
+        const nameEl = document.getElementById('reviewModalName');
+        nameEl.textContent = username;
+        nameEl.href = profileUrl;
         const platformEl = document.getElementById('reviewModalPlatform');
         platformEl.className = 'review-modal-platform platform-' + platform;
         platformEl.innerHTML = platformIcons[platform] || platformIcons.other;
