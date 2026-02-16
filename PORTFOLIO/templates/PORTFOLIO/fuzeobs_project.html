@@ -1,11 +1,11 @@
 {% extends 'MAIN/base.html' %}
 {% load static %}
 
-{% block title %}Steam Workshop Modding - Project Zomboid Lua Mod | BOMBY{% endblock %}
-{% block description %}10 Years Later Survivors mod for Project Zomboid using Lua programming. Dynamic outfit and weapon systems with 32k+ views and 3,500+ downloads on Steam Workshop.{% endblock %}
-{% block og_title %}Steam Workshop Modding - BOMBY Portfolio{% endblock %}
-{% block og_description %}10 Years Later Survivors mod for Project Zomboid using Lua programming. Dynamic outfit and weapon systems with 32k+ views and 3,500+ downloads on Steam Workshop.{% endblock %}
-{% block og_url %}https://bomby.us/portfolio/steam-workshop/{% endblock %}
+{% block title %}FuzeOBS Project - Streaming Toolkit Software | BOMBY{% endblock %}
+{% block description %}Software to help creators get setup and running within minutes. Offers automatic hardware detection, auto-configured settings, real-time widgets, and AI-Enhancements with a personal assistant to use 24/7.{% endblock %}
+{% block og_title %}FuzeOBS Project - Streaming Toolkit Software | BOMBY{% endblock %}
+{% block og_description %}Software to help creators get setup and running within minutes. Offers automatic hardware detection, auto-configured settings, real-time widgets, and AI-Enhancements with a personal assistant to use 24/7.{% endblock %}
+{% block og_url %}https://bomby.us/portfolio/fuzeobs-project/{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'css/bomby_page.css' %}">
@@ -17,48 +17,47 @@
 {% endblock %}
 
 {% block content %}
-    <div class="project-container">
+    <div class="project-container" style="padding-top: 75px;">
         <!-- Horizontal Split Hero Section -->
         <section class="hero-split">
             <!-- Left Side - Hero Content -->
             <div class="hero-content-side">
-                <h1 class="project-title">STEAM WORKSHOP MODDING
+                <h1 class="project-title">FUZEOBS PROJECT
                 </h1>
                 <p class="project-author">By Sebastian Main</p>
                 <p class="project-brief">
-                    A showcase of my Steam workshop mods. Currently I have only one mod published that required coding, but I'd love to show it off!
+                    From hardware detection to AI assistance, FuzeOBS covers every aspect of your streaming setup.
                 </p>
                 
                 <div class="hero-cta">
                     <a href="{% url 'PORTFOLIO:portfolio' %}" class="hero-button">
                         <i class="fas fa-arrow-left"></i> Back to Portfolio
                     </a>
-                    <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3291465513&searchtext=10+years+later" target="_blank" class="hero-button primary">View Live</a>
-                    <a href="https://github.com/smk37git/PROJECT-ZOMBOID_10-YEARS-LATER-SURVIVORS-MOD" target="_blank" class="hero-button">GitHub Repo</a>
+                    <a href="{% url 'FUZEOBS:fuzeobs' %}" target="_blank" class="hero-button primary">View Live</a>
                 </div>
             </div>
             
             <!-- Right Side - Gallery -->
             <div class="hero-gallery-side">
                 <div class="project-featured-image">
-                    <img src="{% static 'images/steam_workshop_1.jpg' %}" alt="Project Name" class="featured-image" id="featuredImage">
+                    <img src="{% static 'images/fuzeobs_1.png' %}" alt="Project Name" class="featured-image" id="featuredImage">
                 </div>
                 
                 <div class="gallery-thumbnails">
-                    <div class="thumbnail active" data-image="{% static 'images/steam_workshop_1.jpg' %}">
-                        <img src="{% static 'images/steam_workshop_1.jpg' %}" alt="Main Project Image">
+                    <div class="thumbnail active" data-image="{% static 'images/fuzeobs_1.png' %}">
+                        <img src="{% static 'images/fuzeobs_1.png' %}" alt="Main Project Image">
                     </div>
-                    <div class="thumbnail" data-image="{% static 'images/steam_workshop_2.jpg' %}">
-                        <img src="{% static 'images/steam_workshop_2.jpg' %}" alt="Gallery Image 1">
+                    <div class="thumbnail" data-image="{% static 'images/fuzeobs_2.png' %}">
+                        <img src="{% static 'images/fuzeobs_2.png' %}" alt="Gallery Image 1">
                     </div>
-                    <div class="thumbnail" data-image="{% static 'images/steam_workshop_3.jpg' %}">
-                        <img src="{% static 'images/steam_workshop_3.jpg' %}" alt="Gallery Image 2">
+                    <div class="thumbnail" data-image="{% static 'images/fuzeobs_3.png' %}">
+                        <img src="{% static 'images/fuzeobs_3.png' %}" alt="Gallery Image 2">
                     </div>
-                    <div class="thumbnail" data-image="{% static 'images/steam_workshop_4.jpg' %}">
-                        <img src="{% static 'images/steam_workshop_4.jpg' %}" alt="Gallery Image 3">
+                    <div class="thumbnail" data-image="{% static 'images/fuzeobs_4.png' %}">
+                        <img src="{% static 'images/fuzeobs_4.png' %}" alt="Gallery Image 3">
                     </div>
-                    <div class="thumbnail" data-image="{% static 'images/steam_workshop_5.jpg' %}">
-                        <img src="{% static 'images/steam_workshop_5.jpg' %}" alt="Gallery Image 4">
+                    <div class="thumbnail" data-image="{% static 'images/fuzeobs_5.png' %}">
+                        <img src="{% static 'images/fuzeobs_5.png' %}" alt="Gallery Image 4">
                     </div>
                 </div>
             </div>
@@ -78,28 +77,29 @@
                         <h3 class="info-card-title">The Project</h3>
                         <div class="info-card-content">
                             <p>
-                                This mod simply addresses the issues when combining multiple other mods for one of my favorite games, Project Zomboid.
-                                A thrilling and the most realistic (despite the isometric artstyle) zombie survival simulator set in 1993 Knox County, Kentucky.
-                                By using this mod, it will allow NPC survivors to spawn in using more post-apocalyptic outfits contrary to their usual day one outbreak
-                                outfits. I like to play the game with a more of a 'Last of Us' setting so prior to my mod, it broke my immersion heavily to see NPCs with
-                                undamaged clothing ten years into the apocalypse.
+                                I created FuzeOBS out of frustration with how difficult it is for new streamers to get OBS configured properly.
+                                There are countless tutorials and guides online, but none of them account for the fact that everyone's hardware is different.
+                                What works for someone with an RTX 4090 isn't going to work for someone on integrated graphics. I wanted to build a tool
+                                that could detect your system, understand your hardware limitations, and generate the perfect OBS configuration for you automatically.
                                 <br></br>
 
-                                Thus I developed this mod to fix this issue and finally make my playthroughs coherent when I find new survivors to recruit against the undead!
+                                Beyond just settings, I wanted FuzeOBS to be an all-in-one streaming toolkit. From scene templates, integrated widget configuration, performance benchmarking,
+                                and an AI assistant that can answer any streaming question, I wanted creators to have everything they need in one place
+                                so they could focus on what matters which is actually creating content.
                             </p>
                             
                             <div class="info-stats">
                                 <div class="info-stat">
                                     <div class="stat-label">Date</div>
-                                    <div class="stat-value">July 17th, 2024</div>
+                                    <div class="stat-value">October 2025 - Present</div>
                                 </div>
                                 <div class="info-stat">
                                     <div class="stat-label">Category</div>
-                                    <div class="stat-value">Game Modding</div>
+                                    <div class="stat-value">Desktop Application</div>
                                 </div>
                                 <div class="info-stat">
                                     <div class="stat-label">Role</div>
-                                    <div class="stat-value">Developer</div>
+                                    <div class="stat-value">Solo Developer</div>
                                 </div>
                             </div>
                         </div>
@@ -109,26 +109,29 @@
                         <h3 class="info-card-title">My Approach</h3>
                         <div class="info-card-content">
                             <p>
-                                I first broke down exactly how to mod the game. As Project Zomboid runs on a Java and Lua foundation for the base game.
-                                Quickly I found out that I needed to understand Lua to create mods as that is what the modding community ultilizes to publish files.
-                                So I began by studying other mods and replicated their processes to create my own mod.
+                                I started by breaking down exactly what a new streamer needs to go through to get up and running. The answer was a lot.
+                                Hardware detection, encoder selection, bitrate calculations, scene setup, audio routing, etc. It's overwhelming for someone
+                                who just wants to hit "Go Live". So I mapped out every step and figured out how to automate each one.
                                 <br></br>
 
-                                With all my efforts I eventually got my mod published at as of September 2025, the mod has over 32k views, 3,500+ downloads, and 67 (5) star reviews (Steam adds 5 Star Rating at >100 Reviews)!
+                                I built the backend in Python with Flask handling the API layer and PyWebView wrapping it into a native desktop app.
+                                The frontend is a full Next.js React application that communicates with the backend for everything from system detection
+                                to OBS WebSocket control. My focus was making it feel like a real desktop application while keeping the development
+                                workflow modern and maintainable.
                             </p>
                             
                             <div class="info-stats">
                                 <div class="info-stat">
                                     <div class="stat-label">Tech Stack</div>
-                                    <div class="stat-value">Lua</div>
+                                    <div class="stat-value">Python, Flask, TypeScript, React, Next.js, PyWebView, OBS WebSocket</div>
                                 </div>
                                 <div class="info-stat">
                                     <div class="stat-label">Timeline</div>
-                                    <div class="stat-value">1 Month</div>
+                                    <div class="stat-value">5+ Months (Ongoing)</div>
                                 </div>
                                 <div class="info-stat">
                                     <div class="stat-label">Purpose</div>
-                                    <div class="stat-value">Experiment with a new language and create with a passion</div>
+                                    <div class="stat-value">Automate OBS setup and empower creators with intelligent tools</div>
                                 </div>
                             </div>
                         </div>
@@ -146,56 +149,97 @@
                 <div class="tech-details">
                     <h3>Development Process</h3>
                     <p>
-                        I began creating the mod by creating the two files that I wanted to have overwrite the base NPCs. The SuperSurvivorSuitsUtilities and the SuperSurvivorWeaponsList.
-                        The SuitsUtilities file allowed me to overwrite the base outfits by calling item IDs directly from the Project Zomboid database. Things like hats, gloves, shirts, pants, socks, and other accessories.
+                        I began by building the system detection engine. This was the foundation of the entire app. if I couldn't accurately
+                        identify a user's CPU, GPU, RAM, and peripherals, nothing else would work. I put together platform-specific detection for
+                        Windows, macOS, and Linux covering everything from NVIDIA GPU generations to Intel QSV capabilities to Apple Silicon chips.
+                        The detector even identifies webcam resolutions by querying DirectShow, AVFoundation, or v4l2 depending on the platform.
                         <br></br>
 
-                        This is crucial for complete customization of all the NPCs. Furthermore, I can also create multiple outfits for NPCs in different rarities (where the rarer an outfit is, the less likely it'll be chosen when an NPC spawns).
-                        There are 5 different levels of rarity (Most rare to most common): Legendary, Very Rare, Rare, Uncommon, and Normal. With an additional variable called "Presets" where when specific NPCs are spawned in,
-                        like a 'soldier' for example, they'll always spawn with one of the preset outfits. Currently there are 8 preset outfits for militia, farmers, police, etc. Each rarity of outfits also has ~9 outfits.
-                        Totaling at 69 outfits currently. Each one is unique and allows for a dynamic experience when coming across survivors. Some may be very geared and could put up a fight
-                        in a confrontion. While others are wearing basic rags and will need help rather than harm.
+                        From there I built the settings generator. Based on your detected hardware, it selects
+                        the optimal encoder (NVENC, AMD AMF, QSV, or x264), calculates the right bitrate for your chosen platform, and picks
+                        encoder presets that match your quality preference. I created five quality tiers from "Max Performance" to "Max Quality"
+                        with specific encoder configurations for each one. The system even knows when to fall back to x264, like when you have
+                        an older GPU but a beefy CPU.
                         <br></br>
 
-                        Conversely, the WeaponsList file allows survivors to dynamically spawn with different weapons based on how long they've been alive. In Project Zomboid NPCs aren't 
-                        directly spawned in front of the player. They are actually spawned in meta-data until the player or NPC are near each other. That is when the weapons and outfit spawning are determined. 
-                        Once the NPC is loaded in, if they have survived '<'48 hours then they get basic weapons. Like a stake for example. While if they have survived '>' 48 hours, they get better
-                        weapons like pistols or shotguns. This allows for easy, uncompromised weapon spawning even if users have other weapon mods installed.
+                        Next came the OBS integration. FuzeOBS generates complete OBS profile files and scene collections, then connects via
+                        WebSocket to apply them live. I built a scene template system that pulls templates from my Django backend on bomby.us
+                        and injects the user's actual devices. Things like their specific webcam, microphone, and audio output are put directly into the scenes.
+                        <br></br>
+
+                        I also built a full performance monitoring system that connects to OBS via WebSocket and collects real-time stats on
+                        CPU usage, GPU load, FPS stability, dropped frames, encoding lag, and network congestion. It grades your stream
+                        performance from A to F across every metric and identifies exactly what's causing issues. On top of all that,
+                        I integrated an AI chat assistant, a user account system with Google OAuth, TikTok OAuth, an auto-updater that handles
+                        Windows .exe, macOS .dmg, and Linux .deb installs, and profile management so users can save and swap configurations.
+                        The app also features 10 distinct tabs covering deployment, setup, extras, and AI enhancements with built-in stream
+                        widgets like alerts, chat boxes, viewer counts, goal bars, and donation overlays that users can inject directly into their scenes.
+                        <br></br>
+                        
+                        All together, FuzeOBS takes what used to be hours of research and configuration and turns it into a few clicks.
                     </p>
                     
                     <h3>Technical Challenges</h3>
                     <p>
-                        The biggest challenge when creating this mod was trying to understand the Project Zomboid database and how to reference the items
-                        in my Lua file. It was a quick challenge to overcome though by using online documentation on the Project Zomboid wiki to find item IDs.
+                        The biggest challenge was making this app truly cross-platform. PyWebView behaves differently on every OS. Windows
+                        uses EdgeChromium, macOS uses WebKit, and Linux needs Qt WebEngine. On Linux specifically, I had to run Flask
+                        in a separate thread and implement a health-check polling system because PyWebView can't serve Flask directly
+                        like it does on Windows and macOS. Getting the startup sequence right so the window doesn't open before the
+                        server is ready took a lot of trial and error.
                         <br></br>
 
-                        Once I got the items I wanted to add to an NPC it basically become a cookie-cutter mold for each outfit!
+                        Another major hurdle was webcam detection. Every platform uses a completely different API. DirectShow on Windows,
+                        AVFoundation on macOS, and v4l2 on Linux. I had to write separate enumerators for each one that not only find
+                        the devices but also query their actual supported resolutions so I can inject the correct settings into OBS scenes.
+                        On Windows alone I have three fallback methods (pygrabber, FFmpeg, and WMI) because no single approach works reliably
+                        on every machine.
+                        <br></br>
+
+                        The auto-updater was also a beast. On Windows I generate a batch script that kills the running app, installs silently,
+                        and relaunches. On macOS I mount the DMG, copy the .app with ditto to preserve code signatures, re-sign it ad-hoc,
+                        remove quarantine flags, and then launch. All from a detached bash script that survives the parent process dying.
+                        Each platform had its own set of edge cases that took real persistence to iron out.
                     </p>
                     
                     <pre>
-// Example code snippet
-local hoursSurvived = math.floor(getGameTime():getWorldAgeHours())
+// Encoder Selection Logic
+def _select_encoder(self, quality_preference: str) -> str:
+    gpu_encoder = self.specs['gpu']['encoder_available']
+    if not gpu_encoder:
+        return 'x264'
 
---	if hoursSurvived > 48 then
---  	table.insert(MeleWeapons,"Base.WoodAxe");
---  	table.insert(MeleWeapons,"Base.Plunger");
---  	table.insert(MeleWeapons,"Base.Stake");
---  	table.insert(MeleWeapons,"Base.Stake");
---	end
+    gpu_gen = self.specs['gpu'].get('generation', {})
+    cpu_cores = self.specs['cpu']['logical_cores']
+
+    if gpu_encoder == 'nvenc':
+        nvenc_gen = gpu_gen.get('nvenc_gen', 3)
+        return self._apply_encoder_rule(
+            NVENC_RULES.get(nvenc_gen),
+            cpu_cores, quality_preference, 'nvenc_h264'
+        )
+    return 'x264'
 </pre>
                     
                     <h3>Key Features</h3>
                     <ul>
-                        <li>Dynamic Outfit Selection</li>
-                        <li>Dynamic Weapon Selection</li>
-                        <li>Documentation for future users to add their own outfits</li>
-                        <li>Published and Open Source</li>
+                        <li>Automatic Hardware Detection and Intelligent Encoder Selection</li>
+                        <li>One-Click OBS Configuration with Platform-Specific Optimization</li>
+                        <li>Customizable Widgets for all Supported Platforms</li>
+                        <li>Real-Time Performance Monitoring with A-F Grading System</li>
+                        <li>AI-Powered Streaming Assistant with Benchmarking Analysis</li>
                     </ul>
                     
                     <h3>Lessons Learned</h3>
                     <p>
-                        Working passionately on this mod made me develop my connection deeper for one of my favorite games. While also allowing me to branch out my coding expertise
-                        and try something new. I enjoyed getting to be creative when designing this mod and allowed it to be compatible for future game updates!
+                        FuzeOBS taught me more than any other project I've worked on. Building a cross-platform desktop application
+                        forced me to understand how each operating system handles things differently. From process management to
+                        file paths to hardware APIs. I gained a deep understanding of video encoding, OBS internals, and how
+                        streaming actually works under the hood.
+                        <br></br>
+
+                        More than anything, this project taught me the importance of building with the user in mind. Every feature
+                        I added was driven by the question "what would a new streamer struggle with?" and that mindset kept the
+                        project focused and purposeful. I'm proud of what FuzeOBS has become and I'm excited to keep building on it.
                     </p>
                 </div>
             </section>

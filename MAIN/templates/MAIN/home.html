@@ -1,10 +1,10 @@
 {% extends 'MAIN/base.html' %}
 {% load static %}
 
-{% block title %}BOMBY - Freelance Services & Portfolio | Stream Setup & Software{% endblock %}
-{% block description %}Professional streaming setup services, FuzeOBS software, custom overlays, and OBS configuration by Sebastian Main. IT student specializing in streaming technology and freelance services.{% endblock %}
-{% block og_title %}BOMBY - Portfolio & Freelance Services{% endblock %}
-{% block og_description %}Professional streaming setup services, FuzeOBS software, custom overlays, and OBS configuration by Sebastian Main. IT student specializing in streaming technology and freelance services.{% endblock %}
+{% block title %}BOMBY - Consulting Services | Stream Setup & FuzeOBS Software | Portfolio{% endblock %}
+{% block description %}Professional streaming setup services, FuzeOBS software, custom overlays, and OBS configuration by Sebastian Main. IT student specializing in streaming technology and consulting services.{% endblock %}
+{% block og_title %}BOMBY - Consulting Services | Stream Setup & FuzeOBS Software | Portfolio{% endblock %}
+{% block og_description %}Professional streaming setup services, FuzeOBS software, custom overlays, and OBS configuration by Sebastian Main. IT student specializing in streaming technology and consulting services.{% endblock %}
 {% block og_url %}https://bomby.us/{% endblock %}
 
 {% block extra_css %}
@@ -20,10 +20,10 @@
     <section class="hero-section">
         <div class="hero-content">
             <h1 class="hero-title">BOMBY</h1>
-            <p class="hero-subtitle">PORTFOLIO AND FREELANCE SERVICE</p>
+            <p class="hero-subtitle">PORTFOLIO AND CONSULTING SERVICES</p>
             <div class="hero-buttons desktop-buttons">
                 <a href="{% url 'PORTFOLIO:portfolio' %}" class="hero-btn">MY PORTFOLIO</a>
-                <a href="{% url 'STORE:store' %}" class="hero-btn">FREELANCE SERVICES</a>
+                <a href="{% url 'STORE:store' %}" class="hero-btn">CONSULTING SERVICES</a>
             </div>
         </div>
         
@@ -37,7 +37,7 @@
             <!-- Mobile buttons - will only show on mobile -->
             <div class="hero-buttons mobile-buttons">
                 <a href="{% url 'PORTFOLIO:portfolio' %}" class="hero-btn">MY PORTFOLIO</a>
-                <a href="{% url 'STORE:store' %}" class="hero-btn">FREELANCE SERVICES</a>
+                <a href="{% url 'STORE:store' %}" class="hero-btn">CONSULTING SERVICES</a>
             </div>
         </div>
     </section>

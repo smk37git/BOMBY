@@ -7,25 +7,26 @@ body, html {
 }
 
 .portfolio-hero {
-    padding: 4rem 2rem 4rem;
+    padding: 4rem 5vw 4rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     min-height: 80vh;
     position: relative;
-    overflow: hidden;
-    margin-top: -8rem;
+    overflow: visible;
+    margin-top: -4rem;
     margin-bottom: -5rem;
 }
 
 .hero-content {
     z-index: 2;
     position: relative;
-    max-width: 500px;
+    flex: 1;
+    min-width: 0;
 }
 
 .main-title {
-    font-size: 5rem;
+    font-size: clamp(3rem, 5vw, 5rem);
     line-height: 1;
     margin: 0;
     font-weight: 900;
@@ -35,7 +36,7 @@ body, html {
 }
 
 .subtitle {
-    font-size: 1.5rem;
+    font-size: clamp(1rem, 1.3vw, 1.5rem);
     color: #ffffff;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     margin-top: 1rem;
@@ -44,9 +45,9 @@ body, html {
 
 .code-animation-container {
     position: relative;
-    width: 350px;
-    height: 305px;
-    margin-right: 8rem;
+    width: clamp(250px, 30vw, 600px);
+    height: clamp(220px, 26vw, 520px);
+    margin-right: clamp(2rem, 5vw, 8rem);
     transform-style: preserve-3d;
     perspective: 1000px;
     margin-bottom: -2rem;
@@ -534,23 +535,6 @@ body, html {
 }
 
 @media (min-width: 1440px) {
-    .hero-content {
-        margin-left: 100px !important;
-    }
-
-    .main-title {
-        font-size: 8rem;
-    }
-
-    .subtitle {
-        font-size: 1.7rem;
-    }
-
-    .code-animation-container {
-        height: 500px;
-        width: 500px;
-    }
-    
     .code-display pre {
         font-size: 0.9rem !important;
     }
@@ -561,47 +545,6 @@ body, html {
 }
 
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
-    .portfolio-hero {
-        padding: 0 6rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        min-height: 80vh;
-        position: relative;
-        overflow: hidden;
-        margin-top: -8rem;
-        margin-bottom: -7rem;
-    }
-
-    .main-title {
-        font-size: 6rem;
-        white-space: nowrap;
-        line-height: 1;
-        margin: 0;
-        font-weight: 900;
-        color: #ffffff;
-        letter-spacing: 2px;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    }
-
-    .subtitle {
-        font-size: 2rem;
-        color: #ffffff;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-        margin-top: 1rem;
-        letter-spacing: 3px;
-    }
-
-    .code-animation-container {
-        position: relative;
-        width: 600px;
-        height: 500px;
-        margin-right: 8rem;
-        transform-style: preserve-3d;
-        perspective: 1000px;
-        margin-bottom: -2rem;
-    }
-
     .code-wrapper {
         overflow: visible !important;
     }
@@ -703,10 +646,12 @@ body, html {
     
     .main-title {
         font-size: 3rem;
+        white-space: normal;
     }
     
     .subtitle {
         font-size: 1.2rem;
+        white-space: normal;
     }
     
     /* Code animation container */

@@ -17,7 +17,7 @@
     <title>{% block title %}BOMBY - Streaming and Recording Setup, Consulting Services, and Portfolio{% endblock %}</title>
     <meta name="description" content="{% block description %}Streaming and Recording Setup, Consulting Services, and Portfolio{% endblock %}">
     <meta property="og:title" content="{% block og_title %}BOMBY{% endblock %}">
-    <meta property="og:description" content="{% block og_description %}Streaming and Recording Setup, Freelance Services, and Portfolio{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Streaming and Recording Setup, Consulting Services, and Portfolio{% endblock %}">
     <meta property="og:image" content="{% block og_image %}https://bomby.us/static/images/bomby_meta.png{% endblock %}">
     <meta property="og:url" content="{% block og_url %}https://bomby.us{% endblock %}">
     <meta property="og:type" content="{% block og_type %}website{% endblock %}">
@@ -82,6 +82,23 @@
                 </div>
                 <div class="nav-menu" id="nav-menu">
                     <a href="{% url 'MAIN:home' %}" class="nav-link">Home</a>
+
+                    <!-- SOON TO BE RELEASED!
+                    <div class="account-section">
+                        <div class="dropdown">
+                            <a href="{% url 'FUZEOBS:fuzeobs' %}" class="nav-link dropdown-toggle">
+                                FuzeOBS <span class="dropdown-arrow">▾</span>
+                            </a>
+                            <div class="dropdown-content">
+                                <a href="{% url 'FUZEOBS:pricing' %}">Pricing</a>
+                                {% if user.is_admin_user %}
+                                <a href="{% url 'FUZEOBS:analytics' %}">Analytics</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    -->
+                    
                     <div class="account-section">
                         <div class="dropdown">
                             <a href="{% url 'STORE:store' %}" class="nav-link dropdown-toggle">
@@ -102,6 +119,7 @@
                             </div>
                         </div>
                     </div>
+
                     <a href="{% url 'PORTFOLIO:portfolio' %}" class="nav-link">Portfolio</a>
                     <a href="{% url 'MAIN:about' %}" class="nav-link">About</a>
                     <a href="{% url 'MAIN:contact' %}" class="nav-link">Contact</a>
