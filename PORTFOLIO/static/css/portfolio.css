@@ -61,12 +61,12 @@ body, html {
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 20px;
+    padding: 0;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     z-index: 2;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end;
 }
 
 .code-display {
@@ -535,41 +535,9 @@ body, html {
 }
 
 @media (min-width: 1440px) {
-    .code-display pre {
-        font-size: 0.9rem !important;
-    }
-
-    .code-display pre {
-        transform: translateX(-2%) !important;
-    }
 }
 
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
-    .code-wrapper {
-        overflow: visible !important;
-    }
-
-    .code-display {
-        font-family: 'Courier New', monospace;
-        font-size: 1.5rem;
-        line-height: 1.4;
-        color: #ac68ff;
-        margin: 0;
-        white-space: pre-wrap;
-        height: 100%;
-        overflow: hidden;
-        text-align: left;
-    }
-
-    .code-display pre {
-        font-family: 'Courier New', monospace;
-        font-size: 0.9rem !important;
-        line-height: 1;
-        padding-bottom: 50px;
-        white-space: pre;
-        color: #ac68ff;
-    }
-
     .section-title {
         font-size: 3.5rem;
     }
@@ -791,6 +759,15 @@ body, html {
         padding: 0.7rem 1.2rem;
         font-size: 0.9rem;
     }
+
+    .leadership-grid {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+    }
+
+    .leadership-section {
+        margin-top: -2rem;
+    }
 }
 
 @media (max-width: 480px) {
@@ -822,4 +799,97 @@ body, html {
     .window-content {
         height: 180px;
     }
+}
+
+/* Leadership section */
+.leadership-section {
+    padding: 4rem 2rem;
+}
+
+.leadership-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 2.5rem;
+    max-width: 1200px;
+    margin: 2rem auto 0;
+    align-items: start;
+}
+
+.org-card .window {
+    display: flex;
+    flex-direction: column;
+}
+
+.org-card .window-content.org-window {
+    flex: 1;
+}
+
+.org-window {
+    height: auto !important;
+    padding: 2rem;
+    background: radial-gradient(circle, rgba(30, 30, 40, 0.9), rgba(20, 20, 30, 0.9));
+}
+
+.org-content {
+    text-align: center;
+}
+
+.org-name {
+    font-size: 1.6rem;
+    color: #fff;
+    margin-bottom: 0.3rem;
+}
+
+.org-subtitle {
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    margin-bottom: 1.2rem;
+}
+
+.org-roles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid rgba(166, 0, 255, 0.4);
+    border-radius: 20px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.8rem;
+    background: rgba(136, 0, 255, 0.08);
+}
+
+.role-badge.role-primary {
+    border-color: #a600ff;
+    color: #fff;
+    background: rgba(136, 0, 255, 0.2);
+    font-weight: bold;
+}
+
+.org-achievements {
+    list-style: none;
+    padding: 0;
+    text-align: left;
+}
+
+.org-achievements li {
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.4rem 0;
+    padding-left: 1.2rem;
+    position: relative;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.org-achievements li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: #a600ff;
 }

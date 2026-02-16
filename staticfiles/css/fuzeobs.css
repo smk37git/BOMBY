@@ -176,7 +176,7 @@
   display: flex;
   justify-content: center;
   gap: 16px;
-  margin-bottom: 48px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
@@ -1161,4 +1161,78 @@
   .tab-pill { padding: 5px 10px; font-size: 11px; }
   
   .hero-stats { gap: 20px; }
+}
+/* ===========================================
+   Install Help Card (on landing page)
+   =========================================== */
+.install-help-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    max-width: 480px;
+    margin: 0 auto 48px;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.25s ease;
+}
+
+.install-help-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.16);
+    transform: translateY(-1px);
+}
+
+.install-help-icon {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 200, 83, 0.07);
+    border-radius: 8px;
+}
+
+.install-help-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.install-help-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.install-help-sub {
+    font-size: 11.5px;
+    color: rgba(255, 255, 255, 0.35);
+}
+
+.install-help-arrow {
+    flex-shrink: 0;
+    opacity: 0.3;
+    transition: opacity 0.2s;
+}
+
+.install-help-card:hover .install-help-arrow {
+    opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+    .install-help-card {
+        max-width: 280px;
+        margin: 0 auto 36px;
+    }
+
+    .install-help-sub {
+        font-size: 10.5px;
+    }
 }

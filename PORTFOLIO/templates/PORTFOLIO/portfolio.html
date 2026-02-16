@@ -64,6 +64,112 @@
         </div>
     </section>
 
+    <section class="leadership-section">
+        <div class="section-header">
+            <h2 class="section-title">LEADERSHIP & ORGANIZATIONS</h2>
+            <div class="section-separator-right"></div>
+        </div>
+
+        <div class="leadership-grid">
+            <!-- Sigma Phi Delta -->
+            <div class="org-card" data-aos="fade-up">
+                <div class="window">
+                    <div class="window-header">
+                        <div class="window-controls">
+                            <div class="control red"></div>
+                            <div class="control yellow"></div>
+                            <div class="control green"></div>
+                        </div>
+                        <div class="window-title">sigma_phi_delta.exe</div>
+                    </div>
+                    <div class="window-content org-window">
+                        <div class="org-content">
+                            <h3 class="org-name">SIGMA PHI DELTA</h3>
+                            <p class="org-subtitle">Professional Engineering Fraternity</p>
+                            <div class="org-roles">
+                                <span class="role-badge role-primary">Chief Engineer (President)</span>
+                                <span class="role-badge">External Vice President</span>
+                                <span class="role-badge">IFC Officer</span>
+                                <span class="role-badge">WebDev Lead</span>
+                                <span class="role-badge">Engineering Community Officer</span>
+                            </div>
+                            <ul class="org-achievements">
+                                <li>Delivered a fresh, rebuilt Fraternity Website</li>
+                                <li>250% increase in Social Media Engagement</li>
+                                <li>Strengthened relationship with Sister Org (AOE)</li>
+                                <li>Forged partnership with CoE Career Services</li>
+                                <li>First recipient of the Braxton-Salcedo Scholarship</li>
+                                <li>Enhanced Alumni Relations through Professional Events, Resume Reviews & Networking</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="window-footer"></div>
+                </div>
+            </div>
+
+            <!-- Mizzou Robotics -->
+            <div class="org-card" data-aos="fade-up" data-aos-delay="100">
+                <div class="window">
+                    <div class="window-header">
+                        <div class="window-controls">
+                            <div class="control red"></div>
+                            <div class="control yellow"></div>
+                            <div class="control green"></div>
+                        </div>
+                        <div class="window-title">mizzou_robotics.exe</div>
+                    </div>
+                    <div class="window-content org-window">
+                        <div class="org-content">
+                            <h3 class="org-name">MIZZOU ROBOTICS</h3>
+                            <p class="org-subtitle">University Robotics Team</p>
+                            <div class="org-roles">
+                                <span class="role-badge role-primary">ML/AI Director</span>
+                            </div>
+                            <ul class="org-achievements">
+                                <li>Directing the ML/AI sector, Leading Development of a Voice-Controlled Quadruped Robot</li>
+                                <li>Building full voice pipeline using Vosk (STT) and Piper TTS on Jetson Orin Nano X</li>
+                                <li>Enabling Offline Command Recognition and Verbal Feedback</li>
+                                <li>Managing Cross-Functional Team handling Hardware Integration, Audio Processing & Command Parsing</li>
+                                <li>Ongoing project</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="window-footer"></div>
+                </div>
+            </div>
+
+            <!-- Claude Builder Club -->
+            <div class="org-card" data-aos="fade-up" data-aos-delay="200">
+                <div class="window">
+                    <div class="window-header">
+                        <div class="window-controls">
+                            <div class="control red"></div>
+                            <div class="control yellow"></div>
+                            <div class="control green"></div>
+                        </div>
+                        <div class="window-title">claude_builder_club.exe</div>
+                    </div>
+                    <div class="window-content org-window">
+                        <div class="org-content">
+                            <h3 class="org-name">CLAUDE BUILDER CLUB</h3>
+                            <p class="org-subtitle">@ Mizzou</p>
+                            <div class="org-roles">
+                                <span class="role-badge role-primary">Executive Outreach Coordinator</span>
+                            </div>
+                            <ul class="org-achievements">
+                                <li>Deliver Workshops and Create Presentation Materials</li>
+                                <li>Run Social Media Pages and Community Outreach</li>
+                                <li>Conduct Presentations</li>
+                                <li>Network and Build Partnerships on behalf of the club</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="window-footer"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section class="portfolio-intro">
         <div class="section-header">
             <h2 class="section-title">SKILLS & EXPERTISE</h2>
@@ -161,7 +267,7 @@
                 </div>
                 <div class="project-details">
                     <h3 class="project-title">FUZEOBS SOFTWARE</h3>
-                    <p class="project-tech">PYTHON / TYPESCRIPT / HTML / TAILWIND CSS</p>
+                    <p class="project-tech">PYTHON / TYPESCRIPT / HTML / CSS</p>
                     <p class="project-description">
                         Created software to help creators get setup and running within minutes. Offers automatic hardware
                         detection, auto-configured settings, real-time widgets, and AI-Enhancements with a personal assistant
@@ -458,7 +564,8 @@
                             mainContainer.style.flexDirection = 'column';
                             mainContainer.style.justifyContent = 'flex-end';
                             mainContainer.style.alignItems = 'center';
-                            mainContainer.style.bottom = isMobile ? '5%' : '-3%';
+                            mainContainer.style.transformOrigin = 'bottom center';
+                            mainContainer.style.paddingBottom = '10px';
                             
                             codeDisplay.appendChild(mainContainer);
                             
@@ -515,6 +622,24 @@
                             readyTextContainer.style.marginTop = isMobile ? '5px' : '10px';
                             mainContainer.appendChild(readyTextContainer);
                             
+                            // Fit content to wrapper
+                            window._fitToWrapper = function() {
+                                requestAnimationFrame(() => {
+                                    const wrapper = document.querySelector('.code-wrapper');
+                                    const mc = document.querySelector('#code-display > div');
+                                    if (!wrapper || !mc) return;
+                                    // Reset to measure natural size
+                                    mc.style.transform = 'none';
+                                    const savedH = mc.style.height;
+                                    mc.style.height = 'auto';
+                                    const wrapperH = wrapper.getBoundingClientRect().height;
+                                    const contentH = mc.getBoundingClientRect().height;
+                                    mc.style.height = savedH;
+                                    const scale = Math.min(wrapperH / contentH, 1);
+                                    mc.style.transform = `scale(${scale})`;
+                                });
+                            }
+                            
                             // Split the bomb art by lines
                             const lines = bombArt.split('\n');
                             let lineCount = 0;
@@ -541,6 +666,7 @@
                                             readyTextContainer.style.color = '#00ff41';
                                             readyTextContainer.style.position = 'relative';
                                             readyTextContainer.style.paddingBottom = '10px';
+                                            window._fitToWrapper();
                                         }, 300);
                                     }, 300);
                                 }
@@ -571,32 +697,7 @@
                 
                 // Handle window resize
                 window.addEventListener('resize', () => {
-                    const isMobile = window.innerWidth <= 768;
-                    const isDesktop = window.innerWidth >= 1440;
-                    const bombElements = document.querySelectorAll('#code-display pre');
-                    const readyText = document.querySelector('#code-display div div div');
-                    
-                    if (bombElements.length > 0) {
-                        // First pre is the bomb art
-                        if (bombElements[0]) {
-                            bombElements[0].style.fontSize = isMobile ? '0.4rem' : (isDesktop ? '0.9rem' : '0.5rem');
-                        }
-                        
-                        // Second pre is the BOMBY text
-                        if (bombElements[1]) {
-                            bombElements[1].style.fontSize = isMobile ? '0.7rem' : (isDesktop ? '1.3rem' : '0.5rem');
-                        }
-                    }
-                    
-                    // Adjust the translation based on screen width
-                    const bombContainer = document.querySelector('#code-display > div > div:first-child');
-                    if (bombContainer) {
-                        bombContainer.style.transform = isDesktop ? 'translateX(-11%)' : 'none';
-                    }
-                    
-                    if (readyText) {
-                        readyText.style.fontSize = isMobile ? '1rem' : '1.5rem';
-                    }
+                    if (window._fitToWrapper) window._fitToWrapper();
                 });
             }
         });

@@ -1,35 +1,36 @@
 /* ===========================================
    FuzeOBS Install Guide Page
-   Inherits base patterns from fuzeobs.css
    =========================================== */
 
 .install-page {
-    max-width: 720px;
+    max-width: 700px;
     margin: 0 auto;
     padding: 40px 20px 100px;
 }
 
-/* Back link - matches pricing page */
 .install-back {
     margin-bottom: 30px;
 }
 
 .install-back a {
-    color: rgba(255, 255, 255, 0.5);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
     text-decoration: none;
-    font-size: 0.9rem;
-    transition: color 0.2s;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
 }
 
 .install-back a:hover {
-    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
-.install-back i {
-    margin-right: 6px;
-}
-
-/* Page header - matches pricing page header */
 .install-page-header {
     text-align: center;
     margin-bottom: 50px;
@@ -53,22 +54,22 @@
 }
 
 .install-page-header p {
-    color: rgba(255, 255, 255, 0.5);
-    max-width: 520px;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 570px;
     margin: 14px auto 0;
     line-height: 1.6;
     font-size: 0.95rem;
 }
 
 /* ===========================================
-   VirusTotal Verification Card
+   VirusTotal Card
    =========================================== */
 .vt-card {
-    padding: 28px;
-    background: rgba(0, 200, 83, 0.03);
-    border: 1px solid rgba(0, 200, 83, 0.12);
+    padding: 26px 28px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .vt-header {
@@ -79,15 +80,15 @@
 }
 
 .vt-shield {
-    width: 48px;
-    height: 48px;
-    min-width: 48px;
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 200, 83, 0.1);
+    background: rgba(0, 200, 83, 0.08);
     border-radius: 10px;
-    font-size: 22px;
+    font-size: 20px;
     color: #00c853;
 }
 
@@ -95,21 +96,20 @@
     font-size: 16px;
     font-weight: 700;
     color: #fff;
-    margin: 0 0 4px;
+    margin: 0 0 3px;
 }
 
 .vt-subtitle {
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.5);
     margin: 0;
 }
 
-/* Scan result rows */
 .vt-results {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin-bottom: 16px;
+    gap: 8px;
+    margin-bottom: 14px;
 }
 
 .vt-result-item {
@@ -118,23 +118,23 @@
     gap: 12px;
     padding: 12px 16px;
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
 }
 
 .vt-result-icon {
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
+    width: 26px;
+    height: 26px;
+    min-width: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    font-size: 12px;
+    font-size: 11px;
 }
 
 .vt-result-icon.vt-pass {
-    background: rgba(0, 200, 83, 0.12);
+    background: rgba(0, 200, 83, 0.1);
     color: #00c853;
 }
 
@@ -142,18 +142,19 @@
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
 }
 
 .vt-result-label {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    color: #fff;
+    color: rgba(255, 255, 255, 0.8);
 }
 
 .vt-result-status {
-    font-size: 12px;
+    font-size: 11.5px;
     color: #00c853;
+    font-weight: 500;
 }
 
 .vt-scan-link {
@@ -175,8 +176,8 @@
 }
 
 .vt-note {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.3);
+    font-size: 11.5px;
+    color: rgba(255, 255, 255, 0.35);
     margin: 0;
 }
 
@@ -189,42 +190,42 @@
    =========================================== */
 .why-card {
     display: flex;
-    gap: 16px;
+    gap: 14px;
     padding: 20px 22px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     margin-bottom: 40px;
 }
 
 .why-icon {
-    font-size: 18px;
-    color: rgba(255, 255, 255, 0.3);
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.4);
     margin-top: 2px;
 }
 
 .why-content h3 {
     font-size: 14px;
     font-weight: 700;
-    color: rgba(255, 255, 255, 0.7);
+    color: rgba(255, 255, 255, 0.8);
     margin: 0 0 6px;
 }
 
 .why-content p {
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.4);
+    color: rgba(255, 255, 255, 0.5);
     line-height: 1.65;
     margin: 0;
 }
 
 /* ===========================================
-   OS Tabs - matches pricing toggle style
+   OS Tabs
    =========================================== */
 .install-tabs {
     display: flex;
     justify-content: center;
     gap: 8px;
-    margin-bottom: 28px;
+    margin-bottom: 8px;
 }
 
 .install-tab {
@@ -234,7 +235,7 @@
     padding: 10px 24px;
     font-size: 14px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.5);
     background: transparent;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
@@ -244,7 +245,7 @@
 }
 
 .install-tab:hover {
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(255, 255, 255, 0.8);
     border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -273,7 +274,7 @@
 .install-step {
     display: flex;
     gap: 16px;
-    padding: 20px 0;
+    padding: 22px 0;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -291,7 +292,7 @@
     font-size: 14px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
 }
@@ -300,18 +301,18 @@
     font-size: 15px;
     font-weight: 600;
     color: #fff;
-    margin: 0 0 6px;
+    margin: 0 0 5px;
 }
 
 .step-content p {
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.6);
     margin: 0;
     line-height: 1.6;
 }
 
 .step-content a {
-    color: #6c5ce7;
+    color: #7c6ce7;
     text-decoration: none;
 }
 
@@ -320,11 +321,11 @@
 }
 
 .step-content strong {
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .step-content em {
-    color: rgba(255, 255, 255, 0.6);
+    color: rgba(255, 255, 255, 0.7);
     font-style: italic;
 }
 
@@ -335,7 +336,7 @@
 
 .mock-dialog {
     padding: 16px 20px;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
     font-size: 12px;
@@ -361,7 +362,7 @@
 }
 
 .mock-link {
-    color: #6c5ce7;
+    color: #7c6ce7;
     font-size: 12px;
     text-decoration: underline;
     cursor: default;
@@ -375,14 +376,33 @@
     margin-top: 8px;
 }
 
-/* Code block for Linux */
+/* Linux info box */
+.linux-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.linux-info i {
+    color: #00c853;
+    font-size: 14px;
+}
+
+/* Code block */
 .code-block {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-top: 10px;
     padding: 10px 14px;
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 6px;
     font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
@@ -391,13 +411,13 @@
 .code-block code {
     flex: 1;
     font-size: 13px;
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(255, 255, 255, 0.7);
 }
 
 .copy-btn {
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.3);
+    color: rgba(255, 255, 255, 0.35);
     cursor: pointer;
     padding: 4px;
     font-size: 13px;
@@ -406,42 +426,6 @@
 
 .copy-btn:hover {
     color: #fff;
-}
-
-/* ===========================================
-   Download CTA
-   =========================================== */
-.install-cta {
-    text-align: center;
-    margin-top: 50px;
-    padding-top: 40px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.install-cta-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 36px;
-    font-size: 15px;
-    font-weight: 700;
-    color: #fff;
-    background: linear-gradient(45deg, #9e33e6, #505ed7);
-    border: none;
-    border-radius: 8px;
-    text-decoration: none;
-    transition: all 0.3s;
-}
-
-.install-cta-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(160, 74, 226, 0.3);
-}
-
-.install-cta p {
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.3);
-    margin: 12px 0 0;
 }
 
 /* ===========================================
@@ -497,7 +481,7 @@
 
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
     .install-page {
-        max-width: 900px;
+        max-width: 880px;
     }
 
     .install-page-header h1 {
@@ -512,7 +496,16 @@
         font-size: 1.3rem;
     }
 
-    .vt-subtitle {
+    .vt-subtitle,
+    .vt-result-label {
+        font-size: 1rem;
+    }
+
+    .why-content h3 {
+        font-size: 1.1rem;
+    }
+
+    .why-content p {
         font-size: 1rem;
     }
 
@@ -527,10 +520,5 @@
     .install-tab {
         font-size: 1.1rem;
         padding: 12px 30px;
-    }
-
-    .install-cta-btn {
-        font-size: 1.2rem;
-        padding: 16px 44px;
     }
 }

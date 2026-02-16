@@ -1887,21 +1887,18 @@ def fuzeobs_analytics_view(request):
     upgrades = TierChange.objects.filter(timestamp__gte=date_from).exclude(from_tier='free', to_tier='free').exclude(to_tier='free').count()
     downgrades = TierChange.objects.filter(timestamp__gte=date_from, to_tier='free').count()
     
-    # Revenue tracking
-    pro_purchases = TierChange.objects.filter(
-        timestamp__gte=date_from,
-        to_tier='pro',
-        reason__in=['stripe_purchase', 'stripe_webhook']
-    ).count()
-    lifetime_purchases = TierChange.objects.filter(
-        timestamp__gte=date_from,
-        to_tier='lifetime',
-        reason__in=['stripe_purchase', 'stripe_webhook']
-    ).count()
-    
-    pro_revenue = pro_purchases * 7.50
-    lifetime_revenue = lifetime_purchases * 45.00
-    total_revenue = pro_revenue + lifetime_revenue
+    # Revenue tracking (from actual purchases for accurate amounts)
+    purchases_in_range = FuzeOBSPurchase.objects.filter(
+        created_at__gte=date_from, is_paid=True
+    )
+    pro_purchases = purchases_in_range.filter(plan_type='pro').count()
+    three_month_purchases = purchases_in_range.filter(plan_type='3month').count()
+    lifetime_purchases = purchases_in_range.filter(plan_type='lifetime').count()
+
+    pro_revenue = float(purchases_in_range.filter(plan_type='pro').aggregate(t=Sum('amount'))['t'] or 0)
+    three_month_revenue = float(purchases_in_range.filter(plan_type='3month').aggregate(t=Sum('amount'))['t'] or 0)
+    lifetime_revenue = float(purchases_in_range.filter(plan_type='lifetime').aggregate(t=Sum('amount'))['t'] or 0)
+    total_revenue = pro_revenue + three_month_revenue + lifetime_revenue
     
     # Cost by tier (detailed)
     cost_by_tier_raw = AIUsage.objects.filter(timestamp__gte=date_from).values('user_tier').annotate(
@@ -1988,8 +1985,10 @@ def fuzeobs_analytics_view(request):
         'upgrades': upgrades,
         'downgrades': downgrades,
         'pro_purchases': pro_purchases,
+        'three_month_purchases': three_month_purchases,
         'lifetime_purchases': lifetime_purchases,
         'pro_revenue': pro_revenue,
+        'three_month_revenue': three_month_revenue,
         'lifetime_revenue': lifetime_revenue,
         'total_revenue': total_revenue,
         'cost_by_tier': cost_by_tier,

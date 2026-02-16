@@ -105,7 +105,7 @@
             <div class="metric-card">
                 <div class="metric-label">Total Revenue</div>
                 <div class="metric-value" style="color: #4ade80;">${{ total_revenue|floatformat:2 }}</div>
-                <div class="metric-subtext">{{ pro_purchases|add:lifetime_purchases }} purchases</div>
+                <div class="metric-subtext">{{ pro_purchases|add:three_month_purchases|add:lifetime_purchases }} purchases</div>
             </div>
             <div class="metric-card">
                 <div class="metric-label">Pro Subscriptions</div>
@@ -113,14 +113,14 @@
                 <div class="metric-subtext">{{ pro_purchases }} @ $7.50/mo</div>
             </div>
             <div class="metric-card">
+                <div class="metric-label">3-Month Pro</div>
+                <div class="metric-value">${{ three_month_revenue|floatformat:2 }}</div>
+                <div class="metric-subtext">{{ three_month_purchases }} @ $20.00</div>
+            </div>
+            <div class="metric-card">
                 <div class="metric-label">Lifetime Purchases</div>
                 <div class="metric-value">${{ lifetime_revenue|floatformat:2 }}</div>
                 <div class="metric-subtext">{{ lifetime_purchases }} @ $45.00</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">Upgrades</div>
-                <div class="metric-value">{{ upgrades }}</div>
-                <div class="metric-subtext">{{ downgrades }} downgrades</div>
             </div>
         </div>
     </div>

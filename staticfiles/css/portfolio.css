@@ -61,12 +61,12 @@ body, html {
     border-radius: 10px;
     overflow: hidden;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 20px;
+    padding: 0;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     z-index: 2;
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: flex-end;
 }
 
 .code-display {
@@ -535,41 +535,9 @@ body, html {
 }
 
 @media (min-width: 1440px) {
-    .code-display pre {
-        font-size: 0.9rem !important;
-    }
-
-    .code-display pre {
-        transform: translateX(-2%) !important;
-    }
 }
 
 @media screen and (min-width: 1920px) and (max-width: 1921px) {
-    .code-wrapper {
-        overflow: visible !important;
-    }
-
-    .code-display {
-        font-family: 'Courier New', monospace;
-        font-size: 1.5rem;
-        line-height: 1.4;
-        color: #ac68ff;
-        margin: 0;
-        white-space: pre-wrap;
-        height: 100%;
-        overflow: hidden;
-        text-align: left;
-    }
-
-    .code-display pre {
-        font-family: 'Courier New', monospace;
-        font-size: 0.9rem !important;
-        line-height: 1;
-        padding-bottom: 50px;
-        white-space: pre;
-        color: #ac68ff;
-    }
-
     .section-title {
         font-size: 3.5rem;
     }
