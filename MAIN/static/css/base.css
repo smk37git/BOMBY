@@ -321,7 +321,7 @@ body {
 .nav-separator {
   height: 18px;
   width: 1px;
-  background-color: rgb(255, 255, 255);
+  background-color: rgba(255, 255, 255, 0.5);
   margin: 0 0.5rem;
 }
 
@@ -360,7 +360,7 @@ body {
   height: 30px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgb(255, 255, 255);
+  border: 2px solid white;
   box-sizing: border-box;
 }
 
@@ -372,7 +372,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid rgba(255, 255, 255, 0.5);
+  border: 2px solid white;
   box-sizing: border-box;
 }
 
@@ -800,7 +800,7 @@ main {
     height: 32px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    border: 2px solid white;
     box-sizing: border-box;
   }
   
@@ -810,7 +810,7 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid rgba(255, 255, 255, 0.5);
+    border: 2px solid white;
     box-sizing: border-box;
   }
   
@@ -1013,10 +1013,12 @@ main {
   }
 
   .nav-brand-container {
-    margin: 0 auto;
+    margin: 0;
+    position: absolute;
+    left: 48%;
+    transform: translateX(-50%);
     justify-content: center;
     align-items: center;
-    margin-left: 80px;
   }
 
   .bomb-icon img {
@@ -1030,11 +1032,13 @@ main {
   }
   
   .custom-navbar {
-    padding: 1rem;
+    padding: 2rem 1rem;
   }
   
   .mobile-toggle {
     display: block;
+    position: absolute;
+    right: 1rem;
   }
 
   .dropdown-toggle {
