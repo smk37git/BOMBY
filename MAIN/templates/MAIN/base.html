@@ -14,8 +14,8 @@
     <meta name="theme-color" content="#0a0a0a">
 
     <!-- Open Graph Meta Tags -->
-    <title>{% block title %}BOMBY - Streaming and Recording Setup, Freelance Services, and Portfolio{% endblock %}</title>
-    <meta name="description" content="{% block description %}Streaming and Recording Setup, Freelance Services, and Portfolio{% endblock %}">
+    <title>{% block title %}BOMBY - Streaming and Recording Setup, Consulting Services, and Portfolio{% endblock %}</title>
+    <meta name="description" content="{% block description %}Streaming and Recording Setup, Consulting Services, and Portfolio{% endblock %}">
     <meta property="og:title" content="{% block og_title %}BOMBY{% endblock %}">
     <meta property="og:description" content="{% block og_description %}Streaming and Recording Setup, Freelance Services, and Portfolio{% endblock %}">
     <meta property="og:image" content="{% block og_image %}https://bomby.us/static/images/bomby_meta.png{% endblock %}">
@@ -59,6 +59,10 @@
     
     <!-- Extra meta tags for specific pages -->
     {% block meta_tags %}{% endblock %}
+
+    <!-- SEO Optimization to opt out certain pages -->
+    {% block meta_robots %}{% endblock %}
+
 </head>
 <body>
     {% block background %}{% endblock %}
@@ -172,7 +176,7 @@
                         <img src="{% static 'images/bomb.svg' %}" alt="BOMBY">
                         <span>BOMBY</span>
                     </div>
-                    <p class="footer-tagline">Portfolio and Freelance Services</p>
+                    <p class="footer-tagline">Portfolio and Consulting Services</p>
                 </div>
                 
                 <!-- Quick links section -->
