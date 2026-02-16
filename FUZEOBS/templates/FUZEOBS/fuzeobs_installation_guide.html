@@ -1,0 +1,252 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block title %}Installation Guide | FuzeOBS{% endblock %}
+{% block description %}How to install FuzeOBS on Windows, macOS, and Linux. Verified safe by VirusTotal.{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuzeobs_installation.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+{% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<main class="install-page">
+    <div class="install-back">
+        <a href="{% url 'FUZEOBS:fuzeobs' %}"><i class="fas fa-arrow-left"></i> Back to FuzeOBS</a>
+    </div>
+
+    <div class="install-page-header">
+        <span class="section-label">INSTALLATION</span>
+        <h1>Verify & Install</h1>
+        <p>FuzeOBS is new software — your OS may show a security prompt. This is normal.<br>Here's how to verify it's safe and get past it.</p>
+    </div>
+
+    <!-- VirusTotal Verification -->
+    <div class="vt-card">
+        <div class="vt-header">
+            <div class="vt-shield">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <div>
+                <h3 class="vt-title">Verified Clean by VirusTotal</h3>
+                <p class="vt-subtitle">Every release is scanned by 70+ antivirus engines before publishing</p>
+            </div>
+        </div>
+        <div class="vt-results">
+            <div class="vt-result-item">
+                <div class="vt-result-icon vt-pass">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="vt-result-info">
+                    <span class="vt-result-label">Windows Installer</span>
+                    <span class="vt-result-status">0 / 72+ detections</span>
+                </div>
+                <a href="https://www.virustotal.com/gui/file/1da9bde2534418791c6a2e1475c8d06ada456c2423234c8bffd374a11d806c0c?nocache=1" target="_blank" rel="noopener" class="vt-scan-link">
+                    View Scan <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+            <div class="vt-result-item">
+                <div class="vt-result-icon vt-pass">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="vt-result-info">
+                    <span class="vt-result-label">MacOS Installer</span>
+                    <span class="vt-result-status">0 / 61+ detections</span>
+                </div>
+                <a href="https://www.virustotal.com/gui/file/fd5ad951c1a24299b409e306886144f61aa327110e909b044d72e8a23396367c?nocache=1" target="_blank" rel="noopener" class="vt-scan-link">
+                    View Scan <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+            <div class="vt-result-item">
+                <div class="vt-result-icon vt-pass">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="vt-result-info">
+                    <span class="vt-result-label">Linux Installer</span>
+                    <span class="vt-result-status">0 / 58+ detections</span>
+                </div>
+                <a href="https://www.virustotal.com/gui/file/541d2b66e23f24c28ee271e3d1395894cae4e45fe216dbb4fd2772977d49dcac?nocache=1" target="_blank" rel="noopener" class="vt-scan-link">
+                    View Scan <i class="fas fa-external-link-alt"></i>
+                </a>
+            </div>
+        </div>
+        <p class="vt-note"><i class="fas fa-sync-alt"></i> Scan links update automatically with every new release.</p>
+    </div>
+
+    <!-- Why Section -->
+    <div class="why-card">
+        <div class="why-icon">
+            <i class="fas fa-info-circle"></i>
+        </div>
+        <div class="why-content">
+            <h3>Why does this happen?</h3>
+            <p>Windows SmartScreen and macOS Gatekeeper flag software they haven't seen before. It's a reputation system, not a virus scanner — new apps trigger warnings until enough users have installed them safely. Code signing certificates cost $175–400/year, which we plan to add as FuzeOBS grows.</p>
+        </div>
+    </div>
+
+    <!-- OS Tabs -->
+    <div class="install-tabs">
+        <button class="install-tab active" data-tab="windows">
+            Windows
+        </button>
+        <button class="install-tab" data-tab="mac">
+            MacOS
+        </button>
+        <button class="install-tab" data-tab="linux">
+            Linux
+        </button>
+    </div>
+
+    <!-- Windows Guide -->
+    <div class="install-guide active" id="guide-windows">
+        <div class="install-steps">
+            <div class="install-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Download the installer</h4>
+                    <p>Click the Windows download button on the <a href="{% url 'FUZEOBS:fuzeobs' %}">main page</a>. Your browser may show a warning — click <strong>Keep</strong> if prompted.</p>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>SmartScreen popup appears</h4>
+                    <p>You'll see <em>"Windows protected your PC"</em> with a message about an unrecognized app. This is expected for any new software.</p>
+                    <div class="step-visual">
+                        <div class="mock-dialog">
+                            <div class="mock-dialog-header">
+                                <i class="fas fa-shield-alt" style="color: #3b82f6;"></i>
+                                <strong>Windows protected your PC</strong>
+                            </div>
+                            <p>Microsoft Defender SmartScreen prevented an unrecognized app from starting.</p>
+                            <span class="mock-link">More info</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Click "More info"</h4>
+                    <p>It's a small text link below the warning message. Clicking it reveals the <strong>Run anyway</strong> button.</p>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4>Click "Run anyway"</h4>
+                    <p>The installer will launch and FuzeOBS installs normally. You only see this once per version.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- macOS Guide -->
+    <div class="install-guide" id="guide-mac">
+        <div class="install-steps">
+            <div class="install-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Open the .dmg file</h4>
+                    <p>Download from the <a href="{% url 'FUZEOBS:fuzeobs' %}">main page</a>, open the .dmg, and drag FuzeOBS into your Applications folder.</p>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Gatekeeper blocks the app</h4>
+                    <p>Double-clicking shows <em>"FuzeOBS can't be opened because it is from an unidentified developer."</em></p>
+                    <div class="step-visual">
+                        <div class="mock-dialog mock-dialog-mac">
+                            <i class="fas fa-ban" style="color: #ef4444; font-size: 24px;"></i>
+                            <p><strong>"FuzeOBS" can't be opened</strong> because it is from an unidentified developer.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Right-click → Open</h4>
+                    <p>Find FuzeOBS in Applications, <strong>right-click</strong> (or Control+click) and select <strong>Open</strong> from the context menu.</p>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4>Click "Open" in the dialog</h4>
+                    <p>macOS asks one more time — click <strong>Open</strong>. You only need to do this once; future launches work normally.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Linux Guide -->
+    <div class="install-guide" id="guide-linux">
+        <div class="install-steps">
+            <div class="install-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>Download the .deb package</h4>
+                    <p>Grab the Linux installer from the <a href="{% url 'FUZEOBS:fuzeobs' %}">main page</a>.</p>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>Install via terminal</h4>
+                    <p>Open a terminal in your downloads folder and run:</p>
+                    <div class="code-block">
+                        <code>sudo dpkg -i FuzeOBS-Installer.deb</code>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('sudo dpkg -i FuzeOBS-Installer.deb')"><i class="fas fa-copy"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>Fix missing dependencies (if needed)</h4>
+                    <p>If the install reports missing packages, run this to resolve them:</p>
+                    <div class="code-block">
+                        <code>sudo apt-get install -f</code>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('sudo apt-get install -f')"><i class="fas fa-copy"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="install-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4>Launch FuzeOBS</h4>
+                    <p>Run from your application menu or via terminal:</p>
+                    <div class="code-block">
+                        <code>fuzeobs</code>
+                        <button class="copy-btn" onclick="navigator.clipboard.writeText('fuzeobs')"><i class="fas fa-copy"></i></button>
+                    </div>
+                    <div class="linux-info">
+                        <i class="fas fa-check-circle"></i>
+                        <span>No security warnings on Linux — you're good to go.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+(function() {
+    var tabs = document.querySelectorAll('.install-tab');
+    tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            tab.classList.add('active');
+            document.querySelectorAll('.install-guide').forEach(function(g) { g.classList.remove('active'); });
+            document.getElementById('guide-' + tab.dataset.tab).classList.add('active');
+        });
+    });
+})();
+</script>
+{% endblock %}

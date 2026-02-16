@@ -83,21 +83,24 @@
                 <div class="nav-menu" id="nav-menu">
                     <a href="{% url 'MAIN:home' %}" class="nav-link">Home</a>
 
-                    <!-- SOON TO BE RELEASED!
+                    <!-- 
+                    COMING SOON!
                     <div class="account-section">
                         <div class="dropdown">
                             <a href="{% url 'FUZEOBS:fuzeobs' %}" class="nav-link dropdown-toggle">
                                 FuzeOBS <span class="dropdown-arrow">▾</span>
                             </a>
                             <div class="dropdown-content">
+                                <a href="{% url 'FUZEOBS:fuzeobs' %}">View FuzeOBS</a>
                                 <a href="{% url 'FUZEOBS:pricing' %}">Pricing</a>
+                                <a href="{% url 'FUZEOBS:install_guide' %}">Install Guide</a>
                                 {% if user.is_admin_user %}
                                 <a href="{% url 'FUZEOBS:analytics' %}">Analytics</a>
                                 {% endif %}
                             </div>
                         </div>
-                    </div>
-                    -->
+                    </div> -->
+                   
                     
                     <div class="account-section">
                         <div class="dropdown">

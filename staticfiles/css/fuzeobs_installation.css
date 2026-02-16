@@ -1,0 +1,536 @@
+/* ===========================================
+   FuzeOBS Install Guide Page
+   Inherits base patterns from fuzeobs.css
+   =========================================== */
+
+.install-page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 20px 100px;
+}
+
+/* Back link - matches pricing page */
+.install-back {
+    margin-bottom: 30px;
+}
+
+.install-back a {
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.install-back a:hover {
+    color: #fff;
+}
+
+.install-back i {
+    margin-right: 6px;
+}
+
+/* Page header - matches pricing page header */
+.install-page-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.install-page-header .section-label {
+    display: inline-block;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+}
+
+.install-page-header h1 {
+    font-size: clamp(28px, 4vw, 42px);
+    font-weight: 700;
+    margin: 12px 0 0;
+    color: #fff;
+}
+
+.install-page-header p {
+    color: rgba(255, 255, 255, 0.5);
+    max-width: 520px;
+    margin: 14px auto 0;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+/* ===========================================
+   VirusTotal Verification Card
+   =========================================== */
+.vt-card {
+    padding: 28px;
+    background: rgba(0, 200, 83, 0.03);
+    border: 1px solid rgba(0, 200, 83, 0.12);
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+.vt-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.vt-shield {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 200, 83, 0.1);
+    border-radius: 10px;
+    font-size: 22px;
+    color: #00c853;
+}
+
+.vt-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 4px;
+}
+
+.vt-subtitle {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.45);
+    margin: 0;
+}
+
+/* Scan result rows */
+.vt-results {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.vt-result-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+}
+
+.vt-result-icon {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 12px;
+}
+
+.vt-result-icon.vt-pass {
+    background: rgba(0, 200, 83, 0.12);
+    color: #00c853;
+}
+
+.vt-result-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.vt-result-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.vt-result-status {
+    font-size: 12px;
+    color: #00c853;
+}
+
+.vt-scan-link {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.2s;
+}
+
+.vt-scan-link:hover {
+    color: #fff;
+}
+
+.vt-scan-link i {
+    margin-left: 4px;
+    font-size: 10px;
+}
+
+.vt-note {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.3);
+    margin: 0;
+}
+
+.vt-note i {
+    margin-right: 4px;
+}
+
+/* ===========================================
+   Why Card
+   =========================================== */
+.why-card {
+    display: flex;
+    gap: 16px;
+    padding: 20px 22px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    margin-bottom: 40px;
+}
+
+.why-icon {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.3);
+    margin-top: 2px;
+}
+
+.why-content h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 6px;
+}
+
+.why-content p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.4);
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* ===========================================
+   OS Tabs - matches pricing toggle style
+   =========================================== */
+.install-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 28px;
+}
+
+.install-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.45);
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+.install-tab:hover {
+    color: rgba(255, 255, 255, 0.75);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.install-tab.active {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+/* ===========================================
+   Guide Panels & Steps
+   =========================================== */
+.install-guide {
+    display: none;
+}
+
+.install-guide.active {
+    display: block;
+}
+
+.install-steps {
+    display: flex;
+    flex-direction: column;
+}
+
+.install-step {
+    display: flex;
+    gap: 16px;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.install-step:last-child {
+    border-bottom: none;
+}
+
+.step-number {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.step-content h4 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 6px;
+}
+
+.step-content p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.45);
+    margin: 0;
+    line-height: 1.6;
+}
+
+.step-content a {
+    color: #6c5ce7;
+    text-decoration: none;
+}
+
+.step-content a:hover {
+    text-decoration: underline;
+}
+
+.step-content strong {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.step-content em {
+    color: rgba(255, 255, 255, 0.6);
+    font-style: italic;
+}
+
+/* Mock OS dialogs */
+.step-visual {
+    margin-top: 12px;
+}
+
+.mock-dialog {
+    padding: 16px 20px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    line-height: 1.5;
+}
+
+.mock-dialog-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.mock-dialog-header strong {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.mock-dialog p {
+    margin: 0 0 8px;
+    font-size: 12px;
+}
+
+.mock-link {
+    color: #6c5ce7;
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: default;
+}
+
+.mock-dialog-mac {
+    text-align: center;
+}
+
+.mock-dialog-mac p {
+    margin-top: 8px;
+}
+
+/* Code block for Linux */
+.code-block {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+}
+
+.code-block code {
+    flex: 1;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.copy-btn {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    padding: 4px;
+    font-size: 13px;
+    transition: color 0.2s;
+}
+
+.copy-btn:hover {
+    color: #fff;
+}
+
+/* ===========================================
+   Download CTA
+   =========================================== */
+.install-cta {
+    text-align: center;
+    margin-top: 50px;
+    padding-top: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.install-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 36px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    background: linear-gradient(45deg, #9e33e6, #505ed7);
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.install-cta-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(160, 74, 226, 0.3);
+}
+
+.install-cta p {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.3);
+    margin: 12px 0 0;
+}
+
+/* ===========================================
+   Responsive
+   =========================================== */
+@media (max-width: 768px) {
+    .install-page {
+        padding: 25px 16px 80px;
+    }
+
+    .vt-card {
+        padding: 20px 16px;
+    }
+
+    .vt-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .vt-result-item {
+        flex-wrap: wrap;
+    }
+
+    .vt-scan-link {
+        width: 100%;
+        text-align: center;
+        padding-top: 6px;
+    }
+
+    .why-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .install-tabs {
+        flex-wrap: wrap;
+    }
+
+    .install-tab {
+        flex: 1;
+        justify-content: center;
+        min-width: 0;
+    }
+
+    .step-content h4 {
+        font-size: 14px;
+    }
+
+    .mock-dialog {
+        font-size: 11px;
+    }
+}
+
+@media screen and (min-width: 1920px) and (max-width: 1921px) {
+    .install-page {
+        max-width: 900px;
+    }
+
+    .install-page-header h1 {
+        font-size: 3.5rem;
+    }
+
+    .install-page-header p {
+        font-size: 1.3rem;
+    }
+
+    .vt-title {
+        font-size: 1.3rem;
+    }
+
+    .vt-subtitle {
+        font-size: 1rem;
+    }
+
+    .step-content h4 {
+        font-size: 1.2rem;
+    }
+
+    .step-content p {
+        font-size: 1rem;
+    }
+
+    .install-tab {
+        font-size: 1.1rem;
+        padding: 12px 30px;
+    }
+
+    .install-cta-btn {
+        font-size: 1.2rem;
+        padding: 16px 44px;
+    }
+}

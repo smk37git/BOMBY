@@ -1298,6 +1298,12 @@ def fuzeobs_download_mac(request):
     )
     return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe')
 
+
+def fuzeobs_install_guide(request):
+    return render(request, 'FUZEOBS/fuzeobs_installation_guide.html', {
+        'fuzeobs_version': FUZEOBS_VERSION,
+    })
+
 # ====== PRICING & PAYMENT VIEWS =======
 FUZEOBS_PLANS = {
     'pro': {
