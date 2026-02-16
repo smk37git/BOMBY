@@ -67,7 +67,7 @@ User = get_user_model()
 
 # ====== VERSION / UPDATES ======
 
-FUZEOBS_VERSION = '0.10.5'
+FUZEOBS_VERSION = '0.11.0'
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
@@ -82,20 +82,21 @@ def fuzeobs_check_update(request):
     return JsonResponse({
         'version': FUZEOBS_VERSION,
         'download_url': urls.get(platform, urls['windows']),
-        'changelog': 'Updater Tests',
+        'changelog': 'Welcome Page Added',
         'mandatory': False
     })
 
 
 FUZEOBS_PATCH_NOTES = {
     'version': FUZEOBS_VERSION,
-    'changelog': 'Welcome screen, daily streaming tips, and improved widget configuration.',
+    'changelog': 'Welcome Page Added, App Styling Updates',
     'notes': [
-        '- Added welcome screen with streaming tip of the day',
-        '- Improved widget configuration and platform connections',
-        '- Performance monitoring and benchmarking tools',
-        '- AI assistant for OBS troubleshooting and setup help',
-        '- Bug fixes and stability improvements',
+        '- Added Welcome Page with multiple features',
+        '- Streaming Tip of the Day',
+        '- Personalized Schedule Maker',
+        '- Stream Recap + Analytic Info',
+        '- Collab Finder to make contacts with other content creators',
+        '- Leaderboard to rank users by streaming hours',
     ]
 }
 
