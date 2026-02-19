@@ -22,16 +22,19 @@ def _verify_token(token):
     secret = os.environ.get('FUZEOBS_SECRET_KEY', os.environ.get('DJANGO_SECRET_KEY', '')).encode()
     try:
         parts = token.split(':')
-        if len(parts) != 4:
+        if len(parts) != 5:
             return None
-        user_id, tier, timestamp, signature = parts
-        message = f"{user_id}:{tier}:{timestamp}"
+        user_id, tier, timestamp, token_version, signature = parts
+        message = f"{user_id}:{tier}:{timestamp}:{token_version}"
         expected = hmac.new(secret, message.encode(), hashlib.sha256).hexdigest()
         if not hmac.compare_digest(signature, expected):
             return None
         if int(time.time()) - int(timestamp) > 2592000:
             return None
-        return User.objects.get(id=int(user_id))
+        user = User.objects.get(id=int(user_id))
+        if getattr(user, 'fuzeobs_token_version', 0) != int(token_version):
+            return None
+        return user
     except Exception:
         return None
 
