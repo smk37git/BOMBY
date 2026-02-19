@@ -66,6 +66,9 @@ import stripe
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+# Module-level Anthropic client (reused across requests)
+_anthropic_client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+
 User = get_user_model()
 
 # ====== VERSION / UPDATES ======
@@ -662,7 +665,7 @@ def fuzeobs_ai_chat(request):
             return response
         
         cache.set(rate_key, rate_count + 1, 18000)
-        model = "claude-opus-4-5-20251101"
+        model = "claude-sonnet-4-20250514"
         
     else:  # free tier
         if daily_count >= 5:
@@ -697,11 +700,20 @@ def fuzeobs_ai_chat(request):
         files = request.FILES.getlist('files')[:5]
         message = request.POST.get('message', '').strip()
         style = request.POST.get('style', 'normal')
+        history = json.loads(request.POST.get('history', '[]'))
     else:
         files = []
         data = json.loads(request.body)
         message = data.get('message', '').strip()
         style = data.get('style', 'normal')
+        history = data.get('history', [])
+    
+    # Sanitize history - last 10 messages, truncate each
+    history = [
+        {"role": h["role"], "content": h["content"][:2000]}
+        for h in (history or [])[-10:]
+        if isinstance(h, dict) and h.get("role") in ("user", "assistant") and h.get("content")
+    ]
     
     if not message and not files:
         return JsonResponse({'error': 'Empty message'}, status=400)
@@ -723,7 +735,7 @@ def fuzeobs_ai_chat(request):
             response['Cache-Control'] = 'no-cache'            
             return response
     
-    client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+    client = _anthropic_client
     
     # Fetch platform data for logged-in users (cached, fast)
     platform_context = ""
@@ -834,6 +846,18 @@ def fuzeobs_ai_chat(request):
             }
             
             style_prompt = style_instructions.get(style, style_instructions['normal'])
+            
+            # Build multi-turn messages from history
+            api_messages = []
+            for i, h in enumerate(history):
+                msg_content = h["content"]
+                # Cache breakpoint on last history message for multi-turn caching
+                if i == len(history) - 1:
+                    msg_content = [{"type": "text", "text": h["content"], "cache_control": {"type": "ephemeral"}}]
+                api_messages.append({"role": h["role"], "content": msg_content})
+            
+            # Add current user message
+            api_messages.append({"role": "user", "content": messages_content})
             
             with client.messages.stream(
                 model=model,
@@ -1073,7 +1097,7 @@ Common Issues:
                     "type": "text",
                     "text": f"This user's streaming data (use to personalize advice):\n{platform_context}"
                 }] if platform_context else []),
-                messages=[{"role": "user", "content": messages_content}]
+                messages=api_messages
             ) as stream:
                 for text in stream.text_stream:
                     yield f"data: {json.dumps({'text': text})}\n\n"
@@ -1081,6 +1105,9 @@ Common Issues:
                 final_message = stream.get_final_message()
                 input_tokens = final_message.usage.input_tokens
                 output_tokens = final_message.usage.output_tokens
+                cache_read = getattr(final_message.usage, 'cache_read_input_tokens', 0)
+                cache_create = getattr(final_message.usage, 'cache_creation_input_tokens', 0)
+                logger.info(f"AI Cache: read={cache_read}, create={cache_create}, uncached={input_tokens}")
             
             yield "data: [DONE]\n\n"
         except Exception as e:
@@ -1093,9 +1120,9 @@ Common Issues:
             response_time = time.time() - start_time
             total_tokens = input_tokens + output_tokens
             
-            if model == "claude-opus-4-5-20251101":
-                cost = (input_tokens / 1_000_000 * 5) + (output_tokens / 1_000_000 * 25)
-            else:
+            if model == "claude-sonnet-4-20250514":
+                cost = (input_tokens / 1_000_000 * 3) + (output_tokens / 1_000_000 * 15)
+            else:  # haiku
                 cost = (input_tokens / 1_000_000 * 1) + (output_tokens / 1_000_000 * 5)
             
             # Track all AI usage (both logged-in and anonymous)
@@ -1225,7 +1252,7 @@ def fuzeobs_analyze_benchmark(request):
     if not benchmark_data:
         return JsonResponse({'error': 'No benchmark data'}, status=400)
     
-    client = anthropic.Anthropic(api_key=os.getenv('ANTHROPIC_API_KEY'))
+    client = _anthropic_client
     model = "claude-sonnet-4-20250514"
     
     def generate():
