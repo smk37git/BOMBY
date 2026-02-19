@@ -8,8 +8,11 @@ import anthropic
 import os
 import json
 import uuid
+import logging
 from datetime import date
 from django.core.cache import cache
+
+logger = logging.getLogger(__name__)
 import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
@@ -40,7 +43,7 @@ from .facebook_chat import start_facebook_chat
 from .utils.email_utils import send_fuzeobs_invoice_email
 from .views_helpers import (
     get_client_ip, activate_fuzeobs_user, update_active_session,
-    cleanup_old_sessions, send_widget_refresh
+    cleanup_old_sessions, send_widget_refresh, verify_widget_request
 )
 
 # Website Imports
@@ -109,29 +112,36 @@ class SecureAuth:
     def __init__(self, secret_key: str):
         self.secret_key = secret_key.encode()
     
-    def create_signed_token(self, user_id: int, tier: str) -> str:
+    def create_signed_token(self, user_id: int, tier: str, token_version: int = 0) -> str:
         timestamp = int(time.time())
-        message = f"{user_id}:{tier}:{timestamp}"
+        message = f"{user_id}:{tier}:{timestamp}:{token_version}"
         signature = hmac.new(self.secret_key, message.encode(), hashlib.sha256).hexdigest()
         return f"{message}:{signature}"
     
     def verify_token(self, token: str) -> dict:
         try:
             parts = token.split(':')
-            if len(parts) != 4:
+            if len(parts) != 5:
                 return {'valid': False}
-            user_id, tier, timestamp, signature = parts
-            message = f"{user_id}:{tier}:{timestamp}"
+            user_id, tier, timestamp, token_version, signature = parts
+            message = f"{user_id}:{tier}:{timestamp}:{token_version}"
             expected = hmac.new(self.secret_key, message.encode(), hashlib.sha256).hexdigest()
             if not hmac.compare_digest(signature, expected):
                 return {'valid': False}
             if int(time.time()) - int(timestamp) > 2592000:  # 30 days
                 return {'valid': False}
-            return {'valid': True, 'user_id': int(user_id), 'tier': tier}
+            return {'valid': True, 'user_id': int(user_id), 'tier': tier, 'token_version': int(token_version)}
         except:
             return {'valid': False}
 
-auth_manager = SecureAuth(os.environ.get('FUZEOBS_SECRET_KEY', os.environ.get('DJANGO_SECRET_KEY')))
+_fuzeobs_key = os.environ.get('FUZEOBS_SECRET_KEY')
+if not _fuzeobs_key:
+    _fuzeobs_key = os.environ.get('DJANGO_SECRET_KEY')
+    if _fuzeobs_key:
+        logger.warning("FUZEOBS_SECRET_KEY not set — falling back to DJANGO_SECRET_KEY. Set a dedicated key in production.")
+    else:
+        raise RuntimeError("FUZEOBS_SECRET_KEY environment variable is required")
+auth_manager = SecureAuth(_fuzeobs_key)
 
 def require_tier(min_tier):
     """Decorator enforcing tier requirements SERVER-SIDE"""
@@ -166,6 +176,9 @@ def get_user_from_token(token):
         return None
     try:
         user = User.objects.get(id=verification['user_id'])
+        # Reject tokens issued before a password change
+        if getattr(user, 'fuzeobs_token_version', 0) != verification.get('token_version', 0):
+            return None
         # Store original token tier for checking later
         user._token_tier = verification['tier']
         return user
@@ -201,7 +214,7 @@ def fuzeobs_signup(request):
     try:
         validate_username(username)
     except ValidationError as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        logger.error(f'Request error: {e}'); return JsonResponse({'success': False, 'error': 'Bad request'}, status=400)
     
     if len(password) < 8:
         return JsonResponse({'success': False, 'error': 'Password must be at least 8 characters'}, status=400)
@@ -226,9 +239,8 @@ def fuzeobs_signup(request):
         source='app'
     )
 
-    token = auth_manager.create_signed_token(user.id, 'free')
+    token = auth_manager.create_signed_token(user.id, 'free', getattr(user, 'fuzeobs_token_version', 0))
     
-    token = auth_manager.create_signed_token(user.id, 'free')
     return JsonResponse({
         'success': True,
         'token': token,
@@ -291,7 +303,7 @@ def fuzeobs_login(request):
             activate_fuzeobs_user(user)
             update_active_session(user, session_id, get_client_ip(request))
             
-            token = auth_manager.create_signed_token(user.id, user.fuzeobs_tier)
+            token = auth_manager.create_signed_token(user.id, user.fuzeobs_tier, getattr(user, 'fuzeobs_token_version', 0))
             return JsonResponse({
                 'success': True,
                 'token': token,
@@ -306,7 +318,7 @@ def fuzeobs_login(request):
             return JsonResponse({'success': False, 'error': 'Invalid credentials'})
             
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        logger.error(f'Server error: {e}'); return JsonResponse({'success': False, 'error': 'Internal error'}, status=500)
 
 @csrf_exempt
 def fuzeobs_google_auth_init(request):
@@ -351,8 +363,7 @@ def fuzeobs_google_callback(request):
     
     user = request.user
     
-    # FIX: Use signed token instead of random token
-    token = auth_manager.create_signed_token(user.id, user.fuzeobs_tier)
+    token = auth_manager.create_signed_token(user.id, user.fuzeobs_tier, getattr(user, 'fuzeobs_token_version', 0))
     
     # Store token for session retrieval
     cache.set(f'fuzeobs_google_token_{session_id}', {
@@ -460,7 +471,7 @@ def fuzeobs_verify(request):
         # Issue new token if tier changed
         token_tier = getattr(user, '_token_tier', None)
         if token_tier and user.fuzeobs_tier != token_tier:
-            response_data['new_token'] = auth_manager.create_signed_token(user.id, user.fuzeobs_tier)
+            response_data['new_token'] = auth_manager.create_signed_token(user.id, user.fuzeobs_tier, getattr(user, 'fuzeobs_token_version', 0))
         
         return JsonResponse(response_data)
     
@@ -533,6 +544,9 @@ def fuzeobs_get_template(request, template_id):
     if template_id not in free_templates + premium_templates:
         return JsonResponse({'error': 'Template not found'}, status=404)
     
+    if not re.match(r'^[a-zA-Z0-9_-]+$', template_id):
+        return JsonResponse({'error': 'Invalid template ID'}, status=400)
+    
     try:
         client = storage.Client()
         bucket = client.bucket('bomby-user-uploads')
@@ -546,6 +560,8 @@ def fuzeobs_get_template(request, template_id):
 @require_http_methods(["GET"])
 def fuzeobs_get_background(request, background_id):
     from django.http import HttpResponse
+    if not re.match(r'^[a-zA-Z0-9_-]+$', background_id):
+        return JsonResponse({'error': 'Invalid background ID'}, status=400)
     try:
         client = storage.Client()
         bucket = client.bucket('bomby-user-uploads')
@@ -1222,7 +1238,7 @@ def fuzeobs_create_profile(request):
         )
         return JsonResponse({'success': True, 'id': profile.id})
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        logger.error(f'Request error: {e}'); return JsonResponse({'success': False, 'error': 'Bad request'}, status=400)
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
@@ -1401,7 +1417,7 @@ def fuzeobs_create_checkout_session(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f'Server error: {e}'); return JsonResponse({'error': 'Internal error'}, status=500)
 
 @login_required
 def fuzeobs_payment_success(request):
@@ -1749,6 +1765,7 @@ def fuzeobs_reactivate_subscription(request):
     
     return redirect('FUZEOBS:manage_subscription')
 
+@staff_member_required
 def fuzeobs_user_detail(request, user_id):
     view_user = get_object_or_404(User, id=user_id)
     days = int(request.GET.get('days', 30))
@@ -2260,7 +2277,7 @@ def fuzeobs_save_widget(request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.error(f'Request error: {e}'); return JsonResponse({'error': 'Bad request'}, status=400)
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
@@ -2285,7 +2302,7 @@ def fuzeobs_delete_widget(request, widget_type):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f'Server error: {e}'); return JsonResponse({'error': 'Internal error'}, status=500)
 @csrf_exempt
 @require_http_methods(["POST"])
 @require_tier('free')
@@ -2314,7 +2331,7 @@ def fuzeobs_toggle_widget(request):
     except WidgetConfig.DoesNotExist:
         return JsonResponse({'error': 'Widget not found'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f'Server error: {e}'); return JsonResponse({'error': 'Internal error'}, status=500)
 
 # ===== PLATFORM CONNECTIONS =====
 
@@ -2422,7 +2439,7 @@ def fuzeobs_connect_platform(request):
 
         return JsonResponse({'success': True, 'auth_url': auth_url, 'state': state})
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.error(f'Request error: {e}'); return JsonResponse({'error': 'Bad request'}, status=400)
 
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -2460,7 +2477,7 @@ def fuzeobs_tiktok_exchange(request):
             return JsonResponse({'error': f'Token exchange failed: {token_response.text}'}, status=400)
         
         token_json = token_response.json()
-        print(f'[TIKTOK] Token response: {token_json}')
+        logger.debug(f'[TIKTOK] Token exchange: status={token_response.status_code}')
         
         if 'error' in token_json or token_json.get('error_code'):
             error_msg = token_json.get('error_description') or token_json.get('message') or str(token_json)
@@ -2498,7 +2515,7 @@ def fuzeobs_tiktok_exchange(request):
         return JsonResponse({'success': True, 'username': username})
     except Exception as e:
         print(f'[TIKTOK] Exchange error: {e}')
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.error(f'Request error: {e}'); return JsonResponse({'error': 'Bad request'}, status=400)
     
 @csrf_exempt
 @require_http_methods(["POST"])
@@ -2545,7 +2562,7 @@ def fuzeobs_disconnect_platform(request):
         return JsonResponse({'success': True})
         
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.error(f'Request error: {e}'); return JsonResponse({'error': 'Bad request'}, status=400)
 
 @csrf_exempt
 def fuzeobs_platform_callback(request, platform):
@@ -2561,6 +2578,9 @@ def fuzeobs_platform_callback(request, platform):
     state_data = cache.get(f'oauth_state_{state}')
     if not state_data or state_data['platform'] != platform:
         return HttpResponse('Invalid state', status=400)
+    
+    # Delete state immediately to prevent replay
+    cache.delete(f'oauth_state_{state}')
     
     user = User.objects.get(id=state_data['user_id'])
     config = PLATFORM_OAUTH_CONFIG[platform]
@@ -2595,7 +2615,7 @@ def fuzeobs_platform_callback(request, platform):
     
     if token_response.status_code != 200:
         print(f'[{platform.upper()}] Token exchange failed: {token_response.text}')
-        return HttpResponse(f'Token exchange failed: {token_response.text}', status=400)
+        return HttpResponse('Token exchange failed', status=400)
     
     token_json = token_response.json()
     
@@ -2709,18 +2729,15 @@ def get_platform_username(platform, access_token):
                                    headers=headers, 
                                    timeout=10)
             print(f'[KICK] /users Status: {response.status_code}')
-            print(f'[KICK] /users Response: {response.text[:1000]}')
             
             if response.status_code == 200:
                 data = response.json()
-                print(f'[KICK] Parsed JSON: {data}')
                 
                 if data.get('data') and len(data['data']) > 0:
                     user = data['data'][0]
                     username = user.get('name', 'Kick User')
                     user_id = str(user.get('user_id', ''))
                     
-                    print(f'[KICK] Extracted - Username: {username}, ID: {user_id}')
                     return username, user_id
                 else:
                     print('[KICK] No user data in response')
@@ -2831,14 +2848,57 @@ def fuzeobs_upload_media(request):
     if current + file.size > max_size:
         return JsonResponse({'error': 'Storage limit exceeded'}, status=400)
     
-    if file.content_type.startswith('image'):
-        media_type = 'image'
-    elif file.content_type.startswith('audio'):
-        media_type = 'sound'
-    elif file.content_type.startswith('video'):
-        media_type = 'video'
-    else:
-        return JsonResponse({'error': 'Invalid type'}, status=400)
+    # Validate actual file content, not just client-provided content_type
+    ALLOWED_EXTENSIONS = {
+        'image': {'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'},
+        'sound': {'mp3', 'wav', 'ogg', 'webm'},
+        'video': {'mp4', 'webm', 'mov'},
+    }
+    MAGIC_BYTES = {
+        b'\x89PNG': 'image', b'\xff\xd8\xff': 'image', b'GIF8': 'image',
+        b'RIFF': 'image',  # webp (RIFF....WEBP)
+        b'ID3': 'sound', b'\xff\xfb': 'sound', b'\xff\xf3': 'sound',
+        b'OggS': 'sound',
+        b'\x00\x00\x00': 'video',  # mp4/mov (ftyp box)
+        b'\x1a\x45\xdf\xa3': 'video',  # webm/mkv
+    }
+    
+    ext = file.name.rsplit('.', 1)[-1].lower() if '.' in file.name else ''
+    
+    # Determine type from extension
+    media_type = None
+    for mtype, exts in ALLOWED_EXTENSIONS.items():
+        if ext in exts:
+            media_type = mtype
+            break
+    
+    if not media_type:
+        return JsonResponse({'error': 'Invalid file type'}, status=400)
+    
+    # Verify magic bytes match claimed type
+    header = file.read(12)
+    file.seek(0)
+    magic_match = False
+    for magic, mtype in MAGIC_BYTES.items():
+        if header.startswith(magic) and mtype == media_type:
+            magic_match = True
+            break
+    # Allow SVG (text-based, no magic bytes) but sanitize
+    if ext == 'svg':
+        magic_match = True
+        content_full = file.read().decode('utf-8', errors='ignore').lower()
+        file.seek(0)
+        SVG_DANGEROUS = [
+            '<script', 'javascript:', 'onerror', 'onload', 'onmouseover',
+            'onclick', 'onfocus', 'onblur', 'onanimationend', 'onbegin',
+            'data:text/html', 'data:application', '<foreignobject',
+            'xlink:href="data:', 'xlink:href="javascript:',
+        ]
+        if any(pattern in content_full for pattern in SVG_DANGEROUS):
+            return JsonResponse({'error': 'Invalid SVG content'}, status=400)
+    
+    if not magic_match:
+        return JsonResponse({'error': 'File content does not match extension'}, status=400)
     
     client = storage.Client()
     bucket = client.bucket('fuzeobs-public')
@@ -3020,7 +3080,7 @@ def fuzeobs_save_widget_event(request):
     except WidgetConfig.DoesNotExist:
         return JsonResponse({'error': 'Widget not found'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.error(f'Request error: {e}'); return JsonResponse({'error': 'Bad request'}, status=400)
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
@@ -3176,12 +3236,14 @@ def fuzeobs_test_alert(request):
         
         return JsonResponse({'success': True})
     except Exception as e:
-        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+        logger.error(f'Server error: {e}'); return JsonResponse({'success': False, 'error': 'Internal error'}, status=500)
     
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_get_widget_event_configs(request, user_id, platform):
     """Get event configurations for user's widgets - supports 'all' platform"""
+    if not verify_widget_request(request, user_id):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     try:
         if platform == 'all':
             # For 'all' platform, get events from all alert_box widgets for this user
@@ -3279,6 +3341,8 @@ def fuzeobs_twitch_webhook(request):
 @require_http_methods(["GET"])
 def fuzeobs_youtube_start_listener(request, user_id):
     """Start YouTube listener if user is live"""
+    if not verify_widget_request(request, user_id):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     try:
         conn = PlatformConnection.objects.get(user_id=user_id, platform='youtube')
         from .youtube import start_youtube_listener
@@ -3298,6 +3362,8 @@ def fuzeobs_youtube_start_listener(request, user_id):
 @require_http_methods(["GET"])
 def fuzeobs_facebook_start_listener(request, user_id):
     """Start Facebook listener"""
+    if not verify_widget_request(request, user_id):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     try:
         conn = PlatformConnection.objects.get(user_id=user_id, platform='facebook')
         started = start_facebook_listener(user_id, conn.platform_user_id, conn.access_token)
@@ -3316,6 +3382,8 @@ def fuzeobs_facebook_start_listener(request, user_id):
 @require_http_methods(["GET"])
 def fuzeobs_kick_start_listener(request, user_id):
     """Start Kick listener"""
+    if not verify_widget_request(request, user_id):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     try:
         conn = PlatformConnection.objects.get(user_id=user_id, platform='kick')
         started = start_kick_listener(user_id, conn.platform_username)
@@ -3332,8 +3400,59 @@ def fuzeobs_kick_start_listener(request, user_id):
 @csrf_exempt
 @require_http_methods(["POST"])
 def fuzeobs_kick_webhook(request):
-    """Handle Kick webhook events"""
+    """Handle Kick webhook events with Ed25519 signature verification"""
     try:
+        # --- Verify Kick webhook signature ---
+        message_id = request.headers.get('Kick-Event-Message-Id', '')
+        timestamp = request.headers.get('Kick-Event-Message-Timestamp', '')
+        signature_b64 = request.headers.get('Kick-Event-Signature', '')
+        
+        if not all([message_id, timestamp, signature_b64]):
+            return JsonResponse({'error': 'Missing signature headers'}, status=401)
+        
+        # Get Kick's public key (cached for 1 hour)
+        from django.core.cache import cache
+        kick_public_key = cache.get('kick_webhook_public_key')
+        if not kick_public_key:
+            import requests as ext_requests
+            try:
+                resp = ext_requests.get('https://api.kick.com/public/v1/public-key', timeout=5)
+                resp.raise_for_status()
+                kick_public_key = resp.json().get('data', {}).get('public_key', '')
+                if kick_public_key:
+                    cache.set('kick_webhook_public_key', kick_public_key, 3600)
+            except Exception as e:
+                print(f'[KICK] Failed to fetch public key: {e}')
+                return JsonResponse({'error': 'Cannot verify signature'}, status=500)
+        
+        if not kick_public_key:
+            return JsonResponse({'error': 'No public key available'}, status=500)
+        
+        # Verify Ed25519 signature: sign(message_id + timestamp + body)
+        import base64
+        from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+        from cryptography.hazmat.primitives.serialization import load_pem_public_key
+        from cryptography.exceptions import InvalidSignature
+        
+        try:
+            body_bytes = request.body
+            signed_content = (message_id + timestamp).encode('utf-8') + body_bytes
+            signature_bytes = base64.b64decode(signature_b64)
+            
+            # Load the public key (PEM format from Kick API)
+            if kick_public_key.startswith('-----'):
+                public_key = load_pem_public_key(kick_public_key.encode('utf-8'))
+            else:
+                # Raw base64-encoded key
+                key_bytes = base64.b64decode(kick_public_key)
+                public_key = Ed25519PublicKey.from_public_bytes(key_bytes)
+            
+            public_key.verify(signature_bytes, signed_content)
+        except (InvalidSignature, Exception) as e:
+            print(f'[KICK] Webhook signature verification failed: {e}')
+            return JsonResponse({'error': 'Invalid signature'}, status=403)
+        # --- End signature verification ---
+        
         event_type = request.headers.get('Kick-Event-Type', '')
         data = json.loads(request.body)
         
@@ -3383,12 +3502,14 @@ def fuzeobs_kick_webhook(request):
     
     except Exception as e:
         print(f'[KICK] Webhook error: {e}')
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f'Server error: {e}'); return JsonResponse({'error': 'Internal error'}, status=500)
 
 # =========== TIKTOK ALERTS ===========
 @csrf_exempt
 def fuzeobs_tiktok_start_listener(request, user_id):
     """Start TikTok listener - needs username only"""
+    if not verify_widget_request(request, user_id):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     try:
         conn = PlatformConnection.objects.get(user_id=user_id, platform='tiktok')
         tiktok_username = conn.platform_username  # Store @username when connecting
@@ -3397,13 +3518,15 @@ def fuzeobs_tiktok_start_listener(request, user_id):
     except PlatformConnection.DoesNotExist:
         return JsonResponse({'error': 'Not connected'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f'Server error: {e}'); return JsonResponse({'error': 'Internal error'}, status=500)
     
 # =========== CHATBOX ===========  
 @csrf_exempt
 @require_http_methods(["GET"])
 def fuzeobs_twitch_chat_start(request, user_id):
     """Start Twitch chat IRC using user's OAuth token"""
+    if not verify_widget_request(request, user_id):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     try:
         user = User.objects.get(id=user_id)
         conn = PlatformConnection.objects.get(user=user, platform='twitch')
@@ -3428,11 +3551,13 @@ def fuzeobs_twitch_chat_start(request, user_id):
         
         return JsonResponse({'started': started})
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.error(f'Request error: {e}'); return JsonResponse({'error': 'Bad request'}, status=400)
     
 @csrf_exempt
 def fuzeobs_kick_chat_start(request, user_id):
     """Start Kick chat listener"""
+    if not verify_widget_request(request, user_id):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     try:
         user = User.objects.get(id=user_id)
         conn = PlatformConnection.objects.get(user=user, platform='kick')
@@ -3442,11 +3567,13 @@ def fuzeobs_kick_chat_start(request, user_id):
         return JsonResponse({'started': False, 'error': 'Not connected'})
     except Exception as e:
         print(f'[KICK CHAT] Error: {e}')
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.error(f'Request error: {e}'); return JsonResponse({'error': 'Bad request'}, status=400)
 
 @csrf_exempt
 def fuzeobs_facebook_chat_start(request, user_id):
     """Start Facebook chat polling"""
+    if not verify_widget_request(request, user_id):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     try:
         user = User.objects.get(id=user_id)
         conn = PlatformConnection.objects.get(user=user, platform='facebook')
@@ -3456,12 +3583,14 @@ def fuzeobs_facebook_chat_start(request, user_id):
         return JsonResponse({'started': False, 'error': 'Not connected'})
     except Exception as e:
         print(f'[FB CHAT] Error: {e}')
-        return JsonResponse({'error': str(e)}, status=400)
+        logger.error(f'Request error: {e}'); return JsonResponse({'error': 'Bad request'}, status=400)
     
 # =========== LABELS ===========    
 @csrf_exempt
 def fuzeobs_get_label_data(request, user_id):
     """Get persisted label session data for widget reload"""
+    if not verify_widget_request(request, user_id):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     from .models import LabelSessionData
     
     data = {}
@@ -3473,6 +3602,8 @@ def fuzeobs_get_label_data(request, user_id):
 @csrf_exempt
 def fuzeobs_save_label_data(request, user_id):
     """Save label data when events occur - called from widget JS"""
+    if not verify_widget_request(request, user_id):
+        return JsonResponse({'error': 'Unauthorized'}, status=403)
     from .models import LabelSessionData
     
     if request.method != 'POST':
@@ -3493,7 +3624,7 @@ def fuzeobs_save_label_data(request, user_id):
         )
         return JsonResponse({'saved': True})
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        logger.error(f'Server error: {e}'); return JsonResponse({'error': 'Internal error'}, status=500)
     
 # =========== VIEWER COUNT ===========
 # Factory pattern - replaces 5 identical functions
@@ -3504,6 +3635,8 @@ def _viewer_endpoint(platform: str):
     @csrf_exempt
     @require_http_methods(["GET"])
     def endpoint(request, user_id):
+        if not verify_widget_request(request, user_id):
+            return JsonResponse({'error': 'Unauthorized'}, status=403)
         return JsonResponse({'viewers': get_platform_viewer_count(user_id, platform)})
     return endpoint
 
@@ -3619,7 +3752,6 @@ def fuzeobs_reviews_admin(request):
 
 
 @staff_member_required
-@csrf_exempt
 @require_http_methods(["POST"])
 def fuzeobs_toggle_review_featured(request):
     """Toggle featured status of a review"""
@@ -3642,7 +3774,6 @@ def fuzeobs_toggle_review_featured(request):
 
 
 @staff_member_required
-@csrf_exempt
 @require_http_methods(["POST"])
 def fuzeobs_delete_review(request):
     """Delete a review"""
@@ -3663,7 +3794,6 @@ def fuzeobs_delete_review(request):
 
 
 @staff_member_required
-@csrf_exempt
 @require_http_methods(["POST"])
 def fuzeobs_create_review_admin(request):
     """Admin: Create a review manually"""

@@ -45,6 +45,7 @@ class User(AbstractUser):
     fuzeobs_last_active = models.DateTimeField(null=True, blank=True)
     fuzeobs_total_sessions = models.IntegerField(default=0)
     fuzeobs_app_version = models.CharField(max_length=20, blank=True)
+    fuzeobs_token_version = models.IntegerField(default=0)
 
     # Rest of model stays the same
     user_type = models.CharField(

@@ -462,7 +462,7 @@ def fuzeobs_leaderboard_sync(request):
         return JsonResponse({'error': 'Not opted in'}, status=400)
     
     # Rate limit: once per 5 minutes
-    if entry.last_synced and (timezone.now() - entry.last_synced).seconds < 300:
+    if entry.last_synced and (timezone.now() - entry.last_synced).total_seconds() < 300:
         return JsonResponse({'error': 'Sync available every 5 minutes', 'retry_after': 300}, status=429)
     
     # Store current rank as previous before re-sync

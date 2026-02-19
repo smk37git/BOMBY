@@ -182,7 +182,9 @@ def edit_username(request, user_id=None):
         template = 'ACCOUNTS/edit_username.html'
         redirect_url = 'ACCOUNTS:account'
     else:
-        # Admin editing another user's username
+        # Admin editing another user's username - MUST be admin
+        if not request.user.is_admin_user:
+            return redirect('ACCOUNTS:account')
         user = get_object_or_404(User, id=user_id)
         form_class = UsernameEditForm
         template = 'ACCOUNTS/admin_edit_username.html'
@@ -290,7 +292,7 @@ def promotional_wall(request):
         import traceback
         error_details = traceback.format_exc()
         print(f"Error in promotional_wall: {error_details}")
-        return HttpResponse(f"Server Error: {str(e)}", status=500)
+        return HttpResponse("Server Error", status=500)
 
 @login_required
 def update_promo_links(request):
@@ -554,6 +556,10 @@ def copy_order_message_to_inbox(request, order_id, message_id):
     order = get_object_or_404(Order, id=order_id)
     order_message = get_object_or_404(OrderMessage, id=message_id, order=order)
     
+    # Verify user is part of this order
+    if request.user != order.user and request.user != order_message.sender:
+        return redirect('ACCOUNTS:inbox')
+    
     # Determine recipient (the other user in the order conversation)
     if request.user == order.user:
         recipient = order_message.sender
@@ -681,7 +687,7 @@ def check_new_messages(request, user_id):
         import traceback
         print(f"Error in check_new_messages: {str(e)}")
         print(traceback.format_exc())
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+        return JsonResponse({'status': 'error', 'message': 'Internal error'}, status=500)
 
 # Admin View User Management
 def is_admin(user):
@@ -725,7 +731,8 @@ def bulk_change_user_type(request):
         selected_users = request.POST.get('selected_users', '').split(',')
         user_type = request.POST.get('user_type')
         
-        if selected_users and user_type:
+        valid_types = [choice[0] for choice in User.UserType.choices]
+        if selected_users and user_type and user_type in valid_types:
             User.objects.filter(id__in=selected_users).update(user_type=user_type)
             messages.success(request, f"Updated {len(selected_users)} users to {user_type.lower()} type.")
     
@@ -739,7 +746,13 @@ def bulk_delete_users(request):
         selected_users = request.POST.get('selected_users', '').split(',')
         
         if selected_users:
-            deleted_count = User.objects.filter(id__in=selected_users).delete()[0]
+            # Prevent deleting self or other admins
+            safe_ids = [uid for uid in selected_users if uid and uid != str(request.user.id)]
+            deleted_count = User.objects.filter(
+                id__in=safe_ids
+            ).exclude(
+                user_type=User.UserType.ADMIN
+            ).delete()[0]
             messages.success(request, f"Successfully deleted {deleted_count} users.")
     
     return redirect('ACCOUNTS:user_management')

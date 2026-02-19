@@ -52,6 +52,25 @@ def cleanup_old_sessions():
     threshold = timezone.now() - timedelta(minutes=5)
     ActiveSession.objects.filter(last_ping__lt=threshold).delete()
 
+# ============ WIDGET SECURITY ============
+
+def verify_widget_request(request, user_id):
+    """Verify request via widget token (?token=) or Bearer token.
+    Used by listener start endpoints called from both widgets and app."""
+    # Widget token (from OBS browser sources)
+    widget_token = request.GET.get('token')
+    if widget_token:
+        from .models import WidgetConfig
+        return WidgetConfig.objects.filter(token=widget_token, user_id=user_id).exists()
+    
+    # Bearer token (from app)
+    auth_header = request.headers.get('Authorization', '')
+    if auth_header.startswith('Bearer '):
+        from .views import get_user_from_token
+        user = get_user_from_token(auth_header[7:])
+        return user is not None and user.id == user_id
+    
+    return False
 
 # ============ WIDGET REFRESH ============
 

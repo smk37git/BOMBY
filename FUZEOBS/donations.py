@@ -118,7 +118,7 @@ def donation_settings(request):
         return JsonResponse({'saved': True})
     except Exception as e:
         logger.error(f"donation_settings error: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': 'Internal error'}, status=500)
 
 
 @csrf_exempt
@@ -160,7 +160,7 @@ def paypal_connect(request):
         return JsonResponse({'auth_url': auth_url})
     except Exception as e:
         logger.error(f"paypal_connect error: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': 'Internal error'}, status=500)
 
 
 @csrf_exempt
@@ -182,6 +182,8 @@ def paypal_callback(request):
     
     try:
         ds = DonationSettings.objects.get(oauth_state__startswith=state)
+        # Consume the state immediately to prevent replay
+        DonationSettings.objects.filter(pk=ds.pk).update(oauth_state='')
     except DonationSettings.DoesNotExist:
         return HttpResponse('<script>alert("Invalid state"); window.close();</script>')
     
@@ -254,7 +256,7 @@ def paypal_callback(request):
         logger.error(f"PayPal callback error: {e}")
         return render(request, 'FUZEOBS/paypal_connected.html', {
             'success': False,
-            'error': f'Connection error: {str(e)}'
+            'error': 'Connection error. Please try again.'
         })
 
 
@@ -365,7 +367,9 @@ def capture_donation(request, token):
     order_id = data.get('order_id')
     donor_name = data.get('name', 'Anonymous')[:100]
     message = data.get('message', '')[:500]
-    amount = Decimal(str(data.get('amount', 0)))
+    
+    if not order_id:
+        return JsonResponse({'error': 'Missing order_id'}, status=400)
     
     # Profanity filter
     if contains_profanity(donor_name):
@@ -374,10 +378,58 @@ def capture_donation(request, token):
     if contains_profanity(message):
         return JsonResponse({'error': 'Message contains inappropriate language', 'field': 'message'}, status=400)
     
+    # SERVER-SIDE: Verify the PayPal order is real and completed
+    access_token = get_paypal_access_token()
+    if not access_token:
+        return JsonResponse({'error': 'Payment verification unavailable'}, status=503)
+    
+    try:
+        pp_resp = requests.get(
+            f'{PAYPAL_BASE}/v2/checkout/orders/{order_id}',
+            headers={'Authorization': f'Bearer {access_token}', 'Content-Type': 'application/json'},
+            timeout=15
+        )
+        if pp_resp.status_code != 200:
+            logger.warning(f"PayPal order lookup failed for {order_id}: {pp_resp.status_code}")
+            return JsonResponse({'error': 'Could not verify payment'}, status=400)
+        
+        pp_order = pp_resp.json()
+        
+        # Must be COMPLETED or APPROVED+captured
+        if pp_order.get('status') not in ('COMPLETED', 'APPROVED'):
+            logger.warning(f"PayPal order {order_id} status: {pp_order.get('status')}")
+            return JsonResponse({'error': 'Payment not completed'}, status=400)
+        
+        # Extract verified amount from PayPal (not from client)
+        purchase_units = pp_order.get('purchase_units', [])
+        if not purchase_units:
+            return JsonResponse({'error': 'Invalid payment data'}, status=400)
+        
+        # Get amount from capture or from purchase unit
+        pp_amount = None
+        captures = purchase_units[0].get('payments', {}).get('captures', [])
+        if captures:
+            pp_amount = Decimal(captures[0].get('amount', {}).get('value', '0'))
+        else:
+            pp_amount = Decimal(purchase_units[0].get('amount', {}).get('value', '0'))
+        
+        if pp_amount <= 0:
+            return JsonResponse({'error': 'Invalid payment amount'}, status=400)
+        
+        amount = pp_amount  # Use PayPal-verified amount, NOT client-provided
+        
+    except requests.RequestException as e:
+        logger.error(f"PayPal verification error: {e}")
+        return JsonResponse({'error': 'Payment verification failed'}, status=503)
+    
+    # Prevent duplicate recording
+    if Donation.objects.filter(paypal_order_id=order_id, status='completed').exists():
+        return JsonResponse({'error': 'Donation already recorded'}, status=409)
+    
     # Create completed donation record
     donation = Donation.objects.create(
         streamer=ds.user,
-        paypal_order_id=order_id or f'client_{secrets.token_hex(8)}',
+        paypal_order_id=order_id,
         donor_name=donor_name,
         message=message,
         amount=amount,

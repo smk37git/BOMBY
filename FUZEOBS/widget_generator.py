@@ -13,24 +13,26 @@ def generate_widget_html(widget):
         PlatformConnection.objects.filter(user_id=user_id).values_list('platform', flat=True)
     )
     
+    token = widget.token
+    
     if widget_type == 'alert_box':
-        return generate_alert_box_html(user_id, config, connected_platforms)
+        return generate_alert_box_html(user_id, config, connected_platforms, token)
     elif widget_type == 'chat_box':
-        return generate_chat_box_html(user_id, config)
+        return generate_chat_box_html(user_id, config, token)
     elif widget_type == 'event_list':
-        return generate_event_list_html(user_id, config, connected_platforms)
+        return generate_event_list_html(user_id, config, connected_platforms, token)
     elif widget_type == 'goal_bar':
-        return generate_goal_bar_html(user_id, config, connected_platforms)
+        return generate_goal_bar_html(user_id, config, connected_platforms, token)
     elif widget_type == 'labels':
-        return generate_labels_html(user_id, config, connected_platforms)
+        return generate_labels_html(user_id, config, connected_platforms, token)
     elif widget_type == 'viewer_count':
-        return generate_viewer_count_html(user_id, config, connected_platforms)
+        return generate_viewer_count_html(user_id, config, connected_platforms, token)
     elif widget_type == 'sponsor_banner':
-        return generate_sponsor_banner_html(user_id, config)
+        return generate_sponsor_banner_html(user_id, config, token)
     else:
         raise ValueError(f"Unknown widget type: {widget_type}")
 
-def generate_alert_box_html(user_id, config, connected_platforms):
+def generate_alert_box_html(user_id, config, connected_platforms, token):
     """Generate alert box HTML with multi-platform support"""
     
     # Platform visibility from config
@@ -144,6 +146,7 @@ body {{
 <audio id="alertSound" preload="auto"></audio>
 <script>
 const userId = '{user_id}';
+const widgetToken = '{token}';
 const connectedPlatforms = {json.dumps(connected_platforms)};
 
 const config = {{
@@ -172,22 +175,22 @@ function createWS(url) {{
 
 function connectWS() {{
     if (config.show_twitch && connectedPlatforms.includes('twitch')) {{
-        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/twitch/`));
+        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/twitch/?token=${{widgetToken}}`));
     }}
     if (config.show_youtube && connectedPlatforms.includes('youtube')) {{
-        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/youtube/`));
+        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/youtube/?token=${{widgetToken}}`));
     }}
     if (config.show_kick && connectedPlatforms.includes('kick')) {{
-        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/kick/`));
+        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/kick/?token=${{widgetToken}}`));
     }}
     if (config.show_facebook && connectedPlatforms.includes('facebook')) {{
-        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/facebook/`));
+        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/facebook/?token=${{widgetToken}}`));
     }}
     if (config.show_tiktok && connectedPlatforms.includes('tiktok')) {{
-        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/tiktok/`));
+        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/tiktok/?token=${{widgetToken}}`));
     }}
     if (config.show_donations) {{
-        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-donations/${{userId}}/`));
+        connections.push(createWS(`wss://bomby.us/ws/fuzeobs-donations/${{userId}}/?token=${{widgetToken}}`));
     }}
 }}
 
@@ -195,20 +198,20 @@ connectWS();
 
 // Start platform listeners
 if (config.show_youtube && connectedPlatforms.includes('youtube')) {{
-    fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
-    setInterval(() => fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}}), 300000);
+    fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
+    setInterval(() => fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}}), 300000);
 }}
 if (config.show_kick && connectedPlatforms.includes('kick')) {{
-    fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}});
-    setInterval(() => fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}}), 300000);
+    fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
+    setInterval(() => fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}}), 300000);
 }}
 if (config.show_facebook && connectedPlatforms.includes('facebook')) {{
-    fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}});
-    setInterval(() => fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}}), 300000);
+    fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
+    setInterval(() => fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}}), 300000);
 }}
 if (config.show_tiktok && connectedPlatforms.includes('tiktok')) {{
-    fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}});
-    setInterval(() => fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}}), 300000);
+    fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
+    setInterval(() => fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}}), 300000);
 }}
 
 // Preload TTS voices
@@ -263,7 +266,7 @@ const defaultTemplates = {{
 const eventConfigs = {{}};
 let configsLoaded = false;
 
-fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/all?t=${{Date.now()}}`)
+fetch(`https://bomby.us/fuzeobs/widgets/events/config/${{userId}}/all?token=${{widgetToken}}&t=${{Date.now()}}`)
     .then(r => r.json())
     .then(data => {{
         Object.assign(eventConfigs, data.configs);
@@ -525,7 +528,7 @@ function processQueue() {{
 </body>
 </html>"""
 
-def generate_chat_box_html(user_id, config):
+def generate_chat_box_html(user_id, config, token):
     """Generate chat box HTML - matches preview exactly"""
     font_size = config.get('font_size', 24)
     font_color = config.get('font_color', '#FFFFFF')
@@ -661,6 +664,7 @@ body {{
 <audio id="notificationSound"></audio>
 <script>
 const userId = '{user_id}';
+const widgetToken = '{token}';
 const config = {{
     hide_bots: {str(hide_bots).lower()},
     hide_commands: {str(hide_commands).lower()},
@@ -682,16 +686,16 @@ const config = {{
     always_show: {str(always_show).lower()}
 }};
 
-fetch(`https://bomby.us/fuzeobs/twitch-chat/start/${{userId}}`).catch(() => {{}});
-fetch(`https://bomby.us/fuzeobs/kick-chat/start/${{userId}}`).catch(() => {{}});
-fetch(`https://bomby.us/fuzeobs/facebook-chat/start/${{userId}}`).catch(() => {{}});
-fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
-fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}});
-fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}});
+fetch(`https://bomby.us/fuzeobs/twitch-chat/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
+fetch(`https://bomby.us/fuzeobs/kick-chat/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
+fetch(`https://bomby.us/fuzeobs/facebook-chat/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
+fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
+fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
+fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
 
 let ws;
 function connectWS() {{
-    ws = new WebSocket('wss://bomby.us/ws/fuzeobs-chat/' + userId + '/');
+    ws = new WebSocket('wss://bomby.us/ws/fuzeobs-chat/' + userId + '/?token=' + widgetToken);
     ws.onmessage = handleMessage;
     ws.onclose = () => setTimeout(connectWS, 3000);
     ws.onerror = () => ws.close();
@@ -868,7 +872,7 @@ function displayMessage(data) {{
 </body>
 </html>"""
 
-def generate_event_list_html(user_id, config, connected_platforms):
+def generate_event_list_html(user_id, config, connected_platforms, token):
     """Generate event list HTML"""
     style = config.get('style', 'clean')
     theme_color = config.get('theme_color', '#9146FF')
@@ -1090,6 +1094,7 @@ const config = {{
 }};
 
 const userId = '{user_id}';
+const widgetToken = '{token}';
 
 const PLATFORM_ICONS = {{
     'twitch': '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/></svg>',
@@ -1140,23 +1145,23 @@ function createWS(url) {{
 
 function connectWS() {{
     if (config.show_twitch && connectedPlatforms.includes('twitch')) {{
-        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/twitch/'));
+        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/twitch/?token={token}'));
     }}
     if (config.show_youtube && connectedPlatforms.includes('youtube')) {{
-        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/youtube/'));
+        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/youtube/?token={token}'));
     }}
     if (config.show_kick && connectedPlatforms.includes('kick')) {{
-        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/kick/'));
+        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/kick/?token={token}'));
     }}
     if (config.show_facebook && connectedPlatforms.includes('facebook')) {{
-        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/facebook/'));
+        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/facebook/?token={token}'));
     }}
     if (config.show_tiktok && connectedPlatforms.includes('tiktok')) {{
-        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/tiktok/'));
+        connections.push(createWS('wss://bomby.us/ws/fuzeobs-alerts/{user_id}/tiktok/?token={token}'));
     }}
     // Always connect to donations channel
     if (config.show_donations !== false) {{
-        connections.push(createWS('wss://bomby.us/ws/fuzeobs-donations/{user_id}/'));
+        connections.push(createWS('wss://bomby.us/ws/fuzeobs-donations/{user_id}/?token={token}'));
     }}
 }}
 
@@ -1164,16 +1169,16 @@ connectWS();
 
 // Start platform listeners
 if (config.show_youtube && connectedPlatforms.includes('youtube')) {{
-    fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
+    fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
 }}
 if (config.show_kick && connectedPlatforms.includes('kick')) {{
-    fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}});
+    fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
 }}
 if (config.show_facebook && connectedPlatforms.includes('facebook')) {{
-    fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}});
+    fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
 }}
 if (config.show_tiktok && connectedPlatforms.includes('tiktok')) {{
-    fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}});
+    fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
 }}
 
 function handleMessage(data) {{
@@ -1258,7 +1263,7 @@ function addEvent(data) {{
 </body>
 </html>"""
 
-def generate_goal_bar_html(user_id, config, connected_platforms):
+def generate_goal_bar_html(user_id, config, connected_platforms, token):
     """Generate goal bar HTML with multiple styles"""
     custom_css = config.get('custom_css', '') if config.get('custom_css_enabled', False) else ''
     return f"""<!DOCTYPE html>
@@ -1435,6 +1440,7 @@ body {{
 <div id="goal-container" class="goal-container"></div>
 <script>
 const userId = '{user_id}';
+const widgetToken = '{token}';
 const config = {json.dumps(config)};
 const connectedPlatforms = {json.dumps(connected_platforms)};
 
@@ -1529,7 +1535,7 @@ function connectWebSocket(url, handler) {{
 
 function connectGoalWebSockets() {{
     // Connect to goals channel for refresh and donation updates
-    connectWebSocket(`wss://bomby.us/ws/fuzeobs-goals/${{userId}}/`, (e) => {{
+    connectWebSocket(`wss://bomby.us/ws/fuzeobs-goals/${{userId}}/?token=${{widgetToken}}`, (e) => {{
         const data = JSON.parse(e.data);
         if (data.type === 'refresh') {{
             window.location.reload();
@@ -1555,7 +1561,7 @@ function connectGoalWebSockets() {{
     
     // Connect to donations channel for tip goals
     if (goalType === 'tip') {{
-        connectWebSocket(`wss://bomby.us/ws/fuzeobs-donations/${{userId}}/`, (e) => {{
+        connectWebSocket(`wss://bomby.us/ws/fuzeobs-donations/${{userId}}/?token=${{widgetToken}}`, (e) => {{
             const data = JSON.parse(e.data);
             if (data.event_type === 'donation') {{
                 const increment = data.event_data?.raw_amount || 0;
@@ -1572,7 +1578,7 @@ function connectGoalWebSockets() {{
     platforms.forEach(platform => {{
         if (platform === 'all') return;
         if (connectedPlatforms.includes(platform)) {{
-            connectWebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`, (e) => {{
+            connectWebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/?token=${{widgetToken}}`, (e) => {{
                 const data = JSON.parse(e.data);
                 handleAlertForGoal(data);
             }});
@@ -1612,16 +1618,16 @@ function startPlatformListeners() {{
     const platforms = GOAL_PLATFORMS[goalType] || [];
     
     if (platforms.includes('youtube') && connectedPlatforms.includes('youtube')) {{
-        fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
+        fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
     }}
     if (platforms.includes('kick') && connectedPlatforms.includes('kick')) {{
-        fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}});
+        fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
     }}
     if (platforms.includes('facebook') && connectedPlatforms.includes('facebook')) {{
-        fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}});
+        fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
     }}
     if (platforms.includes('tiktok') && connectedPlatforms.includes('tiktok')) {{
-        fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}});
+        fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
     }}
 }}
 
@@ -1632,7 +1638,7 @@ connectGoalWebSockets();
 </body>
 </html>"""
 
-def generate_labels_html(user_id, config, connected_platforms):
+def generate_labels_html(user_id, config, connected_platforms, token):
     """Generate labels widget HTML with WebSocket reconnection and data persistence"""
     custom_css = config.get('custom_css', '')
     return f"""<!DOCTYPE html>
@@ -1696,6 +1702,7 @@ body {{
 <div id="label-container"></div>
 <script>
 const userId = '{user_id}';
+const widgetToken = '{token}';
 const config = {json.dumps(config)};
 const connectedPlatforms = {json.dumps(connected_platforms)};
 
@@ -1834,7 +1841,7 @@ function render(animate = false) {{
 }}
 
 function saveData() {{
-    fetch(`https://bomby.us/fuzeobs/labels/save/${{userId}}`, {{
+    fetch(`https://bomby.us/fuzeobs/labels/save/${{userId}}?token=${{widgetToken}}`, {{
         method: 'POST',
         headers: {{'Content-Type': 'application/json'}},
         body: JSON.stringify({{label_type: labelType, data: sessionData}})
@@ -1921,18 +1928,18 @@ function connectWebSocket(url) {{
 
 function connectWebSockets() {{
     // Always connect to labels channel for refresh signals and label updates
-    connectWebSocket(`wss://bomby.us/ws/fuzeobs-labels/${{userId}}/`);
+    connectWebSocket(`wss://bomby.us/ws/fuzeobs-labels/${{userId}}/?token=${{widgetToken}}`);
     
     const platforms = LABEL_PLATFORMS[labelType] || [];
     if (platforms.includes('all')) {{
         // Also connect to donations channel for donation-related labels
-        connectWebSocket(`wss://bomby.us/ws/fuzeobs-donations/${{userId}}/`);
+        connectWebSocket(`wss://bomby.us/ws/fuzeobs-donations/${{userId}}/?token=${{widgetToken}}`);
     }}
     
     // Connect to platform alerts for platform-specific labels
     platforms.forEach(platform => {{
         if (platform !== 'all' && connectedPlatforms.includes(platform)) {{
-            connectWebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/`);
+            connectWebSocket(`wss://bomby.us/ws/fuzeobs-alerts/${{userId}}/${{platform}}/?token=${{widgetToken}}`);
         }}
     }});
 }}
@@ -1940,21 +1947,21 @@ function connectWebSockets() {{
 function startPlatformListeners() {{
     const platforms = LABEL_PLATFORMS[labelType] || [];
     if (platforms.includes('youtube') && connectedPlatforms.includes('youtube')) {{
-        fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}`).catch(() => {{}});
+        fetch(`https://bomby.us/fuzeobs/youtube/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
     }}
     if (platforms.includes('kick') && connectedPlatforms.includes('kick')) {{
-        fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}`).catch(() => {{}});
+        fetch(`https://bomby.us/fuzeobs/kick/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
     }}
     if (platforms.includes('facebook') && connectedPlatforms.includes('facebook')) {{
-        fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}`).catch(() => {{}});
+        fetch(`https://bomby.us/fuzeobs/facebook/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
     }}
     if (platforms.includes('tiktok') && connectedPlatforms.includes('tiktok')) {{
-        fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}`).catch(() => {{}});
+        fetch(`https://bomby.us/fuzeobs/tiktok/start/${{userId}}?token=${{widgetToken}}`).catch(() => {{}});
     }}
 }}
 
 // Load persisted data on startup
-fetch(`https://bomby.us/fuzeobs/labels/data/${{userId}}`)
+fetch(`https://bomby.us/fuzeobs/labels/data/${{userId}}?token=${{widgetToken}}`)
     .then(r => r.json())
     .then(res => {{
         if (res.data && res.data[labelType]) {{
@@ -1970,7 +1977,7 @@ connectWebSockets();
 </body>
 </html>"""
 
-def generate_viewer_count_html(user_id, config, connected_platforms):
+def generate_viewer_count_html(user_id, config, connected_platforms, token):
     """Generate viewer count widget HTML"""
     import json
     
@@ -2029,6 +2036,7 @@ body {{
 
 <script>
 const userId = {user_id};
+const widgetToken = '{token}';
 const config = {config_json};
 const connectedPlatforms = {platforms_json};
 
@@ -2108,7 +2116,7 @@ function updateDisplay() {{
 async function pollTwitch() {{
     if (config.show_twitch === false || !connectedPlatforms.includes('twitch')) return;
     try {{
-        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/twitch/${{userId}}`);
+        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/twitch/${{userId}}?token=${{widgetToken}}`);
         if (resp.ok) {{
             const data = await resp.json();
             viewers.twitch = data.viewers || 0;
@@ -2120,7 +2128,7 @@ async function pollTwitch() {{
 async function pollYouTube() {{
     if (config.show_youtube === false || !connectedPlatforms.includes('youtube')) return;
     try {{
-        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/youtube/${{userId}}`);
+        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/youtube/${{userId}}?token=${{widgetToken}}`);
         if (resp.ok) {{
             const data = await resp.json();
             viewers.youtube = data.viewers || 0;
@@ -2132,7 +2140,7 @@ async function pollYouTube() {{
 async function pollKick() {{
     if (config.show_kick === false || !connectedPlatforms.includes('kick')) return;
     try {{
-        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/kick/${{userId}}`);
+        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/kick/${{userId}}?token=${{widgetToken}}`);
         if (resp.ok) {{
             const data = await resp.json();
             viewers.kick = data.viewers || 0;
@@ -2144,7 +2152,7 @@ async function pollKick() {{
 async function pollFacebook() {{
     if (config.show_facebook === false || !connectedPlatforms.includes('facebook')) return;
     try {{
-        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/facebook/${{userId}}`);
+        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/facebook/${{userId}}?token=${{widgetToken}}`);
         if (resp.ok) {{
             const data = await resp.json();
             viewers.facebook = data.viewers || 0;
@@ -2156,7 +2164,7 @@ async function pollFacebook() {{
 async function pollTiktok() {{
     if (config.show_tiktok === false || !connectedPlatforms.includes('tiktok')) return;
     try {{
-        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/tiktok/${{userId}}`);
+        const resp = await fetch(`https://bomby.us/fuzeobs/viewers/tiktok/${{userId}}?token=${{widgetToken}}`);
         if (resp.ok) {{
             const data = await resp.json();
             viewers.tiktok = data.viewers || 0;
@@ -2166,7 +2174,7 @@ async function pollTiktok() {{
 }}
 
 function connectWS() {{
-    const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-viewers/${{userId}}/`);
+    const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-viewers/${{userId}}/?token=${{widgetToken}}`);
     
     ws.onmessage = (e) => {{
         const data = JSON.parse(e.data);
@@ -2212,7 +2220,7 @@ if (config.show_tiktok !== false && connectedPlatforms.includes('tiktok')) {{
 </body>
 </html>"""
 
-def generate_sponsor_banner_html(user_id, config):
+def generate_sponsor_banner_html(user_id, config, token):
     """Generate sponsor banner widget HTML"""
     import json
     config_json = json.dumps(config)
@@ -2270,6 +2278,7 @@ body {{
 
 <script>
 const userId = {user_id};
+const widgetToken = '{token}';
 const config = {config_json};
 
 const container = document.getElementById('banner-container');
@@ -2376,7 +2385,7 @@ function startVisibilityCycle() {{
 }}
 
 function connectWS() {{
-    const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-sponsor/${{userId}}/`);
+    const ws = new WebSocket(`wss://bomby.us/ws/fuzeobs-sponsor/${{userId}}/?token=${{widgetToken}}`);
     ws.onmessage = (e) => {{
         const data = JSON.parse(e.data);
         if (data.type === 'refresh') window.location.reload();

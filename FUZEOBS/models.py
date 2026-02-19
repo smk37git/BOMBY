@@ -2,6 +2,40 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 import secrets
+import base64
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+
+def _get_fernet():
+    """Derive a Fernet key from Django SECRET_KEY."""
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=b'fuzeobs-token-encryption',
+        iterations=100_000,
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(settings.SECRET_KEY.encode()))
+    return Fernet(key)
+
+
+class EncryptedTextField(models.TextField):
+    """TextField that encrypts at rest using Fernet."""
+
+    def get_prep_value(self, value):
+        if value is None or value == '':
+            return value
+        return _get_fernet().encrypt(value.encode()).decode()
+
+    def from_db_value(self, value, expression, connection):
+        if value is None or value == '':
+            return value
+        try:
+            return _get_fernet().decrypt(value.encode()).decode()
+        except Exception:
+            # Fallback for legacy plaintext values during migration
+            return value
 
 class ActiveSession(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
@@ -199,8 +233,8 @@ class PlatformConnection(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     platform = models.CharField(max_length=20, choices=PLATFORMS)
     platform_username = models.CharField(max_length=100)
-    access_token = models.TextField()
-    refresh_token = models.TextField(blank=True)
+    access_token = EncryptedTextField()
+    refresh_token = EncryptedTextField(blank=True)
     expires_at = models.DateTimeField(null=True)
     connected_at = models.DateTimeField(auto_now_add=True)
     platform_user_id = models.CharField(max_length=100, blank=True)
