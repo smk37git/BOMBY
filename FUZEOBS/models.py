@@ -519,3 +519,20 @@ class LeaderboardEntry(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.total_stream_minutes}min"
+
+
+class Announcement(models.Model):
+    message = models.TextField()
+    type = models.CharField(max_length=20, choices=[
+        ('info', 'Info'),
+        ('warning', 'Warning'),
+        ('error', 'Error'),
+    ], default='info')
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.type}] {self.message[:50]}"

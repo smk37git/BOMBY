@@ -43,6 +43,12 @@ urlpatterns = [
     path('quickstart/dismiss', views.fuzeobs_quickstart_dismiss, name='quickstart_dismiss'),
     path('quickstart/check', views.fuzeobs_quickstart_check, name='quickstart_check'),
 
+    # Announcements
+    path('announcements', views.fuzeobs_announcements, name='announcements'),
+    path('announcements/create', views.fuzeobs_announcement_create, name='announcement_create'),
+    path('announcements/toggle', views.fuzeobs_announcement_toggle, name='announcement_toggle'),
+    path('announcements/delete', views.fuzeobs_announcement_delete, name='announcement_delete'),
+
     # == Widget URLS ==
 
     # PLATFORM ALERTS

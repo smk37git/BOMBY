@@ -167,6 +167,58 @@
 
     <div class="analytics-section">
         <div class="section-header">
+            <h3>Announcements</h3>
+        </div>
+
+        <form id="announcement-form" class="announcement-form">
+            {% csrf_token %}
+            <div class="announcement-form-row">
+                <input type="text" id="ann-message" placeholder="Announcement message..." class="ann-input" required maxlength="500">
+                <select id="ann-type" class="ann-select">
+                    <option value="info">Info</option>
+                    <option value="warning">Warning</option>
+                    <option value="error">Error</option>
+                </select>
+                <button type="submit" class="btn btn-primary ann-btn">Create</button>
+            </div>
+        </form>
+
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Message</th>
+                    <th>Type</th>
+                    <th>Active</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="announcements-tbody">
+                {% for ann in announcements %}
+                <tr data-ann-id="{{ ann.id }}">
+                    <td style="max-width: 400px; word-wrap: break-word;">{{ ann.message }}</td>
+                    <td><span class="ann-type-badge ann-type-{{ ann.type }}">{{ ann.get_type_display|upper }}</span></td>
+                    <td>
+                        <button class="ann-toggle-btn {% if ann.active %}ann-active{% else %}ann-inactive{% endif %}" data-action="toggle">
+                            {% if ann.active %}ACTIVE{% else %}INACTIVE{% endif %}
+                        </button>
+                    </td>
+                    <td>{{ ann.created_at|date:"m/d/Y H:i" }}</td>
+                    <td>
+                        <button class="ann-delete-btn" data-action="delete">Delete</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr id="ann-empty-row">
+                    <td colspan="5" style="text-align: center; padding: 40px; color: rgba(255,255,255,0.4);">No announcements</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="analytics-section">
+        <div class="section-header">
             <h3>Downloads by Platform</h3>
         </div>
         <div class="pie-container">
@@ -201,6 +253,56 @@
 </div>
 
 <script>
+var csrfToken = '{{ csrf_token }}';
+
+// Announcement: Create
+document.getElementById('announcement-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    var msg = document.getElementById('ann-message').value;
+    var type = document.getElementById('ann-type').value;
+    fetch('{% url "FUZEOBS:announcement_create" %}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+        body: JSON.stringify({message: msg, type: type})
+    }).then(function(r) { return r.json(); }).then(function(data) {
+        if (data.success) location.reload();
+        else alert(data.error || 'Failed');
+    });
+});
+
+// Announcement: Toggle & Delete via event delegation
+document.getElementById('announcements-tbody').addEventListener('click', function(e) {
+    var btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    var row = btn.closest('tr');
+    var id = row.getAttribute('data-ann-id');
+    var action = btn.getAttribute('data-action');
+
+    if (action === 'toggle') {
+        fetch('{% url "FUZEOBS:announcement_toggle" %}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+            body: JSON.stringify({id: parseInt(id)})
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.success) {
+                btn.textContent = data.active ? 'ACTIVE' : 'INACTIVE';
+                btn.className = 'ann-toggle-btn ' + (data.active ? 'ann-active' : 'ann-inactive');
+            }
+        });
+    }
+
+    if (action === 'delete') {
+        if (!confirm('Delete this announcement?')) return;
+        fetch('{% url "FUZEOBS:announcement_delete" %}', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+            body: JSON.stringify({id: parseInt(id)})
+        }).then(function(r) { return r.json(); }).then(function(data) {
+            if (data.success) row.remove();
+        });
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     var downloadsData = JSON.parse('{{ downloads_json|escapejs }}');
     var downloadsTotal = downloadsData.reduce(function(sum, d) { return sum + d.count; }, 0);

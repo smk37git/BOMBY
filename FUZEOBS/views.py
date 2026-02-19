@@ -57,7 +57,7 @@ from django.shortcuts import render, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 import secrets
 from django.contrib.auth import login
-from .models import WidgetConfig
+from .models import WidgetConfig, Announcement
 
 # Payements
 from django.views.decorators.http import require_POST
@@ -496,6 +496,55 @@ def fuzeobs_quickstart_check(request):
     """Check if user has dismissed quick-start modal"""
     user = request.fuzeobs_user
     return JsonResponse({'dismissed': user.quickstart_dismissed})
+
+@require_http_methods(["GET"])
+def fuzeobs_announcements(request):
+    """Public endpoint - no auth required. Returns active announcements."""
+    announcements = Announcement.objects.filter(active=True).values(
+        'id', 'message', 'type', 'created_at'
+    )
+    return JsonResponse({'announcements': list(announcements)})
+
+
+@staff_member_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def fuzeobs_announcement_create(request):
+    try:
+        data = json.loads(request.body)
+        ann = Announcement.objects.create(
+            message=data['message'],
+            type=data.get('type', 'info'),
+        )
+        return JsonResponse({'success': True, 'id': ann.id})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
+
+
+@staff_member_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def fuzeobs_announcement_toggle(request):
+    try:
+        data = json.loads(request.body)
+        ann = Announcement.objects.get(id=data['id'])
+        ann.active = not ann.active
+        ann.save()
+        return JsonResponse({'success': True, 'active': ann.active})
+    except Announcement.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Not found'})
+
+
+@staff_member_required
+@csrf_exempt
+@require_http_methods(["POST"])
+def fuzeobs_announcement_delete(request):
+    try:
+        data = json.loads(request.body)
+        Announcement.objects.filter(id=data['id']).delete()
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)})
 
 # ===== TEMPLATES =====
 
@@ -1979,6 +2028,9 @@ def fuzeobs_analytics_view(request):
     total_reviews = FuzeOBSReview.objects.count()
     featured_reviews = FuzeOBSReview.objects.filter(featured=True).count()
     
+    # Announcements
+    announcements = Announcement.objects.all().order_by('-created_at')
+    
     context = {
         'days': days,
         'total_users': total_users,
@@ -2020,6 +2072,7 @@ def fuzeobs_analytics_view(request):
         'pricing_views': pricing_views,
         'total_reviews': total_reviews,
         'featured_reviews': featured_reviews,
+        'announcements': announcements,
     }
     
     return render(request, 'FUZEOBS/fuzeobs_analytics.html', context)

@@ -567,6 +567,135 @@
     font-size: 14px;
 }
 
+/* Announcements Management */
+.announcement-form {
+    margin-bottom: 20px;
+}
+
+.announcement-form-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.ann-input {
+    flex: 1;
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.ann-input:focus {
+    border-color: rgba(168, 85, 247, 0.6);
+}
+
+.ann-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.ann-select {
+    padding: 10px 14px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    min-width: 110px;
+}
+
+.ann-select option {
+    background: #1a1a1a;
+    color: #fff;
+}
+
+.ann-btn {
+    padding: 10px 24px;
+    white-space: nowrap;
+}
+
+.ann-type-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.ann-type-info {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.ann-type-warning {
+    background: rgba(255, 136, 0, 0.15);
+    border: 1px solid rgba(255, 136, 0, 0.3);
+    color: #ff8800;
+}
+
+.ann-type-error {
+    background: rgba(255, 68, 68, 0.15);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    color: #f87171;
+}
+
+.ann-toggle-btn {
+    padding: 5px 14px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+}
+
+.ann-active {
+    background: rgba(74, 222, 128, 0.15);
+    border-color: rgba(74, 222, 128, 0.4);
+    color: #4ade80;
+}
+
+.ann-active:hover {
+    background: rgba(74, 222, 128, 0.25);
+}
+
+.ann-inactive {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.ann-inactive:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.ann-delete-btn {
+    padding: 5px 14px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+    color: #f87171;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ann-delete-btn:hover {
+    background: rgba(255, 68, 68, 0.25);
+    border-color: rgba(255, 68, 68, 0.5);
+}
+
 /* ===========================================
    Responsive - Large Screens (1920px+)
    =========================================== */
@@ -770,6 +899,14 @@
     .section-controls {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .announcement-form-row {
+        flex-direction: column;
+    }
+
+    .ann-select {
+        min-width: unset;
     }
 
     .expand-btn {
