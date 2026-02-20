@@ -678,7 +678,7 @@ def fuzeobs_ai_chat(request):
             return response
         
         cache.set(daily_key, daily_count + 1, 86400)
-        model = "claude-3-5-haiku-20241022"
+        model = "claude-haiku-4-5-20251001"
     
     # Anti-spam: 10 messages per minute
     spam_key = f'fuzeobs_spam_{user_id}'
