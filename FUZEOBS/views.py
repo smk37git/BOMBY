@@ -665,7 +665,7 @@ def fuzeobs_ai_chat(request):
             return response
         
         cache.set(rate_key, rate_count + 1, 18000)
-        model = "claude-sonnet-4-5-20250514"
+        model = "claude-sonnet-4-5-20250929"
         
     else:  # free tier
         if daily_count >= 5:
