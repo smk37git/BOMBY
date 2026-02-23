@@ -1365,7 +1365,6 @@ def fuzeobs_view(request):
         'featured_reviews': featured_reviews,
     })
 
-@staff_member_required
 def fuzeobs_download_windows(request):
     DownloadTracking.objects.create(
         platform='windows',
@@ -1376,7 +1375,6 @@ def fuzeobs_download_windows(request):
     )
     return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe')
 
-@staff_member_required
 def fuzeobs_download_mac(request):
     DownloadTracking.objects.create(
         platform='mac',
@@ -1385,8 +1383,17 @@ def fuzeobs_download_mac(request):
         ip_address=get_client_ip(request),
         user_agent=request.META.get('HTTP_USER_AGENT', '')
     )
-    return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.exe')
+    return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.dmg')
 
+def fuzeobs_download_linux(request):
+    DownloadTracking.objects.create(
+        platform='linux',
+        version='0.9.4',
+        user=request.user if request.user.is_authenticated else None,
+        ip_address=get_client_ip(request),
+        user_agent=request.META.get('HTTP_USER_AGENT', '')
+    )
+    return redirect('https://storage.googleapis.com/fuzeobs-public/fuzeobs-installer/FuzeOBS-Installer.deb')
 
 def fuzeobs_install_guide(request):
     return render(request, 'FUZEOBS/fuzeobs_installation_guide.html', {
