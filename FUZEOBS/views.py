@@ -2137,27 +2137,34 @@ def fuzeobs_save_widget(request):
                     }
                 }
                 
-                templates = EVENT_TEMPLATES.get(platform, {})
-                for event_type, message_template in templates.items():
-                    WidgetEvent.objects.get_or_create(
-                        widget=widget,
-                        event_type=event_type,
-                        platform=platform,
-                        defaults={
-                            'enabled': True,
-                            'config': {
-                                'message_template': message_template,
-                                'duration': 5,
-                                'alert_animation': 'fade',
-                                'font_size': 32,
-                                'font_weight': 'normal',
-                                'font_family': 'Arial',
-                                'text_color': '#FFFFFF',
-                                'sound_volume': 50,
-                                'layout': 'image_above'
+                # For 'all' platform, create events for every platform; otherwise just the specified one
+                if platform == 'all':
+                    platforms_to_create = EVENT_TEMPLATES.items()
+                else:
+                    templates = EVENT_TEMPLATES.get(platform, {})
+                    platforms_to_create = [(platform, templates)] if templates else []
+                
+                for plat, events in platforms_to_create:
+                    for event_type, message_template in events.items():
+                        WidgetEvent.objects.get_or_create(
+                            widget=widget,
+                            event_type=event_type,
+                            platform=plat,
+                            defaults={
+                                'enabled': True,
+                                'config': {
+                                    'message_template': message_template,
+                                    'duration': 5,
+                                    'alert_animation': 'fade',
+                                    'font_size': 32,
+                                    'font_weight': 'normal',
+                                    'font_family': 'Arial',
+                                    'text_color': '#FFFFFF',
+                                    'sound_volume': 50,
+                                    'layout': 'image_above'
+                                }
                             }
-                        }
-                    )
+                        )
         
         UserActivity.objects.create(
             user=user,
@@ -2903,27 +2910,34 @@ def fuzeobs_get_widget_events(request, widget_id):
                 }
             }
             
-            templates = EVENT_TEMPLATES.get(widget.platform, {})
-            for event_type, message_template in templates.items():
-                WidgetEvent.objects.get_or_create(
-                    widget=widget,
-                    event_type=event_type,
-                    platform=widget.platform,
-                    defaults={
-                        'enabled': True,
-                        'config': {
-                            'message_template': message_template,
-                            'duration': 5,
-                            'alert_animation': 'fade',
-                            'font_size': 32,
-                            'font_weight': 'normal',
-                            'font_family': 'Arial',
-                            'text_color': '#FFFFFF',
-                            'sound_volume': 50,
-                            'layout': 'image_above'
+            # For 'all' platform, auto-create for every platform; otherwise just the specified one
+            if widget.platform == 'all':
+                platforms_to_check = EVENT_TEMPLATES.items()
+            else:
+                templates = EVENT_TEMPLATES.get(widget.platform, {})
+                platforms_to_check = [(widget.platform, templates)] if templates else []
+            
+            for plat, templates in platforms_to_check:
+                for event_type, message_template in templates.items():
+                    WidgetEvent.objects.get_or_create(
+                        widget=widget,
+                        event_type=event_type,
+                        platform=plat,
+                        defaults={
+                            'enabled': True,
+                            'config': {
+                                'message_template': message_template,
+                                'duration': 5,
+                                'alert_animation': 'fade',
+                                'font_size': 32,
+                                'font_weight': 'normal',
+                                'font_family': 'Arial',
+                                'text_color': '#FFFFFF',
+                                'sound_volume': 50,
+                                'layout': 'image_above'
+                            }
                         }
-                    }
-                )
+                    )
         events = WidgetEvent.objects.filter(widget=widget)
         
         return JsonResponse({
