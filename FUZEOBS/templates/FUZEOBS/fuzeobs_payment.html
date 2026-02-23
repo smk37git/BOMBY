@@ -64,6 +64,12 @@
                 <span class="value" id="total-value">${{ price }}</span>
             </div>
             
+            <p class="fuzeobs-checkout-legal">
+                By completing this purchase, you agree to our
+                <a href="https://bomby.us/terms/" target="_blank">Terms of Service</a> and
+                <a href="https://bomby.us/privacy/" target="_blank">Privacy Policy</a>.
+            </p>
+            
             <div class="fuzeobs-secure-badge">
                 <i class="fas fa-lock"></i>
                 <span>Secured by Stripe &bull; 256-bit SSL encryption</span>
@@ -161,6 +167,17 @@
     border-radius: 4px;
     margin-left: 6px;
     font-weight: 600;
+}
+.fuzeobs-checkout-legal {
+    text-align: center;
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.45);
+    margin: 12px 0 4px;
+    line-height: 1.5;
+}
+.fuzeobs-checkout-legal a {
+    color: rgba(255,255,255,0.65);
+    text-decoration: underline;
 }
 </style>
 
