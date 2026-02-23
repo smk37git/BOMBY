@@ -3871,17 +3871,11 @@ def collab_posts(request):
     """List collab posts (GET, anonymous OK) or create one (POST, auth required)"""
     
     if request.method == 'GET':
-        # Try to get user for is_interested/is_owner, but allow anonymous
+        # Optional auth for is_interested/is_owner
         user = None
         auth_header = request.headers.get('Authorization', '')
         if auth_header.startswith('Bearer '):
-            token = auth_header.replace('Bearer ', '')
-            verification = auth_manager.verify_token(token)
-            if verification['valid']:
-                try:
-                    user = User.objects.get(id=verification['user_id'])
-                except User.DoesNotExist:
-                    user = None
+            user = get_user_from_token(auth_header[7:])
         
         status_filter = request.GET.get('status', 'open')
         posts = CollabPost.objects.select_related('user').filter(status=status_filter)
@@ -3907,7 +3901,7 @@ def collab_posts(request):
                 'status': post.status,
                 'interested_count': post.interested_count,
                 'is_interested': post.id in user_interests,
-                'is_owner': (user and post.user_id == user.id),
+                'is_owner': (user is not None and post.user_id == user.id),
                 'username': post.user.username,
                 'profile_picture': _get_profile_pic_url(post.user),
                 'created_at': post.created_at.isoformat(),
@@ -3919,15 +3913,10 @@ def collab_posts(request):
         # POST requires auth
         auth_header = request.headers.get('Authorization', '')
         if not auth_header.startswith('Bearer '):
-            return JsonResponse({'error': 'No token'}, status=401)
-        token = auth_header.replace('Bearer ', '')
-        verification = auth_manager.verify_token(token)
-        if not verification['valid']:
+            return JsonResponse({'error': 'Login required'}, status=401)
+        user = get_user_from_token(auth_header[7:])
+        if not user:
             return JsonResponse({'error': 'Invalid token'}, status=401)
-        try:
-            user = User.objects.get(id=verification['user_id'])
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'User not found'}, status=401)
         
         try:
             data = json.loads(request.body)
@@ -3962,7 +3951,6 @@ def collab_posts(request):
         
         tags = [t.strip()[:30] for t in tags[:5] if t.strip()]
         
-        # Profanity check
         from ACCOUNTS.validators import contains_profanity
         for field_name, field_val in [('Title', title), ('Description', description), ('Availability', availability)]:
             if field_val and contains_profanity(field_val):

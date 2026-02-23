@@ -288,19 +288,18 @@ def _sync_user_hours(user):
 
 
 # ============ VIEWS ============
+
 @csrf_exempt
 def fuzeobs_leaderboard(request, period='all'):
-    """GET - get leaderboard rankings (anonymous OK, user-specific fields need auth)"""
-    user = _get_user(request)  # None if anonymous
+    """GET - get leaderboard rankings (anonymous OK)"""
+    user = _get_user(request)  # None if no token
     
-    # Cache key per period
     cache_key = f'leaderboard:{period}'
     cached = cache.get(cache_key)
     
     if cached is not None:
         leaderboard = cached
     else:
-        # Build leaderboard
         order_field = {
             'week': '-weekly_stream_minutes',
             'month': '-monthly_stream_minutes',
@@ -335,22 +334,23 @@ def fuzeobs_leaderboard(request, period='all'):
                 'minutes': remaining_mins,
                 'total_minutes': mins,
                 'rank_change': rank_change,
-                'is_self': False,  # Patched per-user below
+                'is_self': False,
             })
         
         cache.set(cache_key, leaderboard, 120)
     
-    # Patch is_self and get user_entry if authenticated
+    # Patch is_self and get user_entry only if authenticated
     if user:
         leaderboard = [
-            {**entry, 'is_self': entry['username'] == user.username}
-            for entry in leaderboard
+            {**e, 'is_self': e['username'] == user.username}
+            for e in leaderboard
         ]
         user_entry = _get_user_rank_info(user, period)
     else:
         user_entry = None
     
     return JsonResponse({'success': True, 'leaderboard': leaderboard, 'user_entry': user_entry})
+
 
 def _get_profile_pic(user):
     if hasattr(user, 'profile_picture') and user.profile_picture:
