@@ -42,6 +42,7 @@ CSRF_TRUSTED_ORIGINS = ['https://bomby.us', 'http://bomby.us', 'https://bomby-79
 # Security Settings only set in production
 SECURE_SSL_REDIRECT = not DEBUG and not os.environ.get('DISABLE_SSL_REDIRECT')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # Cookie Domains only set in production
 if not DEBUG:
