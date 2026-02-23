@@ -3867,18 +3867,30 @@ def _get_profile_pic_url(user):
     return None
 
 @csrf_exempt
-@require_tier('free')
 def collab_posts(request):
-    """List collab posts (GET) or create one (POST)"""
-    user = request.fuzeobs_user
+    """List collab posts (GET, anonymous OK) or create one (POST, auth required)"""
     
     if request.method == 'GET':
+        # Try to get user for is_interested/is_owner, but allow anonymous
+        user = None
+        auth_header = request.headers.get('Authorization', '')
+        if auth_header.startswith('Bearer '):
+            token = auth_header.replace('Bearer ', '')
+            verification = auth_manager.verify_token(token)
+            if verification['valid']:
+                try:
+                    user = User.objects.get(id=verification['user_id'])
+                except User.DoesNotExist:
+                    user = None
+        
         status_filter = request.GET.get('status', 'open')
         posts = CollabPost.objects.select_related('user').filter(status=status_filter)
         
-        user_interests = set(
-            CollabInterest.objects.filter(user=user).values_list('post_id', flat=True)
-        )
+        user_interests = set()
+        if user:
+            user_interests = set(
+                CollabInterest.objects.filter(user=user).values_list('post_id', flat=True)
+            )
         
         results = []
         for post in posts[:50]:
@@ -3895,7 +3907,7 @@ def collab_posts(request):
                 'status': post.status,
                 'interested_count': post.interested_count,
                 'is_interested': post.id in user_interests,
-                'is_owner': post.user_id == user.id,
+                'is_owner': (user and post.user_id == user.id),
                 'username': post.user.username,
                 'profile_picture': _get_profile_pic_url(post.user),
                 'created_at': post.created_at.isoformat(),
@@ -3904,6 +3916,19 @@ def collab_posts(request):
         return JsonResponse({'success': True, 'posts': results})
     
     elif request.method == 'POST':
+        # POST requires auth
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return JsonResponse({'error': 'No token'}, status=401)
+        token = auth_header.replace('Bearer ', '')
+        verification = auth_manager.verify_token(token)
+        if not verification['valid']:
+            return JsonResponse({'error': 'Invalid token'}, status=401)
+        try:
+            user = User.objects.get(id=verification['user_id'])
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'User not found'}, status=401)
+        
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:

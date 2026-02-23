@@ -288,69 +288,69 @@ def _sync_user_hours(user):
 
 
 # ============ VIEWS ============
-
 @csrf_exempt
 def fuzeobs_leaderboard(request, period='all'):
-    """GET - get leaderboard rankings"""
-    user = _get_user(request)
-    if not user:
-        return JsonResponse({'error': 'Invalid token'}, status=401)
+    """GET - get leaderboard rankings (anonymous OK, user-specific fields need auth)"""
+    user = _get_user(request)  # None if anonymous
     
     # Cache key per period
     cache_key = f'leaderboard:{period}'
     cached = cache.get(cache_key)
     
     if cached is not None:
-        # Still need to find current user's entry
+        leaderboard = cached
+    else:
+        # Build leaderboard
+        order_field = {
+            'week': '-weekly_stream_minutes',
+            'month': '-monthly_stream_minutes',
+            'all': '-total_stream_minutes',
+        }.get(period, '-total_stream_minutes')
+        
+        minutes_field = {
+            'week': 'weekly_stream_minutes',
+            'month': 'monthly_stream_minutes',
+            'all': 'total_stream_minutes',
+        }.get(period, 'total_stream_minutes')
+        
+        entries = (
+            LeaderboardEntry.objects
+            .filter(opted_in=True)
+            .select_related('user')
+            .order_by(order_field, 'user__username')[:50]
+        )
+        
+        leaderboard = []
+        for rank, entry in enumerate(entries, 1):
+            mins = getattr(entry, minutes_field)
+            hours = mins // 60
+            remaining_mins = mins % 60
+            rank_change = (entry.previous_rank - rank) if entry.previous_rank > 0 else 0
+            
+            leaderboard.append({
+                'rank': rank,
+                'username': entry.user.username,
+                'profile_picture': _get_profile_pic(entry.user),
+                'hours': hours,
+                'minutes': remaining_mins,
+                'total_minutes': mins,
+                'rank_change': rank_change,
+                'is_self': False,  # Patched per-user below
+            })
+        
+        cache.set(cache_key, leaderboard, 120)
+    
+    # Patch is_self and get user_entry if authenticated
+    if user:
+        leaderboard = [
+            {**entry, 'is_self': entry['username'] == user.username}
+            for entry in leaderboard
+        ]
         user_entry = _get_user_rank_info(user, period)
-        return JsonResponse({'success': True, 'leaderboard': cached, 'user_entry': user_entry})
-    
-    # Build leaderboard
-    order_field = {
-        'week': '-weekly_stream_minutes',
-        'month': '-monthly_stream_minutes',
-        'all': '-total_stream_minutes',
-    }.get(period, '-total_stream_minutes')
-    
-    minutes_field = {
-        'week': 'weekly_stream_minutes',
-        'month': 'monthly_stream_minutes',
-        'all': 'total_stream_minutes',
-    }.get(period, 'total_stream_minutes')
-    
-    entries = (
-        LeaderboardEntry.objects
-        .filter(opted_in=True)
-        .select_related('user')
-        .order_by(order_field, 'user__username')[:50]
-    )
-    
-    leaderboard = []
-    for rank, entry in enumerate(entries, 1):
-        mins = getattr(entry, minutes_field)
-        hours = mins // 60
-        remaining_mins = mins % 60
-        
-        # Rank change: previous_rank - current_rank (positive = moved up)
-        rank_change = (entry.previous_rank - rank) if entry.previous_rank > 0 else 0
-        
-        leaderboard.append({
-            'rank': rank,
-            'username': entry.user.username,
-            'profile_picture': _get_profile_pic(entry.user),
-            'hours': hours,
-            'minutes': remaining_mins,
-            'total_minutes': mins,
-            'rank_change': rank_change,
-            'is_self': entry.user_id == user.id,
-        })
-    
-    cache.set(cache_key, leaderboard, 120)  # 2 min cache
-    
-    user_entry = _get_user_rank_info(user, period)
+    else:
+        user_entry = None
     
     return JsonResponse({'success': True, 'leaderboard': leaderboard, 'user_entry': user_entry})
-
 
 def _get_profile_pic(user):
     if hasattr(user, 'profile_picture') and user.profile_picture:
