@@ -3848,7 +3848,7 @@ def fuzeobs_reviews_admin(request):
         'avg_rating': reviews.aggregate(Avg('rating'))['rating__avg'] or 0,
     })
 
-
+@csrf_exempt 
 @staff_member_required
 @require_http_methods(["POST"])
 def fuzeobs_toggle_review_featured(request):
@@ -3870,7 +3870,7 @@ def fuzeobs_toggle_review_featured(request):
     except FuzeOBSReview.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
 
-
+@csrf_exempt 
 @staff_member_required
 @require_http_methods(["POST"])
 def fuzeobs_delete_review(request):
@@ -3890,7 +3890,7 @@ def fuzeobs_delete_review(request):
     except FuzeOBSReview.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Review not found'}, status=404)
 
-
+@csrf_exempt 
 @staff_member_required
 @require_http_methods(["POST"])
 def fuzeobs_create_review_admin(request):
