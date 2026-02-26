@@ -159,6 +159,7 @@ urlpatterns = [
     path('collab/posts', views.collab_posts, name='collab_posts'),
     path('collab/posts/<int:post_id>', views.collab_post_detail, name='collab_post_detail'),
     path('collab/posts/<int:post_id>/interest', views.collab_interest, name='collab_interest'),
+    path('collab/posts/<int:post_id>/renew', views.collab_renew_post, name='collab_renew'),
     path('collab/my-posts', views.collab_my_posts, name='collab_my_posts'),
     path('collab/message', views.collab_send_message, name='collab_send_message'),
 

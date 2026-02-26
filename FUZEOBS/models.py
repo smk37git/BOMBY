@@ -467,6 +467,7 @@ class CollabPost(models.Model):
     interested_count = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
     
     class Meta:
         ordering = ['-created_at']
@@ -474,6 +475,7 @@ class CollabPost(models.Model):
             models.Index(fields=['status', '-created_at']),
             models.Index(fields=['user', '-created_at']),
             models.Index(fields=['category']),
+            models.Index(fields=['status', 'expires_at']),
         ]
     
     def __str__(self):

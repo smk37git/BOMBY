@@ -4068,6 +4068,11 @@ def collab_posts(request):
         status_filter = request.GET.get('status', 'open')
         posts = CollabPost.objects.select_related('user').filter(status=status_filter)
         
+        # Exclude expired posts from public listing
+        posts = posts.filter(
+            models.Q(expires_at__isnull=True) | models.Q(expires_at__gt=timezone.now())
+        )
+        
         user_interests = set()
         if user:
             user_interests = set(
@@ -4093,6 +4098,7 @@ def collab_posts(request):
                 'username': post.user.username,
                 'profile_picture': _get_profile_pic_url(post.user),
                 'created_at': post.created_at.isoformat(),
+                'expires_at': post.expires_at.isoformat() if post.expires_at else None,
             })
         
         return JsonResponse({'success': True, 'posts': results})
@@ -4160,6 +4166,7 @@ def collab_posts(request):
             tags=tags,
             collab_size=collab_size,
             availability=availability,
+            expires_at=timezone.now() + timedelta(days=30),
         )
         
         return JsonResponse({'success': True, 'post_id': post.id})
@@ -4288,6 +4295,7 @@ def collab_my_posts(request):
             'interested_count': post.interested_count,
             'interested_users': interested_users,
             'created_at': post.created_at.isoformat(),
+            'expires_at': post.expires_at.isoformat() if post.expires_at else None,
         })
     
     return JsonResponse({'success': True, 'posts': results})
@@ -4345,3 +4353,26 @@ def collab_send_message(request):
     conversation.save()
     
     return JsonResponse({'success': True, 'message_id': message.id})
+
+@csrf_exempt
+@require_tier('free')
+def collab_renew_post(request, post_id):
+    """Renew a collab post for another 30 days"""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+    user = request.fuzeobs_user
+    
+    try:
+        post = CollabPost.objects.get(id=post_id)
+    except CollabPost.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Post not found'}, status=404)
+    
+    if post.user_id != user.id:
+        return JsonResponse({'success': False, 'error': 'Not your post'}, status=403)
+    
+    post.expires_at = timezone.now() + timedelta(days=30)
+    post.status = 'open'
+    post.save()
+    
+    return JsonResponse({'success': True, 'expires_at': post.expires_at.isoformat()})
