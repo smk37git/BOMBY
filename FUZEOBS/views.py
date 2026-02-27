@@ -73,7 +73,7 @@ User = get_user_model()
 
 # ====== VERSION / UPDATES ======
 
-FUZEOBS_VERSION = '0.11.0'
+FUZEOBS_VERSION = '1.0.0'
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
@@ -88,21 +88,21 @@ def fuzeobs_check_update(request):
     return JsonResponse({
         'version': FUZEOBS_VERSION,
         'download_url': urls.get(platform, urls['windows']),
-        'changelog': 'Welcome Page Added',
+        'changelog': 'FuzeOBS 1.0 Release',
         'mandatory': False
     })
 
 
 FUZEOBS_PATCH_NOTES = {
     'version': FUZEOBS_VERSION,
-    'changelog': 'Welcome Page Added, App Styling Updates',
+    'changelog': 'FUZEOBS 1.0 RELEASE!',
     'notes': [
-        '- Added Welcome Page with multiple features',
-        '- Streaming Tip of the Day',
-        '- Personalized Schedule Maker',
-        '- Stream Recap + Analytic Info',
-        '- Collab Finder to make contacts with other content creators',
-        '- Leaderboard to rank users by streaming hours',
+        '- FuzeOBS Development is now 1.0 after 6 months of work!',
+        '- Multi-Platform Functionality for Windows | MacOS | Linux',
+        '- All tabs working, go through and have fun!',
+        '- Need Help? Go to settings and find the contact resources!',
+        '- Use the Collab Finder to make contacts with other content creators',
+        '- Leave a review if FuzeOBS helped you level up your setup!',
     ]
 }
 
