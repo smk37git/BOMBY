@@ -316,7 +316,7 @@ def fuzeobs_leaderboard(request, period='all'):
             LeaderboardEntry.objects
             .filter(opted_in=True)
             .select_related('user')
-            .order_by(order_field, 'user__username')[:50]
+            .order_by(order_field, '-last_synced', 'user__username')[:50]
         )
         
         leaderboard = []
@@ -376,10 +376,15 @@ def _get_user_rank_info(user, period):
     
     user_mins = getattr(entry, minutes_field)
     
-    # Calculate rank
+    # Calculate rank (matches sort: most minutes, then most recent sync)
+    from django.db.models import Q
     rank = (
         LeaderboardEntry.objects
-        .filter(opted_in=True, **{f'{minutes_field}__gt': user_mins})
+        .filter(opted_in=True)
+        .filter(
+            Q(**{f'{minutes_field}__gt': user_mins}) |
+            Q(**{f'{minutes_field}': user_mins}, last_synced__gt=entry.last_synced)
+        )
         .count() + 1
     )
     
