@@ -100,11 +100,8 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': REDIS_URL,
-        'OPTIONS': {
-            'db': '1',
-        },
         'KEY_PREFIX': 'fuzeobs',
-        'TIMEOUT': 300,  # Default 5 min timeout
+        'TIMEOUT': 300,
     }
 } if os.environ.get('REDIS_URL') else {
     # Fallback to local memory cache for development
