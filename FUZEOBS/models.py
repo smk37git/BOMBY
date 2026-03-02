@@ -538,3 +538,25 @@ class Announcement(models.Model):
 
     def __str__(self):
         return f"[{self.type}] {self.message[:50]}"
+    
+class TelemetryEvent(models.Model):
+    """Anonymous telemetry events from FuzeOBS desktop app"""
+    device_id = models.CharField(max_length=32, db_index=True)
+    session_id = models.CharField(max_length=32, db_index=True)
+    event = models.CharField(max_length=100, db_index=True)
+    properties = models.JSONField(default=dict, blank=True)
+    app_version = models.CharField(max_length=20, blank=True, default='')
+    os_name = models.CharField(max_length=20, blank=True, default='')
+    os_version = models.CharField(max_length=50, blank=True, default='')
+    client_timestamp = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['event', 'created_at']),
+            models.Index(fields=['device_id', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.device_id[:8]}… | {self.event} | {self.created_at:%m/%d %H:%M}"

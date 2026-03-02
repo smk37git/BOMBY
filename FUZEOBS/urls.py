@@ -15,10 +15,16 @@ from .leaderboard import (
     fuzeobs_leaderboard_sync,
     fuzeobs_leaderboard_cron_sync,
 )
+from .telemetry_views import fuzeobs_telemetry_ingest, fuzeobs_telemetry_dashboard
 
 app_name = 'FUZEOBS'
 
 urlpatterns = [
+    # ── Telemetry (unauthenticated)
+    path('telemetry', fuzeobs_telemetry_ingest, name='telemetry_ingest'),
+    path('telemetry/dashboard', fuzeobs_telemetry_dashboard, name='telemetry_dashboard'),
+    path('telemetry/page', views.fuzeobs_telemetry_view, name='telemetry_page'),
+
     path('check-update', views.fuzeobs_check_update, name='check_update'),
     path('patch-notes', views.fuzeobs_patch_notes, name='patch_notes'),
     path('signup', views.fuzeobs_signup, name='signup'),

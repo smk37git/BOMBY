@@ -2109,6 +2109,164 @@ def fuzeobs_analytics_view(request):
     return render(request, 'FUZEOBS/fuzeobs_analytics.html', context)
 
 @staff_member_required
+def fuzeobs_telemetry_view(request):
+    """HTML telemetry dashboard for anonymous app usage data."""
+    from .models import TelemetryEvent
+    from django.db.models import Count
+    from django.db.models.functions import TruncDate
+
+    days = min(int(request.GET.get('days', 7)), 90)
+    since = timezone.now() - timedelta(days=days)
+    qs = TelemetryEvent.objects.filter(created_at__gte=since)
+
+    unique_devices = qs.values('device_id').distinct().count()
+    unique_sessions = qs.values('session_id').distinct().count()
+    total_events = qs.count()
+
+    # Sessions per device
+    sessions_per_device = round(unique_sessions / max(unique_devices, 1), 1)
+
+    # Avg session duration
+    session_durations = list(
+        qs.filter(event='session_end')
+        .values_list('properties__duration_seconds', flat=True)
+    )
+    valid_durations = [d for d in session_durations if d and isinstance(d, (int, float))]
+    avg_seconds = sum(valid_durations) / max(len(valid_durations), 1)
+    if avg_seconds >= 3600:
+        avg_session_display = f"{avg_seconds / 3600:.1f}h"
+    elif avg_seconds >= 60:
+        avg_session_display = f"{avg_seconds / 60:.0f}m"
+    else:
+        avg_session_display = f"{avg_seconds:.0f}s"
+
+    # Daily active devices
+    daily_raw = list(
+        qs.annotate(day=TruncDate('created_at'))
+        .values('day')
+        .annotate(devices=Count('device_id', distinct=True))
+        .order_by('day')
+    )
+    max_daily = max((d['devices'] for d in daily_raw), default=1) or 1
+    daily_active = [
+        {
+            'day': d['day'].strftime('%m/%d'),
+            'devices': d['devices'],
+            'height': max(round(d['devices'] / max_daily * 100), 3),
+        }
+        for d in daily_raw
+    ]
+
+    # Setup funnel
+    funnel_events = [
+        ('app_launched', 'App Launched'),
+        ('system_detected', 'System Detected'),
+        ('config_generated', 'Config Generated'),
+        ('obs_connected', 'OBS Connected'),
+        ('widget_configured', 'Widget Configured'),
+        ('platform_connected', 'Platform Connected'),
+        ('scene_injected', 'Scene Injected'),
+    ]
+    funnel_counts = {
+        evt: qs.filter(event=evt).values('device_id').distinct().count()
+        for evt, _ in funnel_events
+    }
+    funnel_base = funnel_counts.get('app_launched', 1) or 1
+    funnel_steps = [
+        {
+            'label': label,
+            'count': funnel_counts[evt],
+            'pct': round(funnel_counts[evt] / funnel_base * 100),
+        }
+        for evt, label in funnel_events
+    ]
+
+    # Login funnel
+    login_funnel = {
+        'shown': qs.filter(event='login_shown').values('device_id').distinct().count(),
+        'dismissed': qs.filter(event='login_dismissed').values('device_id').distinct().count(),
+        'completed': qs.filter(event='login_completed').values('device_id').distinct().count(),
+    }
+    login_conversion = round(
+        login_funnel['completed'] / max(login_funnel['shown'], 1) * 100
+    )
+
+    # Top events
+    top_events_raw = list(
+        qs.values('event').annotate(count=Count('id')).order_by('-count')[:15]
+    )
+    top_max = top_events_raw[0]['count'] if top_events_raw else 1
+    top_events = [
+        {**e, 'pct': round(e['count'] / top_max * 100)}
+        for e in top_events_raw
+    ]
+
+    # Tab views
+    tab_views_raw = list(
+        qs.filter(event='tab_viewed')
+        .values('properties__tab')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+    )
+    tab_max = tab_views_raw[0]['count'] if tab_views_raw else 1
+    tab_views = [
+        {
+            'tab': t['properties__tab'] or 'unknown',
+            'count': t['count'],
+            'pct': round(t['count'] / tab_max * 100),
+        }
+        for t in tab_views_raw
+    ]
+
+    # OS breakdown
+    os_raw = list(
+        qs.values('os_name')
+        .annotate(count=Count('device_id', distinct=True))
+        .order_by('-count')
+    )
+    os_max = os_raw[0]['count'] if os_raw else 1
+    os_breakdown = [{**o, 'pct': round(o['count'] / os_max * 100)} for o in os_raw]
+
+    # Version breakdown
+    ver_raw = list(
+        qs.values('app_version')
+        .annotate(count=Count('device_id', distinct=True))
+        .order_by('-count')
+    )
+    ver_max = ver_raw[0]['count'] if ver_raw else 1
+    version_breakdown = [{**v, 'pct': round(v['count'] / ver_max * 100)} for v in ver_raw]
+
+    # Recent errors
+    recent_errors = list(
+        qs.filter(event='error')
+        .order_by('-created_at')
+        .values('device_id', 'properties', 'app_version', 'os_name', 'created_at')[:20]
+    )
+    for err in recent_errors:
+        err['created_at'] = err['created_at'].strftime('%m/%d %H:%M')
+
+    context = {
+        'days': days,
+        'unique_devices': unique_devices,
+        'unique_sessions': unique_sessions,
+        'total_events': total_events,
+        'sessions_per_device': sessions_per_device,
+        'avg_session_display': avg_session_display,
+        'daily_active': daily_active,
+        'last_day': daily_active[-1]['day'] if daily_active else '',
+        'funnel_steps': funnel_steps,
+        'login_funnel': login_funnel,
+        'login_conversion': login_conversion,
+        'top_events': top_events,
+        'tab_views': tab_views,
+        'os_breakdown': os_breakdown,
+        'version_breakdown': version_breakdown,
+        'recent_errors': recent_errors,
+    }
+
+    return render(request, 'FUZEOBS/fuzeobs_telemetry.html', context)
+
+@staff_member_required
 def fuzeobs_all_users_view(request):
     from django.core.paginator import Paginator
     from django.db.models import OuterRef, Subquery, IntegerField, DecimalField, Value, Count, Sum
@@ -2165,13 +2323,27 @@ def fuzeobs_reset_analytics(request):
         if 'page_views' in reset_type:
             from .models import FuzeOBSPageView
             deleted['page_views'] = FuzeOBSPageView.objects.all().delete()[0]
+        if 'telemetry' in reset_type:
+            from .models import TelemetryEvent
+            deleted['telemetry'] = TelemetryEvent.objects.all().delete()[0]
         
         return render(request, 'FUZEOBS/fuzeobs_reset_analytics.html', {
             'deleted': deleted,
             'success': True
         })
     
-    return render(request, 'FUZEOBS/fuzeobs_reset_analytics.html')
+    # GET — show counts
+    from .models import FuzeOBSPageView, TelemetryEvent
+    counts = {
+        'tier_changes': TierChange.objects.count(),
+        'ai_usage': AIUsage.objects.count(),
+        'user_activity': UserActivity.objects.count(),
+        'downloads': DownloadTracking.objects.count(),
+        'active_sessions': ActiveSession.objects.count(),
+        'page_views': FuzeOBSPageView.objects.count(),
+        'telemetry': TelemetryEvent.objects.count(),
+    }
+    return render(request, 'FUZEOBS/fuzeobs_reset_analytics.html', {'counts': counts})
 
 # ===== WIDGETS SYSTEM =====
 # Widget HTML generators

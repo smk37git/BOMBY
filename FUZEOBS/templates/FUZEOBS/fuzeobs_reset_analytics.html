@@ -31,29 +31,40 @@
             <label style="display: flex; align-items: center; gap: 10px;">
                 <input type="checkbox" name="reset_type" value="tier_changes">
                 Tier Changes (resets revenue tracking)
+                <span style="margin-left: auto; color: rgba(255,255,255,0.4); font-size: 13px;">{{ counts.tier_changes|default:"-" }} records</span>
             </label>
             <label style="display: flex; align-items: center; gap: 10px;">
                 <input type="checkbox" name="reset_type" value="ai_usage">
                 AI Usage (resets cost tracking)
+                <span style="margin-left: auto; color: rgba(255,255,255,0.4); font-size: 13px;">{{ counts.ai_usage|default:"-" }} records</span>
             </label>
             <label style="display: flex; align-items: center; gap: 10px;">
                 <input type="checkbox" name="reset_type" value="user_activity">
                 User Activity
+                <span style="margin-left: auto; color: rgba(255,255,255,0.4); font-size: 13px;">{{ counts.user_activity|default:"-" }} records</span>
             </label>
             <label style="display: flex; align-items: center; gap: 10px;">
                 <input type="checkbox" name="reset_type" value="downloads">
                 Download Tracking
+                <span style="margin-left: auto; color: rgba(255,255,255,0.4); font-size: 13px;">{{ counts.downloads|default:"-" }} records</span>
             </label>
             <label style="display: flex; align-items: center; gap: 10px;">
                 <input type="checkbox" name="reset_type" value="active_sessions">
                 Active Sessions
+                <span style="margin-left: auto; color: rgba(255,255,255,0.4); font-size: 13px;">{{ counts.active_sessions|default:"-" }} records</span>
             </label>
             <label style="display: flex; align-items: center; gap: 10px;">
                 <input type="checkbox" name="reset_type" value="page_views">
                 Page Views (landing & pricing)
+                <span style="margin-left: auto; color: rgba(255,255,255,0.4); font-size: 13px;">{{ counts.page_views|default:"-" }} records</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; border-left: 3px solid #a855f7; padding-left: 10px;">
+                <input type="checkbox" name="reset_type" value="telemetry">
+                App Telemetry (anonymous device events)
+                <span style="margin-left: auto; color: rgba(255,255,255,0.4); font-size: 13px;">{{ counts.telemetry|default:"-" }} records</span>
             </label>
         </div>
-        <button type="submit" style="margin-top: 20px; padding: 12px 24px; background: #ff4444; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 16px;">
+        <button type="submit" style="margin-top: 20px; padding: 12px 24px; background: #ff4444; border: none; border-radius: 8px; color: white; cursor: pointer; font-size: 16px;" onclick="return confirm('Are you sure? This cannot be undone.')">
             Delete Selected Data
         </button>
     </form>

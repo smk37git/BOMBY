@@ -11,6 +11,7 @@ OPEN_CORS_PREFIXES = (
     '/fuzeobs/donations/paypal/callback',
     '/fuzeobs/kick-webhook',
     '/fuzeobs/twitch-webhook',
+    '/fuzeobs/telemetry',
 )
 
 # Trusted origins for authenticated API calls

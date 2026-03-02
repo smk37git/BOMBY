@@ -16,6 +16,9 @@
     <div class="analytics-header">
         <h2>Performance Dashboard</h2>
         <div class="time-filter">
+            <a href="{% url 'FUZEOBS:analytics' %}?days={{ days }}" class="nav-tab active">User Analytics</a>
+            <a href="{% url 'FUZEOBS:telemetry_page' %}" class="nav-tab">App Telemetry</a>
+            <span style="width:1px; background:rgba(255,255,255,0.1);"></span>
             <a href="?days=7" class="{% if days == 7 %}active{% endif %}">Last 7 days</a>
             <a href="?days=30" class="{% if days == 30 %}active{% endif %}">Last 30 days</a>
             <a href="?days=90" class="{% if days == 90 %}active{% endif %}">Last 90 days</a>
