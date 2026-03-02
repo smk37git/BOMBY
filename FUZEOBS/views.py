@@ -73,7 +73,7 @@ User = get_user_model()
 
 # ====== VERSION / UPDATES ======
 
-FUZEOBS_VERSION = '1.0.0'
+FUZEOBS_VERSION = '1.0.1'
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
@@ -88,14 +88,14 @@ def fuzeobs_check_update(request):
     return JsonResponse({
         'version': FUZEOBS_VERSION,
         'download_url': urls.get(platform, urls['windows']),
-        'changelog': 'FuzeOBS 1.0 Release',
+        'changelog': 'FuzeOBS 1.0.1 | Analytics Update',
         'mandatory': False
     })
 
 
 FUZEOBS_PATCH_NOTES = {
     'version': FUZEOBS_VERSION,
-    'changelog': 'FUZEOBS 1.0 RELEASE!',
+    'changelog': 'FUZEOBS 1.0.1 RELEASE!',
     'notes': [
         '- FuzeOBS Development is now 1.0 after 6 months of work!',
         '- Multi-Platform Functionality for Windows | MacOS | Linux',
@@ -103,6 +103,7 @@ FUZEOBS_PATCH_NOTES = {
         '- Need Help? Go to settings and find the contact resources!',
         '- Use the Collab Finder to make contacts with other content creators',
         '- Leave a review if FuzeOBS helped you level up your setup!',
+        '- Updated Analytic Data',
     ]
 }
 
@@ -2193,7 +2194,7 @@ def fuzeobs_telemetry_view(request):
 
     # Top events
     top_events_raw = list(
-        qs.values('event').annotate(count=Count('id')).order_by('-count')[:15]
+        qs.exclude(event__in=['tab_viewed', 'session_end', 'update_checked']).values('event').annotate(count=Count('id')).order_by('-count')[:15]
     )
     top_max = top_events_raw[0]['count'] if top_events_raw else 1
     top_events = [
@@ -2201,21 +2202,22 @@ def fuzeobs_telemetry_view(request):
         for e in top_events_raw
     ]
 
-    # Tab views
-    tab_views_raw = list(
-        qs.filter(event='tab_viewed')
+    # Tab views (fixed order matching app UI)
+    TAB_ORDER = ['WELCOME', 'DETECTION', 'CONFIGURATION', 'OPTIMIZATION', 'AUDIO', 'SCENES', 'TOOLS', 'PLUGINS', 'DOCUMENTATION', 'BENCHMARK', 'FUZE-AI']
+    tab_counts_raw = {
+        t['properties__tab']: t['count']
+        for t in qs.filter(event='tab_viewed')
         .values('properties__tab')
         .annotate(count=Count('id'))
-        .order_by('-count')
-    )
-    tab_max = tab_views_raw[0]['count'] if tab_views_raw else 1
+    }
+    tab_max = max(tab_counts_raw.values(), default=1) or 1
     tab_views = [
         {
-            'tab': t['properties__tab'] or 'unknown',
-            'count': t['count'],
-            'pct': round(t['count'] / tab_max * 100),
+            'tab': name,
+            'count': tab_counts_raw.get(name, 0),
+            'pct': round(tab_counts_raw.get(name, 0) / tab_max * 100) if tab_counts_raw.get(name, 0) else 0,
         }
-        for t in tab_views_raw
+        for name in TAB_ORDER
     ]
 
     # OS breakdown
