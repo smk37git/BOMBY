@@ -1020,6 +1020,73 @@
     margin: 0;
 }
 
+/* SmartScreen Video Modal */
+.smartscreen-modal-content {
+    background: #111;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    max-width: 400px;
+    width: 100%;
+    padding: 28px;
+    position: relative;
+}
+
+.smartscreen-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    font-weight: 600;
+    font-size: 15px;
+    color: #fff;
+}
+
+.smartscreen-video-wrap {
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+}
+
+.smartscreen-video-wrap video {
+    width: 100%;
+    display: block;
+}
+
+.smartscreen-modal-note {
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 16px 0 0 0;
+    text-align: center;
+}
+
+.smartscreen-modal-note strong {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.smartscreen-modal-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.45);
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.smartscreen-modal-link:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
 /* ===========================================
    Responsive - Large Screens (1440px+)
    =========================================== */

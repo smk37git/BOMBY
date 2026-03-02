@@ -1020,6 +1020,53 @@
     margin: 0;
 }
 
+/* SmartScreen Video Modal */
+.smartscreen-modal-content {
+    background: #111;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    max-width: 560px;
+    width: 100%;
+    padding: 28px;
+    position: relative;
+}
+
+.smartscreen-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 18px;
+    font-weight: 600;
+    font-size: 15px;
+    color: #fff;
+}
+
+.smartscreen-video-wrap {
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 16 / 9;
+}
+
+.smartscreen-video-wrap video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+.smartscreen-modal-note {
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.55);
+    margin: 16px 0 0 0;
+    text-align: center;
+}
+
+.smartscreen-modal-note strong {
+    color: rgba(255, 255, 255, 0.85);
+}
+
 /* ===========================================
    Responsive - Large Screens (1440px+)
    =========================================== */
