@@ -2181,11 +2181,11 @@ def fuzeobs_telemetry_view(request):
         for evt, label in funnel_events
     ]
 
-    # Login funnel
+    # Login funnel (per session, not per device)
     login_funnel = {
-        'shown': qs.filter(event='login_shown').values('device_id').distinct().count(),
-        'dismissed': qs.filter(event='login_dismissed').values('device_id').distinct().count(),
-        'completed': qs.filter(event='login_completed').values('device_id').distinct().count(),
+        'shown': qs.filter(event='login_shown').values('session_id').distinct().count(),
+        'dismissed': qs.filter(event='login_dismissed').values('session_id').distinct().count(),
+        'completed': qs.filter(event='login_completed').values('session_id').distinct().count(),
     }
     login_conversion = round(
         login_funnel['completed'] / max(login_funnel['shown'], 1) * 100
