@@ -175,4 +175,13 @@ urlpatterns = [
     path('leaderboard/sync', fuzeobs_leaderboard_sync, name='leaderboard_sync'),
     path('leaderboard/cron-sync', fuzeobs_leaderboard_cron_sync, name='leaderboard_cron_sync'),
     path('leaderboard/<str:period>', fuzeobs_leaderboard, name='leaderboard'),
+
+    # Creator Codes
+    path('analytics/creator-codes/', views.fuzeobs_creator_codes_view, name='creator_codes'),
+    path('analytics/creator-codes/create', views.fuzeobs_creator_code_create, name='creator_code_create'),
+    path('analytics/creator-codes/toggle', views.fuzeobs_creator_code_toggle, name='creator_code_toggle'),
+    path('analytics/creator-codes/delete', views.fuzeobs_creator_code_delete, name='creator_code_delete'),
+    path('analytics/creator-codes/mark-paid', views.fuzeobs_creator_code_mark_paid, name='creator_code_mark_paid'),
+    path('validate-creator-code/', views.fuzeobs_validate_creator_code, name='validate_creator_code'),
+    path('creator-portal/', views.fuzeobs_my_creator_code, name='my_creator_code'),
 ]

@@ -43,7 +43,7 @@ from .facebook_chat import start_facebook_chat
 from .utils.email_utils import send_fuzeobs_invoice_email
 from .views_helpers import (
     get_client_ip, activate_fuzeobs_user, update_active_session,
-    cleanup_old_sessions, send_widget_refresh, verify_widget_request
+    cleanup_old_sessions, send_widget_refresh, verify_widget_request, parse_json_body
 )
 
 # Website Imports
@@ -1473,13 +1473,31 @@ def fuzeobs_create_checkout_session(request):
     try:
         data = json.loads(request.body)
         plan_type = data.get('plan_type')
-        
+
         if plan_type not in FUZEOBS_PLANS:
             return JsonResponse({'error': 'Invalid plan'}, status=400)
-        
+
         plan = FUZEOBS_PLANS[plan_type]
         return_url = request.build_absolute_uri('/fuzeobs/payment/success/') + '?session_id={CHECKOUT_SESSION_ID}'
-        
+
+        # Validate creator code if provided
+        creator_code_str = data.get('creator_code', '').strip().upper()
+        valid_code = None
+        if creator_code_str:
+            from .models import CreatorCode
+            try:
+                valid_code = CreatorCode.objects.get(code=creator_code_str, is_active=True)
+            except CreatorCode.DoesNotExist:
+                pass
+
+        metadata = {
+            'user_id': str(request.user.id),
+            'plan_type': plan_type,
+            'product': 'fuzeobs',
+        }
+        if valid_code:
+            metadata['creator_code'] = valid_code.code
+
         session = stripe.checkout.Session.create(
             ui_mode='embedded',
             customer_email=request.user.email,
@@ -1487,19 +1505,16 @@ def fuzeobs_create_checkout_session(request):
             mode=plan['mode'],
             return_url=return_url,
             redirect_on_completion='if_required',
-            metadata={
-                'user_id': str(request.user.id),
-                'plan_type': plan_type,
-                'product': 'fuzeobs',
-            }
+            metadata=metadata
         )
-        
+
         return JsonResponse({'clientSecret': session.client_secret, 'sessionId': session.id})
     except Exception as e:
         import traceback
         traceback.print_exc()
-        logger.error(f'Server error: {e}'); return JsonResponse({'error': 'Internal error'}, status=500)
-
+        logger.error(f'Server error: {e}')
+        return JsonResponse({'error': 'Internal error'}, status=500)
+    
 @login_required
 def fuzeobs_payment_success(request):
     session_id = request.GET.get('session_id')
@@ -1628,38 +1643,38 @@ def fuzeobs_payment_success(request):
 def fuzeobs_stripe_webhook(request):
     payload = request.body
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
-    
+
     try:
         event = stripe.Webhook.construct_event(payload, sig_header, settings.STRIPE_WEBHOOK_SECRET)
     except (ValueError, stripe.error.SignatureVerificationError):
         return JsonResponse({'error': 'Invalid signature'}, status=400)
-    
+
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         metadata = session.get('metadata', {})
         payment_id = session.get('payment_intent') or session.get('id')
-        
+
         # === FUZEOBS PURCHASES ===
         if metadata.get('product') == 'fuzeobs':
             user_id = metadata.get('user_id')
             plan_type = metadata.get('plan_type')
-            
+
             if FuzeOBSPurchase.objects.filter(payment_id=payment_id).exists():
                 return JsonResponse({'status': 'already_processed'})
-            
+
             try:
                 user = User.objects.get(id=user_id)
                 old_tier = user.fuzeobs_tier
                 user.fuzeobs_tier = 'lifetime' if plan_type == 'lifetime' else 'pro'
-                
+
                 try:
                     user.promote_to_supporter()
                 except Exception as e:
                     print(f"[FUZEOBS] promote_to_supporter failed: {e}")
-                
+
                 activate_fuzeobs_user(user)
                 user.save()
-                
+
                 if plan_type == 'lifetime':
                     try:
                         existing_sub = FuzeOBSSubscription.objects.get(user=user, is_active=True)
@@ -1670,14 +1685,14 @@ def fuzeobs_stripe_webhook(request):
                         existing_sub.save()
                     except FuzeOBSSubscription.DoesNotExist:
                         pass
-                
+
                 TierChange.objects.create(
                     user=user,
                     from_tier=old_tier,
                     to_tier=user.fuzeobs_tier,
                     reason='stripe_webhook'
                 )
-                
+
                 amount = Decimal(FUZEOBS_PLANS.get(plan_type, {}).get('price', '7.50'))
                 purchase = FuzeOBSPurchase.objects.create(
                     user=user,
@@ -1686,12 +1701,12 @@ def fuzeobs_stripe_webhook(request):
                     payment_id=payment_id,
                     is_paid=True
                 )
-                
+
                 try:
                     send_fuzeobs_invoice_email(request, user, purchase, plan_type)
                 except Exception as e:
                     print(f'[FUZEOBS] Invoice email failed: {e}')
-                
+
                 if plan_type == 'pro' and session.get('subscription'):
                     FuzeOBSSubscription.objects.update_or_create(
                         user=user,
@@ -1702,7 +1717,7 @@ def fuzeobs_stripe_webhook(request):
                             'is_active': True
                         }
                     )
-                
+
                 if plan_type == '3month':
                     from datetime import timedelta
                     FuzeOBSSubscription.objects.update_or_create(
@@ -1715,21 +1730,51 @@ def fuzeobs_stripe_webhook(request):
                             'expires_at': timezone.now() + timedelta(days=90),
                         }
                     )
+
+                # === CREATOR CODE USAGE ===
+                creator_code_str = metadata.get('creator_code', '')
+                if creator_code_str:
+                    from .models import CreatorCode, CreatorCodeUsage
+                    EARNINGS = {
+                        'pro':      Decimal('2.50'),
+                        '3month':   Decimal('6.00'),
+                        'lifetime': Decimal('9.00'),
+                    }
+                    AMOUNTS = {
+                        'pro':      Decimal('7.50'),
+                        '3month':   Decimal('20.00'),
+                        'lifetime': Decimal('45.00'),
+                    }
+                    try:
+                        code_obj = CreatorCode.objects.get(code=creator_code_str, is_active=True)
+                        CreatorCodeUsage.objects.get_or_create(
+                            stripe_session_id=session['id'],
+                            defaults={
+                                'code': code_obj,
+                                'user': user,
+                                'plan_type': plan_type,
+                                'order_amount': AMOUNTS.get(plan_type, Decimal('0')),
+                                'creator_earnings': EARNINGS.get(plan_type, Decimal('0')),
+                            }
+                        )
+                    except CreatorCode.DoesNotExist:
+                        pass
+
             except User.DoesNotExist:
                 pass
-        
+
         # === STORE PRODUCT PURCHASES ===
         elif metadata.get('type') == 'product':
             from STORE.models import Order, Product
             product_id = metadata.get('product_id')
             user_id = metadata.get('user_id')
-            
+
             if product_id and user_id and payment_id:
                 if not Order.objects.filter(payment_id=payment_id).exists():
                     try:
                         user = User.objects.get(id=user_id)
                         product = Product.objects.get(id=product_id)
-                        
+
                         status = 'completed' if int(product_id) == 4 else 'pending'
                         Order.objects.create(
                             user=user,
@@ -1740,13 +1785,13 @@ def fuzeobs_stripe_webhook(request):
                         )
                     except Exception as e:
                         print(f"[STORE] Webhook order creation error: {e}")
-        
+
         # === STORE DONATIONS ===
         elif metadata.get('type') == 'donation':
             from STORE.models import Donation
             amount = metadata.get('amount')
             user_id = metadata.get('user_id')
-            
+
             if amount and payment_id:
                 if not Donation.objects.filter(payment_id=payment_id).exists():
                     try:
@@ -1759,30 +1804,9 @@ def fuzeobs_stripe_webhook(request):
                             donation.user = User.objects.get(id=user_id)
                             donation.save()
                     except Exception as e:
-                        print(f"[STORE] Webhook donation creation error: {e}")
-    
-    # Handle FUZEOBS subscription cancellation
-    elif event['type'] == 'customer.subscription.deleted':
-        subscription = event['data']['object']
-        try:
-            sub = FuzeOBSSubscription.objects.get(stripe_subscription_id=subscription['id'])
-            sub.is_active = False
-            sub.save()
-            
-            user = sub.user
-            old_tier = user.fuzeobs_tier
-            user.fuzeobs_tier = 'free'
-            user.save()
-            TierChange.objects.create(
-                user=user,
-                from_tier=old_tier,
-                to_tier='free',
-                reason='subscription_cancelled'
-            )
-        except FuzeOBSSubscription.DoesNotExist:
-            pass
-    
-    return JsonResponse({'status': 'success'})
+                        print(f"[STORE] Donation webhook error: {e}")
+
+    return JsonResponse({'status': 'ok'})
 
 @login_required
 def fuzeobs_manage_subscription(request):
@@ -4550,3 +4574,135 @@ def collab_renew_post(request, post_id):
     post.save()
     
     return JsonResponse({'success': True, 'expires_at': post.expires_at.isoformat()})
+
+# ============================ CREATOR CODES ============================
+@staff_member_required
+def fuzeobs_creator_codes_view(request):
+    from .models import CreatorCode, CreatorCodeUsage
+    from django.db.models import Sum, Count
+
+    codes = CreatorCode.objects.annotate(
+        total_uses=Count('usages'),
+        total_earned=Sum('usages__creator_earnings'),
+        pending=Sum('usages__creator_earnings', filter=Q(usages__paid_out=False))
+    ).order_by('-created_at')
+
+    # Monthly breakdown for current month
+    now = timezone.now()
+    month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    monthly = CreatorCodeUsage.objects.filter(created_at__gte=month_start).values(
+        'code__code', 'code__creator_name'
+    ).annotate(
+        uses=Count('id'),
+        earned=Sum('creator_earnings')
+    ).order_by('-earned')
+
+    return render(request, 'FUZEOBS/fuzeobs_creator_codes.html', {
+        'codes': codes,
+        'monthly': monthly,
+        'month_name': now.strftime('%B %Y'),
+    })
+
+@staff_member_required
+@require_http_methods(["POST"])
+def fuzeobs_creator_code_create(request):
+    from .models import CreatorCode
+    from django.contrib.auth import get_user_model
+    data = parse_json_body(request)
+    code = data.get('code', '').strip().upper()
+    name = data.get('creator_name', '').strip()
+    email = data.get('creator_email', '').strip()
+    username = data.get('username', '').strip()
+
+    if not code or not name:
+        return JsonResponse({'success': False, 'error': 'Code and name required'})
+    if CreatorCode.objects.filter(code=code).exists():
+        return JsonResponse({'success': False, 'error': 'Code already exists'})
+
+    user = None
+    if username:
+        try:
+            user = get_user_model().objects.get(username=username)
+        except get_user_model().DoesNotExist:
+            return JsonResponse({'success': False, 'error': f'No user found with username "{username}"'})
+
+    obj = CreatorCode.objects.create(code=code, creator_name=name, creator_email=email, user=user)
+    return JsonResponse({
+        'success': True,
+        'id': obj.id,
+        'code': obj.code,
+        'creator_name': obj.creator_name,
+        'linked_username': user.username if user else None
+    })
+
+@staff_member_required
+@require_http_methods(["POST"])
+def fuzeobs_creator_code_toggle(request):
+    from .models import CreatorCode
+    data = parse_json_body(request)
+    obj = CreatorCode.objects.get(id=data['id'])
+    obj.is_active = not obj.is_active
+    obj.save()
+    return JsonResponse({'success': True, 'is_active': obj.is_active})
+
+@staff_member_required
+@require_http_methods(["POST"])
+def fuzeobs_creator_code_delete(request):
+    from .models import CreatorCode
+    data = parse_json_body(request)
+    CreatorCode.objects.filter(id=data['id']).delete()
+    return JsonResponse({'success': True})
+
+@staff_member_required
+@require_http_methods(["POST"])
+def fuzeobs_creator_code_mark_paid(request):
+    from .models import CreatorCode, CreatorCodeUsage
+    from django.db.models import Sum
+    data = parse_json_body(request)
+    
+    pending = CreatorCodeUsage.objects.filter(
+        code_id=data['id'], paid_out=False
+    ).aggregate(total=Sum('creator_earnings'))['total'] or 0
+    
+    if pending < 10:
+        return JsonResponse({'success': False, 'error': f'Pending amount ${pending:.2f} is below the $10 minimum payout threshold.'})
+    
+    CreatorCodeUsage.objects.filter(code_id=data['id'], paid_out=False).update(paid_out=True)
+    return JsonResponse({'success': True})
+
+@require_http_methods(["GET"])
+def fuzeobs_validate_creator_code(request):
+    from .models import CreatorCode
+    code = request.GET.get('code', '').strip().upper()
+    try:
+        obj = CreatorCode.objects.get(code=code, is_active=True)
+        return JsonResponse({'valid': True, 'creator_name': obj.creator_name})
+    except CreatorCode.DoesNotExist:
+        return JsonResponse({'valid': False})
+
+@login_required
+def fuzeobs_my_creator_code(request):
+    from .models import CreatorCode, CreatorCodeUsage
+    from django.db.models import Sum, Count
+
+    if request.user.is_staff:
+        return redirect('FUZEOBS:creator_codes')
+
+    try:
+        code = CreatorCode.objects.get(user=request.user)
+    except CreatorCode.DoesNotExist:
+        return render(request, 'FUZEOBS/fuzeobs_my_creator_code.html', {'no_code': True})
+
+    monthly = CreatorCodeUsage.objects.filter(code=code).extra(
+        select={'month': "DATE_TRUNC('month', created_at)"}
+    ).values('month').annotate(uses=Count('id'), earned=Sum('creator_earnings')).order_by('-month')
+
+    pending = code.pending_payout()
+    total = code.total_earned()
+
+    return render(request, 'FUZEOBS/fuzeobs_my_creator_code.html', {
+        'code': code,
+        'monthly': monthly,
+        'pending': pending,
+        'total': total,
+    })

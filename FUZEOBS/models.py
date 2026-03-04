@@ -560,3 +560,45 @@ class TelemetryEvent(models.Model):
 
     def __str__(self):
         return f"{self.device_id[:8]}… | {self.event} | {self.created_at:%m/%d %H:%M}"
+
+class CreatorCode(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    creator_name = models.CharField(max_length=100)
+    creator_email = models.EmailField(blank=True)
+    user = models.OneToOneField('ACCOUNTS.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='creator_code')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.code} ({self.creator_name})"
+
+    def total_earned(self):
+        return self.usages.aggregate(total=models.Sum('creator_earnings'))['total'] or 0
+
+    def pending_payout(self):
+        return self.usages.filter(paid_out=False).aggregate(
+            total=models.Sum('creator_earnings')
+        )['total'] or 0
+
+    class Meta:
+        verbose_name = "Creator Code"
+
+
+class CreatorCodeUsage(models.Model):
+    PLAN_CHOICES = [('pro', 'Pro Monthly'), ('3month', '3-Month Pro'), ('lifetime', 'Lifetime')]
+
+    code = models.ForeignKey(CreatorCode, on_delete=models.PROTECT, related_name='usages')
+    user = models.ForeignKey('ACCOUNTS.User', on_delete=models.SET_NULL, null=True, blank=True)
+    plan_type = models.CharField(max_length=20, choices=PLAN_CHOICES)
+    order_amount = models.DecimalField(max_digits=8, decimal_places=2)
+    creator_earnings = models.DecimalField(max_digits=8, decimal_places=2)
+    stripe_session_id = models.CharField(max_length=200, unique=True)
+    paid_out = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.code.code} — {self.plan_type} ${self.creator_earnings}"
+
+    class Meta:
+        verbose_name = "Creator Code Usage"
+        ordering = ['-created_at']

@@ -1025,7 +1025,7 @@
     background: #111;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    max-width: 560px;
+    max-width: 400px;
     width: 100%;
     padding: 28px;
     position: relative;
@@ -1045,13 +1045,10 @@
     border-radius: 10px;
     overflow: hidden;
     background: #000;
-    aspect-ratio: 16 / 9;
 }
 
 .smartscreen-video-wrap video {
     width: 100%;
-    height: 100%;
-    object-fit: contain;
     display: block;
 }
 
@@ -1065,6 +1062,29 @@
 
 .smartscreen-modal-note strong {
     color: rgba(255, 255, 255, 0.85);
+}
+
+.smartscreen-modal-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 10px 16px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.45);
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.smartscreen-modal-link:hover {
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* ===========================================

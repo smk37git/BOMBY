@@ -95,6 +95,9 @@
                                 {% if user.is_admin_user %}
                                 <a href="{% url 'FUZEOBS:analytics' %}">Analytics</a>
                                 {% endif %}
+                                {% if user.creator_code %}
+                                <a href="{% url 'FUZEOBS:my_creator_code' %}">Creator Portal</a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

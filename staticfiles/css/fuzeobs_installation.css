@@ -258,6 +258,34 @@
 /* ===========================================
    Guide Panels & Steps
    =========================================== */
+.install-video-card {
+    margin: 20px auto 10px;
+    padding: 18px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    max-width: 400px;
+}
+
+.install-video-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.install-video-wrap {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.install-video-wrap video {
+    width: 100%;
+    display: block;
+}
 .install-guide {
     display: none;
 }
