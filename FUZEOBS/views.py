@@ -1090,6 +1090,23 @@ Common Issues:
                     {
                         "type": "text",
                         "text": f"Response Style:\n{style_prompt}"
+                    },
+                    {
+                        "type": "text",
+                        "text": """OBS Actions (IMPORTANT):
+If you identify a problem in the user's OBS setup that can be fixed automatically, append ONE action tag at the very end of your response in this exact format:
+[OBS_ACTION:{"command":"SetSceneItemEnabled","params":{"scene_name":"Game Scene","source_name":"Game Capture","enabled":true},"label":"Show Game Capture"}]
+
+Supported commands:
+- SetSceneItemEnabled: params: scene_name, source_name, enabled (bool). Use to show/hide a source.
+- RefreshBrowserSource: params: source_name. Use when a browser source is stale or black.
+- SetCurrentProgramScene: params: scene_name. Use to switch the active scene.
+
+Rules:
+- Only include the tag when you are CONFIDENT about the exact scene_name and source_name from the OBS context provided.
+- Always include a short human-readable label (e.g. "Show Game Capture", "Refresh Chat Widget").
+- Only ONE tag per response. Place it at the very end on its own line after all explanation.
+- If no OBS context is provided or you are unsure of names, do NOT include the tag."""
                     }
                 ] + ([{
                     "type": "text",
