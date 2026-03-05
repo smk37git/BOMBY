@@ -641,7 +641,7 @@ def fuzeobs_ai_chat(request):
         token = auth_header[7:]
         user = get_user_from_token(token)
         if user:
-            tier = user.fuzeobs_tier
+            tier = user.fuzeobs_tier or 'free'
             user_id = f'user_{user.id}'
         else:
             user_id = f'anon_{get_client_ip(request)}'
@@ -1099,36 +1099,66 @@ At the end of your response you may append up to TWO special tags: one OBS_ACTIO
 OBS_ACTION - append ONLY when the user has explicitly asked you to perform an action (e.g. "add", "create", "set", "change", "fix", "move", "mute", "switch"). Do NOT include if you are asking a clarifying question, explaining options, or the user has not confirmed they want the change made:
 [OBS_ACTION:{"command":"SetSceneItemEnabled","params":{"scene_name":"Game Scene","source_name":"Game Capture","enabled":true},"label":"Show Game Capture"}]
 Supported commands:
-- SetSceneItemEnabled: params: scene_name, source_name, enabled (bool) - show/hide a source
-- RefreshBrowserSource: params: source_name - reload a browser source
-- SetCurrentProgramScene: params: scene_name - switch active scene
-- SetInputVolume: params: input_name, volume_db (float, 0.0=unity, -100=silence, max 26) - set volume
-- ToggleInputMute: params: input_name - toggle mute on/off
-- SetInputMute: params: input_name, muted (bool) - explicitly mute or unmute
-- SetSourceFilterEnabled: params: source_name, filter_name, enabled (bool) - toggle a filter
-- SetSourceFilterSettings: params: source_name, filter_name, settings (dict) - tune filter values (e.g. suppression level, compressor threshold)
-- GetInputSettings: params: input_name - read current source settings before modifying
-- SetInputSettings: params: input_name, settings (dict) - change NON-TEXT source properties ONLY (webcam resolution, browser URL, image file, etc.). NEVER use for text sources.
-- SetTextContent: params: source_name, text (string) - THE ONLY correct way to edit text in a Text GDI+/FreeType source. ALWAYS use this instead of SetInputSettings when the user wants to change text. Example: [OBS_ACTION:{"command":"SetTextContent","params":{"source_name":"My Text","text":"Hello Stream"},"label":"Update Text"}]
-- SetSceneItemTransform: params: scene_name, source_name, transform (dict: positionX, positionY, scaleX, scaleY, rotation, cropTop, cropBottom, cropLeft, cropRight) - reposition/resize/crop a source
-- CreateInput: params: scene_name, input_name, input_kind (use CONFIRMED TEXT KIND from context for text sources), input_settings (dict, MUST include "text" key for text sources) - add a new source
-- RemoveInput: params: input_name - permanently delete a source
-- SetCurrentSceneCollection: params: scene_collection_name - switch scene collection
-- DuplicateSceneItem: params: scene_name, source_name, destination_scene_name - copy source to another scene
-- CreateScene: params: scene_name - create a new empty scene
-- RemoveScene: params: scene_name - delete a scene
-- StartStream / StopStream: params: {} - start or stop the live stream
-- StartRecord / StopRecord: params: {} - start or stop recording
-- ToggleReplayBuffer: params: {} - toggle replay buffer
-- SaveReplayBuffer: params: {} - save replay buffer clip
-- StartVirtualCam / StopVirtualCam: params: {} - control virtual camera
-Rules: Only include when CONFIDENT about exact names from OBS context. For audio use names from Audio Inputs section. ONE OBS_ACTION tag per response (can contain multiple commands via batch — but tag still single). Place before DOC_LINK.
-CRITICAL: For multiple simultaneous changes (e.g. lower two audio inputs), emit MULTIPLE [OBS_ACTION:...] tags — one per command. The system executes them all in a single batch when the button is clicked.
-TIER RESTRICTIONS - strictly enforce based on the user's current tier:
-- SetInputSettings/GetInputSettings for encoder or output settings (bitrate, encoder preset, resolution, FPS, rate control): PRO/LIFETIME only. If free tier asks, explain this is a Pro feature and suggest upgrading.
-- CreateScene, RemoveScene, CreateInput, RemoveInput, DuplicateSceneItem, SetCurrentSceneCollection: PRO/LIFETIME only. Structural OBS changes are a Pro feature.
-- SetSceneItemTransform, SetSourceFilterSettings, SetSourceFilterEnabled, audio commands, RefreshBrowserSource, SetTextContent, SetCurrentProgramScene, SetSceneItemEnabled: available to ALL tiers.
-- Stream/record controls (StartStream, StopStream, StartRecord, StopRecord, ToggleReplayBuffer, SaveReplayBuffer, StartVirtualCam, StopVirtualCam): available to ALL tiers.
+COMMAND REFERENCE — use exact param names shown, all values are case-sensitive:
+
+[SCENE / VISIBILITY]
+- SetSceneItemEnabled: scene_name, source_name, enabled (bool) — show/hide a source
+- SetCurrentProgramScene: scene_name — switch active scene
+- RefreshBrowserSource: source_name — reload a browser source
+
+[TEXT SOURCES — GDI+ and FreeType]
+- SetTextContent: source_name, text (string) — ONLY command to change text content. NEVER use SetInputSettings for this.
+  Example: [OBS_ACTION:{"command":"SetTextContent","params":{"source_name":"My Text","text":"Hello Stream"},"label":"Update Text"}]
+- SetTextStyle: source_name + any of: color (#RRGGBB hex), font_size (int pts), bold (bool), italic (bool), underline (bool), strikeout (bool), opacity (0-100 int), align ("left"|"center"|"right"), outline (bool), outline_color (#RRGGBB hex), outline_size (int), word_wrap (bool)
+  ONLY command for text appearance. ALL params optional — only supplied ones change.
+  Example: [OBS_ACTION:{"command":"SetTextStyle","params":{"source_name":"My Text","color":"#0000FF","font_size":48,"bold":true},"label":"Style Text"}]
+
+[AUDIO]
+- SetInputVolume: input_name, volume_db (float: 0.0=unity gain, -100.0=silence, max 26.0)
+- SetInputMute: input_name, muted (bool)
+- ToggleInputMute: input_name
+- SetInputAudioBalance: input_name, balance (float: -1.0=full left, 0.0=center, 1.0=full right)
+- SetInputAudioSyncOffset: input_name, offset_ms (int ms, range -950 to 20000)
+- SetInputAudioMonitorType: input_name, monitor_type ("none"|"monitor_only"|"monitor_and_output")
+
+[FILTERS]
+- SetSourceFilterEnabled: source_name, filter_name, enabled (bool)
+- SetSourceFilterSettings: source_name, filter_name, settings (dict of filter-specific params)
+  Common filter params — Noise Suppression: suppression_level (-60 to 0). Compressor: threshold, ratio, attack, release. Color Correction: brightness (-1.0 to 1.0), contrast (-2.0 to 2.0), saturation (-1.0 to 1.0), hue_shift (0-360).
+
+[TRANSFORMS — position/size/crop]
+- SetSceneItemTransform: scene_name, source_name, transform (dict). Keys: positionX, positionY (pixels), scaleX, scaleY (multiplier, 1.0=native), rotation (degrees), cropTop, cropBottom, cropLeft, cropRight (pixels), alignment (int: 5=top-left, 0=center)
+
+[SOURCE SETTINGS — NON-TEXT ONLY. NEVER for text sources.]
+- GetInputSettings: input_name — read live settings dict before modifying
+- SetInputSettings: input_name, settings (dict) — write settings. Source-specific keys:
+  Browser source: url (string), width (int), height (int), fps (int), css (string), shutdown (bool), restart_when_active (bool)
+  Image source: file (full file path string), unload (bool)
+  Media source: local_file (full path), looping (bool), speed_percent (1-200 int), restart_on_activate (bool), clear_on_media_end (bool)
+  Webcam/capture: device_name (string) — get exact name from GetInputSettings first
+
+[SOURCE / SCENE MANAGEMENT — PRO/LIFETIME only]
+- CreateInput: scene_name, input_name, input_kind (use CONFIRMED kind from context for text), input_settings (dict — include "text" key for text sources)
+- RemoveInput: input_name
+- DuplicateSceneItem: scene_name, source_name, destination_scene_name
+- CreateScene: scene_name
+- RemoveScene: scene_name
+- SetCurrentSceneCollection: scene_collection_name
+
+[STREAM / RECORD / BROADCAST]
+- StartStream / StopStream: {} — go live / end stream
+- StartRecord / StopRecord: {} — start/stop local recording
+- ToggleReplayBuffer / SaveReplayBuffer: {} — replay buffer control
+- StartVirtualCam / StopVirtualCam: {} — virtual camera
+
+Rules: Only emit OBS_ACTION when CONFIDENT about exact source/scene names from OBS context. For audio use names from the Audio Inputs section. Place OBS_ACTION before DOC_LINK.
+CRITICAL: For multiple simultaneous changes emit MULTIPLE [OBS_ACTION:...] tags — one per command. All execute together on button click.
+
+TIER RESTRICTIONS — enforce strictly. The user's tier is stated above as "User Tier: X".
+FREE tier: SetSceneItemEnabled, SetCurrentProgramScene, RefreshBrowserSource, SetInputVolume, SetInputMute, ToggleInputMute, SetInputAudioBalance, SetInputAudioSyncOffset, SetInputAudioMonitorType, SetSourceFilterEnabled, SetSourceFilterSettings, SetSceneItemTransform, SetTextContent, SetTextStyle, StartStream, StopStream, StartRecord, StopRecord, ToggleReplayBuffer, SaveReplayBuffer, StartVirtualCam, StopVirtualCam.
+PRO/LIFETIME only: SetInputSettings, GetInputSettings (for non-text sources/encoder settings), CreateInput, RemoveInput, DuplicateSceneItem, CreateScene, RemoveScene, SetCurrentSceneCollection.
+If a free user requests a PRO/LIFETIME command, explain it requires Pro and suggest upgrading. Do NOT execute the command.
+IMPORTANT: "lifetime" IS a paid tier — treat it identically to "pro" for all feature access.
 
 DOC_LINK - append when your answer maps to a documentation entry:
 [DOC_LINK:{"id":"black-screen","sectionId":"troubleshooting","title":"Black Screen"}]
