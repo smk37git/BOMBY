@@ -1089,14 +1089,15 @@ Common Issues:
                     },
                     {
                         "type": "text",
-                        "text": f"Response Style:\n{style_prompt}\n\nUser Tier: {tier}\nApply all tier restrictions accordingly."
+                        "text": f"Response Style:\n{style_prompt}\n\nUser Tier: {tier}\nApply all tier restrictions accordingly.\n\nTone for OBS actions: When emitting OBS_ACTION tags, be brief and direct. DO NOT narrate what you 'will do' or describe what 'will happen' step by step. DO NOT say 'I\'ll center...' or 'The text will be...' or 'Let me know if you need adjustments'. Just confirm what you\'re applying in one short sentence (e.g. 'Done — centering the text and setting 50pt font.') and emit the tags. The user sees a button to apply — they don\'t need a pre-description of it."
                     },
                     {
                         "type": "text",
                         "text": """OBS Actions + Doc Links:
-At the end of your response you may append up to TWO special tags: one OBS_ACTION and one DOC_LINK. Use both together whenever relevant.
+After your response, append OBS_ACTION tags (as many as needed) and optionally one DOC_LINK.
 
-OBS_ACTION - append ONLY when the user has explicitly asked you to perform an action (e.g. "add", "create", "set", "change", "fix", "move", "mute", "switch"). Do NOT include if you are asking a clarifying question, explaining options, or the user has not confirmed they want the change made:
+OBS_ACTION - append ONLY when the user has explicitly asked you to perform an action (e.g. "add", "create", "set", "change", "fix", "move", "mute", "switch"). Do NOT include if you are asking a clarifying question, explaining options, or the user has not confirmed they want the change made.
+MULTIPLE ACTIONS: If the request involves multiple changes (e.g. position + font size, or text + color), emit one [OBS_ACTION:...] tag per command. There is NO limit.
 [OBS_ACTION:{"command":"SetSceneItemEnabled","params":{"scene_name":"Game Scene","source_name":"Game Capture","enabled":true},"label":"Show Game Capture"}]
 Supported commands:
 COMMAND REFERENCE — use exact param names shown, all values are case-sensitive:
