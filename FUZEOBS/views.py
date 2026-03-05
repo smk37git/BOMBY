@@ -1143,11 +1143,35 @@ COMMAND REFERENCE — use exact param names shown, all values are case-sensitive
 
 [SOURCE SETTINGS — NON-TEXT ONLY. NEVER for text sources.]
 - GetInputSettings: input_name — read live settings dict before modifying
+- GetInputPropertiesListPropertyItems: input_name, property_name — list dropdown options for a property on an existing source. Use property_name="video_device_id" on a video capture source to enumerate all connected cameras/capture cards with their exact IDs.
 - SetInputSettings: input_name, settings (dict) — write settings. Source-specific keys:
   Browser source: url (string), width (int), height (int), fps (int), css (string), shutdown (bool), restart_when_active (bool)
   Image source: file (full file path string), unload (bool)
   Media source: local_file (full path), looping (bool), speed_percent (1-200 int), restart_on_activate (bool), clear_on_media_end (bool)
-  Webcam/capture: device_name (string) — get exact name from GetInputSettings first
+  Webcam/capture — input_kind AND settings fields differ by OS (current platform shown in OBS INPUT_KIND VALUES above):
+
+  Windows (dshow_input):
+    video_device_id: string — the full device ID from Tab 01 context (format: "DisplayName:dshow_path" or just "DisplayName")
+    last_video_device_id: same value as video_device_id
+    res_type: 1
+    resolution: string e.g. "1920x1080"
+    last_resolution: same as resolution
+    activate: true
+
+  macOS (av_capture_input):
+    device: string — the AVFoundation uniqueID from Tab 01 context (UUID-like string, NOT the display name)
+    preset: "AVCaptureSessionPreset1920x1080" | "AVCaptureSessionPreset1280x720" | "AVCaptureSessionPreset3840x2160"
+    use_preset: true
+    NOTE: do NOT include video_device_id, resolution, or res_type — these are Windows-only fields that OBS ignores on Mac
+
+  Linux (v4l2_input):
+    device_id: string — the device path from Tab 01 context e.g. "/dev/video0"
+    resolution: string e.g. "1920x1080" (optional)
+
+  Workflow to get device value:
+    1. FIRST choice: use the webcam from [SELECTED DEVICES from Tab 01 scan] in context — that ID is already in the correct format for the current OS
+    2. SECOND choice: if an existing video capture source exists in OBS, call GetInputPropertiesListPropertyItems with property_name="video_device_id" (Windows) or "device" (Mac) to enumerate connected devices
+    3. If neither available: tell the user to run a scan in Tab 01 or confirm their device name
 
 [SOURCE / SCENE MANAGEMENT]
 - CreateInput: scene_name, input_name, input_kind (use CONFIRMED kind from context for text), input_settings (dict — include "text" key for text sources)
@@ -1163,6 +1187,7 @@ COMMAND REFERENCE — use exact param names shown, all values are case-sensitive
 - SetCurrentSceneTransition: transition_name (string — must be an EXACT name from GetSceneTransitionList, e.g. "Fade", "Cut", "Slide", "Swipe", "Stinger", "Dissolve", "Luma Wipe")
 - SetCurrentSceneTransitionDuration: duration_ms (int milliseconds, typically 300-2000)
 CRITICAL: Transition names are case-sensitive and must exactly match what OBS has installed. Always call GetSceneTransitionList first, then SetCurrentSceneTransition with the confirmed name.
+IMPORTANT: OBS only includes "Fade" and "Cut" by default. Slide, Swipe, Stinger, Luma Wipe and others must be manually added by the user in OBS via the Scene Transitions panel (the + button in the scene transitions dock). If a user asks for a transition that isn't in GetSceneTransitionList results, tell them it's not installed and explain how to add it: in OBS, look for the Scene Transitions panel, click +, and select the transition type.
 
 [STUDIO MODE]
 - GetStudioModeEnabled: {} — check if studio mode is on
@@ -1176,9 +1201,89 @@ CRITICAL: Transition names are case-sensitive and must exactly match what OBS ha
 [FILTERS — create/remove/list]
 - GetSourceFilterList: source_name — list all filters on a source with name, kind, enabled state
 - CreateSourceFilter: source_name, filter_name, filter_kind, filter_settings (dict)
-  Common filter kinds: noise_suppress_filter_v2, noise_gate_filter, compressor_filter, gain_filter,
-  color_filter_v2, chroma_key_filter_v2, scroll_filter, sharpness_filter_v2, crop_filter
 - RemoveSourceFilter: source_name, filter_name
+- SetSourceFilterSettings: source_name, filter_name, settings (dict) — update settings on existing filter
+
+FILTER KINDS AND THEIR EXACT SETTINGS FIELDS:
+
+noise_suppress_filter_v2 (Noise Suppression):
+  method: "speex" | "rnnoise" — ALWAYS specify this. "rnnoise" = good quality (RNNoise), "speex" = low CPU usage
+  suppress_level: int -60 to 0 (dB) — only meaningful for speex, e.g. -30
+  IMPORTANT: NVIDIA noise removal ("denoiser"/"dereverb") requires the NVIDIA Broadcast SDK to be separately installed by the user — it will NOT appear in OBS unless they have it. Never suggest or apply NVIDIA method unless the user explicitly confirms they have the SDK. Default to "rnnoise" for "good quality".
+
+noise_gate_filter (Noise Gate):
+  open_threshold: float dB, e.g. -26.0 (level above which gate opens — set below your voice volume)
+  close_threshold: float dB, e.g. -32.0 (level below which gate closes — set above background noise)
+  attack_time: int ms, e.g. 25
+  hold_time: int ms, e.g. 200
+  release_time: int ms, e.g. 150
+
+compressor_filter (Compressor):
+  ratio: float e.g. 4.0 (compression ratio, 2:1 to 6:1 for voice)
+  threshold: float dB e.g. -18.0
+  attack_time: int ms e.g. 6
+  release_time: int ms e.g. 60
+  output_gain: float dB e.g. 0.0
+  sidechain_source: string (source name or empty string)
+
+gain_filter (Gain):
+  db: float e.g. 5.0
+
+color_filter_v2 (Color Correction):
+  brightness: float -1.0 to 1.0
+  contrast: float -4.0 to 4.0
+  saturation: float -1.0 to 5.0
+  hue_shift: float -180.0 to 180.0
+  opacity: float 0.0 to 1.0
+
+chroma_key_filter_v2 (Chroma Key):
+  key_color_type: "green" | "blue" | "red" | "magenta" | "custom"
+  similarity: int 1-1000 e.g. 400
+  smoothness: int 1-1000 e.g. 80
+  spill: int 1-1000 e.g. 100
+
+crop_filter (Crop/Pad):
+  left: int pixels
+  right: int pixels
+  top: int pixels
+  bottom: int pixels
+
+sharpness_filter_v2 (Sharpness):
+  sharpness: float 0.0 to 1.0
+
+scroll_filter (Scroll):
+  speed_x: float pixels/sec horizontal (negative = scroll left)
+  speed_y: float pixels/sec vertical (negative = scroll up)
+  loop: bool (default true)
+
+render_delay_filter (Render Delay):
+  delay_ms: int milliseconds, e.g. 200
+
+lut_filter (Apply LUT):
+  image_path: string (full path to .cube file)
+  clut_amount: float 0.0 to 1.0 (blend amount)
+
+mask_filter (Image Mask/Blend):
+  type: "mask_alpha_filter.effect" | "mask_color_filter.effect"
+  image_path: string (full path to mask image)
+  stretch: bool
+
+limiter_filter (Limiter — audio):
+  threshold: float dB e.g. 0.0
+  release_time: int ms e.g. 60
+
+expander_filter (Expander/Gate — audio):
+  detector: "RMS" | "peak"
+  presets: "expander" | "gate"
+  ratio: float e.g. 2.0
+  threshold: float dB e.g. -40.0
+  attack_time: int ms e.g. 10
+  release_time: int ms e.g. 50
+  output_gain: float dB e.g. 0.0
+
+invert_polarity_filter (Invert Polarity — audio): no settings needed, empty dict {}
+
+NOTE for SetSourceFilterSettings on existing filters: always call GetSourceFilterList first to confirm the filter name, then emit SetSourceFilterSettings with just the fields you want to change — you don't need to re-send all fields.
 
 [BLEND MODE]
 - SetSceneItemBlendMode: scene_name, source_name, blend_mode
@@ -1203,6 +1308,7 @@ CRITICAL: Transition names are case-sensitive and must exactly match what OBS ha
 [ENCODER / OUTPUT — NOT accessible via WebSocket]
 IMPORTANT PROTOCOL FACT: OBS WebSocket has NO commands to read OR write streaming encoder settings (bitrate, rate control, preset, B-frames, lookahead, keyframe interval, profile). These live in the OBS profile file and are completely outside the WebSocket protocol scope. GetInputSettings does NOT return encoder settings. If a user asks to view or change encoder/output settings via AI commands, explain this limitation and direct them to OBS Settings > Output to change manually.
 
+ANTI-HALLUCINATION: NEVER say you applied, changed, or updated something in OBS without emitting an OBS_ACTION tag. If no tag is emitted, nothing happened. If you are unsure of a required field value (e.g. a filter setting), use GetSourceFilterList first to read current settings before claiming to change them. Do not invent hardware capabilities (e.g. NVIDIA features) that may not be installed.
 Rules: Only emit OBS_ACTION when CONFIDENT about exact source/scene names from OBS context. For audio use names from the Audio Inputs section. If Audio Inputs section is empty (no WebSocket), use OBS default names: mic = "Mic/Aux", desktop = "Desktop Audio" — these are OBS's default global audio device names. Place all OBS_ACTION tags before DOC_LINK.
 CRITICAL MULTI-ACTION: Always emit MULTIPLE [OBS_ACTION:...] tags when the user wants multiple changes. Each tag is one command. They all execute together on one button click. There is NO limit of one tag per response — emit as many as needed.
 CRITICAL TEXT+STYLE: Changing text content AND color/style requires TWO tags: one SetTextContent + one SetTextStyle. Never try to combine them into one tag.
