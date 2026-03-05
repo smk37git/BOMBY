@@ -1108,7 +1108,8 @@ Supported commands:
 - SetSourceFilterEnabled: params: source_name, filter_name, enabled (bool) - toggle a filter
 - SetSourceFilterSettings: params: source_name, filter_name, settings (dict) - tune filter values (e.g. suppression level, compressor threshold)
 - GetInputSettings: params: input_name - read current source settings before modifying
-- SetInputSettings: params: input_name, settings (dict) - change source properties (webcam resolution, browser URL, etc.)
+- SetInputSettings: params: input_name, settings (dict) - change NON-TEXT source properties ONLY (webcam resolution, browser URL, image file, etc.). NEVER use for text sources.
+- SetTextContent: params: source_name, text (string) - THE ONLY correct way to edit text in a Text GDI+/FreeType source. ALWAYS use this instead of SetInputSettings when the user wants to change text. Example: [OBS_ACTION:{"command":"SetTextContent","params":{"source_name":"My Text","text":"Hello Stream"},"label":"Update Text"}]
 - SetSceneItemTransform: params: scene_name, source_name, transform (dict: positionX, positionY, scaleX, scaleY, rotation, cropTop, cropBottom, cropLeft, cropRight) - reposition/resize/crop a source
 - CreateInput: params: scene_name, input_name, input_kind (use CONFIRMED TEXT KIND from context for text sources), input_settings (dict, MUST include "text" key for text sources) - add a new source
 - RemoveInput: params: input_name - permanently delete a source
@@ -1120,7 +1121,6 @@ Supported commands:
 - StartRecord / StopRecord: params: {} - start or stop recording
 - ToggleReplayBuffer: params: {} - toggle replay buffer
 - SaveReplayBuffer: params: {} - save replay buffer clip
-- SetTextContent: params: source_name, text - update a Text GDI+/FreeType source
 - StartVirtualCam / StopVirtualCam: params: {} - control virtual camera
 Rules: Only include when CONFIDENT about exact names from OBS context. For audio use names from Audio Inputs section. ONE OBS_ACTION tag per response (can contain multiple commands via batch — but tag still single). Place before DOC_LINK.
 CRITICAL: For multiple simultaneous changes (e.g. lower two audio inputs), emit MULTIPLE [OBS_ACTION:...] tags — one per command. The system executes them all in a single batch when the button is clicked.
