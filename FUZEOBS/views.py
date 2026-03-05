@@ -1093,26 +1093,25 @@ Common Issues:
                     },
                     {
                         "type": "text",
-                        "text": """OBS Actions (IMPORTANT):
-If you identify a problem in the user's OBS setup that can be fixed automatically, append ONE action tag at the very end of your response in this exact format:
+                        "text": """OBS Actions + Doc Links:
+At the end of your response you may append up to TWO special tags: one OBS_ACTION and one DOC_LINK. Use both together whenever relevant.
+
+OBS_ACTION - append when you can fix something directly in OBS:
 [OBS_ACTION:{"command":"SetSceneItemEnabled","params":{"scene_name":"Game Scene","source_name":"Game Capture","enabled":true},"label":"Show Game Capture"}]
-
 Supported commands:
-- SetSceneItemEnabled: params: scene_name, source_name, enabled (bool). Use to show/hide a source.
-- RefreshBrowserSource: params: source_name. Use when a browser source is stale or black.
-- SetCurrentProgramScene: params: scene_name. Use to switch the active scene.
+- SetSceneItemEnabled: params: scene_name, source_name, enabled (bool)
+- RefreshBrowserSource: params: source_name
+- SetCurrentProgramScene: params: scene_name
+Rules: Only include when CONFIDENT about exact scene_name/source_name from OBS context. ONE tag. Place before DOC_LINK.
 
-OBS Action Rules:
-- Only include the tag when you are CONFIDENT about the exact scene_name and source_name from the OBS context provided.
-- Always include a short human-readable label (e.g. "Show Game Capture", "Refresh Chat Widget").
-- Only ONE OBS_ACTION tag per response. Place it at the very end on its own line after all explanation.
-- If no OBS context is provided or you are unsure of names, do NOT include the tag.
-
-Doc Links (IMPORTANT):
-If your answer relates to a FuzeOBS documentation topic, append ONE doc link tag at the very end of your response in this exact format:
+DOC_LINK - append when your answer maps to a documentation entry:
 [DOC_LINK:{"id":"black-screen","sectionId":"troubleshooting","title":"Black Screen"}]
+Rules: ONE tag. Place at the very end. Only link when it genuinely matches.
 
-Available doc entries (sectionId: itemId — name):
+Combine both when appropriate - e.g. a black screen answer should offer to fix it in OBS AND link the Black Screen doc entry.
+Tag order: OBS_ACTION first, then DOC_LINK.
+
+Available doc entries (sectionId: itemId):
 fuzeobs: tab-system-detection, tab-configuration, tab-optimization, tab-audio-io, tab-scene-setup, tab-widgets-tools, widget-donations, widget-alert-box, widget-chat-box, widget-labels, widget-event-list, widget-goal-bar, widget-viewer-count, widget-sponsor-banner, tab-plugins, tab-documentation, tab-performance-monitor, tab-ai-assistant
 fuzeobs-tools: config-profiles, export-config, import-config, launch-obs, test-websocket, reset-all, settings-modal, quick-start-guide, login-auth, system-status, app-updates
 widgets-donations: donations-paypal, donations-page-settings, donations-tracking, alert-box-event-selection, alert-box-media, alert-box-timing-layout, alert-box-animations, alert-box-text-template, alert-box-text-styling, alert-box-custom-css, chat-box-style-presets, chat-box-platform-filters, chat-box-moderation, chat-box-display, chat-box-notifications, event-list-style-layout, event-list-event-toggles, event-list-message-templates, goal-bar-goal-type, goal-bar-target-config, goal-bar-visual-styling, labels-type-selection, labels-text-styling, viewer-count-config, sponsor-banner-images, sponsor-banner-rotation, sponsor-banner-display, widget-adding-to-obs, widget-custom-css-tips, widget-media-library
@@ -1123,13 +1122,7 @@ advanced: studio-mode, filters, chroma-key, transitions, hotkeys, groups, docks,
 cloudbot: what-is-cloudbot, cloudbot-commands, cloudbot-moderation, cloudbot-loyalty, cloudbot-timers, cloudbot-song-requests, cloudbot-giveaways, cloudbot-variables
 customization: twitch-panels, twitch-banner, youtube-banner, youtube-channel-art, stream-overlays, alerts-widgets, chat-box-overlay, starting-brb-ending-screens
 streaming: stream-settings, output-settings, video-settings, encoder-settings, recording-settings, stream-delay
-troubleshooting: dropped-frames, encoding-overload, rendering-lag, black-screen, empty-webcam, audio-desync, high-cpu-usage, plugin-issues, game-capture-not-working, unable-to-customize-widget, donations-crashing
-
-Doc Link Rules:
-- Only include ONE doc link tag per response.
-- Only link to an entry that genuinely matches what the user asked about.
-- Place it at the very end, after all text and after any OBS_ACTION tag.
-- If no doc entry matches, do NOT include the tag."""
+troubleshooting: dropped-frames, encoding-overload, rendering-lag, black-screen, empty-webcam, audio-desync, high-cpu-usage, plugin-issues, game-capture-not-working, unable-to-customize-widget, donations-crashing"""
                     }
                 ] + ([{
                     "type": "text",
