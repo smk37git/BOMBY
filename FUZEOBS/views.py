@@ -1089,7 +1089,7 @@ Common Issues:
                     },
                     {
                         "type": "text",
-                        "text": f"Response Style:\n{style_prompt}"
+                        "text": f"Response Style:\n{style_prompt}\n\nUser Tier: {tier}\nApply all tier restrictions accordingly."
                     },
                     {
                         "type": "text",
@@ -1105,14 +1105,29 @@ Supported commands:
 - SetInputVolume: params: input_name, volume_db (float, 0.0=unity, -100=silence, max 26) - set volume
 - ToggleInputMute: params: input_name - toggle mute on/off
 - SetInputMute: params: input_name, muted (bool) - explicitly mute or unmute
-- SetSourceFilterEnabled: params: source_name, filter_name, enabled (bool) - toggle a filter (e.g. Noise Suppression, Noise Gate)
+- SetSourceFilterEnabled: params: source_name, filter_name, enabled (bool) - toggle a filter
+- SetSourceFilterSettings: params: source_name, filter_name, settings (dict) - tune filter values (e.g. suppression level, compressor threshold)
+- GetInputSettings: params: input_name - read current source settings before modifying
+- SetInputSettings: params: input_name, settings (dict) - change source properties (webcam resolution, browser URL, etc.)
+- SetSceneItemTransform: params: scene_name, source_name, transform (dict: positionX, positionY, scaleX, scaleY, rotation, cropTop, cropBottom, cropLeft, cropRight) - reposition/resize/crop a source
+- CreateInput: params: scene_name, input_name, input_kind (e.g. browser_source, text_gdiplus), input_settings (dict) - add a new source
+- RemoveInput: params: input_name - permanently delete a source
+- SetCurrentSceneCollection: params: scene_collection_name - switch scene collection
+- DuplicateSceneItem: params: scene_name, source_name, destination_scene_name - copy source to another scene
+- CreateScene: params: scene_name - create a new empty scene
+- RemoveScene: params: scene_name - delete a scene
 - StartStream / StopStream: params: {} - start or stop the live stream
 - StartRecord / StopRecord: params: {} - start or stop recording
 - ToggleReplayBuffer: params: {} - toggle replay buffer
 - SaveReplayBuffer: params: {} - save replay buffer clip
 - SetTextContent: params: source_name, text - update a Text GDI+/FreeType source
 - StartVirtualCam / StopVirtualCam: params: {} - control virtual camera
-Rules: Only include when CONFIDENT about exact names from OBS context. For audio commands use names from the Audio Inputs section. ONE tag. Place before DOC_LINK.
+Rules: Only include when CONFIDENT about exact names from OBS context. For audio use names from Audio Inputs section. ONE tag. Place before DOC_LINK.
+TIER RESTRICTIONS - strictly enforce based on the user's current tier:
+- SetInputSettings/GetInputSettings for encoder or output settings (bitrate, encoder preset, resolution, FPS, rate control): PRO/LIFETIME only. If free tier asks, explain this is a Pro feature and suggest upgrading.
+- CreateScene, RemoveScene, CreateInput, RemoveInput, DuplicateSceneItem, SetCurrentSceneCollection: PRO/LIFETIME only. Structural OBS changes are a Pro feature.
+- SetSceneItemTransform, SetSourceFilterSettings, SetSourceFilterEnabled, audio commands, RefreshBrowserSource, SetTextContent, SetCurrentProgramScene, SetSceneItemEnabled: available to ALL tiers.
+- Stream/record controls (StartStream, StopStream, StartRecord, StopRecord, ToggleReplayBuffer, SaveReplayBuffer, StartVirtualCam, StopVirtualCam): available to ALL tiers.
 
 DOC_LINK - append when your answer maps to a documentation entry:
 [DOC_LINK:{"id":"black-screen","sectionId":"troubleshooting","title":"Black Screen"}]
