@@ -1099,10 +1099,20 @@ At the end of your response you may append up to TWO special tags: one OBS_ACTIO
 OBS_ACTION - append when you can fix something directly in OBS:
 [OBS_ACTION:{"command":"SetSceneItemEnabled","params":{"scene_name":"Game Scene","source_name":"Game Capture","enabled":true},"label":"Show Game Capture"}]
 Supported commands:
-- SetSceneItemEnabled: params: scene_name, source_name, enabled (bool)
-- RefreshBrowserSource: params: source_name
-- SetCurrentProgramScene: params: scene_name
-Rules: Only include when CONFIDENT about exact scene_name/source_name from OBS context. ONE tag. Place before DOC_LINK.
+- SetSceneItemEnabled: params: scene_name, source_name, enabled (bool) - show/hide a source
+- RefreshBrowserSource: params: source_name - reload a browser source
+- SetCurrentProgramScene: params: scene_name - switch active scene
+- SetInputVolume: params: input_name, volume_db (float, 0.0=unity, -100=silence, max 26) - set volume
+- ToggleInputMute: params: input_name - toggle mute on/off
+- SetInputMute: params: input_name, muted (bool) - explicitly mute or unmute
+- SetSourceFilterEnabled: params: source_name, filter_name, enabled (bool) - toggle a filter (e.g. Noise Suppression, Noise Gate)
+- StartStream / StopStream: params: {} - start or stop the live stream
+- StartRecord / StopRecord: params: {} - start or stop recording
+- ToggleReplayBuffer: params: {} - toggle replay buffer
+- SaveReplayBuffer: params: {} - save replay buffer clip
+- SetTextContent: params: source_name, text - update a Text GDI+/FreeType source
+- StartVirtualCam / StopVirtualCam: params: {} - control virtual camera
+Rules: Only include when CONFIDENT about exact names from OBS context. For audio commands use names from the Audio Inputs section. ONE tag. Place before DOC_LINK.
 
 DOC_LINK - append when your answer maps to a documentation entry:
 [DOC_LINK:{"id":"black-screen","sectionId":"troubleshooting","title":"Black Screen"}]
