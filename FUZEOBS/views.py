@@ -1109,9 +1109,17 @@ COMMAND REFERENCE — use exact param names shown, all values are case-sensitive
 [TEXT SOURCES — GDI+ and FreeType]
 - SetTextContent: source_name, text (string) — ONLY command to change text content. NEVER use SetInputSettings for this.
   Example: [OBS_ACTION:{"command":"SetTextContent","params":{"source_name":"My Text","text":"Hello Stream"},"label":"Update Text"}]
-- SetTextStyle: source_name + any of: color (#RRGGBB hex), font_size (int pts), bold (bool), italic (bool), underline (bool), strikeout (bool), opacity (0-100 int), align ("left"|"center"|"right"), outline (bool), outline_color (#RRGGBB hex), outline_size (int), word_wrap (bool)
-  ONLY command for text appearance. ALL params optional — only supplied ones change.
-  Example: [OBS_ACTION:{"command":"SetTextStyle","params":{"source_name":"My Text","color":"#0000FF","font_size":48,"bold":true},"label":"Style Text"}]
+- SetTextStyle: source_name + any of the following optional params (only those provided are changed):
+  color (#RRGGBB hex string e.g. "#FF0000" for red, "#FFFFFF" for white — auto-detects GDI+ vs FreeType2)
+  font_size (int, point size), bold (bool), italic (bool), underline (bool), strikeout (bool)
+  opacity (int 0-100, GDI+ only), align ("left"|"center"|"right", GDI+ only)
+  outline (bool), outline_color (#RRGGBB hex), outline_size (int px), outline_opacity (int 0-100)
+  bk_color (#RRGGBB hex, background color), bk_opacity (int 0-100)
+  word_wrap (bool)
+  CRITICAL: color MUST be a hex string like "#FF0000". The backend converts it to ABGR automatically.
+  CRITICAL: To change BOTH text AND style, emit TWO separate [OBS_ACTION:...] tags — one SetTextContent and one SetTextStyle.
+  Example single style: [OBS_ACTION:{"command":"SetTextStyle","params":{"source_name":"My Text","color":"#FF0000","font_size":48,"bold":true},"label":"Style Text"}]
+  Example text+color (TWO tags): [OBS_ACTION:{"command":"SetTextContent","params":{"source_name":"My Text","text":"Live Now"},"label":"Update Text"}] [OBS_ACTION:{"command":"SetTextStyle","params":{"source_name":"My Text","color":"#FF0000"},"label":"Set Red"}]
 
 [AUDIO]
 - SetInputVolume: input_name, volume_db (float: 0.0=unity gain, -100.0=silence, max 26.0)
@@ -1151,8 +1159,9 @@ COMMAND REFERENCE — use exact param names shown, all values are case-sensitive
 - ToggleReplayBuffer / SaveReplayBuffer: {} — replay buffer control
 - StartVirtualCam / StopVirtualCam: {} — virtual camera
 
-Rules: Only emit OBS_ACTION when CONFIDENT about exact source/scene names from OBS context. For audio use names from the Audio Inputs section. Place OBS_ACTION before DOC_LINK.
-CRITICAL: For multiple simultaneous changes emit MULTIPLE [OBS_ACTION:...] tags — one per command. All execute together on button click.
+Rules: Only emit OBS_ACTION when CONFIDENT about exact source/scene names from OBS context. For audio use names from the Audio Inputs section. Place all OBS_ACTION tags before DOC_LINK.
+CRITICAL MULTI-ACTION: Always emit MULTIPLE [OBS_ACTION:...] tags when the user wants multiple changes. Each tag is one command. They all execute together on one button click. There is NO limit of one tag per response — emit as many as needed.
+CRITICAL TEXT+STYLE: Changing text content AND color/style requires TWO tags: one SetTextContent + one SetTextStyle. Never try to combine them into one tag.
 
 TIER RESTRICTIONS — enforce strictly. The user's tier is stated above as "User Tier: X".
 FREE tier: SetSceneItemEnabled, SetCurrentProgramScene, RefreshBrowserSource, SetInputVolume, SetInputMute, ToggleInputMute, SetInputAudioBalance, SetInputAudioSyncOffset, SetInputAudioMonitorType, SetSourceFilterEnabled, SetSourceFilterSettings, SetSceneItemTransform, SetTextContent, SetTextStyle, StartStream, StopStream, StartRecord, StopRecord, ToggleReplayBuffer, SaveReplayBuffer, StartVirtualCam, StopVirtualCam.
