@@ -236,6 +236,44 @@ FILTER KINDS: noise_suppress_filter_v2, noise_gate_filter, compressor_filter, ga
 [ENCODER / OUTPUT — NOT accessible via WebSocket]
 IMPORTANT PROTOCOL FACT: OBS WebSocket has NO commands to read OR write streaming encoder settings (bitrate, rate control, preset, B-frames, lookahead, keyframe interval, profile). These live in the OBS profile file and are completely outside the WebSocket protocol scope. GetInputSettings does NOT return encoder settings. If a user asks to view or change encoder/output settings via AI commands, explain this limitation and direct them to OBS Settings > Output to change manually.
 
+==============================================================================
+OBS WEBSOCKET V5 — HARD PROTOCOL LIMITATIONS
+Cannot be done via WebSocket. Tell user what to do manually instead.
+==============================================================================
+
+[UI-ONLY — no WebSocket equivalent]
+- Groups: Cannot create, move sources into, or reorder within groups.
+  → Right-click sources in OBS → "Group Selected Items"
+- Source z-order/layer reordering within a scene: No command exists.
+  → Drag sources in the OBS Sources panel
+- Adding new transition types (Slide, Swipe, Stinger, etc.): UI only.
+  → Click + in the Scene Transitions dock in OBS
+- Hotkey assignment: Cannot bind/unbind hotkeys.
+  → OBS Settings > Hotkeys
+- Plugin management: Cannot install, enable, disable, or configure.
+  → Use OBS Plugin Browser or install manually
+- Most OBS Settings panels (General, Advanced, Stream, Output, Audio tabs).
+  Exception: video canvas/FPS via SetVideoSettings (Pro/Lifetime).
+- Profile create/delete/rename: only switch via SetCurrentProfile.
+- Projector windows: cannot open/close.
+- Stats/resource monitoring: no CPU/RAM/FPS from WebSocket.
+  → View > Stats in OBS
+
+[ENCODER & OUTPUT — zero WebSocket access]
+- Streaming/recording encoder: bitrate, rate control (CBR/VBR/CQP), preset,
+  profile, B-frames, lookahead, psycho_aq, multipass, keyframe interval.
+- Audio bitrate, sample rate, channel count, multi-track config.
+- Stream service credentials (stream key, server URL, service type).
+→ All require OBS Settings > Output / Audio / Stream manually.
+
+[OTHER LIMITS]
+- Cannot reorder filters on a source (order fixed at creation).
+- Cannot rename a scene collection (only switch via SetCurrentSceneCollection).
+- Virtual camera: can start/stop, cannot configure output format/resolution.
+- Replay buffer duration: set in OBS Settings > Output > Replay Buffer.
+- Cannot read OBS log files or access plugin-specific APIs (NDI, RTMP server, etc.).
+
+==============================================================================
 ANTI-HALLUCINATION: NEVER say you applied, changed, or updated something in OBS without emitting an OBS_ACTION tag. If no tag is emitted, nothing happened. If you are unsure of a required field value (e.g. a filter setting), use GetSourceFilterList first to read current settings before claiming to change them. Do not invent hardware capabilities (e.g. NVIDIA features) that may not be installed.
 Rules: Only emit OBS_ACTION when CONFIDENT about exact source/scene names from OBS context. For audio use names from the Audio Inputs section. If Audio Inputs section is empty (no WebSocket), use OBS default names: mic = "Mic/Aux", desktop = "Desktop Audio" — these are OBS's default global audio device names. Place all OBS_ACTION tags before DOC_LINK.
 CRITICAL MULTI-ACTION: Always emit MULTIPLE [OBS_ACTION:...] tags when the user wants multiple changes. Each tag is one command. They all execute together on one button click. There is NO limit of one tag per response — emit as many as needed.
@@ -577,7 +615,9 @@ _FILTER_KW   = frozenset(['filter','noise','suppress','compressor','gate','gain'
 _WEBCAM_KW   = frozenset(['webcam','camera','capture device','video capture',
     'dshow','av_capture','v4l2','video device','add camera','add webcam'])
 _WELCOME_KW  = frozenset(['collab','leaderboard','recap','checklist','countdown',
-    'patch notes','review','tip of the day','stream tip','platform connect'])
+    'patch notes','review','tip of the day','stream tip','platform connect',
+    'connect twitch','connect youtube','connect kick','connect facebook',
+    'connect tiktok','connect platform','disconnect platform'])
 
 
 def _build_system_prompt(msg: str) -> list:
