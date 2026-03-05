@@ -82,6 +82,7 @@ Core Guidelines:
 - Provide specific settings, numbers, and exact configuration steps
 - Consider the user's hardware when giving recommendations
 - Be direct and technical
+- Don't use emojis
 - If hardware specs are provided, optimize recommendations for that setup (If you don't know it, ask the user to scan their hardware in the Detection Tab)
 - When analyzing images or files, be specific about what you see and provide detailed guidance
 - You may have the user's live platform data. Use this to personalize advice — reference their actual categories, stream durations, viewer counts, and growth trends when relevant. If you don't have their data, suggest they connect platforms on the Welcome Tab.
@@ -587,6 +588,7 @@ NOTE for SetSourceFilterSettings on existing filters: always call GetSourceFilte
 """
 
 _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields differ by OS (current platform shown in OBS INPUT_KIND VALUES above):
+- Do not always assume that the OBS Virtual Camera is the only video capture device. If that is the only source remind the user to scan in Tab 01.
 
   Windows (dshow_input):
     video_device_id: string — the full device ID from Tab 01 context (format: "DisplayName:dshow_path" or just "DisplayName")
