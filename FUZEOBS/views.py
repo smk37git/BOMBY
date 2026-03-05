@@ -1158,9 +1158,11 @@ COMMAND REFERENCE — use exact param names shown, all values are case-sensitive
 - SetCurrentSceneCollection: scene_collection_name
 
 [TRANSITIONS]
-- GetCurrentSceneTransition: {} — get active transition name, kind, duration
-- SetCurrentSceneTransition: transition_name (string e.g. "Fade", "Cut", "Swipe", "Slide", "Stinger", "Dissolve")
+- GetSceneTransitionList: {} — list ALL transitions installed in OBS with exact names. ALWAYS call this before SetCurrentSceneTransition to confirm the exact name exists.
+- GetCurrentSceneTransition: {} — get active transition name, kind, and duration
+- SetCurrentSceneTransition: transition_name (string — must be an EXACT name from GetSceneTransitionList, e.g. "Fade", "Cut", "Slide", "Swipe", "Stinger", "Dissolve", "Luma Wipe")
 - SetCurrentSceneTransitionDuration: duration_ms (int milliseconds, typically 300-2000)
+CRITICAL: Transition names are case-sensitive and must exactly match what OBS has installed. Always call GetSceneTransitionList first, then SetCurrentSceneTransition with the confirmed name.
 
 [STUDIO MODE]
 - GetStudioModeEnabled: {} — check if studio mode is on
@@ -1198,10 +1200,10 @@ COMMAND REFERENCE — use exact param names shown, all values are case-sensitive
 - ToggleReplayBuffer / SaveReplayBuffer: {} — replay buffer control
 - StartVirtualCam / StopVirtualCam: {} — virtual camera
 
-[ENCODER / OUTPUT — read only via GetInputSettings]
-NOTE: The OBS WebSocket CAN technically modify encoder bitrate, rate control, and output settings but we intentionally block all SET commands for these. Only GET is allowed. If a user asks to change encoder bitrate or video resolution, tell them to go to OBS Settings > Output (or > Video) and change it manually. Do not attempt to use SetInputSettings or any other command to modify encoder settings.
+[ENCODER / OUTPUT — NOT accessible via WebSocket]
+IMPORTANT PROTOCOL FACT: OBS WebSocket has NO commands to read OR write streaming encoder settings (bitrate, rate control, preset, B-frames, lookahead, keyframe interval, profile). These live in the OBS profile file and are completely outside the WebSocket protocol scope. GetInputSettings does NOT return encoder settings. If a user asks to view or change encoder/output settings via AI commands, explain this limitation and direct them to OBS Settings > Output to change manually.
 
-Rules: Only emit OBS_ACTION when CONFIDENT about exact source/scene names from OBS context. For audio use names from the Audio Inputs section. Place all OBS_ACTION tags before DOC_LINK.
+Rules: Only emit OBS_ACTION when CONFIDENT about exact source/scene names from OBS context. For audio use names from the Audio Inputs section. If Audio Inputs section is empty (no WebSocket), use OBS default names: mic = "Mic/Aux", desktop = "Desktop Audio" — these are OBS's default global audio device names. Place all OBS_ACTION tags before DOC_LINK.
 CRITICAL MULTI-ACTION: Always emit MULTIPLE [OBS_ACTION:...] tags when the user wants multiple changes. Each tag is one command. They all execute together on one button click. There is NO limit of one tag per response — emit as many as needed.
 CRITICAL TEXT+STYLE: Changing text content AND color/style requires TWO tags: one SetTextContent + one SetTextStyle. Never try to combine them into one tag.
 
