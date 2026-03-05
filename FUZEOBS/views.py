@@ -1096,7 +1096,7 @@ Common Issues:
                         "text": """OBS Actions + Doc Links:
 At the end of your response you may append up to TWO special tags: one OBS_ACTION and one DOC_LINK. Use both together whenever relevant.
 
-OBS_ACTION - append when you can fix something directly in OBS:
+OBS_ACTION - append ONLY when the user has explicitly asked you to perform an action (e.g. "add", "create", "set", "change", "fix", "move", "mute", "switch"). Do NOT include if you are asking a clarifying question, explaining options, or the user has not confirmed they want the change made:
 [OBS_ACTION:{"command":"SetSceneItemEnabled","params":{"scene_name":"Game Scene","source_name":"Game Capture","enabled":true},"label":"Show Game Capture"}]
 Supported commands:
 - SetSceneItemEnabled: params: scene_name, source_name, enabled (bool) - show/hide a source
@@ -1110,7 +1110,7 @@ Supported commands:
 - GetInputSettings: params: input_name - read current source settings before modifying
 - SetInputSettings: params: input_name, settings (dict) - change source properties (webcam resolution, browser URL, etc.)
 - SetSceneItemTransform: params: scene_name, source_name, transform (dict: positionX, positionY, scaleX, scaleY, rotation, cropTop, cropBottom, cropLeft, cropRight) - reposition/resize/crop a source
-- CreateInput: params: scene_name, input_name, input_kind (e.g. browser_source, text_gdiplus), input_settings (dict) - add a new source
+- CreateInput: params: scene_name, input_name, input_kind (use CONFIRMED TEXT KIND from context for text sources), input_settings (dict, MUST include "text" key for text sources) - add a new source
 - RemoveInput: params: input_name - permanently delete a source
 - SetCurrentSceneCollection: params: scene_collection_name - switch scene collection
 - DuplicateSceneItem: params: scene_name, source_name, destination_scene_name - copy source to another scene
@@ -1122,7 +1122,8 @@ Supported commands:
 - SaveReplayBuffer: params: {} - save replay buffer clip
 - SetTextContent: params: source_name, text - update a Text GDI+/FreeType source
 - StartVirtualCam / StopVirtualCam: params: {} - control virtual camera
-Rules: Only include when CONFIDENT about exact names from OBS context. For audio use names from Audio Inputs section. ONE tag. Place before DOC_LINK.
+Rules: Only include when CONFIDENT about exact names from OBS context. For audio use names from Audio Inputs section. ONE OBS_ACTION tag per response (can contain multiple commands via batch — but tag still single). Place before DOC_LINK.
+CRITICAL: For multiple simultaneous changes (e.g. lower two audio inputs), emit MULTIPLE [OBS_ACTION:...] tags — one per command. The system executes them all in a single batch when the button is clicked.
 TIER RESTRICTIONS - strictly enforce based on the user's current tier:
 - SetInputSettings/GetInputSettings for encoder or output settings (bitrate, encoder preset, resolution, FPS, rate control): PRO/LIFETIME only. If free tier asks, explain this is a Pro feature and suggest upgrading.
 - CreateScene, RemoveScene, CreateInput, RemoveInput, DuplicateSceneItem, SetCurrentSceneCollection: PRO/LIFETIME only. Structural OBS changes are a Pro feature.
