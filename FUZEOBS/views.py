@@ -175,7 +175,7 @@ COMMAND REFERENCE — use exact param names shown, all values are case-sensitive
 [SOURCE SETTINGS — NON-TEXT ONLY. NEVER for text sources.]
 - GetInputSettings: input_name — read live settings dict before modifying
 - GetInputPropertiesListPropertyItems: input_name, property_name — list dropdown options for a property on an existing source. Use property_name="video_device_id" on a video capture source to enumerate all connected cameras/capture cards with their exact IDs.
-- SetInputSettings: input_name, settings (dict) — write settings. Source-specific keys:
+- SetInputSettings: input_name, settings (dict) — CRITICAL: the dict key is "settings" NOT "input_settings". Write settings. Source-specific keys:
   Browser source: url (string), width (int), height (int), fps (int), css (string), shutdown (bool), restart_when_active (bool)
   Image source: file (full file path string), unload (bool)
   Media source: local_file (full path), looping (bool), speed_percent (1-200 int), restart_on_activate (bool), clear_on_media_end (bool)
