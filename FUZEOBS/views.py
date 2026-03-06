@@ -818,7 +818,10 @@ User = get_user_model()
 
 # ====== VERSION / UPDATES ======
 
-FUZEOBS_VERSION = '1.0.1'
+
+# FUZEOBS UPDATES
+
+FUZEOBS_VERSION = '1.1.0'
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
@@ -836,8 +839,6 @@ def fuzeobs_check_update(request):
         'changelog': 'FuzeOBS 1.1.0 | Fuze-AI v2.0',
         'mandatory': False
     })
-
-# FUZEOBS UPDATES
 
 FUZEOBS_PATCH_NOTES = {
     'version': FUZEOBS_VERSION,
