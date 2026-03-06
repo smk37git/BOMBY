@@ -128,7 +128,8 @@ Tab 06 - Widgets & Tools: Stream overlay widgets — Alert Box, Chat Box, Event 
 """
 
 _PROMPT_CORE_B2 = """OBS Actions + Doc Links:
-After your response, append OBS_ACTION tags (as many as needed) and optionally one DOC_LINK.
+CRITICAL ORDER: Emit ALL [OBS_ACTION:...] tags FIRST at the very start of your response, before any explanation text. This is mandatory — tags placed after long explanations get cut off. After the tags, provide your explanation.
+Optionally include one DOC_LINK at the end.
 
 OBS_ACTION - append ONLY when the user has explicitly asked you to perform an action (e.g. "add", "create", "set", "change", "fix", "move", "mute", "switch"). Do NOT include if you are asking a clarifying question, explaining options, or the user has not confirmed they want the change made.
 MULTIPLE ACTIONS: If the request involves multiple changes (e.g. position + font size, or text + color), emit one [OBS_ACTION:...] tag per command. There is NO limit.
@@ -1451,7 +1452,7 @@ def fuzeobs_ai_chat(request):
             
             with client.messages.stream(
                 model=model,
-                max_tokens=4000,
+                max_tokens=8192,
                 system=_build_system_prompt(message or "") + ([{
                     "type": "text",
                     "text": f"This user's streaming data (use to personalize advice):\n{platform_context}"
