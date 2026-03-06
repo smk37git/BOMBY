@@ -2695,6 +2695,15 @@ def fuzeobs_all_users_view(request):
     return render(request, 'FUZEOBS/fuzeobs_all_users.html', context)
 
 @staff_member_required
+def fuzeobs_reset_rate_limit(request, user_id):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST required'}, status=405)
+    today = timezone.localdate().isoformat()
+    cache.delete(f'fuzeobs_pro_rate_{user_id}')
+    cache.delete(f'fuzeobs_daily_{user_id}_{today}')
+    return JsonResponse({'success': True})
+
+@staff_member_required
 @require_http_methods(["GET", "POST"])
 def fuzeobs_reset_analytics(request):
     """Admin view to reset analytics data for testing"""
