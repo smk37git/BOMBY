@@ -1398,6 +1398,38 @@ def fuzeobs_ai_chat(request):
     success = True
     error_msg = ""
     
+    def _extract_obs_actions(text):
+        """Server-side OBS action parser — no reliance on AI formatting order."""
+        actions = []
+        TAG = '[OBS_ACTION:'
+        offset = 0
+        while True:
+            tag_start = text.find(TAG, offset)
+            if tag_start == -1:
+                break
+            json_start = tag_start + len(TAG)
+            depth = 0
+            json_end = -1
+            for i in range(json_start, len(text)):
+                if text[i] == '{':
+                    depth += 1
+                elif text[i] == '}':
+                    depth -= 1
+                    if depth == 0:
+                        json_end = i + 1
+                        break
+            if json_end == -1 or json_end >= len(text) or text[json_end] != ']':
+                offset = json_start
+                continue
+            try:
+                action = json.loads(text[json_start:json_end])
+                if action.get('params') and len(action['params']) > 0 and action.get('command'):
+                    actions.append(action)
+            except Exception:
+                pass
+            offset = json_end + 1
+        return actions
+
     def generate():
         nonlocal input_tokens, output_tokens, success, error_msg
         try:
@@ -1450,6 +1482,7 @@ def fuzeobs_ai_chat(request):
             # Add current user message
             api_messages.append({"role": "user", "content": messages_content})
             
+            full_response_text = ''
             with client.messages.stream(
                 model=model,
                 max_tokens=8192,
@@ -1460,6 +1493,7 @@ def fuzeobs_ai_chat(request):
                 messages=api_messages
             ) as stream:
                 for text in stream.text_stream:
+                    full_response_text += text
                     yield f"data: {json.dumps({'text': text})}\n\n"
                 
                 final_message = stream.get_final_message()
@@ -1469,7 +1503,12 @@ def fuzeobs_ai_chat(request):
                 cache_create = getattr(final_message.usage, 'cache_creation_input_tokens', 0)
                 logger.info(f"AI Cache: read={cache_read}, create={cache_create}, uncached={input_tokens}")
             
-            yield "data: [DONE]\n\n"
+            # Server-side OBS action parsing — reliable regardless of AI tag placement order
+            obs_actions = _extract_obs_actions(full_response_text)
+            if obs_actions:
+                yield f"data: {json.dumps({'obs_actions': obs_actions})}\n\n"
+            
+            yield "data: [DONE]\n\n" 
         except Exception as e:
             success = False
             error_msg = str(e)
