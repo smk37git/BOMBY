@@ -180,10 +180,13 @@ TEXT_SOURCE_DETAIL (for creating new text sources via CreateInput) injected sepa
 """
 
 _CMD_SOURCES = """SOURCE & SCENE MANAGEMENT COMMANDS:
-- CreateInput: scene_name, input_name, input_kind, input_settings (dict)
+- CreateInput: scene_name, input_name, input_kind, input_settings (dict) — creates a NEW source
   TEXT_SOURCE_DETAIL auto-injected for text — exact input_kind per OS + ABGR colors.
   AUDIO_CREATE_DETAIL auto-injected for audio — exact input_kind + device_id format per OS.
   WEBCAM_DETAIL auto-injected for webcam — exact input_kind + device field per OS.
+- CreateSceneItem: scene_name, source_name — adds an EXISTING source to another scene (reference, not copy). Use this when the source already exists and you want it in multiple scenes.
+  Example: [OBS_ACTION:{"command":"CreateSceneItem","params":{"scene_name":"BRB","source_name":"Microphone"},"label":"Add Microphone to BRB"}]
+  CRITICAL: For "add my audio/webcam to these scenes" where the source ALREADY EXISTS, use CreateSceneItem, NOT CreateInput. CreateInput would fail with a duplicate name error.
 - RemoveInput: input_name
 - DuplicateSceneItem: scene_name, source_name, destination_scene_name
 - CreateScene: scene_name
@@ -799,7 +802,9 @@ def _build_system_prompt(msg: str) -> list:
             "Without tags, no Apply button appears and NOTHING happens.\n"
             "Format: [OBS_ACTION:{\"command\":\"...\",\"params\":{...},\"label\":\"...\"}]\n"
             "One tag per action. Multiple actions = multiple tags.\n"
-            "NEVER say 'Click Apply' without emitting at least one tag."
+            "NEVER say 'Click Apply' without emitting at least one tag.\n"
+            "To add an EXISTING source to another scene: use CreateSceneItem (not CreateInput).\n"
+            "Example: [OBS_ACTION:{\"command\":\"CreateSceneItem\",\"params\":{\"scene_name\":\"BRB\",\"source_name\":\"Microphone\"},\"label\":\"Add Mic to BRB\"}]"
         ),
     })
 
@@ -1655,6 +1660,12 @@ def fuzeobs_ai_chat(request):
             
             # Server-side OBS action parsing — reliable regardless of AI tag placement order
             obs_actions = _extract_obs_actions(full_response_text)
+            logger.info(f'[AI Chat] Response length={len(full_response_text)}, OBS actions found={len(obs_actions)}, commands={[a.get("command") for a in obs_actions]}')
+            if not obs_actions and '[OBS_ACTION' in full_response_text:
+                # AI tried to emit tags but parser couldn't extract them — log the raw text around the tag
+                tag_start = full_response_text.find('[OBS_ACTION')
+                snippet = full_response_text[max(0, tag_start - 20):tag_start + 200]
+                logger.warning(f'[AI Chat] OBS_ACTION tag found in text but parser failed to extract! Snippet: {snippet}')
             if obs_actions:
                 yield f"data: {json.dumps({'obs_actions': obs_actions})}\n\n"
             
