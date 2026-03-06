@@ -277,8 +277,8 @@ Cannot be done via WebSocket. Tell user what to do manually instead.
 ==============================================================================
 ANTI-HALLUCINATION: NEVER say you applied, changed, or updated something in OBS without emitting an OBS_ACTION tag. If no tag is emitted, nothing happened. If you are unsure of a required field value (e.g. a filter setting), use GetSourceFilterList first to read current settings before claiming to change them. Do not invent hardware capabilities (e.g. NVIDIA features) that may not be installed.
 LANGUAGE RULE — CRITICAL: OBS_ACTION tags are NOT executed until the user clicks the Apply button. You must NEVER use past tense like "Done!", "I've created", "I've added", "I went ahead and", "I've set up" — because nothing has happened yet. Always use future/conditional language: "I'll create...", "This will add...", "Click Apply to create...". The button is what executes the action. Your message describes what WILL happen, not what HAS happened.
-MISSING APPLY BUTTON RULE — ABSOLUTELY CRITICAL: If your response says "I'll add", "I'll create", "I'll update", "I'll set", "I'll change", "I'll remove", or describes ANY change to OBS, you MUST emit at least one [OBS_ACTION:...] tag. No exceptions. If you write "Click Apply below" but have no OBS_ACTION tag, you have broken the system. Double-check before ending your response: does it describe an OBS change? If yes, there MUST be an OBS_ACTION tag.
 Rules: Only emit OBS_ACTION when CONFIDENT about exact source/scene names from OBS context. For audio use names from the Audio Inputs section. If Audio Inputs section is empty (no WebSocket), use OBS default names: mic = "Mic/Aux", desktop = "Desktop Audio" — these are OBS's default global audio device names. Place all OBS_ACTION tags before DOC_LINK.
+CRITICAL FORMAT RULE: [OBS_ACTION:...] tags must ALWAYS be raw plain text in your response. NEVER wrap them in code fences (``` or `), markdown blocks, or quotes. If they are inside a code block they will be invisible to the UI and no button will appear.
 CRITICAL MULTI-ACTION: Always emit MULTIPLE [OBS_ACTION:...] tags when the user wants multiple changes. Each tag is one command. They all execute together on one button click. There is NO limit of one tag per response — emit as many as needed.
 CRITICAL TEXT+STYLE: Changing text content AND color/style requires TWO tags: one SetTextContent + one SetTextStyle. Never try to combine them into one tag.
 
@@ -586,7 +586,7 @@ NOTE for SetSourceFilterSettings on existing filters: always call GetSourceFilte
 _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields differ by OS (current platform shown in OBS INPUT_KIND VALUES above):
 
   Windows (dshow_input):
-    video_device_id: string — the full device ID from Tab 01 context (format: "DisplayName:dshow_path" or just "DisplayName")
+    video_device_id: string — the full device ID from context
     last_video_device_id: same value as video_device_id
     res_type: 1
     resolution: string e.g. "1920x1080"
@@ -594,20 +594,25 @@ _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields d
     activate: true
 
   macOS (av_capture_input):
-    device: string — the AVFoundation uniqueID from Tab 01 context (UUID-like string, NOT the display name)
+    device: string — the AVFoundation uniqueID from context (UUID-like string, NOT the display name)
     preset: "AVCaptureSessionPreset1920x1080" | "AVCaptureSessionPreset1280x720" | "AVCaptureSessionPreset3840x2160"
     use_preset: true
-    NOTE: do NOT include video_device_id, resolution, or res_type — these are Windows-only fields that OBS ignores on Mac
+    NOTE: do NOT include video_device_id, resolution, or res_type — Windows-only fields
 
   Linux (v4l2_input):
-    device_id: string — the device path from Tab 01 context e.g. "/dev/video0"
+    device_id: string — the device path from context e.g. "/dev/video0"
     resolution: string e.g. "1920x1080" (optional)
 
+  CRITICAL: CreateInput for a webcam MUST include input_settings with the device field populated. A CreateInput without input_settings creates a blank source with no camera attached — this is always wrong and will show a black screen.
+
+  Windows example (replace device name with actual value from context):
+  {"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Webcam","input_kind":"dshow_input","input_settings":{"video_device_id":"USB2.0 HD UVC WebCam","last_video_device_id":"USB2.0 HD UVC WebCam","res_type":1,"resolution":"1280x720","last_resolution":"1280x720","activate":true}},"label":"Add Webcam"}
+
   Workflow to get device value:
-    1. FIRST choice: use "DEFAULT DEVICES" or "USER-PREFERRED DEVICES" from context — IDs already in correct OS format
-    2. SECOND choice: use "ALL DETECTED Webcams" from the user message context — the id field is the correct device ID to use directly
-    3. THIRD choice: call GetInputPropertiesListPropertyItems on an existing video capture source (property_name="video_device_id" Windows / "device" Mac)
-    4. If NONE available: STOP. Do NOT guess. Tell user to go to Tab 01 and click SCAN. Never emit an OBS_ACTION for a webcam without a real device ID."""
+    1. Use "DEFAULT DEVICES" or "USER-PREFERRED DEVICES" from context — IDs already correct for the OS
+    2. Use "ALL DETECTED Webcams" from the user message — the id field is the device ID to use directly
+    3. Call GetInputPropertiesListPropertyItems on an existing video capture source (property_name="video_device_id" Windows / "device" Mac)
+    4. If NONE available: STOP. Tell user to go to Tab 01 and click SCAN. Never emit a webcam OBS_ACTION without a real device ID."""
 
 
 _WIDGET_KW   = frozenset(['widget','alert box','alert','chat box','chatbox','event list',
