@@ -588,7 +588,7 @@ _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields d
   Windows (dshow_input):
     video_device_id: string — the device name ONLY (e.g. "USB2.0 HD UVC WebCam"), NOT the full path with colons
     active: true
-    Those are the ONLY two fields needed. Do NOT include res_type, resolution, last_video_device_id, last_resolution, or activate — they are JSON-file concepts that break WebSocket CreateInput.
+    Those are the ONLY two fields needed. Do NOT include res_type, resolution, last_video_device_id, last_resolution, or activate — the backend handles defaults and activation automatically.
 
   macOS (av_capture_input):
     device: string — the AVFoundation uniqueID from context (UUID-like string, NOT the display name)
@@ -600,9 +600,9 @@ _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields d
     active: true
     Those are the ONLY two fields needed. Do NOT include resolution or any Windows/macOS fields.
 
-  CRITICAL: Every webcam CreateInput MUST include "active": true in input_settings. Without it, OBS creates the source with the correct device selected but in a deactivated state (black screen). The user would have to manually open Properties to activate it.
-  CRITICAL: CreateInput for a webcam MUST include input_settings with the device field populated. Without it, OBS creates a blank source with no camera attached.
-  CRITICAL: Do NOT add extra settings beyond the device ID and active. OBS uses Device Default mode automatically for resolution and FPS. Adding res_type, resolution, last_video_device_id, or similar fields causes conflicts.
+  CRITICAL: Every webcam CreateInput MUST include "active": true in input_settings. Without it, OBS creates the source deactivated (black screen).
+  CRITICAL: CreateInput for a webcam MUST include input_settings with the device field populated. Without it, OBS creates a blank source with no camera.
+  CRITICAL: Do NOT add extra settings beyond the device ID and active. The backend merges OBS defaults and handles activation automatically. Adding res_type, resolution, last_video_device_id, or similar fields causes conflicts.
   CRITICAL: If the device ID in context contains a colon and path (e.g. "Name:\\\\?\\usb#..."), use ONLY the part before the first colon (just the friendly name).
 
   Windows example:
