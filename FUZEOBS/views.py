@@ -837,18 +837,17 @@ def fuzeobs_check_update(request):
         'mandatory': False
     })
 
+# FUZEOBS UPDATES
 
 FUZEOBS_PATCH_NOTES = {
     'version': FUZEOBS_VERSION,
-    'changelog': 'FUZEOBS 1.0.1 RELEASE!',
+    'changelog': 'FUZEOBS 1.1.0 -- Fuze-AI v2.0',
     'notes': [
         '- FuzeOBS Development is now 1.0 after 6 months of work!',
-        '- Multi-Platform Functionality for Windows | MacOS | Linux',
-        '- All tabs working, go through and have fun!',
-        '- Need Help? Go to settings and find the contact resources!',
-        '- Use the Collab Finder to make contacts with other content creators',
-        '- Leave a review if FuzeOBS helped you level up your setup!',
-        '- Updated Analytic Data',
+        '- Upgraded Fuze-AI to now use commands to modify OBS!',
+        '- Fuze-AI Usage Limits Upgraded to 450K Total token context!',
+        '- Changed Fuze-AI Icon to custom Icon!',
+        '- In app fixes and improvements (Start page at top / "enter" to send websocket password)!',
     ]
 }
 
@@ -1403,7 +1402,7 @@ def fuzeobs_ai_chat(request):
         
         if rate_count >= 100:
             def limit_msg():
-                message_data = {'text': '**Rate Limit Reached**\n\nYou\'ve used 100 messages in 5 hours. Please wait before sending more.'}
+                message_data = {'text': '[Rate Limit Reached]\n\nYou\'ve used 100 messages in 5 hours. Please wait before sending more.'}
                 yield "data: " + json.dumps(message_data) + "\n\n"
                 yield "data: [DONE]\n\n"
             response = StreamingHttpResponse(limit_msg(), content_type='text/event-stream; charset=utf-8')
@@ -1416,7 +1415,7 @@ def fuzeobs_ai_chat(request):
     else:  # free tier
         if daily_count >= 5:
             def limit_msg():
-                message_data = {'text': '**Daily Limit Reached**\n\nYou\'ve used your 5 free messages today. Upgrade to Pro for unlimited access.'}
+                message_data = {'text': '[Daily Limit Reached]\n\nYou\'ve used your 5 free messages today. Upgrade to Pro / Lifetime for unlimited access.'}
                 yield "data: " + json.dumps(message_data) + "\n\n"
                 yield "data: [DONE]\n\n"
             response = StreamingHttpResponse(limit_msg(), content_type='text/event-stream; charset=utf-8')
@@ -1431,7 +1430,7 @@ def fuzeobs_ai_chat(request):
     spam_count = cache.get(spam_key, 0)
     if spam_count >= 10:
         def spam_msg():
-            message_data = {'text': '**Slow Down**\n\nMaximum 10 messages per minute. Please wait a moment.'}
+            message_data = {'text': '[Please wait a moment]\n\nMaximum 10 messages per minute.'}
             yield "data: " + json.dumps(message_data) + "\n\n"
             yield "data: [DONE]\n\n"
         response = StreamingHttpResponse(spam_msg(), content_type='text/event-stream; charset=utf-8')
