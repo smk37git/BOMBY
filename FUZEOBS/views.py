@@ -833,7 +833,7 @@ def fuzeobs_check_update(request):
     return JsonResponse({
         'version': FUZEOBS_VERSION,
         'download_url': urls.get(platform, urls['windows']),
-        'changelog': 'FuzeOBS 1.0.1 | Analytics Update',
+        'changelog': 'FuzeOBS 1.1.0 | Fuze-AI v2.0',
         'mandatory': False
     })
 
