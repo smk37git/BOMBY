@@ -586,12 +586,13 @@ NOTE for SetSourceFilterSettings on existing filters: always call GetSourceFilte
 _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields differ by OS (current platform shown in OBS INPUT_KIND VALUES above):
 
   Windows (dshow_input):
-    video_device_id: string — the full device ID from context
-    last_video_device_id: same value as video_device_id
+    video_device_id: string — the COMPLETE device ID string from context, NEVER truncate or shorten it
+    last_video_device_id: SAME value as video_device_id (copy it exactly)
     res_type: 1
-    resolution: string e.g. "1920x1080"
+    resolution: string e.g. "1280x720" — use webcam's max resolution from context, or default 1280x720
     last_resolution: same as resolution
     activate: true
+    active: true
 
   macOS (av_capture_input):
     device: string — the AVFoundation uniqueID from context (UUID-like string, NOT the display name)
@@ -603,17 +604,22 @@ _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields d
     device_id: string — the device path from context e.g. "/dev/video0"
     resolution: string e.g. "1920x1080" (optional)
 
+  CRITICAL: The device ID in context (from USER-PREFERRED DEVICES or ALL DETECTED Webcams) is already in the exact format OBS needs. Copy the ENTIRE string exactly as-is into the input_settings — do NOT extract just the name portion, do NOT shorten it, do NOT modify it in any way. The ID may contain encoded characters like #22 — these are correct and required.
   CRITICAL: CreateInput for a webcam MUST include input_settings with the device field populated. A CreateInput without input_settings creates a blank source with no camera attached — this is always wrong and will show a black screen.
 
-  Windows example (replace device name with actual value from context):
-  {"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Webcam","input_kind":"dshow_input","input_settings":{"video_device_id":"USB2.0 HD UVC WebCam","last_video_device_id":"USB2.0 HD UVC WebCam","res_type":1,"resolution":"1280x720","last_resolution":"1280x720","activate":true}},"label":"Add Webcam"}
+  Windows example — the video_device_id MUST be the complete string from context:
+  {"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Webcam","input_kind":"dshow_input","input_settings":{"video_device_id":"<COPY EXACT FULL ID FROM CONTEXT>","last_video_device_id":"<SAME EXACT FULL ID>","res_type":1,"resolution":"1280x720","last_resolution":"1280x720","activate":true,"active":true}},"label":"Add Webcam"}
 
-  Workflow to get device value:
-    1. Use "DEFAULT DEVICES" or "USER-PREFERRED DEVICES" from context — IDs already correct for the OS
-    2. Use "ALL DETECTED Webcams" from the user message — the id field is the device ID to use directly
-    3. Call GetInputPropertiesListPropertyItems on an existing video capture source (property_name="video_device_id" Windows / "device" Mac)
-    4. If NONE available: STOP. Tell user to go to Tab 01 and click SCAN. Never emit a webcam OBS_ACTION without a real device ID."""
+  macOS example:
+  {"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Webcam","input_kind":"av_capture_input","input_settings":{"device":"<COPY EXACT DEVICE UUID FROM CONTEXT>","use_preset":true,"preset":"AVCaptureSessionPreset1280x720"}},"label":"Add Webcam"}
 
+  Linux example:
+  {"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Webcam","input_kind":"v4l2_input","input_settings":{"device_id":"<COPY EXACT PATH FROM CONTEXT>","resolution":"1280x720"}},"label":"Add Webcam"}
+
+  Where to get the device ID — check in this order:
+    1. USER-PREFERRED DEVICES section — use the Webcam ID value exactly as shown
+    2. ALL DETECTED Webcams in the user message — use the id/video_device_id/device value exactly as shown
+    3. If NEITHER is available: STOP. Tell the user to go to Tab 01 (System Detection) and click SCAN, then select their webcam. Never emit a webcam OBS_ACTION without a real device ID from context."""
 
 _WIDGET_KW   = frozenset(['widget','alert box','alert','chat box','chatbox','event list',
     'goal bar','labels','viewer count','sponsor','donation','css','overlay','styler',
@@ -627,7 +633,6 @@ _WELCOME_KW  = frozenset(['collab','leaderboard','recap','checklist','countdown'
     'patch notes','review','tip of the day','stream tip','platform connect',
     'connect twitch','connect youtube','connect kick','connect facebook',
     'connect tiktok','connect platform','disconnect platform'])
-
 
 def _build_system_prompt(msg: str) -> list:
     """Return system array. Core always included with cache_control.
