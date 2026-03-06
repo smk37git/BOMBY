@@ -587,12 +587,13 @@ _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields d
 - Do not always assume that the OBS Virtual Camera is the only video capture device. If that is the only source remind the user to scan in Tab 01.
 
   Windows (dshow_input):
-    video_device_id: string — the full device ID from Tab 01 context (format: "DisplayName:dshow_path" or just "DisplayName")
+    video_device_id: string — use the device ID exactly as shown in [SELECTED DEVICES] or [ALL DETECTED Webcams] context. The backend will sanitize it automatically.
     last_video_device_id: same value as video_device_id
     res_type: 1
-    resolution: string e.g. "1920x1080"
+    resolution: string — use the device's max_resolution from context, e.g. "1920x1080" or "1280x720"
     last_resolution: same as resolution
     activate: true
+    active: true
 
   macOS (av_capture_input):
     device: string — the AVFoundation uniqueID from Tab 01 context (UUID-like string, NOT the display name)
@@ -605,9 +606,9 @@ _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields d
     resolution: string e.g. "1920x1080" (optional)
 
   Workflow to get device value:
-    1. FIRST choice: use the webcam from [SELECTED DEVICES from Tab 01 scan] in context — that ID is already in the correct format for the current OS
-    2. SECOND choice: if an existing video capture source exists in OBS, call GetInputPropertiesListPropertyItems with property_name="video_device_id" (Windows) or "device" (Mac) to enumerate connected devices
-    3. If neither available: tell the user to run a scan in Tab 01 or confirm their device name"""
+    1. FIRST choice: use the webcam from [SELECTED DEVICES from Tab 01 scan] or [ALL DETECTED Webcams] in context. Use the id value exactly as given — the backend handles path format automatically.
+    2. SECOND choice: if an existing video capture source already exists in OBS, call GetInputSettings on it to read its current video_device_id, then use that same value for CreateInput.
+    3. If neither available: tell the user to run a scan in Tab 01 or confirm their device name."""
 
 _WIDGET_KW   = frozenset(['widget','alert box','alert','chat box','chatbox','event list',
     'goal bar','labels','viewer count','sponsor','donation','css','overlay','styler',
