@@ -736,8 +736,9 @@ _VIDEO_KW        = frozenset(['resolution','canvas','fps','frame rate','1080p','
     'base resolution','set fps','change resolution','set resolution'])
 
 
-def _build_system_prompt(msg: str) -> list:
-    """Core is always cached. CMD slices injected only when keywords match — keeps context lean."""
+def _build_system_prompt(msg: str, return_context_flag: bool = False):
+    """Core is always cached. CMD slices injected only when keywords match — keeps context lean.
+    If return_context_flag=True, returns (blocks, had_action_context) instead of just blocks."""
     ml = msg.lower()
 
     def _kw(kw_set):
@@ -789,6 +790,7 @@ def _build_system_prompt(msg: str) -> list:
     if _kw(_FILTER_CREATE_KW):
         extras.append("[FILTER_CREATE_DETAIL]\n" + _PROMPT_FILTER_CREATE_DETAIL)
 
+    had_action_context = bool(extras)
     if extras:
         blocks.append({"type": "text", "text": "\n\n".join(extras)})
 
@@ -808,6 +810,8 @@ def _build_system_prompt(msg: str) -> list:
         ),
     })
 
+    if return_context_flag:
+        return blocks, had_action_context
     return blocks
 
 User = get_user_model()
@@ -1638,10 +1642,11 @@ def fuzeobs_ai_chat(request):
             api_messages.append({"role": "user", "content": messages_content})
             
             full_response_text = ''
+            _sys_prompt, had_action_context = _build_system_prompt(message or "", return_context_flag=True)
             with client.messages.stream(
                 model=model,
                 max_tokens=8192,
-                system=_build_system_prompt(message or "") + ([{
+                system=_sys_prompt + ([{
                     "type": "text",
                     "text": f"This user's streaming data (use to personalize advice):\n{platform_context}"
                 }] if platform_context else []),
@@ -1666,6 +1671,38 @@ def fuzeobs_ai_chat(request):
                 tag_start = full_response_text.find('[OBS_ACTION')
                 snippet = full_response_text[max(0, tag_start - 20):tag_start + 200]
                 logger.warning(f'[AI Chat] OBS_ACTION tag found in text but parser failed to extract! Snippet: {snippet}')
+            # Silent auto-retry: if action keywords were in the message but model emitted no tags,
+            # make a second fast non-streaming call with assistant prefill to force tag output.
+            # User never sees this - Apply button just appears correctly instead of orange retry.
+            if not obs_actions and had_action_context:
+                logger.info('[AI Chat] No tags emitted despite action context - running silent tag-extraction retry')
+                try:
+                    retry_messages = list(api_messages) + [
+                        {"role": "assistant", "content": full_response_text},
+                        {"role": "user", "content": (
+                            "You described the action above but did NOT emit any [OBS_ACTION:...] tags. "
+                            "Now emit ONLY the required [OBS_ACTION:...] tags for everything you described - no explanation, just the tags."
+                        )},
+                        {"role": "assistant", "content": "[OBS_ACTION:"},
+                    ]
+                    retry_resp = client.messages.create(
+                        model=model,
+                        max_tokens=1024,
+                        system=_sys_prompt,
+                        messages=retry_messages,
+                    )
+                    retry_text = "[OBS_ACTION:" + (retry_resp.content[0].text if retry_resp.content else "")
+                    retry_actions = _extract_obs_actions(retry_text)
+                    if retry_actions:
+                        obs_actions = retry_actions
+                        input_tokens += retry_resp.usage.input_tokens
+                        output_tokens += retry_resp.usage.output_tokens
+                        logger.info(f'[AI Chat] Silent retry succeeded: {[a.get("command") for a in obs_actions]}')
+                    else:
+                        logger.warning(f'[AI Chat] Silent retry also produced no tags. Text: {retry_text[:200]}')
+                except Exception as retry_err:
+                    logger.warning(f'[AI Chat] Silent retry failed: {retry_err}')
+
             if obs_actions:
                 yield f"data: {json.dumps({'obs_actions': obs_actions})}\n\n"
             
