@@ -175,7 +175,7 @@ COMMAND REFERENCE — use exact param names shown, all values are case-sensitive
 [SOURCE SETTINGS — NON-TEXT ONLY. NEVER for text sources.]
 - GetInputSettings: input_name — read live settings dict before modifying
 - GetInputPropertiesListPropertyItems: input_name, property_name — list dropdown options for a property on an existing source. Use property_name="video_device_id" on a video capture source to enumerate all connected cameras/capture cards with their exact IDs.
-- SetInputSettings: input_name, settings (dict) — CRITICAL: the dict key is "settings" NOT "input_settings". Write settings. Source-specific keys:
+- SetInputSettings: input_name, settings (dict) — write settings. Source-specific keys:
   Browser source: url (string), width (int), height (int), fps (int), css (string), shutdown (bool), restart_when_active (bool)
   Image source: file (full file path string), unload (bool)
   Media source: local_file (full path), looping (bool), speed_percent (1-200 int), restart_on_activate (bool), clear_on_media_end (bool)
@@ -277,6 +277,7 @@ Cannot be done via WebSocket. Tell user what to do manually instead.
 ==============================================================================
 ANTI-HALLUCINATION: NEVER say you applied, changed, or updated something in OBS without emitting an OBS_ACTION tag. If no tag is emitted, nothing happened. If you are unsure of a required field value (e.g. a filter setting), use GetSourceFilterList first to read current settings before claiming to change them. Do not invent hardware capabilities (e.g. NVIDIA features) that may not be installed.
 LANGUAGE RULE — CRITICAL: OBS_ACTION tags are NOT executed until the user clicks the Apply button. You must NEVER use past tense like "Done!", "I've created", "I've added", "I went ahead and", "I've set up" — because nothing has happened yet. Always use future/conditional language: "I'll create...", "This will add...", "Click Apply to create...". The button is what executes the action. Your message describes what WILL happen, not what HAS happened.
+MISSING APPLY BUTTON RULE — ABSOLUTELY CRITICAL: If your response says "I'll add", "I'll create", "I'll update", "I'll set", "I'll change", "I'll remove", or describes ANY change to OBS, you MUST emit at least one [OBS_ACTION:...] tag. No exceptions. If you write "Click Apply below" but have no OBS_ACTION tag, you have broken the system. Double-check before ending your response: does it describe an OBS change? If yes, there MUST be an OBS_ACTION tag.
 Rules: Only emit OBS_ACTION when CONFIDENT about exact source/scene names from OBS context. For audio use names from the Audio Inputs section. If Audio Inputs section is empty (no WebSocket), use OBS default names: mic = "Mic/Aux", desktop = "Desktop Audio" — these are OBS's default global audio device names. Place all OBS_ACTION tags before DOC_LINK.
 CRITICAL MULTI-ACTION: Always emit MULTIPLE [OBS_ACTION:...] tags when the user wants multiple changes. Each tag is one command. They all execute together on one button click. There is NO limit of one tag per response — emit as many as needed.
 CRITICAL TEXT+STYLE: Changing text content AND color/style requires TWO tags: one SetTextContent + one SetTextStyle. Never try to combine them into one tag.
@@ -603,9 +604,10 @@ _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields d
     resolution: string e.g. "1920x1080" (optional)
 
   Workflow to get device value:
-    1. FIRST choice: use the webcam from [SELECTED DEVICES from Tab 01 scan] in context — that ID is already in the correct format for the current OS
-    2. SECOND choice: if an existing video capture source exists in OBS, call GetInputPropertiesListPropertyItems with property_name="video_device_id" (Windows) or "device" (Mac) to enumerate connected devices
-    3. If neither available: tell the user to run a scan in Tab 01 or confirm their device name"""
+    1. FIRST choice: use "DEFAULT DEVICES" or "USER-PREFERRED DEVICES" from context — IDs already in correct OS format
+    2. SECOND choice: use "ALL DETECTED Webcams" from the user message context — the id field is the correct device ID to use directly
+    3. THIRD choice: call GetInputPropertiesListPropertyItems on an existing video capture source (property_name="video_device_id" Windows / "device" Mac)
+    4. If NONE available: STOP. Do NOT guess. Tell user to go to Tab 01 and click SCAN. Never emit an OBS_ACTION for a webcam without a real device ID."""
 
 
 _WIDGET_KW   = frozenset(['widget','alert box','alert','chat box','chatbox','event list',
