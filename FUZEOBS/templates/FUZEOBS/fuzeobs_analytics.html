@@ -158,10 +158,7 @@
                     <td><span class="tier-{{ u.user__fuzeobs_tier }}">{{ u.user__fuzeobs_tier|upper }}</span></td>
                     <td>{{ u.total_requests }}</td>
                     <td>${{ u.total_cost|floatformat:4 }}</td>
-                    <td>
-                        <a href="{% url 'FUZEOBS:user_detail' u.user__id %}" class="view-link">View Details &rarr;</a>
-                        <button class="ann-delete-btn reset-limit-btn" data-user-id="{{ u.user__id }}" style="margin-left:8px;">Reset Limit</button>
-                    </td>
+                    <td><a href="{% url 'FUZEOBS:user_detail' u.user__id %}" class="view-link">View Details &rarr;</a></td>
                 </tr>
                 {% empty %}
                 <tr>
@@ -308,20 +305,6 @@ document.getElementById('announcements-tbody').addEventListener('click', functio
             if (data.success) row.remove();
         });
     }
-});
-
-document.addEventListener('click', function(e) {
-    var btn = e.target.closest('.reset-limit-btn');
-    if (!btn) return;
-    var userId = btn.getAttribute('data-user-id');
-    if (!confirm('Reset AI rate limits for this user?')) return;
-    fetch('/fuzeobs/analytics/user/' + userId + '/reset-rate-limit/', {
-        method: 'POST',
-        headers: {'X-CSRFToken': csrfToken}
-    }).then(function(r) { return r.json(); }).then(function(data) {
-        if (data.success) alert('Rate limits reset.');
-        else alert(data.error || 'Failed');
-    });
 });
 
 document.addEventListener('DOMContentLoaded', function() {

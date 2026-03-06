@@ -586,34 +586,38 @@ NOTE for SetSourceFilterSettings on existing filters: always call GetSourceFilte
 _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields differ by OS (current platform shown in OBS INPUT_KIND VALUES above):
 
   Windows (dshow_input):
-    video_device_id: string — the device name ONLY (e.g. "USB2.0 HD UVC WebCam"), NOT the full path
-    That is the ONLY field needed. Do NOT include res_type, resolution, last_video_device_id, activate, or active — OBS uses Device Default mode automatically.
+    video_device_id: string — the device name ONLY (e.g. "USB2.0 HD UVC WebCam"), NOT the full path with colons
+    active: true
+    Those are the ONLY two fields needed. Do NOT include res_type, resolution, last_video_device_id, last_resolution, or activate — they are JSON-file concepts that break WebSocket CreateInput.
 
   macOS (av_capture_input):
-    device: string — the AVFoundation uniqueID from context
-    Those are the only fields needed.
+    device: string — the AVFoundation uniqueID from context (UUID-like string, NOT the display name)
+    active: true
+    Those are the ONLY two fields needed. Do NOT include use_preset, preset, or any Windows fields.
 
   Linux (v4l2_input):
     device_id: string — the device path from context e.g. "/dev/video0"
-    That is the only field needed.
+    active: true
+    Those are the ONLY two fields needed. Do NOT include resolution or any Windows/macOS fields.
 
-  CRITICAL: CreateInput for a webcam MUST include input_settings with the device field. Without it, OBS creates a blank source with no camera — black screen.
-  CRITICAL: Do NOT add extra settings like res_type, resolution, last_video_device_id, activate, active. These break WebSocket CreateInput. OBS handles defaults automatically.
-  CRITICAL: If the device ID in context contains a colon and path (e.g. "Name:\\\\?\\usb#..."), use ONLY the part before the first colon (just the name).
+  CRITICAL: Every webcam CreateInput MUST include "active": true in input_settings. Without it, OBS creates the source with the correct device selected but in a deactivated state (black screen). The user would have to manually open Properties to activate it.
+  CRITICAL: CreateInput for a webcam MUST include input_settings with the device field populated. Without it, OBS creates a blank source with no camera attached.
+  CRITICAL: Do NOT add extra settings beyond the device ID and active. OBS uses Device Default mode automatically for resolution and FPS. Adding res_type, resolution, last_video_device_id, or similar fields causes conflicts.
+  CRITICAL: If the device ID in context contains a colon and path (e.g. "Name:\\\\?\\usb#..."), use ONLY the part before the first colon (just the friendly name).
 
   Windows example:
-  {"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Webcam","input_kind":"dshow_input","input_settings":{"video_device_id":"USB2.0 HD UVC WebCam"}},"label":"Add Webcam"}
+  [OBS_ACTION:{"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Webcam","input_kind":"dshow_input","input_settings":{"video_device_id":"USB2.0 HD UVC WebCam","active":true}},"label":"Add Webcam"}]
 
   macOS example:
-  {"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Webcam","input_kind":"av_capture_input","input_settings":{"device":"<device UUID from context>"}},"label":"Add Webcam"}
+  [OBS_ACTION:{"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Webcam","input_kind":"av_capture_input","input_settings":{"device":"<device UUID from context>","active":true}},"label":"Add Webcam"}]
 
   Linux example:
-  {"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Webcam","input_kind":"v4l2_input","input_settings":{"device_id":"/dev/video0"}},"label":"Add Webcam"}
+  [OBS_ACTION:{"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Webcam","input_kind":"v4l2_input","input_settings":{"device_id":"/dev/video0","active":true}},"label":"Add Webcam"}]
 
   Where to get the device name:
-    1. USER-PREFERRED DEVICES — use the Webcam name (part before colon if it has a path)
+    1. USER-PREFERRED DEVICES — use the Webcam name (part before the first colon if it contains a path)
     2. ALL DETECTED Webcams in the user message — use the device name
-    3. If NEITHER available: tell user to go to Tab 01 and click SCAN. Never emit a webcam OBS_ACTION without a real device name."""
+    3. If NEITHER available: STOP. Tell the user to go to Tab 01 (System Detection) and click SCAN. Never emit a webcam OBS_ACTION without a real device name from context."""
 
 _WIDGET_KW   = frozenset(['widget','alert box','alert','chat box','chatbox','event list',
     'goal bar','labels','viewer count','sponsor','donation','css','overlay','styler',
@@ -2693,15 +2697,6 @@ def fuzeobs_all_users_view(request):
         'page_obj': page_obj,
     }
     return render(request, 'FUZEOBS/fuzeobs_all_users.html', context)
-
-@staff_member_required
-def fuzeobs_reset_rate_limit(request, user_id):
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'error': 'POST required'}, status=405)
-    today = timezone.localdate().isoformat()
-    cache.delete(f'fuzeobs_pro_rate_{user_id}')
-    cache.delete(f'fuzeobs_daily_{user_id}_{today}')
-    return JsonResponse({'success': True})
 
 @staff_member_required
 @require_http_methods(["GET", "POST"])
