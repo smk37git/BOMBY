@@ -184,7 +184,11 @@ COMMAND REFERENCE — use exact param names shown, all values are case-sensitive
 
 
 [SOURCE / SCENE MANAGEMENT]
-- CreateInput: scene_name, input_name, input_kind (use CONFIRMED kind from context for text), input_settings (dict — include "text" key for text sources)
+- CreateInput: scene_name, input_name, input_kind, input_settings (dict)
+  TEXT sources: TEXT_SOURCE_DETAIL auto-injected with exact input_kind per OS and ABGR color values.
+  AUDIO sources: AUDIO_CREATE_DETAIL auto-injected with exact input_kind and device_id format per OS.
+  WEBCAM/video: WEBCAM_DETAIL auto-injected with exact input_kind and device field per OS.
+  FILTER creation: FILTER_CREATE_DETAIL auto-injected with ready-to-use examples for all filter types.
 - RemoveInput: input_name
 - DuplicateSceneItem: scene_name, source_name, destination_scene_name
 - CreateScene: scene_name
@@ -611,14 +615,153 @@ _PROMPT_WEBCAM_DETAIL = """  Webcam/capture — input_kind AND settings fields d
     2. SECOND choice: if an existing video capture source already exists in OBS, call GetInputSettings on it to read its current video_device_id, then use that same value for CreateInput.
     3. If neither available: tell the user to run a scan in Tab 01 or confirm their device name."""
 
+
+_PROMPT_AUDIO_DETAIL = """AUDIO SOURCE CREATION — exact CreateInput parameters by OS:
+
+Windows (wasapi_input_capture for mic, wasapi_output_capture for desktop audio):
+  CreateInput fields:
+    input_kind: "wasapi_input_capture" (microphone) OR "wasapi_output_capture" (desktop/speakers)
+    input_settings: {"device_id": "<GUID from context>"}
+    Device ID format: "{0.0.1.00000000}.{xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx}"
+    Input GUID prefix: {0.0.1...} — Output GUID prefix: {0.0.0...}
+  Example mic: [OBS_ACTION:{"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Microphone","input_kind":"wasapi_input_capture","input_settings":{"device_id":"{0.0.1.00000000}.{your-guid-here}"}},"label":"Add Microphone"}]
+  Example desktop: [OBS_ACTION:{"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Desktop Audio","input_kind":"wasapi_output_capture","input_settings":{"device_id":"{0.0.0.00000000}.{your-guid-here}"}},"label":"Add Desktop Audio"}]
+
+macOS (coreaudio_input_capture for mic, coreaudio_output_capture for desktop):
+  input_settings: {"device_uid": "<UID from context>"}
+  Example: [OBS_ACTION:{"command":"CreateInput","params":{"scene_name":"Scene","input_name":"Microphone","input_kind":"coreaudio_input_capture","input_settings":{"device_uid":"BuiltInMicrophoneDevice"}},"label":"Add Microphone"}]
+
+Linux (pulse_input_capture for mic, pulse_output_capture for desktop):
+  input_settings: {"device_id": "<device from context or empty string for default>"}
+
+CRITICAL RULES FOR AUDIO:
+- ALWAYS use the exact device_id/device_uid from the [SYSTEM CONTEXT] provided. Never invent GUIDs.
+- If no device IDs are in context, emit the tag with device_id "" (empty string) — OBS will use the default device.
+- Input (mic) and output (desktop) use DIFFERENT input_kind values. Never mix them.
+- You can add both in the same response with TWO separate [OBS_ACTION:...] tags.
+- After creating, you can set volume with SetInputVolume and mute with SetInputMute.
+"""
+
+
+_PROMPT_TEXT_SOURCE_DETAIL = """TEXT SOURCE CREATION — exact CreateInput parameters by OS:
+
+Windows: input_kind = "text_gdiplus"
+  input_settings keys: text (string), font (dict with face/size/flags/style), color (ABGR int — use 0xFFFFFFFF for white, 0xFF0000FF for red, 0xFF00FF00 for green, 0xFFFFFF00 for yellow, 0xFF0000FF for blue), color2 (gradient end, same format), gradient (bool), outline (bool), outline_color (ABGR int), outline_size (int), bk_color (ABGR int), bk_opacity (int 0-100), align ("left"|"center"|"right"), valign ("top"|"center"|"bottom"), vertical (bool), word_wrap (bool)
+  CRITICAL: color for GDI+ is ABGR int, NOT hex string. White=4294967295, Red=4278190335, Green=4278255360, Yellow=4278255615, Blue=4294901760, Black=4278190080
+  Example white bold centered text: [OBS_ACTION:{"command":"CreateInput","params":{"scene_name":"Scene","input_name":"My Text","input_kind":"text_gdiplus","input_settings":{"text":"STARTING SOON","font":{"face":"Arial","size":72,"flags":1,"style":"Bold"},"color":4294967295,"align":"center","valign":"center","word_wrap":true}},"label":"Add Text Source"}]
+
+macOS / Linux: input_kind = "text_ft2_source"
+  input_settings keys: text (string), font (dict with face/size/flags/style), color (ABGR int, same as above), color2, outline (bool), drop_shadow (bool), word_wrap (bool), from_file (bool), text_file (path string)
+  Example: [OBS_ACTION:{"command":"CreateInput","params":{"scene_name":"Scene","input_name":"My Text","input_kind":"text_ft2_source","input_settings":{"text":"STARTING SOON","font":{"face":"Arial","size":72,"flags":1,"style":"Bold"},"color":4294967295}},"label":"Add Text Source"}]
+
+FONT FLAGS: 0=Normal, 1=Bold, 2=Italic, 3=Bold+Italic, 4=Underline, 8=Strikeout
+ABGR COLOR REFERENCE (most common):
+  White:  4294967295  |  Black: 4278190080  |  Red:    4278190335
+  Green:  4278255360  |  Blue:  4294901760  |  Yellow: 4278255615
+  Orange: 4278225407  |  Purple:4286578815  |  Cyan:   4294967040
+NOTE: After CreateInput for a text source, use SetTextStyle to change color instead of recreating — SetTextStyle accepts #RRGGBB hex and converts automatically.
+"""
+
+_PROMPT_TRANSFORM_DETAIL = """SCENE ITEM TRANSFORM — complete parameter reference:
+
+SetSceneItemTransform keys (all optional — only include what you're changing):
+  positionX, positionY: float pixels from top-left of canvas. Canvas center 1920x1080 = 960,540
+  scaleX, scaleY: float multiplier. 1.0=native size. 0.5=half. 2.0=double.
+  rotation: float degrees clockwise. 0=upright, 90=rotated right, -90=rotated left, 180=upside down
+  cropTop, cropBottom, cropLeft, cropRight: int pixels to crop from each edge
+  width, height: float — set explicit pixel size (overrides scale if both used)
+  
+  alignment: int bitmask for the source's ANCHOR POINT relative to positionX/positionY:
+    5 = top-left (default), 4 = top-center, 6 = top-right
+    1 = center-left,        0 = center,     2 = center-right  
+    9 = bottom-left,        8 = bottom-center, 10 = bottom-right
+
+  boundsType: string — how source fits within its bounds box:
+    "OBS_BOUNDS_NONE"         — no bounds, use scale
+    "OBS_BOUNDS_STRETCH"      — stretch to fill bounds exactly
+    "OBS_BOUNDS_SCALE_INNER"  — scale to fit inside bounds (letterbox/pillarbox)
+    "OBS_BOUNDS_SCALE_OUTER"  — scale to fill bounds (may crop)
+    "OBS_BOUNDS_SCALE_TO_WIDTH"  — scale to match bounds width
+    "OBS_BOUNDS_SCALE_TO_HEIGHT" — scale to match bounds height
+    "OBS_BOUNDS_MAX_ONLY"     — only shrink, never enlarge
+  boundsWidth, boundsHeight: float — size of the bounds box when boundsType is set
+
+COMMON POSITIONING EXAMPLES:
+  Full-screen 1920x1080: positionX=0, positionY=0, scaleX=1.0, scaleY=1.0, alignment=5
+  Centered on canvas:    positionX=960, positionY=540, alignment=0
+  Bottom-right corner:   positionX=1920, positionY=1080, alignment=10
+  Top-right corner:      positionX=1920, positionY=0, alignment=6
+  Small overlay (300x200 top-right): positionX=1620, positionY=0, width=300, height=200, alignment=5
+
+Example: [OBS_ACTION:{"command":"SetSceneItemTransform","params":{"scene_name":"Scene","source_name":"Webcam","transform":{"positionX":960,"positionY":540,"alignment":0,"scaleX":0.5,"scaleY":0.5}},"label":"Center Webcam at Half Size"}]
+"""
+
+_PROMPT_FILTER_CREATE_DETAIL = """FILTER CREATION — exact CreateSourceFilter parameters:
+
+CreateSourceFilter required params: source_name, filter_name (your chosen name), filter_kind (exact string below), filter_settings (dict)
+
+READY-TO-USE EXAMPLES (copy and adapt):
+
+Noise Suppression (RNNoise — best quality):
+[OBS_ACTION:{"command":"CreateSourceFilter","params":{"source_name":"Mic/Aux","filter_name":"Noise Suppression","filter_kind":"noise_suppress_filter_v2","filter_settings":{"method":"rnnoise","suppress_level":-30}},"label":"Add Noise Suppression"}]
+
+Noise Gate:
+[OBS_ACTION:{"command":"CreateSourceFilter","params":{"source_name":"Mic/Aux","filter_name":"Noise Gate","filter_kind":"noise_gate_filter","filter_settings":{"open_threshold":-26.0,"close_threshold":-32.0,"attack_time":25,"hold_time":200,"release_time":150}},"label":"Add Noise Gate"}]
+
+Compressor (voice):
+[OBS_ACTION:{"command":"CreateSourceFilter","params":{"source_name":"Mic/Aux","filter_name":"Compressor","filter_kind":"compressor_filter","filter_settings":{"ratio":4.0,"threshold":-18.0,"attack_time":6,"release_time":60,"output_gain":0.0,"sidechain_source":""}},"label":"Add Compressor"}]
+
+Gain (+5dB boost):
+[OBS_ACTION:{"command":"CreateSourceFilter","params":{"source_name":"Mic/Aux","filter_name":"Gain","filter_kind":"gain_filter","filter_settings":{"db":5.0}},"label":"Add Gain"}]
+
+Color Correction (on a video source):
+[OBS_ACTION:{"command":"CreateSourceFilter","params":{"source_name":"Webcam","filter_name":"Color Correction","filter_kind":"color_filter_v2","filter_settings":{"brightness":0.0,"contrast":0.0,"saturation":0.0,"hue_shift":0.0,"opacity":1.0}},"label":"Add Color Correction"}]
+
+Chroma Key (green screen):
+[OBS_ACTION:{"command":"CreateSourceFilter","params":{"source_name":"Webcam","filter_name":"Green Screen","filter_kind":"chroma_key_filter_v2","filter_settings":{"key_color_type":"green","similarity":400,"smoothness":80,"spill":100}},"label":"Add Chroma Key"}]
+
+Sharpness:
+[OBS_ACTION:{"command":"CreateSourceFilter","params":{"source_name":"Webcam","filter_name":"Sharpness","filter_kind":"sharpness_filter_v2","filter_settings":{"sharpness":0.5}},"label":"Add Sharpness"}]
+
+Crop/Pad:
+[OBS_ACTION:{"command":"CreateSourceFilter","params":{"source_name":"Game Capture","filter_name":"Crop","filter_kind":"crop_filter","filter_settings":{"left":0,"right":0,"top":0,"bottom":0}},"label":"Add Crop"}]
+
+Render Delay:
+[OBS_ACTION:{"command":"CreateSourceFilter","params":{"source_name":"Webcam","filter_name":"Render Delay","filter_kind":"render_delay_filter","filter_settings":{"delay_ms":200}},"label":"Add Render Delay"}]
+
+IMPORTANT WORKFLOW:
+1. Always call GetSourceFilterList first to check if a filter already exists before creating a duplicate.
+2. Use exact source name from OBS context (Audio Inputs section for audio sources, scene sources for video).
+3. For audio filters (noise suppression, gate, compressor, gain) — source_name is the AUDIO SOURCE name (e.g. "Mic/Aux", "Microphone", "Desktop Audio"), NOT the scene name.
+4. filter_name is your chosen display name — can be anything descriptive.
+"""
+
 _WIDGET_KW   = frozenset(['widget','alert box','alert','chat box','chatbox','event list',
     'goal bar','labels','viewer count','sponsor','donation','css','overlay','styler',
     'browser source','stream overlay','fuzeobs widget'])
 _FILTER_KW   = frozenset(['filter','noise','suppress','compressor','gate','gain',
     'chroma','crop','sharpness','scroll','lut','mask','limiter','expander',
-    'reverb','color correct','color grading'])
+    'reverb','color correct','color grading','add filter','create filter',
+    'green screen','color correction','render delay'])
 _WEBCAM_KW   = frozenset(['webcam','camera','capture device','video capture',
     'dshow','av_capture','v4l2','video device','add camera','add webcam'])
+_AUDIO_KW    = frozenset(['add audio','add mic','add microphone','add desktop audio','add speaker',
+    'wasapi','coreaudio','pulse_input','audio source','audio input','audio output',
+    'create audio','microphone source','desktop audio source'])
+_TEXT_SOURCE_KW = frozenset(['add text','create text','text source','add label','starting soon',
+    'brb','be right back','ending soon','offline screen','title text','stream title',
+    'text_gdiplus','text_ft2','gdi','freetype','add a text','create a text',
+    'add some text','add words','add caption'])
+_TRANSFORM_KW = frozenset(['move','position','resize','scale','rotate','rotation','crop',
+    'place','center','align','layout','fit','stretch','fullscreen','full screen',
+    'full-screen','corner','bottom right','top right','top left','bottom left',
+    'size','bigger','smaller','larger','shrink','grow','bounds','transform',
+    'picture in picture','pip','overlay position','source size'])
+_FILTER_CREATE_KW = frozenset(['add filter','create filter','noise suppression','noise gate',
+    'compressor','add compressor','add noise','suppress','green screen','chroma key',
+    'color correction','color grading','sharpen','sharpness','crop filter','gain filter',
+    'add gain','render delay','apply filter','put a filter','add a filter',
+    'remove background','background removal','audio filter','video filter'])
 _WELCOME_KW  = frozenset(['collab','leaderboard','recap','checklist','countdown',
     'patch notes','review','tip of the day','stream tip','platform connect',
     'connect twitch','connect youtube','connect kick','connect facebook',
@@ -651,6 +794,14 @@ def _build_system_prompt(msg: str) -> list:
         extras.append("[FILTER_DETAIL]\n" + _PROMPT_FILTER_DETAIL)
     if _kw(_WEBCAM_KW):
         extras.append("[WEBCAM_DETAIL]\n" + _PROMPT_WEBCAM_DETAIL)
+    if _kw(_AUDIO_KW):
+        extras.append("[AUDIO_CREATE_DETAIL]\n" + _PROMPT_AUDIO_DETAIL)
+    if _kw(_TEXT_SOURCE_KW):
+        extras.append("[TEXT_SOURCE_DETAIL]\n" + _PROMPT_TEXT_SOURCE_DETAIL)
+    if _kw(_TRANSFORM_KW):
+        extras.append("[TRANSFORM_DETAIL]\n" + _PROMPT_TRANSFORM_DETAIL)
+    if _kw(_FILTER_CREATE_KW):
+        extras.append("[FILTER_CREATE_DETAIL]\n" + _PROMPT_FILTER_CREATE_DETAIL)
 
     if extras:
         blocks.append({"type": "text", "text": "\n\n".join(extras)})
