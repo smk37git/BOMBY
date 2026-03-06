@@ -697,7 +697,8 @@ _WELCOME_KW      = frozenset(['collab','leaderboard','recap','checklist','countd
     'connect tiktok','connect platform','disconnect platform'])
 _AUDIO_KW        = frozenset(['add audio','add mic','add microphone','add desktop audio','add speaker',
     'wasapi','coreaudio','pulse_input','audio source','audio input','audio output',
-    'create audio','microphone source','desktop audio source'])
+    'create audio','microphone source','desktop audio source',
+    'my audio','my mic','my microphone','audio to'])
 _TEXT_SOURCE_KW  = frozenset(['add text','create text','text source','add label','starting soon',
     'brb','be right back','ending soon','offline screen','title text','stream title',
     'text_gdiplus','text_ft2','gdi','freetype','add a text','create a text',
@@ -787,6 +788,20 @@ def _build_system_prompt(msg: str) -> list:
 
     if extras:
         blocks.append({"type": "text", "text": "\n\n".join(extras)})
+
+    # Final reminder — placed LAST so it's closest to the conversation.
+    # Models lose focus on instructions in the middle of long prompts.
+    blocks.append({
+        "type": "text",
+        "text": (
+            "[FINAL REMINDER — READ BEFORE EVERY RESPONSE]\n"
+            "If the user wants ANY OBS change, you MUST emit [OBS_ACTION:...] tags.\n"
+            "Without tags, no Apply button appears and NOTHING happens.\n"
+            "Format: [OBS_ACTION:{\"command\":\"...\",\"params\":{...},\"label\":\"...\"}]\n"
+            "One tag per action. Multiple actions = multiple tags.\n"
+            "NEVER say 'Click Apply' without emitting at least one tag."
+        ),
+    })
 
     return blocks
 
@@ -1430,12 +1445,15 @@ def fuzeobs_ai_chat(request):
         style = data.get('style', 'normal')
         history = data.get('history', [])
     
-    # Sanitize history — validate roles only, no truncation
-    # History is pre-compressed client-side: recent turns full + compact applied-actions ledger
+    # Sanitize history — validate roles, strip internal retry messages
+    # Retry messages (from client retry button or auto-retry) pollute context
+    # and cause the AI to confuse old requests with new ones
     history = [
         {"role": h["role"], "content": h["content"]}
         for h in (history or [])[:20]
         if isinstance(h, dict) and h.get("role") in ("user", "assistant") and h.get("content")
+        and not str(h.get("content", "")).startswith("[RETRY AS OBS COMMAND]")
+        and not str(h.get("content", "")).startswith("[AUTO-RETRY:")
     ]
     
     if not message and not files:
