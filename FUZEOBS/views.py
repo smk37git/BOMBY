@@ -104,7 +104,7 @@ _CMD_CORE = """OBS ACTION TAGS — FORMAT RULES (always apply):
 Emit [OBS_ACTION:...] tags FIRST in your response, before any explanation. Never at the end — long responses get cut off.
 Only emit when user explicitly requests an action ("add", "create", "set", "change", "fix", "mute", "switch", "move").
 Do NOT emit when asking a clarifying question or just explaining options.
-Multiple changes = multiple tags. No limit. Each tag = one command.
+Multiple changes = multiple tags. No limit. Each tag = one command. If the user asks for 2 things (e.g. mic AND speakers), emit 2 tags. NEVER collapse multiple actions into one tag.
 Tags MUST be raw plain text — NEVER inside code fences or markdown. Code fences make them invisible.
 NEVER use past tense ("I've added", "Done!") — actions execute only when user clicks Apply.
 Always use future tense: "I'll create...", "This will add...", "Click Apply to..."
@@ -589,7 +589,7 @@ CRITICAL RULES FOR AUDIO:
 - ALWAYS use the exact device_id/device_uid from the [SYSTEM CONTEXT] provided. Never invent GUIDs.
 - If no device IDs are in context (no scan), do NOT emit any audio CreateInput tags. Tell user to scan in Tab 01 first.
 - Input (mic) and output (desktop) use DIFFERENT input_kind values. Never mix them.
-- You can add both in the same response with TWO separate [OBS_ACTION:...] tags.
+- When user asks for BOTH mic and speakers/desktop audio, you MUST emit TWO separate [OBS_ACTION:...] tags — one for input, one for output. NEVER combine them into one tag. NEVER stop after just one.
 - After creating, you can set volume with SetInputVolume and mute with SetInputMute.
 """
 
@@ -805,7 +805,7 @@ def _build_system_prompt(msg: str, return_context_flag: bool = False):
             "If the user wants ANY OBS change, you MUST emit [OBS_ACTION:...] tags.\n"
             "Without tags, no Apply button appears and NOTHING happens.\n"
             "Format: [OBS_ACTION:{\"command\":\"...\",\"params\":{...},\"label\":\"...\"}]\n"
-            "One tag per action. Multiple actions = multiple tags.\n"
+            "One tag per action. Multiple actions = multiple tags. If user asks for mic + speakers, emit BOTH tags — never just one.\n"
             "NEVER say 'Click Apply' without emitting at least one tag.\n"
             "To add an EXISTING source to another scene: use CreateSceneItem (not CreateInput).\n"
             "Example: [OBS_ACTION:{\"command\":\"CreateSceneItem\",\"params\":{\"scene_name\":\"BRB\",\"source_name\":\"Microphone\"},\"label\":\"Add Mic to BRB\"}]"
