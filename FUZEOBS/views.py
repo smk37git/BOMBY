@@ -805,10 +805,18 @@ def _build_system_prompt(msg: str, return_context_flag: bool = False):
             "If the user wants ANY OBS change, you MUST emit [OBS_ACTION:...] tags.\n"
             "Without tags, no Apply button appears and NOTHING happens.\n"
             "Format: [OBS_ACTION:{\"command\":\"...\",\"params\":{...},\"label\":\"...\"}]\n"
-            "One tag per action. Multiple actions = multiple tags. If user asks for mic + speakers, emit BOTH tags — never just one.\n"
             "NEVER say 'Click Apply' without emitting at least one tag.\n"
             "To add an EXISTING source to another scene: use CreateSceneItem (not CreateInput).\n"
-            "Example: [OBS_ACTION:{\"command\":\"CreateSceneItem\",\"params\":{\"scene_name\":\"BRB\",\"source_name\":\"Microphone\"},\"label\":\"Add Mic to BRB\"}]"
+            "Example: [OBS_ACTION:{\"command\":\"CreateSceneItem\",\"params\":{\"scene_name\":\"BRB\",\"source_name\":\"Microphone\"},\"label\":\"Add Mic to BRB\"}]\n\n"
+            "PRE-EMISSION CHECKLIST (do this mentally before writing):\n"
+            "1. Count how many distinct items the user requested (e.g. 'webcam and speakers' = 2 items, 'mic, speakers, and webcam' = 3 items).\n"
+            "2. For EACH item, you MUST emit exactly ONE [OBS_ACTION:...] tag. N items = N tags.\n"
+            "3. Emit ALL tags FIRST at the top of your response, before any explanation.\n"
+            "4. After writing your response, verify: does the number of tags match the number of items? If not, you dropped one — add it.\n"
+            "EXAMPLE — user says 'add my webcam and speakers':\n"
+            "  Tag 1: [OBS_ACTION:{\"command\":\"CreateInput\",\"params\":{\"scene_name\":\"Scene\",\"input_name\":\"Webcam\",\"input_kind\":\"dshow_input\",\"input_settings\":{\"video_device_id\":\"...\"}},\"label\":\"Add Webcam\"}]\n"
+            "  Tag 2: [OBS_ACTION:{\"command\":\"CreateInput\",\"params\":{\"scene_name\":\"Scene\",\"input_name\":\"Desktop Audio\",\"input_kind\":\"wasapi_output_capture\",\"input_settings\":{\"device_id\":\"...\"}},\"label\":\"Add Speakers\"}]\n"
+            "  Two items requested → two tags emitted. Never collapse into one."
         ),
     })
 
@@ -1706,6 +1714,48 @@ def fuzeobs_ai_chat(request):
                     logger.warning(f'[AI Chat] Silent retry failed: {retry_err}')
 
             if obs_actions:
+                # Count-mismatch retry: user asked for N devices but AI only emitted fewer tags
+                # This catches the "add webcam and speakers" → only 1 CreateInput tag bug
+                try:
+                    ml = (message or '').lower()
+                    device_mentions = 0
+                    if any(w in ml for w in ('webcam', 'camera', 'cam')):
+                        device_mentions += 1
+                    if any(w in ml for w in ('microphone', 'mic ', 'mic,', ' mic')):
+                        device_mentions += 1
+                    if any(w in ml for w in ('speaker', 'speakers', 'desktop audio', 'audio output')):
+                        device_mentions += 1
+                    
+                    create_input_count = sum(1 for a in obs_actions if a.get('command') == 'CreateInput')
+                    
+                    if device_mentions >= 2 and create_input_count < device_mentions:
+                        logger.info(f'[AI Chat] Device count mismatch: {device_mentions} requested, {create_input_count} tags. Running mismatch retry.')
+                        existing_kinds = [a.get('params', {}).get('input_kind', '') for a in obs_actions if a.get('command') == 'CreateInput']
+                        retry_messages = list(api_messages) + [
+                            {"role": "assistant", "content": full_response_text},
+                            {"role": "user", "content": (
+                                f"You only emitted {create_input_count} CreateInput tag(s) but the user asked for {device_mentions} devices. "
+                                f"Already emitted input_kinds: {existing_kinds}. "
+                                "Now emit ONLY the MISSING [OBS_ACTION:...] CreateInput tags for the devices you forgot — no explanation, just the tags."
+                            )},
+                            {"role": "assistant", "content": "[OBS_ACTION:"},
+                        ]
+                        retry_resp = client.messages.create(
+                            model=model,
+                            max_tokens=1024,
+                            system=_sys_prompt,
+                            messages=retry_messages,
+                        )
+                        retry_text = "[OBS_ACTION:" + (retry_resp.content[0].text if retry_resp.content else "")
+                        retry_actions = _extract_obs_actions(retry_text)
+                        if retry_actions:
+                            obs_actions.extend(retry_actions)
+                            input_tokens += retry_resp.usage.input_tokens
+                            output_tokens += retry_resp.usage.output_tokens
+                            logger.info(f'[AI Chat] Device mismatch retry added {len(retry_actions)} tags: {[a.get("command") for a in retry_actions]}')
+                except Exception as count_err:
+                    logger.warning(f'[AI Chat] Device count retry failed: {count_err}')
+
                 yield f"data: {json.dumps({'obs_actions': obs_actions})}\n\n"
             
             yield "data: [DONE]\n\n" 
