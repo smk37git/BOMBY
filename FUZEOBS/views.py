@@ -132,7 +132,9 @@ If [SYSTEM CONTEXT] says "No hardware scan available" OR device IDs are missing:
 If device IDs ARE present in [SYSTEM CONTEXT] → use them directly. No scanning needed.
 
 OBS MIXER WARNING:
-"Mic/Aux" and "Desktop Audio" in [OBS CONTEXT] Audio Inputs are DEFAULT OBS mixer slots — they exist in every fresh OBS install and are NOT proof that the user's actual microphone or speakers are configured. They often have no device assigned. When the user asks to "add my mic/speakers," ALWAYS create new properly-configured sources using device IDs from [SYSTEM CONTEXT], even if similarly-named entries already appear in the OBS mixer. Do NOT say "you already have a Microphone source" based on mixer entries alone.
+Default OBS mixer slots (commonly named "Mic/Aux", "Desktop Audio", "Audio Input Capture", "Audio Output Capture") exist in every fresh OBS install and are NOT proof that the user's actual microphone or speakers are configured. They often have no device assigned.
+CRITICAL: If a mixer input is annotated with "NO DEVICE ASSIGNED" in the context, treat it as nonexistent — do NOT mention it to the user, do NOT say "you already have audio sources." It is an empty placeholder.
+When the user asks to "add my mic/speakers," ALWAYS create new properly-configured sources using device IDs from [SYSTEM CONTEXT], even if similarly-named entries already appear in the OBS mixer. Do NOT say "you already have a Microphone source" based on mixer entries alone.
 
 Universal commands (always available):
 - SetSceneItemEnabled: scene_name, source_name, enabled (bool) — show/hide source
