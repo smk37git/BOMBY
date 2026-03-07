@@ -1681,10 +1681,13 @@ def fuzeobs_ai_chat(request):
                 tag_start = full_response_text.find('[OBS_ACTION')
                 snippet = full_response_text[max(0, tag_start - 20):tag_start + 200]
                 logger.warning(f'[AI Chat] OBS_ACTION tag found in text but parser failed to extract! Snippet: {snippet}')
+            # Skip retries when user hasn't scanned — the frontend prepends this exact string
+            no_scan = 'No hardware scan available' in (message or '')
+
             # Silent auto-retry: if action keywords were in the message but model emitted no tags,
             # make a second fast non-streaming call with assistant prefill to force tag output.
             # User never sees this - Apply button just appears correctly instead of orange retry.
-            if not obs_actions and had_action_context:
+            if not obs_actions and had_action_context and not no_scan:
                 logger.info('[AI Chat] No tags emitted despite action context - running silent tag-extraction retry')
                 try:
                     retry_messages = list(api_messages) + [
@@ -1716,45 +1719,47 @@ def fuzeobs_ai_chat(request):
             if obs_actions:
                 # Count-mismatch retry: user asked for N devices but AI only emitted fewer tags
                 # This catches the "add webcam and speakers" → only 1 CreateInput tag bug
-                try:
-                    ml = (message or '').lower()
-                    device_mentions = 0
-                    if any(w in ml for w in ('webcam', 'camera', 'cam')):
-                        device_mentions += 1
-                    if any(w in ml for w in ('microphone', 'mic ', 'mic,', ' mic')):
-                        device_mentions += 1
-                    if any(w in ml for w in ('speaker', 'speakers', 'desktop audio', 'audio output')):
-                        device_mentions += 1
-                    
-                    create_input_count = sum(1 for a in obs_actions if a.get('command') == 'CreateInput')
-                    
-                    if device_mentions >= 2 and create_input_count < device_mentions:
-                        logger.info(f'[AI Chat] Device count mismatch: {device_mentions} requested, {create_input_count} tags. Running mismatch retry.')
-                        existing_kinds = [a.get('params', {}).get('input_kind', '') for a in obs_actions if a.get('command') == 'CreateInput']
-                        retry_messages = list(api_messages) + [
-                            {"role": "assistant", "content": full_response_text},
-                            {"role": "user", "content": (
-                                f"You only emitted {create_input_count} CreateInput tag(s) but the user asked for {device_mentions} devices. "
-                                f"Already emitted input_kinds: {existing_kinds}. "
-                                "Now emit ONLY the MISSING [OBS_ACTION:...] CreateInput tags for the devices you forgot — no explanation, just the tags."
-                            )},
-                            {"role": "assistant", "content": "[OBS_ACTION:"},
-                        ]
-                        retry_resp = client.messages.create(
-                            model=model,
-                            max_tokens=1024,
-                            system=_sys_prompt,
-                            messages=retry_messages,
-                        )
-                        retry_text = "[OBS_ACTION:" + (retry_resp.content[0].text if retry_resp.content else "")
-                        retry_actions = _extract_obs_actions(retry_text)
-                        if retry_actions:
-                            obs_actions.extend(retry_actions)
-                            input_tokens += retry_resp.usage.input_tokens
-                            output_tokens += retry_resp.usage.output_tokens
-                            logger.info(f'[AI Chat] Device mismatch retry added {len(retry_actions)} tags: {[a.get("command") for a in retry_actions]}')
-                except Exception as count_err:
-                    logger.warning(f'[AI Chat] Device count retry failed: {count_err}')
+                # SKIP if user hasn't scanned — no device IDs to work with
+                if not no_scan:
+                    try:
+                        ml = (message or '').lower()
+                        device_mentions = 0
+                        if any(w in ml for w in ('webcam', 'camera', 'cam')):
+                            device_mentions += 1
+                        if any(w in ml for w in ('microphone', 'mic ', 'mic,', ' mic')):
+                            device_mentions += 1
+                        if any(w in ml for w in ('speaker', 'speakers', 'desktop audio', 'audio output')):
+                            device_mentions += 1
+                        
+                        create_input_count = sum(1 for a in obs_actions if a.get('command') == 'CreateInput')
+                        
+                        if device_mentions >= 2 and create_input_count < device_mentions:
+                            logger.info(f'[AI Chat] Device count mismatch: {device_mentions} requested, {create_input_count} tags. Running mismatch retry.')
+                            existing_kinds = [a.get('params', {}).get('input_kind', '') for a in obs_actions if a.get('command') == 'CreateInput']
+                            retry_messages = list(api_messages) + [
+                                {"role": "assistant", "content": full_response_text},
+                                {"role": "user", "content": (
+                                    f"You only emitted {create_input_count} CreateInput tag(s) but the user asked for {device_mentions} devices. "
+                                    f"Already emitted input_kinds: {existing_kinds}. "
+                                    "Now emit ONLY the MISSING [OBS_ACTION:...] CreateInput tags for the devices you forgot — no explanation, just the tags."
+                                )},
+                                {"role": "assistant", "content": "[OBS_ACTION:"},
+                            ]
+                            retry_resp = client.messages.create(
+                                model=model,
+                                max_tokens=1024,
+                                system=_sys_prompt,
+                                messages=retry_messages,
+                            )
+                            retry_text = "[OBS_ACTION:" + (retry_resp.content[0].text if retry_resp.content else "")
+                            retry_actions = _extract_obs_actions(retry_text)
+                            if retry_actions:
+                                obs_actions.extend(retry_actions)
+                                input_tokens += retry_resp.usage.input_tokens
+                                output_tokens += retry_resp.usage.output_tokens
+                                logger.info(f'[AI Chat] Device mismatch retry added {len(retry_actions)} tags: {[a.get("command") for a in retry_actions]}')
+                    except Exception as count_err:
+                        logger.warning(f'[AI Chat] Device count retry failed: {count_err}')
 
                 yield f"data: {json.dumps({'obs_actions': obs_actions})}\n\n"
             
