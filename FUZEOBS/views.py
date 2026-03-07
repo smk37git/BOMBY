@@ -130,6 +130,9 @@ If [SYSTEM CONTEXT] says "No hardware scan available" OR device IDs are missing:
   → You may still emit tags for non-device commands (CreateScene, text sources, browser sources, etc.) even without a scan.
 If device IDs ARE present in [SYSTEM CONTEXT] → use them directly. No scanning needed.
 
+OBS MIXER WARNING:
+"Mic/Aux" and "Desktop Audio" in [OBS CONTEXT] Audio Inputs are DEFAULT OBS mixer slots — they exist in every fresh OBS install and are NOT proof that the user's actual microphone or speakers are configured. They often have no device assigned. When the user asks to "add my mic/speakers," ALWAYS create new properly-configured sources using device IDs from [SYSTEM CONTEXT], even if similarly-named entries already appear in the OBS mixer. Do NOT say "you already have a Microphone source" based on mixer entries alone.
+
 Universal commands (always available):
 - SetSceneItemEnabled: scene_name, source_name, enabled (bool) — show/hide source
   Example: [OBS_ACTION:{"command":"SetSceneItemEnabled","params":{"scene_name":"Scene","source_name":"Webcam","enabled":true},"label":"Show Webcam"}]
@@ -1681,8 +1684,10 @@ def fuzeobs_ai_chat(request):
                 tag_start = full_response_text.find('[OBS_ACTION')
                 snippet = full_response_text[max(0, tag_start - 20):tag_start + 200]
                 logger.warning(f'[AI Chat] OBS_ACTION tag found in text but parser failed to extract! Snippet: {snippet}')
-            # Skip retries when user hasn't scanned — the frontend prepends this exact string
-            no_scan = 'No hardware scan available' in (message or '')
+            # Skip retries when user hasn't scanned or has no device data
+            # Frontend sends "No hardware scan available" when systemSpecs is null,
+            # and "NONE DETECTED" per device type when scan exists but found no devices
+            no_scan = 'No hardware scan available' in (message or '') or 'NONE DETECTED' in (message or '')
 
             # Silent auto-retry: if action keywords were in the message but model emitted no tags,
             # make a second fast non-streaming call with assistant prefill to force tag output.
