@@ -1728,13 +1728,16 @@ def fuzeobs_ai_chat(request):
                 # SKIP if user hasn't scanned — no device IDs to work with
                 if not no_scan:
                     try:
-                        ml = (message or '').lower()
+                        # Extract just the user's actual message (after context blocks)
+                        # Context is prepended as [SYSTEM CONTEXT...]\n\n[OBS CONTEXT...]\n\n{user text}
+                        raw_parts = (message or '').split('\n\n')
+                        user_text = raw_parts[-1].lower() if raw_parts else ''
                         device_mentions = 0
-                        if any(w in ml for w in ('webcam', 'camera', 'cam')):
+                        if any(w in user_text for w in ('webcam', 'camera', 'cam')):
                             device_mentions += 1
-                        if any(w in ml for w in ('microphone', 'mic ', 'mic,', ' mic')):
+                        if any(w in user_text for w in ('microphone', 'mic ', 'mic,', ' mic')):
                             device_mentions += 1
-                        if any(w in ml for w in ('speaker', 'speakers', 'desktop audio', 'audio output')):
+                        if any(w in user_text for w in ('speaker', 'speakers', 'desktop audio', 'audio output')):
                             device_mentions += 1
                         
                         create_input_count = sum(1 for a in obs_actions if a.get('command') == 'CreateInput')
