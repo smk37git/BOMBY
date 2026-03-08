@@ -185,7 +185,7 @@
   align-items: center;
   gap: 14px;
   padding: 16px 24px;
-  background: rgba(255, 255, 255, 0.03);
+  background: #080808;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   text-decoration: none;
@@ -195,7 +195,7 @@
 }
 
 .platform-card:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: #141414;
   border-color: rgba(255, 255, 255, 0.25);
   transform: translateY(-2px);
 }
@@ -213,7 +213,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: #0d0d0d;
   border-radius: 8px;
   flex-shrink: 0;
 }
@@ -253,7 +253,7 @@
 }
 
 .pricing-card {
-  background: rgba(255, 255, 255, 0.02);
+  background: #050505;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 32px 28px;
@@ -261,7 +261,7 @@
 }
 
 .pricing-card.pricing-featured {
-  background: rgba(255, 255, 255, 0.05);
+  background: #0d0d0d;
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -338,7 +338,7 @@
 
 .tab-pill {
   padding: 6px 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: #080808;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 16px;
   font-size: 12px;
@@ -348,7 +348,7 @@
 }
 
 .tab-pill:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: #0f0f0f;
   border-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -403,7 +403,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
+  background: #262626;
 }
 
 .titlebar-title {
@@ -481,7 +481,7 @@
   font-size: 11px;
   color: rgba(255, 255, 255, 0.5);
   padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #0d0d0d;
   border-radius: 4px;
 }
 
@@ -501,7 +501,7 @@
   border-radius: 12px;
   overflow: hidden;
   border: 2px solid rgba(255, 255, 255, 0.479);
-  background: rgba(0, 0, 0, 0.3);
+  background: #000;
 }
 
 .video-container iframe {
@@ -576,14 +576,14 @@
 
 .feature-card {
   padding: 28px;
-  background: rgba(255, 255, 255, 0.02);
+  background: #050505;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 12px;
   transition: all 0.3s;
 }
 
 .feature-card:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: #0d0d0d;
   border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-4px);
 }
@@ -591,7 +591,7 @@
 .feature-icon {
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #0d0d0d;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 10px;
   display: flex;
@@ -653,14 +653,14 @@
 .widget-card {
   text-align: center;
   padding: 20px 14px;
-  background: rgba(255, 255, 255, 0.02);
+  background: #050505;
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 10px;
   transition: all 0.3s;
 }
 
 .widget-card:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: #0d0d0d;
   border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
 }
@@ -696,10 +696,10 @@
 .btn-large { padding: 16px 40px; font-size: 16px; }
 .btn-primary { background: linear-gradient(135deg, #a855f7, #7c3aed); color: #fff; }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 24px rgba(168, 85, 247, 0.4); }
-.btn-secondary { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; }
-.btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
-.btn-outline { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; }
-.btn-outline:hover { background: rgba(255, 255, 255, 0.1); }
+.btn-secondary { background: #0d0d0d; border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; }
+.btn-secondary:hover { background: #1a1a1a; }
+.btn-outline { background: #0d0d0d; border: 1px solid rgba(255, 255, 255, 0.2); color: #fff; }
+.btn-outline:hover { background: #1a1a1a; }
 
 /* ===========================================
    Reviews Carousel Section
@@ -751,7 +751,7 @@
     flex-shrink: 0;
     width: 320px;
     padding: 24px;
-    background: rgba(255, 255, 255, 0.03);
+    background: #080808;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     transition: border-color 0.3s, background 0.3s;
@@ -760,7 +760,7 @@
 
 .review-card:hover {
     border-color: rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.05);
+    background: #0d0d0d;
 }
 
 .review-card-header {
@@ -873,7 +873,7 @@
 .review-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.9);
+    background: #000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -911,7 +911,7 @@
 }
 
 .review-modal-close:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: #0d0d0d;
     color: #fff;
     border-color: rgba(255, 255, 255, 0.3);
 }
@@ -962,7 +962,7 @@
 .review-modal-separator {
     width: 1px;
     height: 20px;
-    background: rgba(255, 255, 255, 0.25);
+    background: #404040;
 }
 
 .review-modal-name {
@@ -1075,7 +1075,7 @@
     font-weight: 600;
     color: rgba(255, 255, 255, 0.45);
     text-decoration: none;
-    background: rgba(255, 255, 255, 0.03);
+    background: #080808;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
     transition: all 0.2s;
@@ -1083,7 +1083,7 @@
 
 .smartscreen-modal-link:hover {
     color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.06);
+    background: #0f0f0f;
     border-color: rgba(255, 255, 255, 0.15);
 }
 
@@ -1239,7 +1239,7 @@
     max-width: 480px;
     margin: 0 auto 48px;
     padding: 14px 20px;
-    background: rgba(255, 255, 255, 0.03);
+    background: #080808;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 10px;
     text-decoration: none;
@@ -1248,7 +1248,7 @@
 }
 
 .install-help-card:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: #0f0f0f;
     border-color: rgba(255, 255, 255, 0.16);
     transform: translateY(-1px);
 }
@@ -1260,7 +1260,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 200, 83, 0.07);
+    background: #001208;
     border-radius: 8px;
 }
 

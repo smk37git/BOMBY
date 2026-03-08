@@ -17,7 +17,7 @@
     max-width: 1200px;
     margin: 0 auto 60px;
     padding: 40px;
-    background: rgba(255, 255, 255, 0.02);
+    background: #0f0f0f;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     color: #fff;
@@ -50,7 +50,7 @@
 .time-filter a {
     padding: 10px 18px;
     border-radius: 8px;
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.7);
     text-decoration: none;
@@ -60,7 +60,7 @@
 }
 
 .time-filter a:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: #1e1e1e;
     border-color: rgba(255, 255, 255, 0.2);
     color: #fff;
 }
@@ -80,7 +80,7 @@
 }
 
 .metric-card {
-    background: rgba(255, 255, 255, 0.03);
+    background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 24px;
@@ -88,7 +88,7 @@
 }
 
 .metric-card:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border-color: rgba(255, 255, 255, 0.15);
     transform: translateY(-2px);
 }
@@ -117,7 +117,7 @@
 
 /* Analytics Sections */
 .analytics-section {
-    background: rgba(255, 255, 255, 0.02);
+    background: #0f0f0f;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 28px;
@@ -167,7 +167,7 @@
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border: 1px solid rgba(255, 255, 255, 0.15);
     color: #fff;
     padding: 10px 20px;
@@ -182,7 +182,7 @@
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #222222;
     border-color: rgba(255, 255, 255, 0.3);
     transform: translateY(-1px);
 }
@@ -202,7 +202,7 @@
     color: rgba(255, 255, 255, 0.5);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    background: rgba(0, 0, 0, 0.2);
+    background: #080808;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
@@ -226,7 +226,7 @@
 }
 
 .product-table tbody tr:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: #111111;
 }
 
 .product-table tbody tr:last-child td {
@@ -353,7 +353,7 @@
 
 /* User Detail Page Styles */
 .widget-type {
-    background: rgba(168, 85, 247, 0.2);
+    background: #2a1939;
     border: 1px solid rgba(168, 85, 247, 0.3);
     color: #c084fc;
     padding: 6px 12px;
@@ -363,7 +363,7 @@
 }
 
 .platform-badge {
-    background: rgba(59, 130, 246, 0.2);
+    background: #142239;
     border: 1px solid rgba(59, 130, 246, 0.3);
     color: #60a5fa;
     padding: 6px 12px;
@@ -376,7 +376,7 @@
 .chat-preview {
     max-height: 200px;
     overflow-y: auto;
-    background: rgba(0, 0, 0, 0.3);
+    background: #070707;
     border: 1px solid rgba(255, 255, 255, 0.05);
     padding: 16px;
     border-radius: 8px;
@@ -393,14 +393,14 @@
 }
 
 .chat-preview::-webkit-scrollbar-thumb {
-    background: rgba(168, 85, 247, 0.4);
+    background: #492869;
     border-radius: 3px;
 }
 
 .message-item {
     margin-bottom: 12px;
     padding: 12px;
-    background: rgba(255, 255, 255, 0.03);
+    background: #111111;
     border-radius: 6px;
     border-left: 3px solid rgba(168, 85, 247, 0.5);
 }
@@ -419,14 +419,14 @@
 .chat-item {
     margin-bottom: 20px;
     padding: 20px;
-    background: rgba(255, 255, 255, 0.02);
+    background: #0f0f0f;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     transition: all 0.3s ease;
 }
 
 .chat-item:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: #141414;
     border-color: rgba(255, 255, 255, 0.12);
 }
 
@@ -460,7 +460,7 @@
 
 /* Expand Button */
 .expand-btn {
-    background: rgba(168, 85, 247, 0.15);
+    background: #22152e;
     border: 1px solid rgba(168, 85, 247, 0.3);
     color: #c084fc;
     padding: 10px 20px;
@@ -472,7 +472,7 @@
 }
 
 .expand-btn:hover {
-    background: rgba(168, 85, 247, 0.25);
+    background: #321d45;
     border-color: rgba(168, 85, 247, 0.5);
 }
 
@@ -498,7 +498,7 @@
 }
 
 .scrollable-section::-webkit-scrollbar-thumb {
-    background: rgba(168, 85, 247, 0.4);
+    background: #492869;
     border-radius: 3px;
 }
 
@@ -581,7 +581,7 @@
 .ann-input {
     flex: 1;
     padding: 10px 14px;
-    background: rgba(0, 0, 0, 0.3);
+    background: #070707;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     color: #fff;
@@ -601,7 +601,7 @@
 
 .ann-select {
     padding: 10px 14px;
-    background: rgba(0, 0, 0, 0.3);
+    background: #070707;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     color: #fff;
@@ -631,19 +631,19 @@
 }
 
 .ann-type-info {
-    background: rgba(255, 255, 255, 0.1);
+    background: #222222;
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: #fff;
 }
 
 .ann-type-warning {
-    background: rgba(255, 136, 0, 0.15);
+    background: #2f1d08;
     border: 1px solid rgba(255, 136, 0, 0.3);
     color: #ff8800;
 }
 
 .ann-type-error {
-    background: rgba(255, 68, 68, 0.15);
+    background: #2f1313;
     border: 1px solid rgba(255, 68, 68, 0.3);
     color: #f87171;
 }
@@ -660,23 +660,23 @@
 }
 
 .ann-active {
-    background: rgba(74, 222, 128, 0.15);
+    background: #142a1c;
     border-color: rgba(74, 222, 128, 0.4);
     color: #4ade80;
 }
 
 .ann-active:hover {
-    background: rgba(74, 222, 128, 0.25);
+    background: #1a3f28;
 }
 
 .ann-inactive {
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border-color: rgba(255, 255, 255, 0.15);
     color: rgba(255, 255, 255, 0.4);
 }
 
 .ann-inactive:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #222222;
 }
 
 .ann-delete-btn {
@@ -684,7 +684,7 @@
     border-radius: 6px;
     font-size: 11px;
     font-weight: 600;
-    background: rgba(255, 68, 68, 0.1);
+    background: #221010;
     border: 1px solid rgba(255, 68, 68, 0.3);
     color: #f87171;
     cursor: pointer;
@@ -692,7 +692,7 @@
 }
 
 .ann-delete-btn:hover {
-    background: rgba(255, 68, 68, 0.25);
+    background: #471818;
     border-color: rgba(255, 68, 68, 0.5);
 }
 
@@ -963,7 +963,7 @@
 
 .nav-tab {
     padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: rgba(255, 255, 255, 0.6);
     text-decoration: none;
@@ -994,7 +994,7 @@ a.metric-card-link {
 
 a.metric-card-link:hover {
     border-color: rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.08);
+    background: #1e1e1e;
 }
 
 a.metric-card-link .metric-subtext {
