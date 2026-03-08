@@ -39,7 +39,7 @@
     color: #fff;
     text-decoration: none;
     padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     font-size: 14px;
@@ -47,7 +47,7 @@
 }
 
 .pricing-back a:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #222222;
     border-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -60,7 +60,7 @@
 }
 
 .pricing-card-full {
-    background: rgba(255, 255, 255, 0.02);
+    background: #0f0f0f;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 36px 28px;
@@ -73,7 +73,7 @@
 }
 
 .pricing-card-full.featured {
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border-color: rgba(255, 255, 255, 0.25);
     box-shadow: 0 0 40px rgba(168, 85, 247, 0.15);
 }
@@ -230,7 +230,7 @@
 /* Current Plan Styles */
 .pricing-card-full.current {
     border-color: rgba(168, 85, 247, 0.5);
-    background: rgba(168, 85, 247, 0.05);
+    background: #120e16;
 }
 
 .pricing-badge-full.current-badge {
@@ -256,7 +256,7 @@
 }
 
 .faq-item {
-    background: rgba(255, 255, 255, 0.02);
+    background: #0f0f0f;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 24px;
@@ -287,7 +287,7 @@
 .fuzeobs-checkout-header {
     text-align: center;
     padding: 20px 40px;
-    background: rgba(255, 255, 255, 0.02);
+    background: #0f0f0f;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 15px;
     width: fit-content;
@@ -317,7 +317,7 @@
     color: #fff;
     text-decoration: none;
     padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     font-size: 14px;
@@ -325,7 +325,7 @@
 }
 
 .fuzeobs-checkout-back a:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #222222;
     border-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -339,7 +339,7 @@
 /* Order Summary & Payment Cards */
 .fuzeobs-order-card,
 .fuzeobs-payment-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: #0f0f0f;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     padding: 30px;
@@ -414,7 +414,7 @@
 
 /* Plan Info Box */
 .fuzeobs-plan-info {
-    background: rgba(168, 85, 247, 0.15);
+    background: #22152e;
     border: 1px solid rgba(168, 85, 247, 0.3);
     border-radius: 8px;
     padding: 15px;
@@ -546,7 +546,7 @@
 }
 
 .fuzeobs-success-card {
-    background: rgba(255, 255, 255, 0.02);
+    background: #0f0f0f;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
     padding: 40px;
@@ -579,7 +579,7 @@
 }
 
 .fuzeobs-order-details {
-    background: rgba(0, 0, 0, 0.3);
+    background: #070707;
     border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 2rem;
@@ -633,12 +633,12 @@
 }
 
 .fuzeobs-action-btn.secondary {
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .fuzeobs-action-btn.secondary:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #222222;
     box-shadow: none;
 }
 

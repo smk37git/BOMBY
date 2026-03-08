@@ -30,7 +30,7 @@ body {
     width: 80px;
     height: 80px;
     margin: 0 auto 32px;
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 50%;
     display: flex;
@@ -70,7 +70,7 @@ body {
 .callback-badge {
     display: inline-block;
     padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     margin-top: 24px;
@@ -90,7 +90,7 @@ body {
 .callback-divider {
     width: 60px;
     height: 1px;
-    background: rgba(255, 255, 255, 0.1);
+    background: #222222;
     margin: 24px auto;
 }
 

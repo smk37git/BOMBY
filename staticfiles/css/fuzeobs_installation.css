@@ -19,7 +19,7 @@
     color: #fff;
     text-decoration: none;
     padding: 10px 20px;
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 8px;
     font-size: 14px;
@@ -27,7 +27,7 @@
 }
 
 .install-back a:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: #222222;
     border-color: rgba(255, 255, 255, 0.3);
 }
 
@@ -66,7 +66,7 @@
    =========================================== */
 .vt-card {
     padding: 26px 28px;
-    background: rgba(255, 255, 255, 0.03);
+    background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     margin-bottom: 20px;
@@ -86,7 +86,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(0, 200, 83, 0.08);
+    background: #091910;
     border-radius: 10px;
     font-size: 20px;
     color: #00c853;
@@ -117,7 +117,7 @@
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.03);
+    background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
 }
@@ -134,7 +134,7 @@
 }
 
 .vt-result-icon.vt-pass {
-    background: rgba(0, 200, 83, 0.1);
+    background: #091d11;
     color: #00c853;
 }
 
@@ -192,7 +192,7 @@
     display: flex;
     gap: 14px;
     padding: 20px 22px;
-    background: rgba(255, 255, 255, 0.03);
+    background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     margin-bottom: 40px;
@@ -236,7 +236,7 @@
     font-size: 14px;
     font-weight: 600;
     color: rgba(255, 255, 255, 0.5);
-    background: transparent;
+    background: #0a0a0a;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
     cursor: pointer;
@@ -251,7 +251,7 @@
 
 .install-tab.active {
     color: #fff;
-    background: rgba(255, 255, 255, 0.08);
+    background: #1e1e1e;
     border-color: rgba(255, 255, 255, 0.25);
 }
 
@@ -261,7 +261,7 @@
 .install-video-card {
     margin: 20px auto 10px;
     padding: 18px;
-    background: rgba(255, 255, 255, 0.03);
+    background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     max-width: 400px;
@@ -320,7 +320,7 @@
     font-size: 14px;
     font-weight: 700;
     color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.05);
+    background: #161616;
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 8px;
 }
@@ -364,7 +364,7 @@
 
 .mock-dialog {
     padding: 16px 20px;
-    background: rgba(255, 255, 255, 0.03);
+    background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
     font-size: 12px;
@@ -410,7 +410,7 @@
     align-items: center;
     gap: 10px;
     padding: 14px 18px;
-    background: rgba(255, 255, 255, 0.03);
+    background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 8px;
     margin-top: 8px;
@@ -430,7 +430,7 @@
     gap: 8px;
     margin-top: 10px;
     padding: 10px 14px;
-    background: rgba(0, 0, 0, 0.5);
+    background: #050505;
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 6px;
     font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
