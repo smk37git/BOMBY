@@ -848,7 +848,7 @@ User = get_user_model()
 
 # FUZEOBS UPDATES
 
-FUZEOBS_VERSION = '1.1.4'
+FUZEOBS_VERSION = '1.1.5'
 
 @require_http_methods(["GET"])
 def fuzeobs_check_update(request):
@@ -863,13 +863,13 @@ def fuzeobs_check_update(request):
     return JsonResponse({
         'version': FUZEOBS_VERSION,
         'download_url': urls.get(platform, urls['windows']),
-        'changelog': 'FuzeOBS 1.1.4 | Fuze-AI v2.0 Scene Collection Context Fixes',
+        'changelog': 'FuzeOBS 1.1.5 | Fuze-AI v2.0 Websocket Context Update',
         'mandatory': True
     })
 
 FUZEOBS_PATCH_NOTES = {
     'version': FUZEOBS_VERSION,
-    'changelog': 'FUZEOBS 1.1.4 -- Fuze-AI v2.0 Scene Collection Context Fixes',
+    'changelog': 'FUZEOBS 1.1.5 | Fuze-AI v2.0 Websocket Context Update',
     'notes': [
         '- FuzeOBS Development is now 1.0 after 6 months of work!',
         '- Upgraded Fuze-AI to now use commands to modify OBS!',
