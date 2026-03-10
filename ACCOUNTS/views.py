@@ -18,6 +18,7 @@ from django.utils.http import urlsafe_base64_encode
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse_lazy
+from django.core.cache import cache
 from django.db.models import Q
 from .models import Message, Conversation
 from .forms import MessageForm
@@ -26,7 +27,7 @@ from django.utils import timezone
 from django.core.management import call_command
 import os
 from django.core.paginator import Paginator
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import random
 import string
 from django.shortcuts import redirect
@@ -1050,8 +1051,20 @@ def reset_fuzeobs_usage(request):
         selected_users = [uid for uid in selected_users if uid]
         
         if selected_users:
-            count = User.objects.filter(id__in=selected_users).update(fuzeobs_ai_usage_monthly=0)
-            messages.success(request, f"Reset AI usage for {count} user(s).")
+            today = date.today().isoformat()
+            users = User.objects.filter(id__in=selected_users)
+            for u in users:
+                user_key = f'user_{u.id}'
+                # Clear free tier daily limit
+                cache.delete(f'fuzeobs_daily_{user_key}_{today}')
+                # Clear pro/lifetime rate limit
+                cache.delete(f'fuzeobs_pro_rate_{user_key}')
+                # Clear spam limiter too
+                cache.delete(f'fuzeobs_spam_{user_key}')
+            
+            # Reset DB field as well
+            users.update(fuzeobs_ai_usage_monthly=0)
+            messages.success(request, f"Reset AI usage and rate limits for {len(selected_users)} user(s).")
         else:
             messages.error(request, "No users selected.")
     

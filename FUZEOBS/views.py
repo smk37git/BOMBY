@@ -111,6 +111,17 @@ Tab 07 - Plugins: OBS plugin discovery with download links.
 Tab 08 - Documentation: OBS learning resources searchable by topic.
 Tab 09 - Performance Monitor: Real-time CPU/GPU/encoding stats. Benchmarks (Pro/Lifetime only).
 Tab 10 - AI Assistant: This chat.
+
+TROUBLESHOOTING ESCALATION — CRITICAL:
+If the user reports the SAME problem persists after your previous suggestion (e.g. "still lagging", "still not working", "didn't help", "same issue"):
+1. NEVER repeat the same diagnosis or fix. The user already tried it.
+2. Acknowledge the previous fix didn't resolve it.
+3. Move to the NEXT most likely cause. For common issues, follow this diagnostic ladder:
+   - Stream lag/dropped frames: audio source overload → encoding overload (lower preset/bitrate) → network issues (check upload speed vs bitrate) → display capture vs game capture → OBS process priority → Windows Game Mode/Game Bar interference → GPU driver issues → ISP throttling
+   - Black screen: permissions → capture method → GPU driver → admin mode
+   - Audio desync: sample rate mismatch → audio buffer → monitoring chain
+4. If you've exhausted your knowledge on possible causes, say so honestly and suggest the user check the OBS log file (Help > Log Files > Upload Current Log) for deeper diagnostics.
+5. Ask the user for MORE information if needed — e.g. "Are you seeing 'Encoding overloaded' or 'Dropped frames' in OBS status bar?" to narrow the cause.
 """
 
 _CMD_CORE = """OBS ACTION TAGS — FORMAT RULES (always apply):
@@ -1492,6 +1503,29 @@ def fuzeobs_ai_chat(request):
         and not str(h.get("content", "")).startswith("[AUTO-RETRY:")
     ]
     
+    # ── Repeated-complaint detection ──
+    # If the user's last 2+ messages show the same unresolved issue,
+    # inject a system-level nudge so the AI doesn't loop.
+    _STUCK_PHRASES = frozenset([
+        'still lagging', 'still lag', 'still dropping', 'still stuttering',
+        'still not working', 'still broken', 'still the same', 'same issue',
+        'same problem', 'didnt help', "didn't help", 'not fixed', 'still happens',
+        'still occurring', 'still there', 'nothing changed', 'no difference',
+    ])
+    
+    repeat_nudge = ""
+    if history and message:
+        ml = message.lower()
+        if any(phrase in ml for phrase in _STUCK_PHRASES):
+            recent_user_msgs = [h['content'].lower() for h in history if h['role'] == 'user'][-4:]
+            stuck_count = sum(1 for m in recent_user_msgs if any(p in m for p in _STUCK_PHRASES))
+            if stuck_count >= 1:
+                repeat_nudge = (
+                    "\n\n[SYSTEM NOTE: The user has reported this same issue multiple times. "
+                    "Your previous suggestions did NOT fix it. Do NOT repeat the same advice. "
+                    "Escalate to the next possible cause. Ask diagnostic questions if needed.]"
+                )
+    
     if not message and not files:
         return JsonResponse({'error': 'Empty message'}, status=400)
     
@@ -1641,9 +1675,10 @@ def fuzeobs_ai_chat(request):
                     })
             
             if message:
-                content.append({'type': 'text', 'text': message})
+                final_message = message + repeat_nudge if repeat_nudge else message
+                content.append({'type': 'text', 'text': final_message})
             
-            messages_content = content if files else message
+            messages_content = content if files else (message + repeat_nudge if repeat_nudge else message)
             
             style_instructions = {
                 'normal': '- Start with a direct answer\n- Provide exact settings when applicable',
