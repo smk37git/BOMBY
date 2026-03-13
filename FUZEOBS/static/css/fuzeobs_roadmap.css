@@ -1,0 +1,556 @@
+/* ===========================================
+   FuzeOBS Roadmap Page
+   =========================================== */
+
+.roadmap-page {
+    padding: 60px 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Back Button */
+.roadmap-back {
+    margin-bottom: 30px;
+}
+
+.roadmap-back a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    background: #161616;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.roadmap-back a:hover {
+    background: #222;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Header */
+.roadmap-page-header {
+    text-align: center;
+    margin-bottom: 70px;
+}
+
+.roadmap-page-header h1 {
+    font-size: 48px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 16px;
+}
+
+.roadmap-page-header p {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 550px;
+    margin: 0 auto 32px;
+}
+
+.roadmap-header-stats {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+}
+
+.roadmap-header-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.rh-stat-num {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.rh-stat-label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.rh-stat-divider {
+    width: 1px;
+    height: 28px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===========================================
+   Expanded Timeline
+   =========================================== */
+.roadmap-expanded {
+    margin-bottom: 80px;
+}
+
+.roadmap-timeline-full {
+    display: flex;
+    flex-direction: column;
+}
+
+.rm-phase-block {
+    display: flex;
+    gap: 0;
+    position: relative;
+}
+
+/* Connector column */
+.rm-phase-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 40px;
+    min-width: 40px;
+    position: relative;
+}
+
+.rm-phase-block:not(:last-child) .rm-phase-connector::after {
+    content: '';
+    position: absolute;
+    top: 31px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    bottom: 0;
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.25) 0px,
+        rgba(255, 255, 255, 0.25) 6px,
+        transparent 6px,
+        transparent 12px
+    );
+}
+
+.rm-phase-block.completed:not(:last-child) .rm-phase-connector::after {
+    background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.45) 0px,
+        rgba(255, 255, 255, 0.45) 6px,
+        transparent 6px,
+        transparent 12px
+    );
+}
+
+/* Nodes */
+.rm-phase-node {
+    width: 31px;
+    height: 31px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    background: #0a0a0a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.rm-phase-block.completed .rm-phase-node {
+    border-color: rgba(255, 255, 255, 0.6);
+    color: #fff;
+}
+
+.rm-phase-block.active .rm-phase-node {
+    border-color: #fff;
+    border-style: solid;
+    background: #0a0a0a;
+}
+
+.rm-phase-block.upcoming .rm-phase-node {
+    border-color: rgba(255, 255, 255, 0.2);
+    border-style: dashed;
+    border-width: 2px;
+}
+
+/* Content cards */
+.rm-phase-content {
+    flex: 1;
+    margin-left: 16px;
+    margin-bottom: 24px;
+    padding: 24px 28px;
+    background: #0e0e0e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    transition: all 0.3s;
+}
+
+.rm-phase-content:hover {
+    background: #111;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.rm-phase-block.active .rm-phase-content {
+    border-color: rgba(255, 255, 255, 0.25);
+    background: #0f0f0f;
+}
+
+.rm-phase-block.upcoming .rm-phase-content {
+    border-style: dashed;
+}
+
+/* Phase head row */
+.rm-phase-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.rm-phase-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    color: rgba(255, 255, 255, 0.45);
+    margin-bottom: 4px;
+}
+
+.rm-phase-head h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.rm-phase-status {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    margin-top: 4px;
+}
+
+.rm-status-complete { color: rgba(255, 255, 255, 0.45); }
+.rm-status-active { color: rgba(255, 255, 255, 0.8); }
+.rm-status-upcoming { color: rgba(255, 255, 255, 0.35); }
+
+.rm-phase-desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.55);
+    line-height: 1.7;
+    margin: 0 0 20px 0;
+}
+
+/* Feature items within each phase */
+.rm-features-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.rm-feature-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.rm-feature-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.rm-feature-item > svg {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 1px;
+}
+
+.rm-feature-item h4 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 3px 0;
+}
+
+.rm-feature-item p {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.45);
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* ===========================================
+   Tech Stack
+   =========================================== */
+.tech-stack-section {
+    margin-bottom: 80px;
+    padding-top: 60px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tech-stack-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.tech-stack-group {
+    background: #0e0e0e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    padding: 24px;
+}
+
+.tech-stack-group h3 {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+    margin: 0 0 18px 0;
+}
+
+.tech-items {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tech-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.tech-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.tech-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.6);
+    flex-shrink: 0;
+}
+
+.tech-item span {
+    font-size: 13px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* ===========================================
+   Changelog
+   =========================================== */
+.changelog-section {
+    margin-bottom: 60px;
+    padding-top: 60px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.changelog-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.changelog-entry {
+    display: flex;
+    gap: 20px;
+    padding: 20px 24px;
+    background: #0e0e0e;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+}
+
+.changelog-version {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;
+    min-width: 60px;
+    padding-top: 2px;
+}
+
+.changelog-body {
+    flex: 1;
+}
+
+.changelog-date {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.changelog-body ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.changelog-body li {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 4px 0;
+}
+
+/* ============================================
+   Suggest Feature CTA
+   =========================================== */
+.suggest-section {
+    padding-top: 40px;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.suggest-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 28px 32px;
+    background: #0e0e0e;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.suggest-card > svg {
+    flex-shrink: 0;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.suggest-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 4px 0;
+}
+
+.suggest-card p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.suggest-card > div {
+    flex: 1;
+}
+
+.suggest-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #161616;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.3s;
+}
+
+.suggest-btn:hover {
+    background: #222;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* ===========================================
+   Responsive
+   =========================================== */
+@media (max-width: 768px) {
+    .roadmap-page {
+        padding: 40px 16px;
+    }
+
+    .roadmap-page-header h1 {
+        font-size: 32px;
+    }
+
+    .roadmap-page-header p {
+        font-size: 16px;
+    }
+
+    .roadmap-header-stats {
+        gap: 20px;
+    }
+
+    .rh-stat-num {
+        font-size: 18px;
+    }
+
+    .rm-phase-connector {
+        width: 32px;
+        min-width: 32px;
+    }
+
+    .rm-phase-node {
+        width: 27px;
+        height: 27px;
+    }
+
+    .rm-phase-node svg {
+        width: 12px;
+        height: 12px;
+    }
+
+    .rm-phase-block:not(:last-child) .rm-phase-connector::after {
+        top: 27px;
+    }
+
+    .rm-phase-content {
+        margin-left: 12px;
+        padding: 18px 16px;
+    }
+
+    .rm-phase-head h2 {
+        font-size: 18px;
+    }
+
+    .tech-stack-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .suggest-card {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .changelog-entry {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .roadmap-page-header h1 {
+        font-size: 26px;
+    }
+
+    .roadmap-header-stats {
+        flex-wrap: wrap;
+    }
+
+    .rh-stat-divider {
+        display: none;
+    }
+}

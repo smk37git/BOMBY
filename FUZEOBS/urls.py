@@ -129,6 +129,7 @@ urlpatterns = [
     path('download/mac', views.fuzeobs_download_mac, name='download_mac'),
     path('download/linux', views.fuzeobs_download_linux, name='download_linux'),
     path('install-guide/', views.fuzeobs_install_guide, name='install_guide'),
+    path('roadmap/', views.fuzeobs_roadmap, name='roadmap'),
     path('analytics', views.fuzeobs_analytics_view, name='analytics'),
     path('analytics/reset/', views.fuzeobs_reset_analytics, name='reset_analytics'),
     path('analytics/all-users', views.fuzeobs_all_users_view, name='all_users'),

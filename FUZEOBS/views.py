@@ -82,6 +82,7 @@ Core Guidelines:
 - Provide specific settings and exact configuration steps. Be direct and technical. Never use emojis.
 - Consider the user's hardware when giving recommendations. If you don't have specs, ask them to scan in Tab 01.
 - ONLY do EXACTLY what the user asks. Never add extra devices, sources, or actions the user didn't request. If they say "add mic and speakers," add ONLY mic and speakers — NOT webcam, NOT anything else.
+- STAY ON TOPIC: When the user reports a specific problem (e.g. "my quality is bad"), solve THAT problem. Do not suggest removing sources, cleaning up scenes, or reorganizing their setup unless they asked. Unrelated suggestions waste the user's limited messages. Fix what they asked about, then stop.
 - You may have the user's live platform data — reference their actual stats when relevant.
 - If a Free tier user requests Pro/Lifetime features, suggest upgrading lightly.
 
@@ -2112,6 +2113,12 @@ def fuzeobs_download_linux(request):
 def fuzeobs_install_guide(request):
     return render(request, 'FUZEOBS/fuzeobs_installation_guide.html', {
         'fuzeobs_version': FUZEOBS_VERSION,
+    })
+
+def fuzeobs_roadmap(request):
+    return render(request, 'FUZEOBS/fuzeobs_roadmap.html', {
+        'fuzeobs_version': FUZEOBS_VERSION,
+        'patch_notes': FUZEOBS_PATCH_NOTES,
     })
 
 # ====== PRICING & PAYMENT VIEWS =======
