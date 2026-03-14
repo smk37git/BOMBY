@@ -1240,7 +1240,8 @@
     display: flex;
     align-items: center;
     gap: 14px;
-    margin: 0 0 48px 56px;
+    max-width: 480px;
+    margin: 0 auto 48px;
     padding: 14px 20px;
     background: #111111;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -1248,6 +1249,11 @@
     text-decoration: none;
     color: #fff;
     transition: all 0.25s ease;
+}
+
+.roadmap-timeline .install-help-card {
+    margin: 0 0 48px 56px;
+    max-width: unset;
 }
 
 .install-help-card:hover {
