@@ -94,6 +94,21 @@
                         <i class="fas fa-shopping-cart"></i> View My Orders
                     </a>
                 </div>
+            {% elif order.product.id == 5 or order.product.id == 6 or order.product.id == 7 %}
+                <!-- Website product content - no order form needed -->
+                <div class="success-subtitle">
+                    Your website project order has been created! You can communicate with me through the order details page.
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="{% url 'STORE:order_details' order.id %}" class="action-button">
+                        <i class="fas fa-eye"></i> View Order Details
+                    </a>
+                    
+                    <a href="{% url 'STORE:my_orders' %}" class="action-button">
+                        <i class="fas fa-shopping-cart"></i> View My Orders
+                    </a>
+                </div>
             {% else %}
                 <!-- Regular order content -->
                 <div class="success-subtitle">

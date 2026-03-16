@@ -154,7 +154,7 @@
         <div class="products-grid website-grid">
             <!-- Basic Website -->
             <div class="product-item">
-                <a href="{% url 'MAIN:coming_soon' %}" class="product-link">
+                <a href="{% url 'STORE:basic_website' %}" class="product-link">
                     <div class="window">
                         <div class="window-header">
                             <div class="window-controls">
@@ -165,13 +165,13 @@
                             <div class="window-title">Basic Website</div>
                         </div>
                         <div class="window-content">
-                            <img src="{% static 'images/coming_soon.png' %}" alt="Basic Website Package">
+                            <img src="{% static 'images/basic_website.png' %}" alt="Basic Website Package">
                         </div>
                         <div class="window-footer">
                             <div class="product-status {% if products.4.is_active %}active{% else %}inactive{% endif %}">
                                 {% if products.4.is_active %}ACTIVE{% else %}INACTIVE{% endif %}
                             </div>
-                            <a href="{% url 'MAIN:coming_soon' %}" class="buy-button">VIEW PACKAGE</a>
+                            <a href="{% url 'STORE:basic_website' %}" class="buy-button">VIEW PACKAGE</a>
                             <div class="product-price">${{ products.4.price|default:"750" }}</div>
                         </div>
                     </div>
