@@ -236,7 +236,7 @@
     </div>
 
     <!-- Demo Video -->
-    <section class="platforms-section">
+    <section class="platforms-section" style="display: none;">
         <div class="video-container">
             <video autoplay muted loop playsinline style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;">
                 <source src="https://storage.googleapis.com/fuze-public/media/Fuze_Smooth_Rendered.mp4" type="video/mp4">
@@ -718,27 +718,6 @@
         </div>
     </section>
 
-    <!-- Video Tutorial Section -->
-    <section class="video-section">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-label">SEE IT IN ACTION</span>
-                <h2 class="section-title">Watch the full walkthrough</h2>
-                <p class="section-subtitle">A complete tour of every feature in Fuze</p>
-            </div>
-            <div class="video-container" id="videoContainer" style="cursor:pointer; position:relative;">
-                <img src="https://img.youtube.com/vi/I9GXqI4Q43k/maxresdefault.jpg"
-                     alt="Fuze Tutorial" 
-                     style="width:100%; height:100%; object-fit:cover; position:absolute; top:0; left:0;">
-                <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); 
-                            width:68px; height:48px; background:rgba(255,0,0,0.8); border-radius:12px; 
-                            display:flex; align-items:center; justify-content:center;">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
-                </div>
-            </div>
-        </div>
-    </section>
-
     <!-- Custom CTA -->
     <section class="custom-cta">
         <div class="container">
@@ -882,24 +861,6 @@ if (typeof gsap === 'undefined') {
     carousel.style.setProperty('--scroll-duration', duration + 's');
     carousel.classList.add('scrolling');
 })();
-
-// Video lazy-load (YouTube IFrame API)
-document.getElementById('videoContainer').addEventListener('click', function() {
-    this.innerHTML = '<div id="ytplayer"></div>';
-    this.style.cursor = 'default';
-    var tag = document.createElement('script');
-    tag.src = 'https://www.youtube.com/iframe_api';
-    document.head.appendChild(tag);
-    window.onYouTubeIframeAPIReady = function() {
-        new YT.Player('ytplayer', {
-            videoId: 'I9GXqI4Q43k',
-            width: '100%',
-            height: '100%',
-            playerVars: { autoplay: 1, origin: window.location.origin },
-            events: {}
-        });
-    };
-});
 
 // Review Modal
 (function() {
