@@ -329,7 +329,7 @@
             
             <h3 style="margin-top: 30px;">Purchase History</h3>
             <div class="purchase-history">
-                {% if user_orders or fuzeobs_purchases %}
+                {% if user_orders or fuze_purchases %}
                     <p>You have {{ total_purchases }} recent order{% if total_purchases != 1 %}s{% endif %}.</p>
                     <a href="{% url 'ACCOUNTS:purchase_history' %}" class="action-button" style="margin-top: 10px;">
                         <i class="fas fa-history"></i> View Full Purchase History

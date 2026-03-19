@@ -24,7 +24,7 @@ PAYPAL_SECRET=$(grep PAYPAL_SECRET .env | cut -d'=' -f2)
 GOOGLE_CLIENT_ID=$(grep GOOGLE_CLIENT_ID .env | cut -d'=' -f2)
 GOOGLE_CLIENT_SECRET=$(grep GOOGLE_CLIENT_SECRET .env | cut -d'=' -f2)
 ANTHROPIC_API_KEY=$(grep ANTHROPIC_API_KEY .env | cut -d'=' -f2)
-FUZEOBS_SECRET_KEY=$(grep FUZEOBS_SECRET_KEY .env | cut -d'=' -f2)
+FUZE_SECRET_KEY=$(grep FUZE_SECRET_KEY .env | cut -d'=' -f2)
 TWITCH_CLIENT_ID=$(grep TWITCH_CLIENT_ID .env | cut -d'=' -f2)
 TWITCH_CLIENT_SECRET=$(grep TWITCH_CLIENT_SECRET .env | cut -d'=' -f2)
 TWITCH_WEBHOOK_SECRET=$(grep TWITCH_WEBHOOK_SECRET .env | cut -d'=' -f2)
@@ -58,7 +58,7 @@ SECRETS=(
   "google-client-id"
   "google-client-secret"
   "anthropic-api-key"
-  "fuzeobs-secret-key"
+  "fuze-secret-key"
   "twitch-client-id"
   "twitch-client-secret"
   "twitch-webhook-secret"
@@ -91,7 +91,7 @@ echo -n "$PAYPAL_SECRET" | gcloud secrets versions add paypal-secret --data-file
 echo -n "$GOOGLE_CLIENT_ID" | gcloud secrets versions add google-client-id --data-file=-
 echo -n "$GOOGLE_CLIENT_SECRET" | gcloud secrets versions add google-client-secret --data-file=-
 echo -n "$ANTHROPIC_API_KEY" | gcloud secrets versions add anthropic-api-key --data-file=-
-echo -n "$FUZEOBS_SECRET_KEY" | gcloud secrets versions add fuzeobs-secret-key --data-file=-
+echo -n "$FUZE_SECRET_KEY" | gcloud secrets versions add fuze-secret-key --data-file=-
 echo -n "$TWITCH_CLIENT_ID" | gcloud secrets versions add twitch-client-id --data-file=-
 echo -n "$TWITCH_CLIENT_SECRET" | gcloud secrets versions add twitch-client-secret --data-file=-
 echo -n "$TWITCH_WEBHOOK_SECRET" | gcloud secrets versions add twitch-webhook-secret --data-file=-
@@ -142,7 +142,7 @@ PAYPAL_SECRET=paypal-secret:latest,\
 GOOGLE_CLIENT_ID=google-client-id:latest,\
 GOOGLE_CLIENT_SECRET=google-client-secret:latest,\
 ANTHROPIC_API_KEY=anthropic-api-key:latest,\
-FUZEOBS_SECRET_KEY=fuzeobs-secret-key:latest,\
+FUZE_SECRET_KEY=fuze-secret-key:latest,\
 TWITCH_CLIENT_ID=twitch-client-id:latest,\
 TWITCH_CLIENT_SECRET=twitch-client-secret:latest,\
 TWITCH_WEBHOOK_SECRET=twitch-webhook-secret:latest,\
