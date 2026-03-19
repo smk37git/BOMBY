@@ -19,10 +19,9 @@ if [ -d "/app/media" ]; then
   ls -la /app/media
 fi
 
-# Run migrations (--fake: mark as applied without running)
-# TEMPORARY: Change back to "migrate --noinput" after this deploy succeeds
+# Run migrations
 echo "Running migrations..."
-python manage.py migrate --fake --noinput
+python manage.py migrate --noinput
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear
