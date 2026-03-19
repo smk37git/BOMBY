@@ -21,7 +21,7 @@ fi
 
 # Run migrations
 echo "Running migrations..."
-python manage.py migrate --noinput
+python manage.py migrate --fake-initial --noinput
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear
