@@ -1,0 +1,604 @@
+from django.db import models
+from django.conf import settings
+from django.utils import timezone
+import secrets
+import base64
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+
+
+def _get_fernet():
+    """Derive a Fernet key from Django SECRET_KEY."""
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=b'fuze-token-encryption',
+        iterations=100_000,
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(settings.SECRET_KEY.encode()))
+    return Fernet(key)
+
+
+class EncryptedTextField(models.TextField):
+    """TextField that encrypts at rest using Fernet."""
+
+    def get_prep_value(self, value):
+        if value is None or value == '':
+            return value
+        return _get_fernet().encrypt(value.encode()).decode()
+
+    def from_db_value(self, value, expression, connection):
+        if value is None or value == '':
+            return value
+        try:
+            return _get_fernet().decrypt(value.encode()).decode()
+        except Exception:
+            # Fallback for legacy plaintext values during migration
+            return value
+
+class ActiveSession(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    session_id = models.CharField(max_length=100, unique=True)
+    ip_address = models.GenericIPAddressField(null=True)
+    started_at = models.DateTimeField(auto_now_add=True)
+    last_ping = models.DateTimeField(auto_now=True)
+    is_anonymous = models.BooleanField(default=False)
+    
+    class Meta:
+        indexes = [models.Index(fields=['last_ping', 'is_anonymous'])]
+
+class AIUsage(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
+    user_tier = models.CharField(max_length=20, default='free')
+    is_anonymous = models.BooleanField(default=False)
+    message_count = models.IntegerField(default=1)
+    tokens_used = models.IntegerField(default=0)
+    input_tokens = models.IntegerField(default=0)
+    output_tokens = models.IntegerField(default=0)
+    estimated_cost = models.DecimalField(max_digits=10, decimal_places=6, default=0)
+    request_type = models.CharField(max_length=50, choices=[
+        ('chat', 'Chat'),
+        ('benchmark', 'Benchmark Analysis'),
+    ], default='chat')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    response_time = models.FloatField(null=True)
+    success = models.BooleanField(default=True)
+    error_message = models.TextField(blank=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['timestamp']),
+            models.Index(fields=['request_type']),
+            models.Index(fields=['success']),
+            models.Index(fields=['is_anonymous']),
+        ]
+
+class UserActivity(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    activity_type = models.CharField(max_length=50, choices=[
+        ('signup', 'Signup'),
+        ('login', 'Login'),
+        ('template_use', 'Template Use'),
+        ('profile_create', 'Profile Create'),
+        ('benchmark', 'Benchmark'),
+    ])
+    details = models.JSONField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    source = models.CharField(max_length=20, choices=[
+        ('web', 'Web'),
+        ('app', 'Desktop App'),
+    ], default='app')
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['user', 'activity_type']),
+            models.Index(fields=['timestamp']),
+            models.Index(fields=['source']),
+        ]
+
+class TierChange(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    from_tier = models.CharField(max_length=20)
+    to_tier = models.CharField(max_length=20)
+    reason = models.CharField(max_length=100, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['user', 'timestamp']),
+            models.Index(fields=['timestamp']),
+        ]
+
+class FuzeProfile(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    config = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-updated_at']
+
+class FuzeChat(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200)
+    messages = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+
+class FuzeQuickstart(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    dismissed = models.BooleanField(default=False)
+    dismissed_at = models.DateTimeField(null=True, blank=True)
+    
+    def save(self, *args, **kwargs):
+        if self.dismissed and not self.dismissed_at:
+            self.dismissed_at = timezone.now()
+        super().save(*args, **kwargs)
+
+class DownloadTracking(models.Model):
+    platform = models.CharField(max_length=20, choices=[
+        ('windows', 'Windows'),
+        ('mac', 'Mac'),
+        ('linux', 'Linux')
+    ])
+    version = models.CharField(max_length=20)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['platform', 'timestamp']),
+            models.Index(fields=['timestamp']),
+        ]
+
+class WidgetConfig(models.Model):
+    WIDGET_TYPES = [
+        ('alert_box', 'Alert Box'),
+        ('chat_box', 'Chat Box'),
+        ('event_list', 'Event List'),
+        ('goal_bar', 'Goal Bar'),
+        ('labels', 'Labels'),
+        ('viewer_count', 'Viewer Count'),
+        ('sponsor_banner', 'Sponsor Banner'),
+    ]
+    
+    PLATFORMS = [
+        ('twitch', 'Twitch'),
+        ('youtube', 'YouTube'),
+        ('kick', 'Kick'),
+        ('facebook', 'Facebook'),
+        ('tiktok', 'TikTok'),
+        ('all', 'All Platforms'),
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    widget_type = models.CharField(max_length=20, choices=WIDGET_TYPES)
+    platform = models.CharField(max_length=20, choices=PLATFORMS)
+    goal_type = models.CharField(max_length=50, blank=True, default='')
+    name = models.CharField(max_length=100)
+    config = models.JSONField(default=dict)
+    token = models.CharField(max_length=128, unique=True, blank=True)
+    gcs_url = models.URLField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    enabled = models.BooleanField(default=False)
+    
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = secrets.token_urlsafe(64)
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        ordering = ['-updated_at']
+        unique_together = ['user', 'widget_type', 'platform', 'goal_type']
+        indexes = [
+            models.Index(fields=['token']),
+        ]
+
+class MediaLibrary(models.Model):
+    MEDIA_TYPES = [
+        ('image', 'Image'),
+        ('sound', 'Sound'),
+        ('video', 'Video'),
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    media_type = models.CharField(max_length=10, choices=MEDIA_TYPES)
+    file_url = models.URLField()
+    file_size = models.IntegerField()
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-uploaded_at']
+
+class PlatformConnection(models.Model):
+    PLATFORMS = [
+        ('twitch', 'Twitch'),
+        ('youtube', 'YouTube'),
+        ('kick', 'Kick'),
+        ('facebook', 'Facebook'),
+        ('tiktok', 'TikTok'),
+        ('all', 'All Platforms'),
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    platform = models.CharField(max_length=20, choices=PLATFORMS)
+    platform_username = models.CharField(max_length=100)
+    access_token = EncryptedTextField()
+    refresh_token = EncryptedTextField(blank=True)
+    expires_at = models.DateTimeField(null=True)
+    connected_at = models.DateTimeField(auto_now_add=True)
+    platform_user_id = models.CharField(max_length=100, blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    
+    class Meta:
+        unique_together = ['user', 'platform']
+
+class WidgetEvent(models.Model):
+    widget = models.ForeignKey('WidgetConfig', on_delete=models.CASCADE)
+    event_type = models.CharField(max_length=50)
+    platform = models.CharField(max_length=20)
+    enabled = models.BooleanField(default=True)
+    config = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['widget', 'event_type', 'platform']
+
+class LabelSessionData(models.Model):
+    """Persists label widget data across OBS restarts"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    label_type = models.CharField(max_length=50)
+    data = models.JSONField(default=dict)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['user', 'label_type']
+        indexes = [
+            models.Index(fields=['user', 'label_type']),
+        ]
+
+class DonationSettings(models.Model):
+    """Streamer's donation page settings"""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    donation_token = models.CharField(max_length=64, unique=True, blank=True)
+    paypal_email = models.EmailField(blank=True)
+    paypal_merchant_id = models.CharField(max_length=100, blank=True)
+    oauth_state = models.CharField(max_length=100, blank=True)
+    enabled = models.BooleanField(default=False)
+    
+    min_amount = models.DecimalField(max_digits=10, decimal_places=2, default=1.00)
+    suggested_amounts = models.JSONField(default=list)  # [5, 10, 25, 50]
+    currency = models.CharField(max_length=3, default='USD')
+    
+    page_title = models.CharField(max_length=200, default='Support My Stream!')
+    page_message = models.TextField(blank=True, default='Thanks for supporting the stream!')
+    show_recent_donations = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.donation_token:
+            self.donation_token = secrets.token_urlsafe(32)
+        if not self.suggested_amounts:
+            self.suggested_amounts = [5, 10, 25, 50]
+        super().save(*args, **kwargs)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['donation_token']),
+        ]
+
+
+class Donation(models.Model):
+    """Individual donation records"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+        ('refunded', 'Refunded'),
+    ]
+    
+    streamer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='fuze_donations')
+    paypal_order_id = models.CharField(max_length=100, unique=True)
+    paypal_capture_id = models.CharField(max_length=100, blank=True)
+    
+    donor_name = models.CharField(max_length=100)
+    donor_email = models.EmailField(blank=True)
+    message = models.TextField(blank=True)
+    
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default='USD')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['streamer', 'status']),
+            models.Index(fields=['paypal_order_id']),
+            models.Index(fields=['created_at']),
+        ]
+
+# ==== PAYMENTS ====
+class FuzeSubscription(models.Model):
+    """Track Fuze subscription status"""
+    PLAN_CHOICES = (
+        ('free', 'Free'),
+        ('pro', 'Pro'),
+        ('lifetime', 'Lifetime'),
+    )
+    
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='fuze_subscription'
+    )
+    plan_type = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free')
+    is_active = models.BooleanField(default=True)
+    stripe_subscription_id = models.CharField(max_length=100, blank=True, null=True)
+    stripe_customer_id = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.plan_type}"
+    
+    @property
+    def is_pro(self):
+        return self.plan_type in ('pro', 'lifetime') and self.is_active
+
+
+class FuzePurchase(models.Model):
+    """Track individual purchases"""
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='fuze_purchases'
+    )
+    plan_type = models.CharField(max_length=20)
+    amount = models.DecimalField(max_digits=8, decimal_places=2)
+    payment_id = models.CharField(max_length=100, blank=True, null=True)
+    is_paid = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.plan_type} - ${self.amount}"
+
+class FuzePageView(models.Model):
+    """Track page views for Fuze marketing pages"""
+    page = models.CharField(max_length=50)  # 'landing' or 'pricing'
+    session_id = models.CharField(max_length=100, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['page', 'timestamp']),
+        ]
+
+class FuzeReview(models.Model):
+    """User reviews for Fuze"""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    platform = models.CharField(max_length=20, choices=[
+        ('twitch', 'Twitch'),
+        ('youtube', 'YouTube'),
+        ('kick', 'Kick'),
+        ('tiktok', 'TikTok'),
+        ('facebook', 'Facebook'),
+        ('other', 'Other'),
+    ])
+    rating = models.IntegerField()  # 1-5 stars
+    review = models.TextField(max_length=300)
+    featured = models.BooleanField(default=False)  # Show on landing page
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        # One review per user
+        constraints = [
+            models.UniqueConstraint(fields=['user'], name='unique_user_review')
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.rating}★"
+    
+class StreamCountdown(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    title = models.CharField(max_length=200, blank=True, default='')
+    scheduled_at = models.DateTimeField(null=True, blank=True)  # one-time countdown
+    platforms = models.JSONField(default=list)
+    # Recurring schedule
+    schedule_days = models.JSONField(default=list, blank=True)  # [0,1,3,5] = Sun,Mon,Wed,Fri
+    schedule_time = models.CharField(max_length=5, blank=True, default='')  # "18:00"
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username} - countdown"
+
+class CollabPost(models.Model):
+    CATEGORY_CHOICES = [
+        ('duo', 'Duo Queue'),
+        ('group', 'Group Stream'),
+        ('podcast', 'Podcast / Talk Show'),
+        ('tournament', 'Tournament'),
+        ('charity', 'Charity Event'),
+        ('creative', 'Creative Collab'),
+        ('irl', 'IRL Stream'),
+        ('other', 'Other'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('filled', 'Filled'),
+        ('closed', 'Closed'),
+    ]
+    
+    SIZE_CHOICES = [
+        ('duo', 'Duo (2)'),
+        ('small', 'Small Group (3-5)'),
+        ('large', 'Large Group (6+)'),
+        ('any', 'Any Size'),
+    ]
+    
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='collab_posts')
+    title = models.CharField(max_length=50)
+    description = models.TextField(max_length=200)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    platforms = models.JSONField(default=list)  # ['twitch', 'youtube', ...]
+    tags = models.JSONField(default=list, blank=True)  # ['FPS', 'Just Chatting', ...]
+    collab_size = models.CharField(max_length=10, choices=SIZE_CHOICES, default='duo')
+    availability = models.CharField(max_length=200, blank=True, default='')  # free text timezone/schedule
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='open')
+    interested_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status', '-created_at']),
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['category']),
+            models.Index(fields=['status', 'expires_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+
+class CollabInterest(models.Model):
+    """Track users interested in a collab post"""
+    post = models.ForeignKey(CollabPost, on_delete=models.CASCADE, related_name='interests')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='collab_interests')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['post', 'user']
+        indexes = [
+            models.Index(fields=['post', 'user']),
+        ]
+
+class LeaderboardEntry(models.Model):
+    """Tracks user leaderboard stats - opt-in only"""
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='leaderboard_entry')
+    opted_in = models.BooleanField(default=True)
+    
+    # Cached hours (in minutes for precision)
+    total_stream_minutes = models.IntegerField(default=0)
+    weekly_stream_minutes = models.IntegerField(default=0)
+    monthly_stream_minutes = models.IntegerField(default=0)
+    
+    # Rank tracking
+    previous_rank = models.IntegerField(default=0)  # rank from last sync
+    
+    # Timestamps
+    last_synced = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['-total_stream_minutes']),
+            models.Index(fields=['-weekly_stream_minutes']),
+            models.Index(fields=['-monthly_stream_minutes']),
+            models.Index(fields=['opted_in']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.total_stream_minutes}min"
+
+
+class Announcement(models.Model):
+    message = models.TextField()
+    type = models.CharField(max_length=20, choices=[
+        ('info', 'Info'),
+        ('warning', 'Warning'),
+        ('error', 'Error'),
+    ], default='info')
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.type}] {self.message[:50]}"
+    
+class TelemetryEvent(models.Model):
+    """Anonymous telemetry events from Fuze desktop app"""
+    device_id = models.CharField(max_length=32, db_index=True)
+    session_id = models.CharField(max_length=32, db_index=True)
+    event = models.CharField(max_length=100, db_index=True)
+    properties = models.JSONField(default=dict, blank=True)
+    app_version = models.CharField(max_length=20, blank=True, default='')
+    os_name = models.CharField(max_length=20, blank=True, default='')
+    os_version = models.CharField(max_length=50, blank=True, default='')
+    client_timestamp = models.FloatField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['event', 'created_at']),
+            models.Index(fields=['device_id', 'created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.device_id[:8]}… | {self.event} | {self.created_at:%m/%d %H:%M}"
+
+class CreatorCode(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    creator_name = models.CharField(max_length=100)
+    creator_email = models.EmailField(blank=True)
+    user = models.OneToOneField('ACCOUNTS.User', on_delete=models.SET_NULL, null=True, blank=True, related_name='creator_code')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.code} ({self.creator_name})"
+
+    def total_earned(self):
+        return self.usages.aggregate(total=models.Sum('creator_earnings'))['total'] or 0
+
+    def pending_payout(self):
+        return self.usages.filter(paid_out=False).aggregate(
+            total=models.Sum('creator_earnings')
+        )['total'] or 0
+
+    class Meta:
+        verbose_name = "Creator Code"
+
+
+class CreatorCodeUsage(models.Model):
+    PLAN_CHOICES = [('pro', 'Pro Monthly'), ('3month', '3-Month Pro'), ('lifetime', 'Lifetime')]
+
+    code = models.ForeignKey(CreatorCode, on_delete=models.PROTECT, related_name='usages')
+    user = models.ForeignKey('ACCOUNTS.User', on_delete=models.SET_NULL, null=True, blank=True)
+    plan_type = models.CharField(max_length=20, choices=PLAN_CHOICES)
+    order_amount = models.DecimalField(max_digits=8, decimal_places=2)
+    creator_earnings = models.DecimalField(max_digits=8, decimal_places=2)
+    stripe_session_id = models.CharField(max_length=200, unique=True)
+    paid_out = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.code.code} — {self.plan_type} ${self.creator_earnings}"
+
+    class Meta:
+        verbose_name = "Creator Code Usage"
+        ordering = ['-created_at']

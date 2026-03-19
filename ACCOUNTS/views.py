@@ -57,16 +57,16 @@ def signup(request):
 
 @login_required
 def account(request):
-    from FUZEOBS.models import FuzeOBSPurchase
+    from FUZE.models import FuzePurchase
     
     # Get user's orders
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    fuzeobs_purchases = FuzeOBSPurchase.objects.filter(user=request.user, is_paid=True).order_by('-created_at')
-    total_purchases = user_orders.count() + fuzeobs_purchases.count()
+    fuze_purchases = FuzePurchase.objects.filter(user=request.user, is_paid=True).order_by('-created_at')
+    total_purchases = user_orders.count() + fuze_purchases.count()
     
     return render(request, 'ACCOUNTS/account.html', {
         'user_orders': user_orders,
-        'fuzeobs_purchases': fuzeobs_purchases,
+        'fuze_purchases': fuze_purchases,
         'total_purchases': total_purchases
     })
 
@@ -80,17 +80,17 @@ class ClientRequiredMixin(UserPassesTestMixin):
 
 @login_required
 def purchase_history(request):
-    from FUZEOBS.models import FuzeOBSPurchase
+    from FUZE.models import FuzePurchase
     
     user_orders = Order.objects.filter(user=request.user).order_by('-created_at')
-    fuzeobs_purchases = FuzeOBSPurchase.objects.filter(user=request.user, is_paid=True).order_by('-created_at')
+    fuze_purchases = FuzePurchase.objects.filter(user=request.user, is_paid=True).order_by('-created_at')
     
     for order in user_orders:
         order.is_access_product = order.product.id == 4
     
     return render(request, 'ACCOUNTS/purchase_history.html', {
         'user_orders': user_orders,
-        'fuzeobs_purchases': fuzeobs_purchases
+        'fuze_purchases': fuze_purchases
     })
 # Profile View
 User = get_user_model()
@@ -1023,20 +1023,20 @@ def delete_messages(request):
     
     return redirect('ACCOUNTS:message_monitor')
 
-# FUZEOBS VIEWS
+# FUZE VIEWS
 @login_required
 @admin_code_required
 @user_passes_test(is_admin)
-def bulk_change_fuzeobs_tier(request):
+def bulk_change_fuze_tier(request):
     if request.method == 'POST':
         selected_users = request.POST.get('selected_users', '').split(',')
         # Filter out empty strings
         selected_users = [uid for uid in selected_users if uid]
-        fuzeobs_tier = request.POST.get('fuzeobs_tier')
+        fuze_tier = request.POST.get('fuze_tier')
         
-        if selected_users and fuzeobs_tier in ['free', 'pro', 'lifetime']:
-            User.objects.filter(id__in=selected_users).update(fuzeobs_tier=fuzeobs_tier)
-            messages.success(request, f"Updated {len(selected_users)} user(s) to {fuzeobs_tier} tier.")
+        if selected_users and fuze_tier in ['free', 'pro', 'lifetime']:
+            User.objects.filter(id__in=selected_users).update(fuze_tier=fuze_tier)
+            messages.success(request, f"Updated {len(selected_users)} user(s) to {fuze_tier} tier.")
         else:
             messages.error(request, "No users selected.")
     
@@ -1045,7 +1045,7 @@ def bulk_change_fuzeobs_tier(request):
 @login_required
 @admin_code_required
 @user_passes_test(is_admin)
-def reset_fuzeobs_usage(request):
+def reset_fuze_usage(request):
     if request.method == 'POST':
         selected_users = request.POST.get('selected_users', '').split(',')
         selected_users = [uid for uid in selected_users if uid]
@@ -1056,14 +1056,14 @@ def reset_fuzeobs_usage(request):
             for u in users:
                 user_key = f'user_{u.id}'
                 # Clear free tier daily limit
-                cache.delete(f'fuzeobs_daily_{user_key}_{today}')
+                cache.delete(f'fuze_daily_{user_key}_{today}')
                 # Clear pro/lifetime rate limit
-                cache.delete(f'fuzeobs_pro_rate_{user_key}')
+                cache.delete(f'fuze_pro_rate_{user_key}')
                 # Clear spam limiter too
-                cache.delete(f'fuzeobs_spam_{user_key}')
+                cache.delete(f'fuze_spam_{user_key}')
             
             # Reset DB field as well
-            users.update(fuzeobs_ai_usage_monthly=0)
+            users.update(fuze_ai_usage_monthly=0)
             messages.success(request, f"Reset AI usage and rate limits for {len(selected_users)} user(s).")
         else:
             messages.error(request, "No users selected.")

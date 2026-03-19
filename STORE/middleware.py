@@ -29,7 +29,7 @@ class AnalyticsMiddleware(MiddlewareMixin):
             return None
             
         # Skip admin pages and static files
-        if request.path.startswith(('/fuzeobs/', '/admin/', '/static/')):
+        if request.path.startswith(('/fuze/', '/admin/', '/static/')):
             return None
             
         # Skip AJAX requests

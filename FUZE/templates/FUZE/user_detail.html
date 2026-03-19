@@ -1,0 +1,307 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuze_analytics.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<h1 class="user_management-title">User Details: {{ view_user.username }}</h1>
+
+<div class="analytics-container">
+    <div class="analytics-header">
+        <h2>{{ view_user.username }} - AI Usage Details</h2>
+        <div class="time-filter">
+            <a href="?days=7" class="{% if days == 7 %}active{% endif %}">Last 7 days</a>
+            <a href="?days=30" class="{% if days == 30 %}active{% endif %}">Last 30 days</a>
+            <a href="?days=90" class="{% if days == 90 %}active{% endif %}">Last 90 days</a>
+            <a href="{% url 'FUZE:analytics' %}" class="btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back
+            </a>
+        </div>
+    </div>
+
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-label">Total Requests</div>
+            <div class="metric-value">{{ ai_stats.total_requests }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Total Cost</div>
+            <div class="metric-value">${{ ai_stats.total_cost|floatformat:4 }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Total Tokens</div>
+            <div class="metric-value">{{ ai_stats.total_tokens|floatformat:0 }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Success Rate</div>
+            <div class="metric-value">{{ success_rate }}%</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Active Widgets</div>
+            <div class="metric-value">{{ widgets|length }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Media Storage</div>
+            <div class="metric-value">{{ media_size_mb }} MB</div>
+            <div class="metric-subtext">{{ media_files }} files</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-label">Donations</div>
+            {% if donation_settings and donation_settings.enabled %}
+                <div class="metric-value" style="color: #4ade80;">Enabled</div>
+            {% elif donation_settings %}
+                <div class="metric-value" style="color: #f59e0b;">Disabled</div>
+            {% else %}
+                <div class="metric-value" style="color: #666;">Not Set Up</div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if donation_settings %}
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Donation Settings</h3>
+        </div>
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Setting</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Status</td>
+                    <td>
+                        {% if donation_settings.enabled %}
+                            <span style="color: #4ade80;">Enabled</span>
+                        {% else %}
+                            <span style="color: #f59e0b;">Disabled</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Page Title</td>
+                    <td>{{ donation_settings.page_title }}</td>
+                </tr>
+                <tr>
+                    <td>Currency / Min</td>
+                    <td>{{ donation_settings.currency }} / {{ donation_settings.min_amount }}</td>
+                </tr>
+                <tr>
+                    <td>Donation Page</td>
+                    <td><a href="{{ donation_url }}" target="_blank" style="color: #60a5fa;">{{ donation_url }}</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Widgets ({{ widgets|length }})</h3>
+        </div>
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Platform</th>
+                    <th>Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for w in widgets %}
+                <tr>
+                    <td>{{ w.name }}</td>
+                    <td><span class="widget-type">{{ w.get_widget_type_display }}</span></td>
+                    <td><span class="platform-badge">{{ w.get_platform_display }}</span></td>
+                    <td>{{ w.created_at|date:"m/d/Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 40px; color: rgba(255,255,255,0.4);">No widgets created</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Recent AI Requests</h3>
+        </div>
+        <div class="scrollable-section" id="ai-requests-scroll">
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Tokens</th>
+                        <th>Cost</th>
+                        <th>Response Time</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="ai-requests-tbody">
+                    {% for usage in ai_usage %}
+                    <tr {% if forloop.counter > 5 %}class="hidden-row" data-group="ai-requests"{% endif %}>
+                        <td>{{ usage.timestamp|date:"m/d H:i" }}</td>
+                        <td>{{ usage.request_type }}</td>
+                        <td>{{ usage.tokens_used }}</td>
+                        <td>${{ usage.estimated_cost|floatformat:6 }}</td>
+                        <td>{{ usage.response_time|floatformat:2 }}s</td>
+                        <td>
+                            {% if usage.success %}
+                                <span style="color: #4ade80; font-size: 18px;">✓</span>
+                            {% else %}
+                                <span style="color: #f87171; font-size: 18px;">✗</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if ai_usage|length > 5 %}
+        <div class="section-controls">
+            <button class="expand-btn" data-group="ai-requests" data-total="{{ ai_usage|length }}" data-shown="5" onclick="showMore(this, 5)">
+                Show 5 More
+            </button>
+            <span class="item-count" id="ai-requests-count">Showing 5 of {{ ai_usage|length }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Saved Chats</h3>
+        </div>
+        <div class="scrollable-section" id="chats-scroll">
+            {% for chat in user_chats %}
+            <div class="chat-item {% if forloop.counter == 1 %}show{% endif %}" data-group="chats">
+                <h4>{{ chat.title }}</h4>
+                <small>{{ chat.created_at|date:"m/d/Y H:i" }}</small>
+                <div class="chat-preview">
+                    {% for msg in chat.messages %}
+                    <div class="message-item">
+                        <span class="message-role">{{ msg.role|title }}:</span> {{ msg.content|truncatewords:30 }}
+                    </div>
+                    {% endfor %}
+                </div>
+                <a href="{% url 'FUZE:chat_detail' view_user.id forloop.counter0 %}" class="view-chat-link">View Full Conversation →</a>
+            </div>
+            {% empty %}
+            <p style="color: rgba(255,255,255,0.4); padding: 20px; text-align: center;">No saved chats</p>
+            {% endfor %}
+        </div>
+        {% if user_chats|length > 1 %}
+        <div class="section-controls">
+            <button class="expand-btn" data-group="chats" data-total="{{ user_chats|length }}" data-shown="1" onclick="showMoreItems(this, 3)">
+                Show 3 More
+            </button>
+            <span class="item-count" id="chats-count">Showing 1 of {{ user_chats|length }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>Recent Activity</h3>
+        </div>
+        <div class="scrollable-section" id="activity-scroll">
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Activity</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody id="activity-tbody">
+                    {% for act in activity %}
+                    <tr {% if forloop.counter > 5 %}class="hidden-row" data-group="activity"{% endif %}>
+                        <td>{{ act.timestamp|date:"m/d H:i" }}</td>
+                        <td>{{ act.activity_type }}</td>
+                        <td>{{ act.source }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if activity|length > 5 %}
+        <div class="section-controls">
+            <button class="expand-btn" data-group="activity" data-total="{{ activity|length }}" data-shown="5" onclick="showMore(this, 5)">
+                Show 5 More
+            </button>
+            <span class="item-count" id="activity-count">Showing 5 of {{ activity|length }}</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function showMore(btn, increment) {
+    const group = btn.dataset.group;
+    const total = parseInt(btn.dataset.total);
+    let shown = parseInt(btn.dataset.shown);
+    
+    const hiddenRows = document.querySelectorAll(`tr.hidden-row[data-group="${group}"]:not(.show)`);
+    const toShow = Math.min(increment, hiddenRows.length);
+    
+    for (let i = 0; i < toShow; i++) {
+        hiddenRows[i].classList.add('show');
+    }
+    
+    shown += toShow;
+    btn.dataset.shown = shown;
+    
+    const remaining = total - shown;
+    const countEl = document.getElementById(`${group}-count`);
+    countEl.textContent = `Showing ${shown} of ${total}`;
+    
+    if (remaining <= 0) {
+        btn.disabled = true;
+        btn.textContent = 'All Shown';
+    } else {
+        btn.textContent = `Show ${Math.min(increment, remaining)} More`;
+    }
+}
+
+function showMoreItems(btn, increment) {
+    const group = btn.dataset.group;
+    const total = parseInt(btn.dataset.total);
+    let shown = parseInt(btn.dataset.shown);
+    
+    const hiddenItems = document.querySelectorAll(`.chat-item[data-group="${group}"]:not(.show)`);
+    const toShow = Math.min(increment, hiddenItems.length);
+    
+    for (let i = 0; i < toShow; i++) {
+        hiddenItems[i].classList.add('show');
+    }
+    
+    shown += toShow;
+    btn.dataset.shown = shown;
+    
+    const remaining = total - shown;
+    const countEl = document.getElementById(`${group}-count`);
+    countEl.textContent = `Showing ${shown} of ${total}`;
+    
+    if (remaining <= 0) {
+        btn.disabled = true;
+        btn.textContent = 'All Shown';
+    } else {
+        btn.textContent = `Show ${Math.min(increment, remaining)} More`;
+    }
+}
+</script>
+{% endblock %}

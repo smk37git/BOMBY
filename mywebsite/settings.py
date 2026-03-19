@@ -33,7 +33,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
 ALLOWED_HOSTS = list(set(ALLOWED_HOSTS + ['bomby.us', 'www.bomby.us', 'bomby-799218251279.us-central1.run.app', 'localhost', '127.0.0.1']))
@@ -67,7 +67,7 @@ INSTALLED_APPS = [
     'PORTFOLIO',
     'STORE',
     'storages',
-    'FUZEOBS',
+    'FUZE',
     'channels',
 ]
 
@@ -100,14 +100,14 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': REDIS_URL,
-        'KEY_PREFIX': 'fuzeobs',
+        'KEY_PREFIX': 'fuze',
         'TIMEOUT': 300,
     }
 } if os.environ.get('REDIS_URL') else {
     # Fallback to local memory cache for development
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'fuzeobs-cache',
+        'LOCATION': 'fuze-cache',
     }
 }
 
@@ -155,7 +155,7 @@ SOCIALACCOUNT_ADAPTER = 'ACCOUNTS.adapters.CustomSocialAccountAdapter'
 SITE_ID = 1
 
 MIDDLEWARE = [
-    'FUZEOBS.middleware.CorsOptionsMiddleware',
+    'FUZE.middleware.CorsOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -314,9 +314,9 @@ STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY')
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY')
 STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
 
-FUZEOBS_STRIPE_PRICE_MONTHLY = os.environ.get('FUZEOBS_STRIPE_PRICE_MONTHLY', '')
-FUZEOBS_STRIPE_PRICE_3MONTH = os.environ.get('FUZEOBS_STRIPE_PRICE_3MONTH', '')
-FUZEOBS_STRIPE_PRICE_LIFETIME = os.environ.get('FUZEOBS_STRIPE_PRICE_LIFETIME', '')
+FUZE_STRIPE_PRICE_MONTHLY = os.environ.get('FUZE_STRIPE_PRICE_MONTHLY', '')
+FUZE_STRIPE_PRICE_3MONTH = os.environ.get('FUZE_STRIPE_PRICE_3MONTH', '')
+FUZE_STRIPE_PRICE_LIFETIME = os.environ.get('FUZE_STRIPE_PRICE_LIFETIME', '')
 
 PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID')
 PAYPAL_SECRET = os.environ.get('PAYPAL_SECRET')
@@ -382,8 +382,8 @@ CSP_FONT_SRC = (
     "https://maxcdn.bootstrapcdn.com"
 )
 
-# FuzeOBS Secret Key
-FUZEOBS_SECRET_KEY = os.environ.get('FUZEOBS_SECRET_KEY')
+# Fuze Secret Key
+FUZE_SECRET_KEY = os.environ.get('FUZE_SECRET_KEY')
 
 # Twitch Keys
 TWITCH_CLIENT_ID = os.environ.get('TWITCH_CLIENT_ID')

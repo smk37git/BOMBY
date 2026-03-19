@@ -1,0 +1,82 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuze_analytics.css' %}">
+{% endblock %}
+
+{% block background %}
+    {% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<h1 class="user_management-title">All Fuze Users</h1>
+
+<div class="analytics-container">
+    <div class="analytics-header">
+        <h2>Complete User List</h2>
+        <a href="{% url 'FUZE:analytics' %}" class="btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back to Analytics
+        </a>
+    </div>
+
+    <div class="analytics-section">
+        <div class="section-header">
+            <h3>All Users - Ranked by AI Usage</h3>
+        </div>
+        <table class="product-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Username</th>
+                    <th>Tier</th>
+                    <th>AI Requests</th>
+                    <th>Total Cost</th>
+                    <th>Last Activity</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in all_users %}
+                <tr>
+                    <td>{{ forloop.counter|add:page_obj.start_index|add:"-1" }}</td>
+                    <td>{{ user.username }}</td>
+                    <td><span class="tier-{{ user.fuze_tier }}">{{ user.fuze_tier|upper }}</span></td>
+                    <td>{{ user.total_ai_requests|default:0 }}</td>
+                    <td>${{ user.total_ai_cost|default:0|floatformat:4 }}</td>
+                    <td>{{ user.last_activity|date:"m/d/Y H:i"|default:"Never" }}</td>
+                    <td>
+                        <a href="{% url 'FUZE:user_detail' user.id %}" class="view-link">
+                            View Details →
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: rgba(255,255,255,0.4);">No users found</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-container">
+        {% if page_obj.has_previous %}
+            <a href="?page=1" class="btn-secondary">« First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn-secondary">‹ Prev</a>
+        {% endif %}
+        
+        <span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn-secondary">Next ›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn-secondary">Last »</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

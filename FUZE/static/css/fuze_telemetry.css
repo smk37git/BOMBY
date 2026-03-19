@@ -1,0 +1,337 @@
+/* ===========================================
+   Fuze Telemetry Dashboard Styles
+   =========================================== */
+
+/* Funnel Bar Chart */
+.funnel-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.funnel-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.funnel-label {
+    min-width: 160px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+    text-align: right;
+}
+
+.funnel-bar-wrap {
+    flex: 1;
+    height: 32px;
+    background: #141414;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+}
+
+.funnel-bar {
+    height: 100%;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    border-radius: 6px;
+    transition: width 0.6s ease;
+    min-width: 2px;
+}
+
+.funnel-value {
+    min-width: 80px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+}
+
+.funnel-pct {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 400;
+}
+
+/* Horizontal bars for breakdowns */
+.bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.bar-label {
+    min-width: 120px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+    text-align: right;
+    font-weight: 500;
+}
+
+.bar-track {
+    flex: 1;
+    height: 24px;
+    background: #141414;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.5s ease;
+    min-width: 2px;
+}
+
+.bar-fill.os {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.bar-fill.version {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.bar-fill.event {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.bar-fill.tab {
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+}
+
+.bar-count {
+    min-width: 60px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 500;
+}
+
+/* Daily Active Devices sparkline */
+.daily-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 120px;
+    padding: 16px 0;
+}
+
+.daily-bar {
+    flex: 1;
+    background: linear-gradient(to top, #7c3aed, #a855f7);
+    border-radius: 3px 3px 0 0;
+    min-width: 4px;
+    transition: height 0.4s ease;
+    position: relative;
+    cursor: default;
+}
+
+.daily-bar:hover {
+    opacity: 0.8;
+}
+
+.daily-bar .daily-tip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #010101;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #fff;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.daily-bar:hover .daily-tip {
+    display: block;
+}
+
+.daily-labels {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 6px;
+}
+
+.daily-labels span {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Login funnel horizontal */
+.login-funnel {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.login-step {
+    flex: 1;
+    min-width: 140px;
+    text-align: center;
+    padding: 20px 16px;
+    background: #111111;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+}
+
+.login-step .step-val {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.login-step .step-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 6px;
+}
+
+.login-arrow {
+    display: flex;
+    align-items: center;
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 20px;
+}
+
+/* Error cards */
+.error-card {
+    background: #181010;
+    border: 1px solid rgba(248, 113, 113, 0.15);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 10px;
+}
+
+.error-card:last-child {
+    margin-bottom: 0;
+}
+
+.error-meta {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 6px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.error-msg {
+    font-size: 13px;
+    color: #f87171;
+    font-family: monospace;
+    word-break: break-all;
+}
+
+/* Two-column layout */
+.two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+/* Empty state */
+.empty-state {
+    color: rgba(255, 255, 255, 0.4);
+    text-align: center;
+    padding: 40px;
+}
+
+/* ===========================================
+   Responsive
+   =========================================== */
+@media screen and (min-width: 1920px) {
+    .funnel-label {
+        min-width: 200px;
+        font-size: 15px;
+    }
+
+    .bar-label {
+        min-width: 150px;
+        font-size: 15px;
+    }
+
+    .daily-chart {
+        height: 160px;
+    }
+
+    .login-step .step-val {
+        font-size: 34px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .two-col {
+        grid-template-columns: 1fr;
+    }
+
+    .funnel-label {
+        min-width: 120px;
+    }
+}
+
+@media (max-width: 768px) {
+    .two-col {
+        grid-template-columns: 1fr;
+    }
+
+    .funnel-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .funnel-label {
+        min-width: unset;
+        width: 100%;
+        text-align: left;
+        font-size: 12px;
+    }
+
+    .bar-label {
+        min-width: 80px;
+        font-size: 12px;
+    }
+
+    .login-funnel {
+        gap: 12px;
+    }
+
+    .login-step {
+        min-width: 100px;
+        padding: 14px 10px;
+    }
+
+    .login-step .step-val {
+        font-size: 22px;
+    }
+
+    .login-arrow {
+        display: none;
+    }
+
+    .daily-chart {
+        height: 80px;
+    }
+
+    .error-meta {
+        flex-direction: column;
+        gap: 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-funnel {
+        flex-direction: column;
+    }
+
+    .funnel-value {
+        min-width: 60px;
+        font-size: 13px;
+    }
+}

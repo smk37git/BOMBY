@@ -85,19 +85,19 @@
 
                     <div class="account-section">
                         <div class="dropdown">
-                            <a href="{% url 'FUZEOBS:fuzeobs' %}" class="nav-link dropdown-toggle">
-                                FuzeOBS <span class="dropdown-arrow">▾</span>
+                            <a href="{% url 'FUZE:fuze' %}" class="nav-link dropdown-toggle">
+                                Fuze <span class="dropdown-arrow">▾</span>
                             </a>
                             <div class="dropdown-content">
-                                <a href="{% url 'FUZEOBS:fuzeobs' %}">View FuzeOBS</a>
-                                <a href="{% url 'FUZEOBS:pricing' %}">Pricing</a>
-                                <a href="{% url 'FUZEOBS:install_guide' %}">Install Guide</a>
-                                <a href="{% url 'FUZEOBS:roadmap' %}">Roadmap</a>
+                                <a href="{% url 'FUZE:fuze' %}">View Fuze</a>
+                                <a href="{% url 'FUZE:pricing' %}">Pricing</a>
+                                <a href="{% url 'FUZE:install_guide' %}">Install Guide</a>
+                                <a href="{% url 'FUZE:roadmap' %}">Roadmap</a>
                                 {% if user.is_admin_user %}
-                                <a href="{% url 'FUZEOBS:analytics' %}">Analytics</a>
+                                <a href="{% url 'FUZE:analytics' %}">Analytics</a>
                                 {% endif %}
                                 {% if user.creator_code %}
-                                <a href="{% url 'FUZEOBS:my_creator_code' %}">Creator Portal</a>
+                                <a href="{% url 'FUZE:my_creator_code' %}">Creator Portal</a>
                                 {% endif %}
                             </div>
                         </div>
@@ -206,7 +206,7 @@
                     <h4>Quick Links</h4>
                     <ul class="footer-links">
                         <li><a href="{% url 'MAIN:home' %}">Home</a></li>
-                        <li><a href="{% url 'FUZEOBS:fuzeobs' %}">FuzeOBS</a></li>
+                        <li><a href="{% url 'FUZE:fuze' %}">Fuze</a></li>
                         <li><a href="{% url 'STORE:store' %}">Store</a></li>
                         <li><a href="{% url 'PORTFOLIO:portfolio' %}">Portfolio</a></li>
                         <li><a href="{% url 'MAIN:about' %}">About</a></li>
@@ -237,7 +237,7 @@
             
             <!-- Copyright bar -->
             <div class="footer-bottom">
-                <p>&copy; {% now "Y" %} BOMBY.US | FuzeOBS. ALL RIGHTS RESERVED.</p>
+                <p>&copy; {% now "Y" %} BOMBY.US | Fuze. ALL RIGHTS RESERVED.</p>
                 {% if user.is_admin_user %}
                     <a href="{% url 'MAIN:admin_panel' %}" class="admin-link">ADMIN PANEL</a>
                 {% endif %}

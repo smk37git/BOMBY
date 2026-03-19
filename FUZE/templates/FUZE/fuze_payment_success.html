@@ -1,0 +1,72 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block title %}Payment {% if error %}Issue{% else %}Successful{% endif %} | Fuze{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuze_payment.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+{% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="fuze-success-container">
+    <div class="fuze-success-card">
+        {% if error %}
+        <i class="fas fa-exclamation-triangle fuze-success-icon" style="color: #f59e0b;"></i>
+        <h1 class="fuze-success-title">Payment Issue</h1>
+        <p class="fuze-success-subtitle">{{ error }}</p>
+        
+        <div class="fuze-action-buttons">
+            <a href="{% url 'FUZE:pricing' %}" class="fuze-action-btn">
+                <i class="fas fa-arrow-left"></i> Back to Pricing
+            </a>
+            <a href="{% url 'ACCOUNTS:account' %}" class="fuze-action-btn secondary">
+                <i class="fas fa-user"></i> My Account
+            </a>
+        </div>
+        {% else %}
+        <i class="fas fa-check-circle fuze-success-icon"></i>
+        <h1 class="fuze-success-title">Payment Successful!</h1>
+        <p class="fuze-success-subtitle">Thank you for purchasing Fuze {{ plan_name }}.</p>
+        
+        <div class="fuze-order-details">
+            <div class="fuze-detail-item">
+                <span class="fuze-detail-label">Plan:</span>
+                <span class="fuze-detail-value">Fuze {{ plan_name }}</span>
+            </div>
+            <div class="fuze-detail-item">
+                <span class="fuze-detail-label">Date:</span>
+                <span class="fuze-detail-value">{{ purchase.created_at|date:"F j, Y" }}</span>
+            </div>
+            <div class="fuze-detail-item">
+                <span class="fuze-detail-label">Amount:</span>
+                <span class="fuze-detail-value">${{ purchase.amount }}</span>
+            </div>
+        </div>
+        
+        <p class="fuze-success-subtitle">
+            {% if plan_type == '3month' %}
+            Your 3-month Pro access is now active. Open Fuze and sign in to access all Pro features.
+            {% elif plan_type == 'pro' %}
+            Your Pro subscription is now active. Open Fuze and sign in to access all Pro features.
+            {% else %}
+            Your Lifetime license is now active. Open Fuze and sign in to unlock all features.
+            {% endif %}
+        </p>
+        
+        <div class="fuze-action-buttons">
+            <a href="{% url 'FUZE:fuze' %}" class="fuze-action-btn">
+                <i class="fas fa-download"></i> Download Fuze
+            </a>
+            <a href="{% url 'ACCOUNTS:account' %}" class="fuze-action-btn secondary">
+                <i class="fas fa-user"></i> My Account
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,628 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOMBY | {{ page_title }}</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(45deg, #000000, #151515);
+            min-height: 100vh;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        
+        .donation-container {
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .panels-wrapper {
+            display: flex;
+            gap: 24px;
+            align-items: flex-start;
+        }
+        
+        .donation-card {
+            flex: 1;
+            background: #0e0e0e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 32px;
+        }
+        
+        .supporters-card {
+            width: 280px;
+            flex-shrink: 0;
+            background: #0e0e0e;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 24px;
+        }
+        
+        .donation-header {
+            text-align: center;
+            margin-bottom: 28px;
+            padding-bottom: 28px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin: 0 auto 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid #fff;
+            overflow: hidden;
+        }
+        
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .streamer-name {
+            color: #a855f7;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .donation-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+        
+        .page-message {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .form-group label i {
+            font-size: 12px;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #a855f7;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .form-group input.field-error,
+        .form-group textarea.field-error {
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+        
+        .field-error-msg {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .amount-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .amount-btn {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .amount-btn:hover {
+            background: rgba(168, 85, 247, 0.2);
+            border-color: rgba(168, 85, 247, 0.4);
+        }
+        
+        .amount-btn.active {
+            background: linear-gradient(135deg, #a855f7, #7c3aed);
+            border-color: transparent;
+        }
+        
+        .custom-amount {
+            position: relative;
+        }
+        
+        .currency-symbol {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 15px;
+        }
+        
+        .custom-amount input {
+            padding-left: 32px;
+        }
+        
+        #paypal-button-container {
+            margin-top: 24px;
+        }
+        
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .supporters-title {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .supporters-title i {
+            color: #ef4444;
+        }
+        
+        .donation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .donation-item:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        
+        .donation-item:first-child {
+            padding-top: 0;
+        }
+        
+        .donor-name {
+            font-weight: 500;
+            font-size: 14px;
+            color: #fff;
+        }
+        
+        .donation-amount {
+            color: #22c55e;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .no-donations {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 13px;
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .success-view {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 36px;
+            color: #fff;
+        }
+        
+        .success-view h2 {
+            font-size: 28px;
+            margin-bottom: 12px;
+            color: #fff;
+        }
+        
+        .success-view p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 16px;
+        }
+        
+        .secure-badge {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        .secure-badge i {
+            color: #22c55e;
+        }
+        
+        .powered-by {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .powered-by a {
+            color: #a855f7;
+            text-decoration: none;
+        }
+        
+        .hidden { display: none !important; }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 20px 16px;
+            }
+            
+            .panels-wrapper {
+                flex-direction: column;
+            }
+            
+            .donation-card {
+                width: 100%;
+            }
+            
+            .supporters-card {
+                width: 100%;
+            }
+            
+            .donation-header h1 {
+                font-size: 24px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .donation-card,
+            .supporters-card {
+                padding: 24px 20px;
+            }
+            
+            .amount-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="donation-container">   
+        <div class="panels-wrapper">
+            <div class="donation-card">
+                <div id="donation-form">
+                    <div class="donation-header">
+                        <div class="avatar">
+                            {% if profile_picture %}
+                                <img src="{{ profile_picture }}" alt="{{ streamer }}">
+                            {% else %}
+                                {{ streamer|slice:":1"|upper }}
+                            {% endif %}
+                        </div>
+                        <div class="streamer-name">@{{ streamer }}</div>
+                        <h1>{{ page_title }}</h1>
+                        {% if page_message %}
+                        <p class="page-message">{{ page_message }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div id="error-message" class="error-message"></div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Your Name</label>
+                        <input type="text" id="donor-name" placeholder="Anonymous" maxlength="100">
+                        <div id="name-error" class="field-error-msg" style="display: none;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-dollar-sign"></i> Amount ({{ currency }})</label>
+                        <div class="amount-buttons">
+                            {% for amt in suggested_amounts %}
+                            <button type="button" class="amount-btn" data-amount="{{ amt }}">${{ amt|floatformat:0 }}</button>
+                            {% endfor %}
+                        </div>
+                        <div class="custom-amount">
+                            <span class="currency-symbol">$</span>
+                            <input type="number" id="amount" placeholder="Custom amount" min="{{ min_amount }}" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-comment"></i> Message (Optional)</label>
+                        <textarea id="message" placeholder="Say something nice..." maxlength="500"></textarea>
+                        <div id="message-error" class="field-error-msg" style="display: none;"></div>
+                    </div>
+
+                    <div id="paypal-button-container"></div>
+                    
+                    <div class="secure-badge">
+                        <i class="fas fa-lock"></i>
+                        <span>Secured by PayPal</span>
+                    </div>
+                </div>
+
+                <div id="success-message" class="success-view hidden">
+                    <div class="success-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h2>Thank You!</h2>
+                    <p>Your donation has been sent to {{ streamer }}!</p>
+                </div>
+            </div>
+
+            {% if show_recent_donations %}
+            <div class="supporters-card">
+                <h3 class="supporters-title"><i class="fas fa-heart"></i> Recent Supporters</h3>
+                {% if recent_donations %}
+                    {% for d in recent_donations %}
+                    <div class="donation-item">
+                        <span class="donor-name">{{ d.donor_name }}</span>
+                        <span class="donation-amount">${{ d.amount|floatformat:2 }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="no-donations">Be the first to donate!</p>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="powered-by">
+            Powered by <a href="https://bomby.us/fuze" target="_blank">Fuze</a>
+        </div>
+    </div>
+
+    <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&merchant-id={{ business_id }}&currency={{ currency }}&intent=capture&disable-funding=credit,card"></script>
+    
+    <script>
+        const token = '{{ token }}';
+        const minAmount = parseFloat('{{ min_amount }}');
+        const currency = '{{ currency }}';
+        const businessId = '{{ business_id }}';
+        const streamer = '{{ streamer }}';
+        
+        let selectedAmount = 0;
+
+        document.querySelectorAll('.amount-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedAmount = parseFloat(btn.dataset.amount);
+                document.getElementById('amount').value = selectedAmount;
+            });
+        });
+
+        document.getElementById('amount').addEventListener('input', (e) => {
+            document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+            selectedAmount = parseFloat(e.target.value) || 0;
+        });
+
+        function showError(msg) {
+            const el = document.getElementById('error-message');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('error-message').style.display = 'none';
+        }
+
+        function showFieldError(field, msg) {
+            const input = document.getElementById(field === 'name' ? 'donor-name' : 'message');
+            const errorEl = document.getElementById(field === 'name' ? 'name-error' : 'message-error');
+            if (input) input.classList.add('field-error');
+            if (errorEl) {
+                errorEl.textContent = msg;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        function clearFieldErrors() {
+            document.getElementById('donor-name').classList.remove('field-error');
+            document.getElementById('message').classList.remove('field-error');
+            document.getElementById('name-error').style.display = 'none';
+            document.getElementById('message-error').style.display = 'none';
+        }
+
+        document.getElementById('donor-name').addEventListener('input', clearFieldErrors);
+        document.getElementById('message').addEventListener('input', clearFieldErrors);
+
+        paypal.Buttons({
+            style: {
+                layout: 'vertical',
+                color: 'blue',
+                shape: 'rect',
+                label: 'paypal',
+                height: 45
+            },
+            
+            createOrder: async function(data, actions) {
+                hideError();
+                clearFieldErrors();
+                
+                const name = document.getElementById('donor-name').value.trim() || 'Anonymous';
+                const message = document.getElementById('message').value.trim();
+                const amount = parseFloat(document.getElementById('amount').value) || 0;
+
+                if (!amount || amount <= 0) {
+                    showError('Please enter a donation amount.');
+                    return Promise.reject(new Error('No amount'));
+                }
+
+                if (amount < minAmount) {
+                    showError(`Minimum donation is $${minAmount} ${currency}`);
+                    return Promise.reject(new Error('Amount too low'));
+                }
+
+                try {
+                    const validateResp = await fetch(`/fuze/donate/${token}/validate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, message })
+                    });
+                    
+                    if (!validateResp.ok) {
+                        const validateResult = await validateResp.json();
+                        if (validateResult.field) {
+                            showFieldError(validateResult.field, 'Profanity is not allowed');
+                            return Promise.reject(new Error('Profanity detected'));
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Validation skipped:', e);
+                }
+
+                return actions.order.create({
+                    purchase_units: [{
+                        amount: {
+                            value: amount.toFixed(2),
+                            currency_code: currency
+                        },
+                        description: `Tip to ${streamer}`,
+                        payee: {
+                            email_address: businessId.includes('@') ? businessId : undefined,
+                            merchant_id: !businessId.includes('@') ? businessId : undefined
+                        }
+                    }],
+                    application_context: {
+                        brand_name: 'Fuze',
+                        shipping_preference: 'NO_SHIPPING'
+                    }
+                });
+            },
+            
+            onApprove: function(data, actions) {
+                return actions.order.capture().then(async function(details) {
+                    const name = document.getElementById('donor-name').value.trim() || 'Anonymous';
+                    const message = document.getElementById('message').value.trim();
+                    const amount = parseFloat(document.getElementById('amount').value) || 0;
+                    
+                    try {
+                        const resp = await fetch(`/fuze/donate/${token}/capture`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                order_id: data.orderID,
+                                payer_id: details.payer?.payer_id,
+                                name: name,
+                                message: message,
+                                amount: amount
+                            })
+                        });
+                        
+                        const result = await resp.json();
+                        
+                        if (!resp.ok) {
+                            if (result.field) {
+                                showFieldError(result.field, 'Profanity is not allowed');
+                            } else {
+                                showError(result.error || 'Failed to process donation');
+                            }
+                            return;
+                        }
+                    } catch (e) {
+                        console.error('Failed to record donation:', e);
+                    }
+                    
+                    document.getElementById('donation-form').classList.add('hidden');
+                    document.getElementById('success-message').classList.remove('hidden');
+                    const supportersCard = document.querySelector('.supporters-card');
+                    if (supportersCard) supportersCard.classList.add('hidden');
+                });
+            },
+            
+            onError: function(err) {
+                console.error('PayPal error:', err);
+                const amount = parseFloat(document.getElementById('amount').value) || 0;
+                if (!amount || amount <= 0) {
+                    showError('Please enter a donation amount before proceeding.');
+                } else {
+                    showError('Something went wrong with PayPal. Please try again.');
+                }
+            },
+            
+            onCancel: function() {}
+        }).render('#paypal-button-container');
+    </script>
+</body>
+</html>

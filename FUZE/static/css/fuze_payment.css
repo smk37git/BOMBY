@@ -1,0 +1,772 @@
+/* ===========================================
+   Fuze Payment Pages
+   =========================================== */
+
+/* Pricing Page */
+.pricing-page {
+    padding: 60px 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.pricing-page-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.pricing-page-header h1 {
+    font-size: 48px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 16px;
+}
+
+.pricing-page-header p {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.6);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.pricing-back {
+    margin-bottom: 30px;
+}
+
+.pricing-back a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    background: #161616;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.pricing-back a:hover {
+    background: #222222;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Pricing Grid */
+.pricing-grid-full {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 40px;
+}
+
+.pricing-card-full {
+    background: #0f0f0f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 36px 28px;
+    padding-top: 44px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    margin-top: 12px;
+}
+
+.pricing-card-full.featured {
+    background: #161616;
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.15);
+}
+
+.pricing-badge-full {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.pricing-tier {
+    text-align: center;
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pricing-tier h3 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #fff;
+    margin: 0 0 16px 0;
+}
+
+.pricing-amount {
+    font-size: 52px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+
+.pricing-period {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.5);
+    margin-left: 4px;
+}
+
+/* Pricing Features List */
+.pricing-list {
+    list-style: none;
+    padding: 0;
+    flex: 1;
+}
+
+.pricing-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 10px 0;
+}
+
+.pricing-list li.included {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.pricing-list li.highlight {
+    color: #fff;
+    font-weight: 500;
+}
+
+.pricing-list li svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.pricing-list li.included svg {
+    color: #22c55e;
+}
+
+.pricing-list li.excluded svg {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Pricing Buttons */
+.pricing-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s;
+    cursor: pointer;
+    border: none;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pricing-btn-primary {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    color: #fff;
+}
+
+.pricing-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
+}
+
+.pricing-btn-secondary {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    color: #fff;
+    box-sizing: border-box;
+}
+
+.pricing-btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4);
+}
+
+.pricing-btn-disabled {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(124, 58, 237, 0.3));
+    color: rgba(255, 255, 255, 0.6);
+    cursor: not-allowed;
+    display: block;
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    border: none;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pricing-note {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 14px;
+}
+
+.pricing-note i {
+    color: #a855f7;
+    margin-right: 8px;
+}
+
+/* Current Plan Styles */
+.pricing-card-full.current {
+    border-color: rgba(168, 85, 247, 0.5);
+    background: #120e16;
+}
+
+.pricing-badge-full.current-badge {
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+}
+
+/* FAQ Section */
+.faq-section {
+    margin-top: 80px;
+}
+
+.faq-section h2 {
+    text-align: center;
+    font-size: 32px;
+    color: #fff;
+    margin-bottom: 40px;
+}
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.faq-item {
+    background: #0f0f0f;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 24px;
+}
+
+.faq-item h4 {
+    color: #fff;
+    font-size: 16px;
+    margin: 0 0 12px 0;
+}
+
+.faq-item p {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ===========================================
+   Fuze Checkout Page
+   =========================================== */
+.fuze-checkout-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.fuze-checkout-header {
+    text-align: center;
+    padding: 20px 40px;
+    background: #0f0f0f;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    width: fit-content;
+    margin: 0 auto 20px auto;
+}
+
+.fuze-checkout-header h1 {
+    font-size: 2rem;
+    color: white;
+    margin: 0;
+    font-weight: 600;
+}
+
+.fuze-checkout-header p {
+    color: rgba(255, 255, 255, 0.6);
+    margin: 10px 0 0 0;
+}
+
+.fuze-checkout-back {
+    margin-bottom: 30px;
+}
+
+.fuze-checkout-back a {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    text-decoration: none;
+    padding: 10px 20px;
+    background: #161616;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.fuze-checkout-back a:hover {
+    background: #222222;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.fuze-checkout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 30px;
+    align-items: start;
+}
+
+/* Order Summary & Payment Cards */
+.fuze-order-card,
+.fuze-payment-card {
+    background: #0f0f0f;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 30px;
+}
+
+.fuze-order-card h2,
+.fuze-payment-card h2 {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 25px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+}
+
+.fuze-order-card h2 i,
+.fuze-payment-card h2 i {
+    margin-right: 10px;
+    color: #a855f7;
+}
+
+/* Product Item */
+.fuze-product-item {
+    display: flex;
+    gap: 20px;
+    padding-bottom: 25px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 25px;
+}
+
+.fuze-product-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(124, 58, 237, 0.2));
+    border: 2px solid rgba(168, 85, 247, 0.5);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.fuze-product-icon i {
+    font-size: 1.8rem;
+    color: #a855f7;
+}
+
+.fuze-product-details {
+    flex: 1;
+}
+
+.fuze-product-details h3 {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin: 0 0 8px 0;
+}
+
+.fuze-product-details p {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.fuze-product-price {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Plan Info Box */
+.fuze-plan-info {
+    background: #22152e;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.fuze-plan-info p {
+    color: #c084fc;
+    font-size: 0.9rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fuze-plan-info i {
+    color: #a855f7;
+}
+
+/* Order Total */
+.fuze-order-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fuze-order-total .label {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.fuze-order-total .value {
+    color: #a855f7;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+/* Secure Badge */
+.fuze-secure-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.8rem;
+}
+
+.fuze-secure-badge i {
+    color: #a855f7;
+}
+
+/* Checkout Loading */
+.fuze-checkout-loading {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.fuze-spinner {
+    width: 45px;
+    height: 45px;
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top-color: #a855f7;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    animation: fuze-spin 1s linear infinite;
+}
+
+@keyframes fuze-spin {
+    to { transform: rotate(360deg); }
+}
+
+.fuze-checkout-loading p {
+    color: rgba(255, 255, 255, 0.6);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* Checkout Error */
+.fuze-checkout-error {
+    text-align: center;
+    padding: 40px 20px;
+    color: #ff6b6b;
+}
+
+.fuze-checkout-error i {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    display: block;
+}
+
+/* Payment Methods */
+.fuze-payment-methods {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 25px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fuze-payment-methods span {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.8rem;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.fuze-payment-methods i {
+    font-size: 1.6rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* ===========================================
+   Fuze Payment Success Page
+   =========================================== */
+.fuze-success-container {
+    max-width: 600px;
+    margin: 60px auto;
+    padding: 0 20px;
+}
+
+.fuze-success-card {
+    background: #0f0f0f;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+}
+
+.fuze-success-icon {
+    font-size: 4rem;
+    color: #22c55e;
+    margin-bottom: 1.5rem;
+    animation: fuze-pulse 2s ease-in-out;
+}
+
+@keyframes fuze-pulse {
+    0% { transform: scale(0.8); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.fuze-success-title {
+    font-size: 2rem;
+    color: white;
+    margin-bottom: 1rem;
+}
+
+.fuze-success-subtitle {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 2rem;
+}
+
+.fuze-order-details {
+    background: #070707;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.fuze-detail-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.fuze-detail-item:last-child {
+    margin-bottom: 0;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.fuze-detail-label {
+    font-weight: 600;
+}
+
+.fuze-detail-value {
+    color: white;
+}
+
+.fuze-action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 1.5rem;
+}
+
+.fuze-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #a855f7, #7c3aed);
+    color: white;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.fuze-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(168, 85, 247, 0.4);
+}
+
+.fuze-action-btn.secondary {
+    background: #161616;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.fuze-action-btn.secondary:hover {
+    background: #222222;
+    box-shadow: none;
+}
+
+/* Stripe Checkout Container */
+#checkout {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#checkout iframe {
+    border-radius: 12px;
+}
+
+/* ===========================================
+   Responsive
+   =========================================== */
+@media (max-width: 900px) {
+    .pricing-grid-full {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+        margin: 0 auto 40px;
+    }
+    
+    .pricing-back {
+        text-align: center;
+    }
+    
+    .faq-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .fuze-checkout-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .fuze-checkout-header {
+        padding: 20px;
+        width: auto;
+        margin: 0 0 20px 0;
+    }
+    
+    .fuze-checkout-back {
+        text-align: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .pricing-page {
+        padding: 40px 16px;
+    }
+    
+    .pricing-page-header h1 {
+        font-size: 32px;
+    }
+    
+    .pricing-page-header p {
+        font-size: 16px;
+    }
+    
+    .pricing-amount {
+        font-size: 40px;
+    }
+    
+    .pricing-card-full {
+        padding: 28px 20px;
+        padding-top: 40px;
+    }
+    
+    .faq-section h2 {
+        font-size: 24px;
+    }
+    
+    .fuze-checkout-container {
+        padding: 20px 16px;
+    }
+    
+    .fuze-checkout-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .fuze-order-card,
+    .fuze-payment-card {
+        padding: 20px;
+    }
+    
+    .fuze-product-item {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .fuze-product-icon {
+        margin: 0 auto;
+    }
+    
+    .fuze-action-buttons {
+        flex-direction: column;
+    }
+    
+    .fuze-action-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .fuze-success-card {
+        padding: 30px 20px;
+    }
+    
+    .fuze-success-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* Large screens */
+@media (min-width: 1400px) {
+    .pricing-page {
+        max-width: 1200px;
+    }
+    
+    .pricing-grid-full {
+        gap: 32px;
+    }
+    
+    .pricing-card-full {
+        padding: 40px 32px;
+        padding-top: 48px;
+    }
+    
+    .fuze-checkout-container {
+        max-width: 1200px;
+    }
+}

@@ -34,18 +34,18 @@ class User(AbstractUser):
     class Meta:
         db_table = 'ACCOUNTS_user'
 
-    # FuzeOBS fields
-    fuzeobs_tier = models.CharField(max_length=20, default='free')
-    fuzeobs_ai_usage_monthly = models.IntegerField(default=0)
-    fuzeobs_usage_reset_date = models.DateField(null=True, blank=True)
-    fuzeobs_chat_history = models.JSONField(default=list, blank=True)
+    # Fuze fields
+    fuze_tier = models.CharField(max_length=20, default='free')
+    fuze_ai_usage_monthly = models.IntegerField(default=0)
+    fuze_usage_reset_date = models.DateField(null=True, blank=True)
+    fuze_chat_history = models.JSONField(default=list, blank=True)
     quickstart_dismissed = models.BooleanField(default=False)
-    fuzeobs_activated = models.BooleanField(default=False)
-    fuzeobs_first_login = models.DateTimeField(null=True, blank=True)
-    fuzeobs_last_active = models.DateTimeField(null=True, blank=True)
-    fuzeobs_total_sessions = models.IntegerField(default=0)
-    fuzeobs_app_version = models.CharField(max_length=20, blank=True)
-    fuzeobs_token_version = models.IntegerField(default=0)
+    fuze_activated = models.BooleanField(default=False)
+    fuze_first_login = models.DateTimeField(null=True, blank=True)
+    fuze_last_active = models.DateTimeField(null=True, blank=True)
+    fuze_total_sessions = models.IntegerField(default=0)
+    fuze_app_version = models.CharField(max_length=20, blank=True)
+    fuze_token_version = models.IntegerField(default=0)
 
     # Rest of model stays the same
     user_type = models.CharField(

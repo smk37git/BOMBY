@@ -35,8 +35,8 @@ def github_latest_bomby_commit(request, username, repo):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
     
-def fuzeobs_project(request):
-    return render(request, 'PORTFOLIO/fuzeobs_project.html')
+def fuze_project(request):
+    return render(request, 'PORTFOLIO/fuze_project.html')
 
 def fraternity_project(request):
     return render(request, 'PORTFOLIO/fraternity_project.html')

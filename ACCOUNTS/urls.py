@@ -52,8 +52,8 @@ urlpatterns = [
      path('add-discount/', views.add_discount, name='add_discount'),
      path('remove-discount/', views.remove_discount, name='remove_discount'),
      path('check-discount-history/', views.check_discount_history, name='check_discount_history'),
-     path('bulk-change-fuzeobs-tier/', views.bulk_change_fuzeobs_tier, name='bulk_change_fuzeobs_tier'),
-     path('reset-fuzeobs-usage/', views.reset_fuzeobs_usage, name='reset_fuzeobs_usage'),
+     path('bulk-change-fuze-tier/', views.bulk_change_fuze_tier, name='bulk_change_fuze_tier'),
+     path('reset-fuze-usage/', views.reset_fuze_usage, name='reset_fuze_usage'),
 
      # Messaging URLs
      path('messages/', views.inbox, name='inbox'),

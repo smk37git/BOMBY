@@ -1,0 +1,354 @@
+{% extends 'MAIN/base.html' %}
+{% load static %}
+
+{% block title %}Checkout - Fuze {{ plan_name }} | BOMBY{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/fuze_payment.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+{% endblock %}
+
+{% block background %}
+{% include 'MAIN/base_background.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="fuze-checkout-container">
+    <div class="fuze-checkout-header">
+        <h1>Secure Checkout</h1>
+        <p id="checkout-plan-title">Fuze {{ plan_name }}</p>
+    </div>
+    
+    <div class="fuze-checkout-back">
+        <a href="{% url 'FUZE:pricing' %}"><i class="fas fa-arrow-left"></i> Back to Pricing</a>
+    </div>
+    
+    <div class="fuze-checkout-grid">
+        <div class="fuze-order-card">
+            <h2><i class="fas fa-shopping-cart"></i> Order Summary</h2>
+            
+            <div class="fuze-product-item">
+                <div class="fuze-product-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="fuze-product-details">
+                    <h3 id="product-name">Fuze {{ plan_name }}</h3>
+                    <p id="product-billing">{% if plan_type == 'pro' %}Monthly Subscription{% else %}One-time Purchase{% endif %}</p>
+                </div>
+                <div class="fuze-product-price" id="product-price">${{ price }}</div>
+            </div>
+            
+            {% if plan_type == 'pro' %}
+            <div class="fuze-upsell-toggle">
+                <label class="upsell-label" for="plan-3month-toggle">
+                    <input type="checkbox" id="plan-3month-toggle">
+                    <span class="upsell-check"><i class="fas fa-check"></i></span>
+                    <div class="upsell-text">
+                        <strong>Pay 3 months upfront — $20 <span class="upsell-save">Save $2.50</span></strong>
+                        <small>Sweet spot for regular tuning as your channel grows</small>
+                    </div>
+                </label>
+            </div>
+            {% endif %}
+            
+            <div class="fuze-plan-info">
+                {% if plan_type == 'pro' %}
+                <p id="plan-info-text"><i class="fas fa-sync-alt"></i> Billed monthly. Cancel anytime.</p>
+                {% else %}
+                <p><i class="fas fa-infinity"></i> One-time payment. Lifetime access.</p>
+                {% endif %}
+            </div>
+
+            <div class="fuze-creator-code">
+                <div class="creator-code-label">Have a creator code?</div>
+                <div class="creator-code-input">
+                    <input type="text" id="cc-input" placeholder="Enter code" maxlength="50" style="text-transform:uppercase;">
+                    <button type="button" id="cc-apply-btn">Apply</button>
+                </div>
+                <div id="cc-feedback"></div>
+            </div>
+            
+            <div class="fuze-order-total">
+                <span class="label" id="total-label">Total{% if plan_type == 'pro' %} Today{% endif %}</span>
+                <span class="value" id="total-value">${{ price }}</span>
+            </div>
+            
+            <p class="fuze-checkout-legal">
+                By completing this purchase, you agree to our
+                <a href="https://bomby.us/terms/" target="_blank">Terms of Service</a> and
+                <a href="https://bomby.us/privacy/" target="_blank">Privacy Policy</a>.
+            </p>
+            
+            <div class="fuze-secure-badge">
+                <i class="fas fa-lock"></i>
+                <span>Secured by Stripe &bull; 256-bit SSL encryption</span>
+            </div>
+        </div>
+        
+        <div class="fuze-payment-card">
+            <h2><i class="fas fa-credit-card"></i> Payment Details</h2>
+            
+            <div id="checkout-loading" class="fuze-checkout-loading">
+                <div class="fuze-spinner"></div>
+                <p>Loading secure checkout...</p>
+            </div>
+            
+            <div id="checkout"></div>
+            
+            <div id="checkout-error" class="fuze-checkout-error" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error loading checkout. Please refresh and try again.</p>
+            </div>
+            
+            <div class="fuze-payment-methods">
+                <span>We accept:</span>
+                <i class="fab fa-cc-visa"></i>
+                <i class="fab fa-cc-mastercard"></i>
+                <i class="fab fa-cc-amex"></i>
+                <i class="fab fa-cc-discover"></i>
+                <i class="fab fa-cc-apple-pay"></i>
+                <i class="fab fa-google-pay"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.fuze-upsell-toggle {
+    margin: 16px 0;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: rgba(255,255,255,0.03);
+    transition: border-color 0.2s, background 0.2s;
+}
+.fuze-upsell-toggle:hover { border-color: rgba(255,255,255,0.2); }
+.fuze-upsell-toggle.active {
+    border-color: #6c5ce7;
+    background: rgba(108,92,231,0.08);
+}
+.upsell-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+.upsell-label input[type="checkbox"] { display: none; }
+.upsell-check {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    border-radius: 5px;
+    border: 2px solid rgba(255,255,255,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: transparent;
+    transition: all 0.2s;
+    background: transparent;
+}
+.upsell-label input:checked ~ .upsell-check {
+    background: #6c5ce7;
+    border-color: #6c5ce7;
+    color: #fff;
+}
+.upsell-text strong { display: block; font-size: 0.95rem; color: #fff; }
+.upsell-text small { color: rgba(255,255,255,0.5); font-size: 0.8rem; }
+.upsell-save {
+    display: inline-block;
+    background: rgba(0,200,83,0.15);
+    color: #00c853;
+    font-size: 0.75rem;
+    padding: 1px 7px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: 600;
+}
+.fuze-checkout-legal {
+    text-align: center;
+    font-size: 0.68rem;
+    color: rgba(255,255,255,0.45);
+    margin: 12px 0 4px;
+    line-height: 1.5;
+}
+.fuze-checkout-legal a {
+    color: rgba(255,255,255,0.65);
+    text-decoration: underline;
+}
+
+/* Creator Code */
+.fuze-creator-code { margin: 12px 0; }
+.creator-code-label {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 6px;
+}
+.creator-code-input { display: flex; gap: 8px; }
+.creator-code-input input {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: #fff;
+    font-size: 0.85rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+.creator-code-input input:focus { border-color: rgba(168, 85, 247, 0.5); }
+.creator-code-input button {
+    background: rgba(168, 85, 247, 0.15);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: #c084fc;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: background 0.2s, border-color 0.2s;
+}
+.creator-code-input button:hover {
+    background: rgba(168, 85, 247, 0.25);
+    border-color: rgba(168, 85, 247, 0.5);
+}
+#cc-feedback { font-size: 0.9rem; margin-top: 8px; }
+#cc-feedback.valid {
+    background: rgba(168, 85, 247, 0.15);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 8px;
+    padding: 10px 15px;
+    color: #c084fc;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+#cc-feedback.invalid { color: #f87171; padding-left: 2px; }
+</style>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+(function() {
+    var STRIPE_KEY = "{{ stripe_publishable_key }}";
+    var CSRF_TOKEN = "{{ csrf_token }}";
+    var BASE_PLAN_TYPE = "{{ plan_type }}";
+    var currentPlanType = BASE_PLAN_TYPE;
+    var currentCheckout = null;
+    var appliedCreatorCode = null;
+
+    function showError(msg) {
+        document.getElementById('checkout-loading').style.display = 'none';
+        var el = document.getElementById('checkout-error');
+        el.style.display = 'block';
+        el.innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>' + msg + '</p>';
+    }
+
+    if (!STRIPE_KEY || STRIPE_KEY === '' || STRIPE_KEY === 'None') {
+        showError('Payment system temporarily unavailable. Please try again later.');
+        return;
+    }
+
+    var stripe = Stripe(STRIPE_KEY);
+    var checkoutSessionId = null;
+
+    function createCheckout(planType) {
+        document.getElementById('checkout-loading').style.display = 'flex';
+        document.getElementById('checkout-error').style.display = 'none';
+        document.getElementById('checkout').innerHTML = '';
+
+        if (currentCheckout) {
+            currentCheckout.destroy();
+            currentCheckout = null;
+        }
+
+        fetch('{% url "FUZE:create_checkout_session" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF_TOKEN
+            },
+            body: JSON.stringify({ plan_type: planType, creator_code: appliedCreatorCode })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.error) throw new Error(data.error);
+            if (!data.clientSecret) throw new Error('No client secret returned');
+
+            checkoutSessionId = data.sessionId;
+            document.getElementById('checkout-loading').style.display = 'none';
+
+            return stripe.initEmbeddedCheckout({
+                clientSecret: data.clientSecret,
+                onComplete: function() {
+                    window.location.href = '/fuze/payment/success/?session_id=' + checkoutSessionId;
+                }
+            });
+        })
+        .then(function(checkout) {
+            currentCheckout = checkout;
+            checkout.mount('#checkout');
+        })
+        .catch(function(error) {
+            console.error('Checkout error:', error);
+            showError('Error loading checkout: ' + error.message);
+        });
+    }
+
+    // Creator code apply
+    document.getElementById('cc-apply-btn').addEventListener('click', function() {
+        var code = document.getElementById('cc-input').value.trim().toUpperCase();
+        var feedback = document.getElementById('cc-feedback');
+        if (!code) return;
+
+        fetch('{% url "FUZE:validate_creator_code" %}?code=' + encodeURIComponent(code))
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.valid) {
+                appliedCreatorCode = code;
+                feedback.className = 'valid';
+                feedback.textContent = 'Supporting: ' + data.creator_name;
+                createCheckout(currentPlanType);
+            } else {
+                appliedCreatorCode = null;
+                feedback.className = 'invalid';
+                feedback.textContent = 'Invalid or inactive code.';
+            }
+        });
+    });
+
+    // Upsell toggle
+    var toggle = document.getElementById('plan-3month-toggle');
+    if (toggle) {
+        toggle.addEventListener('change', function() {
+            var wrapper = this.closest('.fuze-upsell-toggle');
+            if (this.checked) {
+                currentPlanType = '3month';
+                wrapper.classList.add('active');
+                document.getElementById('checkout-plan-title').textContent = 'Fuze Pro (3-Month)';
+                document.getElementById('product-name').textContent = 'Fuze Pro (3-Month)';
+                document.getElementById('product-billing').textContent = 'One-time · 3 months of Pro';
+                document.getElementById('product-price').textContent = '$20.00';
+                document.getElementById('plan-info-text').innerHTML = '<i class="fas fa-calendar-check"></i> One-time payment. 3 months of Pro access.';
+                document.getElementById('total-label').textContent = 'Total';
+                document.getElementById('total-value').textContent = '$20.00';
+            } else {
+                currentPlanType = 'pro';
+                wrapper.classList.remove('active');
+                document.getElementById('checkout-plan-title').textContent = 'Fuze Pro';
+                document.getElementById('product-name').textContent = 'Fuze Pro';
+                document.getElementById('product-billing').textContent = 'Monthly Subscription';
+                document.getElementById('product-price').textContent = '$7.50';
+                document.getElementById('plan-info-text').innerHTML = '<i class="fas fa-sync-alt"></i> Billed monthly. Cancel anytime.';
+                document.getElementById('total-label').textContent = 'Total Today';
+                document.getElementById('total-value').textContent = '$7.50';
+            }
+            createCheckout(currentPlanType);
+        });
+    }
+
+    // Initial checkout creation
+    createCheckout(currentPlanType);
+})();
+</script>
+{% endblock %}
