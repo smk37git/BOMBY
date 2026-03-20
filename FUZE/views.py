@@ -860,7 +860,7 @@ User = get_user_model()
 
 # FUZE UPDATES
 
-FUZE_VERSION = '1.1.5'
+FUZE_VERSION = '1.1.6'
 
 @require_http_methods(["GET"])
 def fuze_check_update(request):
@@ -875,13 +875,13 @@ def fuze_check_update(request):
     return JsonResponse({
         'version': FUZE_VERSION,
         'download_url': urls.get(platform, urls['windows']),
-        'changelog': 'Fuze 1.1.5 | Fuze-AI v2.0 Websocket Context Update',
+        'changelog': 'Fuze 1.1.6 | Content Update',
         'mandatory': True
     })
 
 FUZE_PATCH_NOTES = {
     'version': FUZE_VERSION,
-    'changelog': 'FUZE 1.1.5 | Fuze-AI v2.0 Websocket Context Update',
+    'changelog': 'FUZE 1.1.56| Content Update',
     'notes': [
         '- Fuze Development is now 1.0 after 6 months of work!',
         '- Upgraded Fuze-AI to now use commands to modify OBS!',
