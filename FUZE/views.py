@@ -875,13 +875,13 @@ def fuze_check_update(request):
     return JsonResponse({
         'version': FUZE_VERSION,
         'download_url': urls.get(platform, urls['windows']),
-        'changelog': 'Fuze 1.1.6 | Content Update',
+        'changelog': 'Fuze 1.1.7 | Disclaimer Update',
         'mandatory': True
     })
 
 FUZE_PATCH_NOTES = {
     'version': FUZE_VERSION,
-    'changelog': 'FUZE 1.1.56| Content Update',
+    'changelog': 'FUZE 1.1.7 | Disclaimer Update',
     'notes': [
         '- Fuze Development is now 1.0 after 6 months of work!',
         '- Upgraded Fuze-AI to now use commands to modify OBS!',
