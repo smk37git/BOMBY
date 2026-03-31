@@ -860,7 +860,7 @@ User = get_user_model()
 
 # FUZE UPDATES
 
-FUZE_VERSION = '1.1.6'
+FUZE_VERSION = '1.1.7'
 
 @require_http_methods(["GET"])
 def fuze_check_update(request):
