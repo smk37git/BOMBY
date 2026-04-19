@@ -2201,7 +2201,7 @@ def fuze_create_checkout_session(request):
         return_url = request.build_absolute_uri('/fuze/payment/success/') + '?session_id={CHECKOUT_SESSION_ID}'
 
         # Validate creator code if provided
-        creator_code_str = data.get('creator_code', '').strip().upper()
+        creator_code_str = (data.get('creator_code') or '').strip().upper()
         valid_code = None
         if creator_code_str:
             from .models import CreatorCode
